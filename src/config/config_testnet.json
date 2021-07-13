@@ -1,0 +1,178 @@
+{
+  "GlobalConfigExample": "globalConfig Example Value",
+  "StoremanService": {
+    "WanInfo": {
+      "chainId": "2153201998",
+      "chainType": "WAN",
+      "chainName": "Wanchain",
+      "crossScAddr": "0x62de27e16f6f31d9aa5b02f4599fc6e21b339e79",
+      "coinFastMintGasLimit": 500000,
+      "erc20ApproveGasLimit": 80000,
+      "erc20FastBurnGasLimit": 500000,
+      "erc20FastMintGasLimit": 500000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 999
+    },
+    "EthInfo": {
+      "chainId": "2147483708",
+      "chainType": "ETH",
+      "chainName": "Ethereum",
+      "crossScAddr": "0x7b985c9379a13d2adf685aee9cb6d2e3f1809ffb",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 4
+    },
+    "BscInfo": {
+      "chainId": "2147484362",
+      "chainType": "BNB",
+      "chainName": "BSC",
+      "crossScAddr": "0xb12513cFCb13b7bE59Ba431C040B7206B0a211b9",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 97
+    }
+  },
+  "serviceName": {
+    "testConfig": "testConfig Value"
+  },
+  "chainId": {
+    "ETH": 4,
+    "WAN": [3, 999],
+    "BNB": 97
+  },
+  "UIStrService": {
+    "Failed": "Failed",
+    "Succeeded": "Succeeded",
+    "Rejected": "Rejected",
+    "approve0Title": "approve0Title",
+    "approve0Desc": "approve0Desc",
+    "approveValueTitle": "approveValueTitle",
+    "approveValueDesc": "approveValueDesc",
+    "MintTitle": "MintTitle",
+    "MintDesc": "MintDesc",
+    "BurnTitle": "BurnTitle",
+    "BurnDesc": "BurnDesc"
+  },
+  "iWanConnectorService": {
+    "iWanOption": {
+      "options": [
+        {
+          "url": "apitest.wanchain.org",
+          "port": 8443,
+          "flag": "ws",
+          "version": "v3",
+          "timeout": 300000
+        }
+      ]
+    }
+  },
+  "TaskService": {
+    "taskInterval": 2000
+  },
+  "ScEventScanService": {
+    "WANScScanInfo": {
+      "taskInterval": 3000
+    },
+    "ETHScScanInfo": {
+      "taskInterval": 8000
+    },
+    "BSCScScanInfo": {
+      "taskInterval": 3000
+    },
+    "BtcTxScanInfo": {
+      "taskInterval": 5000
+    },
+    "XrpTxScanInfo": {
+      "taskInterval": 5000
+    },
+    "LtcTxScanInfo": {
+      "taskInterval": 5000
+    }
+  },
+  "WanMaskService": {
+    "checkInterval": 1000
+  },
+  "apiServer": {
+    "url": "https://bridge-testnet.wanchain.org"
+  },
+  "CheckBtcTxService": {
+    "queryActionInfoInterval": 300000
+  },
+  "CheckXrpTxService": {
+    "queryActionInfoInterval": 120000
+  },
+  "CheckLtcTxService": {
+    "queryActionInfoInterval": 300000
+  },
+  "noEthChainInfo": [
+    {
+      "chainId": "2147483648",
+      "chainType": "BTC",
+      "chainName": "Bitcoin",
+      "NETWORK": "testnet",
+      "mintNetworkFee": "mintNetworkFee",
+      "burnNetworkFee": "burnNetworkFee",
+      "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 8
+    },
+    {
+      "chainId": "2147483792",
+      "chainType": "XRP",
+      "chainName": "XRP Ledger",
+      "mintNetworkFee": "mintNetworkFee",
+      "burnNetworkFee": "burnNetworkFee",
+      "mintFromChainHandle": "MintXrpFromRippleHandle",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 6
+    },
+    {
+      "chainId": "2147483650",
+      "chainType": "LTC",
+      "chainName": "Litecoin",
+      "NETWORK": "testnet",
+      "mintNetworkFee": "mintNetworkFee",
+      "burnNetworkFee": "burnNetworkFee",
+      "mintFromChainHandle": "MintLtcFromLitecoinHandle",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 8
+    }
+  ],
+  "tokenPairCfg": [
+    {
+      "id": "6",
+      "comment": "eos token between WAH<->ETH",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20"
+    },
+    {
+      "id": "24",
+      "comment": "FNX token between WAH<->ETH",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnFnxErc20",
+      "wanchainTokenAddr": "0x0664b5e161a741bcdec503211beeec1e8d0edb37"
+    },
+    {
+      "id": "27",
+      "comment": "FNX token between WAH<->BSC",
+      "mintHandle": "MintWanFnxErc20",
+      "burnHandle": "BurnWanFnxErc20",
+      "wanchainTokenAddr": "0x0664b5e161a741bcdec503211beeec1e8d0edb37"
+    }
+  ],
+  "ethereumUrl": "https://testnet.wanscan.org/tx/",
+  "wanchainUrl": "https://testnet.wanscan.org/tx/",
+  "MinXrpValue": 21
+}
+
+
+
