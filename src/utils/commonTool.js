@@ -1,33 +1,3 @@
-function sortAssetPairs(assetPairList) {
-
-  let mapAssetPairs = new Map();
-  for(let i=0; i<assetPairList.length; i++){
-    let assetType = assetPairList[i].assetType;
-    let assetAry = mapAssetPairs.get(assetType);
-    if(!assetAry){
-      assetAry = new Array();
-    }
-    assetAry.push(assetPairList[i]);
-    mapAssetPairs.set(assetType, assetAry);
-  }
-
-  let assetPairs = [];
-  for(let [type, aryObj] of mapAssetPairs){
-    for(let j=0; j< aryObj.length; j++){
-      assetPairs.push(aryObj[j]);
-    }
-  }
-
-  return assetPairs;
-}
-
-function  sortArrayMembers(inputAry) {
-  
-  inputAry.sort((a, b)=>{return -(parseInt(a.ccTaskId) - parseInt(b.ccTaskId))});
-
-  return inputAry;
-}
-
 function hexCharCodeToStr(hexCharCodeStr) {
   if(!hexCharCodeStr){
     return '';
@@ -50,7 +20,7 @@ function hexCharCodeToStr(hexCharCodeStr) {
 }
 
 async function sleep(time) {
-  return new Promise(function (resolve, reject) {
+  return new Promise(function (resolve) {
       setTimeout(function () {
           resolve();
       }, time);
@@ -58,8 +28,6 @@ async function sleep(time) {
 };
 
 module.exports = {
-  sortAssetPairs,
-  sortArrayMembers,
   hexCharCodeToStr,
   sleep  
 }

@@ -44,13 +44,13 @@ class TokenPairService {
             for (let i = 0; i < smgList.length; i++) {
                 let group = smgList[i];
                 let curTime = new Date().getTime();
-                let beginTime = group.startTime * 1000;
+                let startTime = group.startTime * 1000;
                 let endTime = group.endTime * 1000;
-                if (curTime > beginTime && curTime < endTime) {
-                    group.expireTime = new Date(endTime).toLocaleString();
+                if ((group.status == 5) && (curTime > startTime) && (curTime < endTime)) {
                     workingList.push(group);
                 }
             }
+            workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
             let tokenPairs = await this.iwanBCConnector.getTokenPairs();
             let tokenPairMap = new Map();
             await Promise.all(tokenPairs.map(async (pair) => {
