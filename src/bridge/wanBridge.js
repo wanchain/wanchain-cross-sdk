@@ -10,7 +10,7 @@ const tool = require('../utils/commonTool.js');
 class WanBridge extends EventEmitter {
   constructor(network) {
     super();
-    this.network = network;
+    this.network = (network == "mainnet")? "mainnet" : "testnet";
     this.service = new StartService();
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
@@ -204,14 +204,14 @@ class WanBridge extends EventEmitter {
     } else if ("WAN" == chainType) {
       return tool.isValidWanAddress(account);
     } else if ("BTC" == chainType) {
-      return tool.isValidBtcAddress(account);
+      return tool.isValidBtcAddress(account, this.network);
     } else if ("XRP" == chainType) {
       return tool.isValidXrpAddress(account);
     } else if ("LTC" == chainType) {
-      return tool.isValidLtcAddress(account);
+      return tool.isValidLtcAddress(account, this.network);
     } else if ("DOT" == chainType) {
       // PLAN: adapted to polka app
-      return tool.isValidDotAddress(account);
+      return tool.isValidDotAddress(account, this.network);
     } else {
       console.log("unsupported chain %s", chainType);
       return false;

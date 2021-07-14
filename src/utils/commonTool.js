@@ -78,20 +78,21 @@ function isValidXrpAddress(accountAddr) {
   return isValid;
 }
 
-function isValidBtcAddress(address) {
+function isValidBtcAddress(address, network) {
   try {
-    return btcValidate(address, net);
+    return btcValidate(address, network);
   } catch(err) {
     console.log("validate BTC address %s err: %O", address, err);
     return false;
   }
 }
 
-function isValidLtcAddress(address) {
+function isValidLtcAddress(address, network) {
   if (typeof (address) != 'string') {
     return false;
   }
   try {
+    let isMainNet = (network == 'mainnet')? true : false;
     if (litecore.Address.isValid(address, isMainNet? 'livenet' : 'testnet')) {
       return true;
     }
@@ -109,10 +110,10 @@ function isValidLtcAddress(address) {
   return false;
 }
 
-function isValidDotAddress(account){
+function isValidDotAddress(account, network){
   let formattedAddr = '';
   try {
-    if (isMainNet) {
+    if (network == 'mainnet') {
       formattedAddr = dotTxWrapper.deriveAddress(account, dotTxWrapper.POLKADOT_SS58_FORMAT);
       console.log("POLKADOT_SS58_FORMAT account: %s", formattedAddr);
     } else {
