@@ -230,7 +230,7 @@ class WanBridge extends EventEmitter {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
           timestamp: task.ccTaskId,
-          assert: task.assetType,
+          asset: task.assetType,
           fromChain: task.srcAsset.split('@')[1],
           toChain: task.dstAsset.split('@')[1],
           direction,
