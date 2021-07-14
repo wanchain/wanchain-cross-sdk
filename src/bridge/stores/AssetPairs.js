@@ -1,40 +1,35 @@
 class AssetPairs {
 
   constructor() {
-    this.assetPairList = new Array();// assetType => [{ accountObj }]
+    this.assetPairList = []; // assetType => [{ accountObj }]
   }
 
-  setAssetPairs(assetPair, smgs) {
-    let exist = this.assetPairList.find(pair => pair.assetPairId == assetPair.id);
-    if (!exist) {
-      exist = {assetPairId: assetPair.id};
-      this.assetPairList.push(exist);
-    }
-    // update
-    exist.assetType = assetPair.ancestorSymbol;  // the ancestory symbol for this token
-    exist.srcAsset = assetPair.fromSymbol;  // token symbol for A chain, the format is symbol@fromChainName
-    exist.dstAsset = assetPair.toSymbol; // token symbol for B chain, the format is symbol@toChainName
-    exist.decimals = assetPair.decimals;  // the token decimals  
-    exist.fromChainType = assetPair.fromChainType;  // from Chain Type  
-    exist.toChainType = assetPair.toChainType;  // to Chain Type  
-    exist.fromChainName = assetPair.fromChainName;  // from Chain Name 
-    exist.toChainName = assetPair.toChainName;  // to Chain Name    
-    exist.storemanGroup = [];
-    for (let i = 0; i < smgs.length; i++) {
-      let smg = {
-        id: smgs[i].groupId,
-        quota: smgs[i].quota,
-        gpk1: smgs[i].gpk1,
-        gpk2: smgs[i].gpk2,
-        curve1: smgs[i].curve1,
-        curve2: smgs[i].curve2,
-      };
-      exist.storemanGroup.push(smg);
-    }
-  }
-
-  sort() {
-    this.assetPairList.sort(this.sortBy);
+  setAssetPairs(assetPairs, smgs) {
+    let storemanGroup = smgs.map(smg => {
+      return {
+        id: smg.groupId,
+        quota: smg.quota,
+        gpk1: smg.gpk1,
+        gpk2: smg.gpk2,
+        curve1: smg.curve1,
+        curve2: smg.curve2        
+      }
+    });
+    let pairList = assetPairs.map(pair => {
+      return {
+        assetPairId: pair.id,
+        assetType: pair.ancestorSymbol,    // the ancestory symbol for this token
+        srcAsset: pair.fromSymbol,         // token symbol for A chain, the format is symbol@fromChainName
+        dstAsset: pair.toSymbol,           // token symbol for B chain, the format is symbol@toChainName
+        decimals: pair.decimals,           // the token decimals  
+        fromChainType: pair.fromChainType, // from Chain Type  
+        toChainType: pair.toChainType,     // to Chain Type  
+        fromChainName: pair.fromChainName, // from Chain Name 
+        toChainName: pair.toChainName,     // to Chain Name    
+        storemanGroup                      // active storeman groups
+      }
+    });
+    this.assetPairList = pairList.sort(this.sortBy);
   }
 
   sortBy(a, b) {

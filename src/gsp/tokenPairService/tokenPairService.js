@@ -58,10 +58,9 @@ class TokenPairService {
                 if (valid) { // ignore unsupported token pair
                     pair.storemangroupList = workingList;
                     tokenPairMap.set(pair.id, pair);
-                    this.webStores.assetPairs.setAssetPairs(pair, workingList);
                 }
             }));
-            this.webStores.assetPairs.sort();
+            this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), workingList);
             this.m_mapTokenPairIdObj = tokenPairMap;
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
             // console.log("tokenPairs: %O", tokenPairs);

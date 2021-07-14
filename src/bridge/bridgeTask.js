@@ -21,24 +21,13 @@ class BridgeTask {
   }
 
   async init() {
-    if (!this.checkWallet()) {
+    if (!this.bridge.checkWallet(this.assetPair, this.direction)) {
       throw "Invalid wallet";
     }
     if (!await this.getFee()) {
       throw "Unknown fee";
     }
     return true;
-  }
-
-  checkWallet() {
-    let chainType = (this.direction == "MINT")? this.assetPair.fromChainType : this.assetPair.toChainType;
-    let chainInfo = this.bridge.chainInfoService.getChainInfoByName(chainType);
-    if (chainInfo.MaskChainId) {
-      let walletChainId = this.bridge.accountSrv.getChainId();
-      return (chainInfo.MaskChainId == walletChainId);
-    } else {
-      return true;
-    }
   }
 
   async getFee() {
@@ -109,8 +98,6 @@ class BridgeTask {
     console.log("ccTaskData: %O", ccTaskData);
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
     bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
-
-
 
     //excute
     this.parseTaskStatus(taskSteps);

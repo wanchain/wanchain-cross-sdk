@@ -5,6 +5,7 @@ const AssetPairs = require('./stores/AssetPairs');
 const CrossChainTaskSteps = require('./stores/CrossChainTaskSteps');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
+const tool = require('../utils/commonTool.js');
 
 class WanBridge extends EventEmitter {
   constructor(network) {
@@ -93,7 +94,7 @@ class WanBridge extends EventEmitter {
       if (preTask.destAccount != taskRedeemHash.xrpAddr) {
         console.error("xrp received account %s is not match the destination account %s ", taskRedeemHash.xrpAddr, preTask.destAccount);
         txResult = "Error";
-      }else{
+       } else {
         console.log("xrp received account is the same with the destination address: ", taskRedeemHash.xrpAddr, preTask.destAccount);
       }
     }
@@ -132,12 +133,24 @@ class WanBridge extends EventEmitter {
       throw "Invalid direction, must be MINT or BURN";
     }
     let to = toAccount || this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
-    if (!to) {
+    if (to && this.validateToAccount(assetPair, direction, to)) {
+      let task = new BridgeTask(this, assetPair, direction, to, amount);
+      await task.init();
+      return task;
+    } else {
       throw "Invalid to address";
     }
-    let task = new BridgeTask(this, assetPair, direction, to, amount);
-    await task.init();
-    return task;
+  }
+
+  checkWallet(assetPair, direction) {
+    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let chainInfo = this.chainInfoService.getChainInfoByName(chainType);
+    if (chainInfo.MaskChainId) {
+      let walletChainId = this.accountSrv.getChainId();
+      return (chainInfo.MaskChainId == walletChainId);
+    } else {
+      return true;
+    }
   }
 
   getWalletAccount(assetPair, direction) {
@@ -145,7 +158,11 @@ class WanBridge extends EventEmitter {
     if (!["MINT", "BURN"].includes(direction)) {
       throw "Invalid direction, must be MINT or BURN";
     }
-    return this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
+    if (this.checkWallet(assetPair, direction)) {
+      return this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
+    } else {
+      throw "Invalid wallet";
+    }
   };
 
   async getAccountAsset(assetPair, direction, account) {
@@ -174,6 +191,31 @@ class WanBridge extends EventEmitter {
       networkFeeUnit = assetPair.fromChainType;
     }
     return {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
+  }
+
+  validateToAccount(assetPair, direction, account) {
+    direction = direction.toUpperCase();
+    if (!["MINT", "BURN"].includes(direction)) {
+      throw "Invalid direction, must be MINT or BURN";
+    }
+    let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    if (["ETH", "BNB", "AVAX", "DEV", "MATIC"].includes(chainType)) {
+      return tool.isValidEthAddress(account);
+    } else if ("WAN" == chainType) {
+      return tool.isValidWanAddress(account);
+    } else if ("BTC" == chainType) {
+      return tool.isValidBtcAddress(account);
+    } else if ("XRP" == chainType) {
+      return tool.isValidXrpAddress(account);
+    } else if ("LTC" == chainType) {
+      return tool.isValidLtcAddress(account);
+    } else if ("DOT" == chainType) {
+      // PLAN: adapted to polka app
+      return tool.isValidDotAddress(account);
+    } else {
+      console.log("unsupported chain %s", chainType);
+      return false;
+    }
   }
 
   getHistory(taskId = undefined) {

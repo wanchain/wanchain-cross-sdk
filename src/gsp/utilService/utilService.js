@@ -1,9 +1,5 @@
 'use strict';
 
-const wanUtil = require("wanchain-util");
-const ethUtil = require("ethereumjs-util");
-//const btcAddrValidate = require('bitcoin-address-validation');
-
 let BigNumber = require("bignumber.js");
 
 module.exports = class UtilService {
@@ -12,53 +8,6 @@ module.exports = class UtilService {
 
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
-    }
-
-    isEthAddress(address) {
-        try {
-            let validate;
-            if (/^0x[0-9a-f]{40}$/.test(address)) {
-                validate = true;
-            } else if (/^0x[0-9A-F]{40}$/.test(address)) {
-                validate = true;
-            } else {
-                validate = ethUtil.isValidChecksumAddress(address);
-            }
-            return validate;
-        }
-        catch (err) {
-            console.log("isEthAddress err:", err);
-            return false;
-        }
-    }
-
-    isWanAddress(address) {
-        try {
-            let validate;
-            if (/^0x[0-9a-f]{40}$/.test(address)) {
-                validate = true;
-            } else if (/^0x[0-9A-F]{40}$/.test(address)) {
-                validate = true;
-            } else {
-                validate = wanUtil.isValidChecksumAddress(address);
-                if(false === validate){
-                    validate = ethUtil.isValidChecksumAddress(address);
-                }
-            }
-            return validate;
-        }
-        catch (err) {
-            console.log("isWanAddress err:", err);
-            return false;
-        }
-    }
-
-    async isBtcAddress(addr) {
-        return true;
-        //console.log("btcAddrValidate:", btcAddrValidate);
-        //let btcCheckAddr = btcAddrValidate(addr);
-        //console.log("btcCheckAddr :", btcCheckAddr);
-        //return btcCheckAddr;
     }
 
     async checkBalanceGasFee(retAry, chainType, fromAddr, fee) {
