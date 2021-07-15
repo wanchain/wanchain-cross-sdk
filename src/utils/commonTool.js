@@ -1,6 +1,6 @@
 const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
-const btcValidate = require('bitcoin-address-validation');
+const btcValidate = require('bitcoin-address-validation').default;
 const xrpAddrCodec = require('ripple-address-codec');
 const litecore = require('litecore-lib');
 const dotTxWrapper = require('@substrate/txwrapper');
