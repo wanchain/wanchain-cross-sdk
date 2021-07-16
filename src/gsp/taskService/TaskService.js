@@ -1,11 +1,9 @@
 'use strict';
 
-const _ = require("lodash");
-
 module.exports = class TaskService{
     constructor() {
         this.m_aryTaskInfo = [];
-        this.m_lastRunTime = _.now();
+        this.m_lastRunTime = new Date().getTime();
     }
 
     async init(frameworkService) {
@@ -42,9 +40,9 @@ module.exports = class TaskService{
         this.m_aryTaskInfo = tmp;
     }
 
-    async taskLoop() {        
+    async taskLoop() {
         try {
-            let now = _.now();
+            let now = new Date().getTime();
             for (let idx = 0; idx < this.m_aryTaskInfo.length; ++idx) {
                 let obj = this.m_aryTaskInfo[idx];
                 try {// 避免因为一个task出错导致所有task无法执行
@@ -56,7 +54,7 @@ module.exports = class TaskService{
                 catch (err) {
                     console.log("taskLoop err:", err);
                 }
-            }            
+            }
             setTimeout(() => { this.taskLoop(); }, this.m_taskInterval);
         }
         catch (err) {

@@ -92,7 +92,7 @@ module.exports = class CheckXrpTxService {
                 if (obj.ccTaskId === ccTaskId) {
                     this.m_xrpCheckTagAry.splice(idx, 1);
                     let storageService = this.m_frameworkService.getService("StorageService");
-                    await storageService.delete("ScEventScanService", obj.ccTaskId);
+                    await storageService.delete("CheckXrpTxService", obj.ccTaskId);
                     break;
                 }
             }

@@ -113,7 +113,7 @@ module.exports = class MetaMaskService {
     getChainId() {
         try {
             if (window.ethereum) {
-                return parseInt(window.ethereum.networkVersion);
+                return parseInt(window.ethereum.chainId);
             }
             return 0;
         }

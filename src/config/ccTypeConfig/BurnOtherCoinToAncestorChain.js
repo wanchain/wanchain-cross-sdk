@@ -63,19 +63,21 @@ module.exports = class BurnOtherCoinToAncestorChain {
   }
 
   async checkErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
+    let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chain);
     let ret = await this.m_iwanBCConnector.callScFunc(chain,
       scAddr,
       "allowance",
       [ownerAddr, spenderAddr],
       scAbi);
+    console.log("checkErc20Allowance chain:", chain, "blockNumber:", blockNumber, "allowance:", ret);
     return ret;
   }
 
   async process(tokenPairObj, convertJson) {
     let globalConstant = this.m_frameworkService.getService("GlobalConstant");
 
-    console.log("BurnOtherCoinToAncestorChain tokenPairObj:", tokenPairObj);
-    console.log("BurnOtherCoinToAncestorChain convertJson:", convertJson);
+    //console.log("BurnOtherCoinToAncestorChain tokenPairObj:", tokenPairObj);
+    //console.log("BurnOtherCoinToAncestorChain convertJson:", convertJson);
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
     this.m_strApprove0Title = this.m_uiStrService.getStrByName("approve0Title");
     this.m_strApproveValueTitle = this.m_uiStrService.getStrByName("approveValueTitle");
@@ -146,12 +148,12 @@ module.exports = class BurnOtherCoinToAncestorChain {
     //   function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
     let crossChainFeesService = this.m_frameworkService.getService("CrossChainFeesService");
     let fees = await crossChainFeesService.getServcieFees(tokenPairObj.id, "BURN");
-    console.log("sevice Fee:", fees);
+    //console.log("sevice Fee:", fees);
     let userBurnFee = await crossChainFeesService.estimateBurnNetworkFee(tokenPairObj.id);
-    console.log("userBurnFee:", userBurnFee);
+    //console.log("userBurnFee:", userBurnFee);
 
     let userAccount = web3.utils.asciiToHex(convertJson.toAddr);
-    console.log("convertJson.toAddr:", convertJson.toAddr, ",userAccount:", userAccount);
+    //console.log("convertJson.toAddr:", convertJson.toAddr, ",userAccount:", userAccount);
 
     let userFastBurnParaJson = {
       "ccTaskId": convertJson.ccTaskId,
@@ -172,7 +174,7 @@ module.exports = class BurnOtherCoinToAncestorChain {
       "userBurnFee": userBurnFee.originFeeBN,
       "toAddr": convertJson.toAddr
     };
-    console.log("ProcessBurnOtherCoinToAncestorChain value:", value, ",typeof value:", typeof value);
+    //console.log("ProcessBurnOtherCoinToAncestorChain value:", value, ",typeof value:", typeof value);
     retAry.push({ "name": "ProcessBurnOtherCoinToAncestorChain", "stepIndex": retAry.length + 1, "title": this.m_strBurnTitle, "desc": this.m_strBurnDesc, "params": userFastBurnParaJson });
 
     let accountService = await this.m_frameworkService.getService("AccountService");
@@ -180,7 +182,7 @@ module.exports = class BurnOtherCoinToAncestorChain {
     for (let idx = 0; idx < retAry.length; ++idx) {
       retAry[idx].params.chainId = chainId;
     }
-    console.log("BurnErc20Handle retAry:", retAry);
+    //console.log("BurnErc20Handle retAry:", retAry);
     let utilService = this.m_frameworkService.getService("UtilService");
     if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.toChainType, convertJson.fromAddr, fees.burnFeeBN)) {
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, retAry);

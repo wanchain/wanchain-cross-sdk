@@ -19,8 +19,8 @@ module.exports = class BurnErc20Handle {
   }
 
   async process(tokenPairObj, convertJson) {
-    console.log("BurnErc20Handle tokenPairObj:", tokenPairObj);
-    console.log("BurnErc20Handle convertJson:", convertJson);
+    //console.log("BurnErc20Handle tokenPairObj:", tokenPairObj);
+    //console.log("BurnErc20Handle convertJson:", convertJson);
     let globalConstant = this.m_frameworkService.getService("GlobalConstant");
 
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
@@ -119,7 +119,7 @@ module.exports = class BurnErc20Handle {
     for (let idx = 0; idx < retAry.length; ++idx) {
       retAry[idx].params.chainId = chainId;
     }
-    console.log("BurnErc20Handle retAry:", retAry);
+    //console.log("BurnErc20Handle retAry:", retAry);
     let utilService = this.m_frameworkService.getService("UtilService");
     if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.toChainType, convertJson.fromAddr, fees.burnFeeBN)) {
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, retAry);

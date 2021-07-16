@@ -188,6 +188,10 @@ class IWanBCConnector {
     async getCrossChainFees(chainType, chainIds) {
         return await this.apiClient.getCrossChainFees(chainType, chainIds);
     }
+
+    async getStoremanGroupConfig(storemanGroupId) {
+        return await this.apiClient.getStoremanGroupConfig(storemanGroupId);
+    }
 };
 
 module.exports = IWanBCConnector;

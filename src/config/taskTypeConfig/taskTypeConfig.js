@@ -62,6 +62,16 @@ let taskTypeConfigJson = {
       "number": 12,
       "name": "ProcessWanFnxErc20UserFastBurn",
       "handle": require("./processWanFnxErc20UserFastBurn")
+    },
+    {
+      "number": 13,
+      "name": "ProcessMintLtcFromLitecoin",
+      "handle": require("./processMintLtcFromLitecoin")
+    },
+    {
+      "number": 14,
+      "name": "ProcessDotMintFromPolka",
+      "handle": require("./processDotMintFromPolka")
     }
   ]
 };

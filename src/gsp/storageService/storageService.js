@@ -1,7 +1,5 @@
 "use strict";
 
-var _ = require('lodash');
-
 // 存储格式参考
 //let all = {
 //    "StorageService_stores": [

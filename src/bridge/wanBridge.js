@@ -120,7 +120,11 @@ class WanBridge extends EventEmitter {
   }
 
   async connectMetaMask() {
-    return this.accountSrv.connectMask();
+    return this.accountSrv.connectMetaMask();
+  }
+
+  async connectPolkadot() {
+    return this.accountSrv.connectPolkadot();
   }
 
   isReady() {

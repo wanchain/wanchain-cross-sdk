@@ -16,6 +16,9 @@ module.exports = class ProcessBase {
     this.m_maskService = {
       "ETH": ethMaskService,
       "BNB": ethMaskService,
+      "AVAX": ethMaskService,
+      "DEV": ethMaskService,
+      "MATIC": ethMaskService,
       "WAN": ethMaskService
     }
   }
@@ -44,7 +47,7 @@ module.exports = class ProcessBase {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
         return;
       }
-      if (accountAry[0].toLowerCase() !== params.fromAddr.toLowerCase()) {
+      if (accountAry[0] !== params.fromAddr) {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
         return;
       }
@@ -89,11 +92,10 @@ module.exports = class ProcessBase {
       else {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
         return false;
-      }
-      return false;
-    }
-    catch (err) {
+      }      
+    } catch (err) {
       console.log("checkChainId err:", err);
+      return false;
     }
   }
 };

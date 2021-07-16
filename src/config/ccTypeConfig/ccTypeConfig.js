@@ -62,6 +62,11 @@ let ccTypeConfigJson = {
       "number": 12,
       "name": "MintLtcFromLitecoinHandle",
       "handle": require("./MintLtcFromLitecoinHandle")
+    },
+    {
+      "number": 13,
+      "name": "MintDotFromPolkaHandle",
+      "handle": require("./MintDotFromPolkaHandle")
     }
   ]
 };

@@ -184,10 +184,7 @@ class BridgeTask {
     }
     let records = this.bridge.stores.crossChainTaskRecords;
     let chainType = ccTaskData.fromChainType;
-    if ('BTC' == chainType) {
-      records.attachTagIdByTaskId(this.id, taskStep.stepResult);
-      this.ccTaskTag = taskStep.stepResult;
-    } else if ('LTC' == chainType) {
+    if (['BTC', 'LTC'].includes(chainType)) {
       records.attachTagIdByTaskId(this.id, taskStep.stepResult);
       this.ccTaskTag = taskStep.stepResult;
     } else { // XRP

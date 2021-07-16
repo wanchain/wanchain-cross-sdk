@@ -1,7 +1,7 @@
 class AccountRecords {
 
   constructor() {
-    this.mapAccountRecords = new Map();// chainType => [{ accountObj }]
+    this.mapAccountRecords = new Map(); // chainType => [{account}]
   }
 
   addAccountData(chainType, addr, name, type) {
@@ -9,58 +9,59 @@ class AccountRecords {
     if(null == accountList){
       accountList = new Array();
     }
-
-    let objIndex = -1;
-    for(let i=0; i<accountList.length; i++){
-      if(type == accountList[i].type){
-        objIndex = i;
-        break;
+    if ("DOT" !== chainType) {
+      for (let i = 0; i < accountList.length; i++) {
+        if (type == accountList[i].type){
+          break;
+        }
+      }
+      if (i < accountList.length) {
+        accountList.splice(i, 1);
+      }
+    } else {
+      for (let i = 0; i < accountList.length; i++) {
+        if (addr == accountList[i].address) {
+          return;
+        }
       }
     }
-
-    if(-1 !== objIndex){
-      accountList.splice(objIndex, 1);
-    }
-
-    if(addr){
-      let accountObj = {
+    if (addr) {
+      let account = {
         name: name,
         address: addr,
         type: type,
       };
-      accountList.push(accountObj);
+      accountList.push(account);
     }
-
     this.mapAccountRecords.set(chainType, accountList);
   };
 
   removeAccountData(chainType, addr) {
     let accountList = this.mapAccountRecords.get(chainType)
-    if(!accountList){
+    if (!accountList) {
       return;
     }
-
-    let objIndex = -1;
-    for(let i=0; i<accountList.length; i++){
-
-      if(accountList[i].address == addr){
-        objIndex = i;
+    for (let i = 0; i < accountList.length; i++) {
+      if (accountList[i].address == addr) {
         break;
       }
     }
-
-    accountList.splice(objIndex, 1);
-
+    if (i < accountList.length) {
+      accountList.splice(i, 1);
+    }    
     this.mapAccountRecords.set(chainType, accountList);    
   };
 
   setAccountData(chainType, srctype, addr, name) {
-    let isMetaMask = ["ETH", "BNB", "WAN"].includes(chainType);
+    let isMetaMask = (srctype == "MetaMask")? true : false;
     if (!addr) {
       if (isMetaMask) {
         this.removeAccountData("ETH", addr);
         this.removeAccountData("BNB", addr);
         this.removeAccountData("WAN", addr);
+        this.removeAccountData("AVAX", addr);
+        this.removeAccountData("DEV", addr);
+        this.removeAccountData("MATIC", addr);
       } else {
         this.removeAccountData(chainType, addr);
       }
@@ -69,6 +70,9 @@ class AccountRecords {
         this.addAccountData("ETH", addr, name, srctype);
         this.addAccountData("BNB", addr, name, srctype);
         this.addAccountData("WAN", addr, name, srctype);
+        this.addAccountData("AVAX", addr, name, srctype);
+        this.addAccountData("DEV", addr, name, srctype);
+        this.addAccountData("MATIC", addr, name, srctype);
       } else {
         this.addAccountData(chainType, addr, name, srctype);
       }
@@ -77,18 +81,15 @@ class AccountRecords {
 
 
   checkAccountData(chainType, addr) {
-
     let accountList = this.mapAccountRecords.get(chainType);
     if(!accountList){
       return false;
     }
-
     for(let i=0; i<accountList.length; i++){
       if(accountList[i].address == addr){
         return true;
       }
     }
-
     return false;
   }
 

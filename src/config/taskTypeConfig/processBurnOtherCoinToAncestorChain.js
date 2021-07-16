@@ -83,6 +83,10 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
     if (tokenPairObj.fromChainType === "XRP") {
       blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPairObj.fromChainType);
     }
+    else if (tokenPairObj.fromChainType === "DOT") {
+      blockNumber = 0;
+      console.log("getConvertInfoForCheck DOT blockNumber");
+    }
     else {
       blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.fromChainType);
     }

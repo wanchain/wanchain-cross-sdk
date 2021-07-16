@@ -1,7 +1,5 @@
 'use strict';
 
-const _ = require("lodash");
-
 module.exports = class CheckTxReceiptService {
     constructor() {
         this.m_tradeTaskAry = [];
@@ -100,7 +98,7 @@ module.exports = class CheckTxReceiptService {
         //    "txhash": ret.txhash,
         //    "convertCheckInfo": convertCheckInfo
         //};
-        obj.sendTime = _.now();
+        obj.sendTime = new Date().getTime();
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
         this.m_tradeTaskAry.push(obj);

@@ -103,14 +103,14 @@ module.exports = class CheckScEvent {
         for (let idx = 0; idx < count; ++idx) {
             let index = count - idx - 1;
             let obj = ary[index];
-            console.log("processSmgMintLogger obj", obj);
+            //console.log("processSmgMintLogger obj", obj);
             try {
                 let topics = [eventHash, obj.uniqueID.toLowerCase()];
                 let fromBlockNumber = obj.fromBlockNumber;
                 let toBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
-                console.log("processSmgMintLogger Chain:", this.m_chainInfo.chainType,
-                    ",fromBlockNumber: ", fromBlockNumber,
-                    ",toBlockNumber: ", toBlockNumber);
+                //console.log("processSmgMintLogger Chain:", this.m_chainInfo.chainType,
+                //     ",fromBlockNumber: ", fromBlockNumber,
+                //     ",toBlockNumber: ", toBlockNumber);
                 let events = await this.m_iwanBCConnector.getScEvent(
                     this.m_chainInfo.chainType,
                     this.m_chainInfo.crossScAddr,
@@ -152,21 +152,21 @@ module.exports = class CheckScEvent {
         if (ary.length === 0) {
             return;
         }
-        // console.log("processSmgReleaseLogger ", this.m_chainInfo.chainType, ",ary.length:", ary.length);
+        console.log("processSmgReleaseLogger ", this.m_chainInfo);
 
         let eventHash = this.getSmgReleaseLoggerTopics();
         let count = ary.length;
         for (let idx = 0; idx < count; ++idx) {
             let index = count - idx - 1;
             let obj = ary[index];
-            console.log("processSmgReleaseLogger obj", obj);
+            //console.log("processSmgReleaseLogger obj", obj);
             try {
                 let topics = [eventHash, obj.uniqueID.toLowerCase()];
                 let fromBlockNumber = obj.fromBlockNumber;
                 let toBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
-                console.log("processSmgReleaseLogger Chain:", this.m_chainInfo.chainType,
-                    ",fromBlockNumber: ", fromBlockNumber,
-                    ",toBlockNumber: ", toBlockNumber);
+                //console.log("processSmgReleaseLogger Chain:", this.m_chainInfo.chainType,
+                //    ",fromBlockNumber: ", fromBlockNumber,
+                //    ",toBlockNumber: ", toBlockNumber);
                 let events = await this.m_iwanBCConnector.getScEvent(
                     this.m_chainInfo.chainType,
                     this.m_chainInfo.crossScAddr,

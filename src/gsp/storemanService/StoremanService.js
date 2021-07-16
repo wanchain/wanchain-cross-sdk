@@ -29,11 +29,11 @@ class StoremanService {
                 //console.log("mint ret:", ret);
                 let maxQuota = new BigNumber(ret[0].maxQuota);
                 maxQuota = maxQuota.div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
-                maxQuota = maxQuota.toFixed(6, 1);
+                //maxQuota = maxQuota.toFixed(6, 1);
 
                 let minQuota = new BigNumber(ret[0].minQuota);
                 minQuota = minQuota.div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
-                minQuota = minQuota.toFixed(6, 1);
+                //minQuota = minQuota.toFixed(6, 1);
 
                 ret = {
                     "maxQuota": maxQuota,
@@ -71,10 +71,20 @@ class StoremanService {
                 let decimals;
                 if (type === "MINT") {
                     decimals = assetPair.fromDecimals;
-                    balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
+                    if (assetPair.fromChainType === "DOT") {
+                        let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
+                        balance = await polkadotMaskService.getBalance(addr);
+                    } else {
+                        balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
+                    }
                 }
                 else if (type === "BURN") {
-                    balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
+                    if (assetPair.toChainType === "DOT") {
+                        let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
+                        balance = await polkadotMaskService.getBalance(addr);
+                    } else {
+                        balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
+                    }
                     decimals = assetPair.toDecimals;
                 }
                 balance = new BigNumber(balance);
@@ -89,7 +99,12 @@ class StoremanService {
                     decimals = assetPair.fromDecimals;
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
-                        balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
+                        if (assetPair.fromChainType === "DOT") {
+                            let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
+                            balance = await polkadotMaskService.getBalance(addr);
+                        } else {
+                            balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
+                        }
                     }
                     else {
                         balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.fromChainType, addr, assetPair.fromAccount);
