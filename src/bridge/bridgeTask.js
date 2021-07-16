@@ -184,6 +184,7 @@ class BridgeTask {
     }
     let records = this.bridge.stores.crossChainTaskRecords;
     let chainType = ccTaskData.fromChainType;
+    let smgAddress = undefined, tag = undefined;
     if (['BTC', 'LTC'].includes(chainType)) {
       records.attachTagIdByTaskId(this.id, taskStep.stepResult);
       this.ccTaskTag = taskStep.stepResult;
@@ -191,8 +192,10 @@ class BridgeTask {
       let xrpAddr = this.genXAddressByTagId(taskStep.stepResult);
       records.attachTagIdByTaskId(this.id, xrpAddr.xAddr, xrpAddr.tagId, xrpAddr.rAddr);
       this.ccTaskTag = xrpAddr.xAddr;
+      smgAddress = xrpAddr.rAddr;
+      tag = xrpAddr.tagId;
     }
-    this.bridge.emit('ota', {taskId: this.id, address: this.ccTaskTag});
+    this.bridge.emit('ota', {taskId: this.id, address: this.ccTaskTag, smgAddress, tag});
     console.log("procOtaAddr: %O", this.ccTaskTag);
   }
 
