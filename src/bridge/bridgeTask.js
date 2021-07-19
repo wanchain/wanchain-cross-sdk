@@ -184,19 +184,23 @@ class BridgeTask {
     }
     let records = this.bridge.stores.crossChainTaskRecords;
     let chainType = ccTaskData.fromChainType;
-    let smgAddress = undefined, tag = undefined;
+    let ota = {taskId: this.id};
     if (['BTC', 'LTC'].includes(chainType)) {
       records.attachTagIdByTaskId(this.id, taskStep.stepResult);
       this.ccTaskTag = taskStep.stepResult;
-    } else { // XRP
+      ota.address = this.ccTaskTag;
+    } else if (chainType == 'XRP') {
       let xrpAddr = this.genXAddressByTagId(taskStep.stepResult);
       records.attachTagIdByTaskId(this.id, xrpAddr.xAddr, xrpAddr.tagId, xrpAddr.rAddr);
       this.ccTaskTag = xrpAddr.xAddr;
-      smgAddress = xrpAddr.rAddr;
-      tag = xrpAddr.tagId;
+      ota.address = this.ccTaskTag;
+      ota.rAddress = xrpAddr.rAddr;
+      ota.tagId = xrpAddr.tagId;
+    } else {
+      throw ("Invalid ota chain type " + chainType);
     }
-    this.bridge.emit('ota', {taskId: this.id, address: this.ccTaskTag, smgAddress, tag});
-    console.log("procOtaAddr: %O", this.ccTaskTag);
+    this.bridge.emit('ota', ota);
+    console.log("procOtaAddr: %O", ota);
   }
 
   updateTaskStepData(stepNo, txHash, stepResult) {

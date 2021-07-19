@@ -148,9 +148,9 @@ class WanBridge extends EventEmitter {
 
   checkWallet(assetPair, direction) {
     let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    let chainInfo = this.chainInfoService.getChainInfoByName(chainType);
+    let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.MaskChainId) {
-      let walletChainId = this.accountSrv.getChainId();
+      let walletChainId = this.accountSrv.getChainId(chainType);
       return (chainInfo.MaskChainId == walletChainId);
     } else {
       return true;

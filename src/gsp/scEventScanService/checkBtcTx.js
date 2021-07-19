@@ -8,18 +8,16 @@ module.exports = class CheckBtcTx{
         this.m_CheckAry = [];
     }
 
-    async init() {
-        this.m_WebStores = this.m_frameworkService.getService("WebStores");
-        this.m_storeName = "crossChainTaskRecords";
+  async init(chainType) {
         this.m_taskService = this.m_frameworkService.getService("TaskService");
 
         this.m_configService = this.m_frameworkService.getService("ConfigService");
-        this.m_WebStores = this.m_frameworkService.getService("WebStores");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
 
-        let txScanInfo = await this.m_configService.getConfig("ScEventScanService", "BtcTxScanInfo");
+        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+        let chainInfo = await chainInfoService.getChainInfoByType(chainType);
 
-        this.m_taskService.addTask(this, txScanInfo.taskInterval, "btc tx");
+        this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
         this.m_eventService = this.m_frameworkService.getService("EventService");
         this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
     }
@@ -84,20 +82,14 @@ module.exports = class CheckBtcTx{
                 let index = count - idx - 1;
                 let obj = this.m_CheckAry[index];
                 let txUrl = url + obj.uniqueID;
-                console.log("checkBtcTx index:", index, ",txUrl:", txUrl);
+                // console.log("checkBtcTx index:", index, ",txUrl:", txUrl);
                 let ret = await axios.get(txUrl);
                 console.log("checkBtcTx ret.data:", ret.data);
                 if (ret.data.success === true) {
                     if (ret.data.data) {
                         // found
-                        let uiStrService = this.m_frameworkService.getService("UIStrService");
-                        let strSucceeded = uiStrService.getStrByName("Succeeded");
-                        this.m_WebStores[this.m_storeName].modifyTradeTaskStatus(obj.ccTaskId, strSucceeded);
-
                         let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": ret.data[0] });
-                        await eventService.emitEvent("ModifyTradeTaskStatus", obj.ccTaskId);
-
+                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.btcHash, btcAddr: ret.data.data.btcAddr});
                         let storageService = this.m_frameworkService.getService("StorageService");
                         storageService.delete("ScEventScanService", obj.uniqueID);
                         this.m_CheckAry.splice(index, 1);

@@ -51,7 +51,7 @@ class TokenPairService {
                 }
             }
             workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
-            let tokenPairs = await this.iwanBCConnector.getTokenPairs();
+            let tokenPairs = await this.iwanBCConnector.getTokenPairs({isAllTokenPairs: true});
             let tokenPairMap = new Map();
             await Promise.all(tokenPairs.map(async (pair) => {
                 let valid = await this.updateTokenPairInfo(pair);

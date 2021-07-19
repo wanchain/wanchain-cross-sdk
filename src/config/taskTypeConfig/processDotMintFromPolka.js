@@ -49,7 +49,7 @@ module.exports = class ProcessDotMintFromPolka {
 
       // 2 生成交易串
       let totalTransferValue = params.value;
-      totalTransferValue = totalTransferValue.plus(params.fee);
+      //totalTransferValue = totalTransferValue.plus(params.fee);
       console.log("totalTransferValue:", totalTransferValue, ",", totalTransferValue.toNumber());
       totalTransferValue = "0x" + totalTransferValue.toString(16);
       let txs = [

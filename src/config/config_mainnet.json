@@ -155,7 +155,7 @@
     "checkInterval": 2000
   },
   "apiServer": {
-    "url": "https://bridge.wanchain.org"
+    "url": "https://bridgeapi.wanchain.org"
   },
   "CheckBtcTxService": {
     "queryActionInfoInterval": 300000

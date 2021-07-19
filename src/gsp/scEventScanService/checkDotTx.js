@@ -9,8 +9,6 @@ module.exports = class CheckDotTx {
   }
 
   async init(chainType) {
-    this.m_WebStores = this.m_frameworkService.getService("WebStores");
-    this.m_storeName = "crossChainTaskRecords";
     this.m_taskService = this.m_frameworkService.getService("TaskService");
 
     this.m_configService = this.m_frameworkService.getService("ConfigService");
@@ -76,15 +74,8 @@ module.exports = class CheckDotTx {
         if (ret.data.success === true) {
           if (ret.data.data) {
             // found
-            let uiStrService = this.m_frameworkService.getService("UIStrService");
-            let strSucceeded = uiStrService.getStrByName("Succeeded");
-            this.m_WebStores[this.m_storeName].modifyTradeTaskStatus(obj.ccTaskId, strSucceeded);
-
-            let eventService = this.m_frameworkService.getService("EventService");
             console.log("checkDotTx ret.data.data.txHash:", ret.data.data.txHash);
-            await eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": ret.data.data.txHash });
-            await eventService.emitEvent("ModifyTradeTaskStatus", obj.ccTaskId);
-
+            await this.m_eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": ret.data.data.txHash });
             let storageService = this.m_frameworkService.getService("StorageService");
             storageService.delete("ScEventScanService", obj.uniqueID);
             this.m_CheckAry.splice(index, 1);

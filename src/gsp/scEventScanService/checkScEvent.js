@@ -12,9 +12,6 @@ module.exports = class CheckScEvent {
     }
 
     async init(chainInfo) {
-        this.m_WebStores = this.m_frameworkService.getService("WebStores");
-        this.m_storeName = "crossChainTaskRecords";
-
         this.m_chainInfo = chainInfo;
         this.m_mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
         this.m_mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
@@ -23,7 +20,6 @@ module.exports = class CheckScEvent {
         this.m_iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         this.m_taskService = this.m_frameworkService.getService("TaskService");
         this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
-
         this.m_eventService = this.m_frameworkService.getService("EventService");
         this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
     }
@@ -126,14 +122,7 @@ module.exports = class CheckScEvent {
                     //console.log("processSmgMintLogger args.uniqueID:", args.uniqueID.toLowerCase());
                     if (args.uniqueID.toLowerCase() === obj.uniqueID.toLowerCase()) {
                         console.log("processSmgMintLogger find obj:", obj);
-                        let uiStrService = this.m_frameworkService.getService("UIStrService");
-                        let strSucceeded = uiStrService.getStrByName("Succeeded");
-                        this.m_WebStores[this.m_storeName].modifyTradeTaskStatus(obj.ccTaskId, strSucceeded);
-
-                        let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": decodedEvts[i].transactionHash });
-                        await eventService.emitEvent("ModifyTradeTaskStatus", obj.ccTaskId);
-
+                        await this.m_eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": decodedEvts[i].transactionHash });
                         let storageService = this.m_frameworkService.getService("StorageService");
                         await storageService.delete("ScEventScanService", obj.uniqueID);
                         ary.splice(index, 1);
@@ -182,14 +171,8 @@ module.exports = class CheckScEvent {
                     //console.log("processSmgReleaseLogger args.uniqueID:", args.uniqueID.toLowerCase());
                     if (args.uniqueID.toLowerCase() === obj.uniqueID.toLowerCase()) {
                         console.log("processSmgReleaseLogger find obj:", obj);
-                        let uiStrService = this.m_frameworkService.getService("UIStrService");
-                        let strSucceeded = uiStrService.getStrByName("Succeeded");
-                        this.m_WebStores[this.m_storeName].modifyTradeTaskStatus(obj.ccTaskId, strSucceeded);
-
                         let eventService = this.m_frameworkService.getService("EventService");
                         await eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": decodedEvts[i].transactionHash });
-                        await eventService.emitEvent("ModifyTradeTaskStatus", obj.ccTaskId);
-
                         let storageService = this.m_frameworkService.getService("StorageService");
                         await storageService.delete("ScEventScanService", obj.uniqueID);
                         ary.splice(index, 1);

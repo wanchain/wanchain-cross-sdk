@@ -6,11 +6,12 @@ class AccountRecords {
 
   addAccountData(chainType, addr, name, type) {
     let accountList = this.mapAccountRecords.get(chainType)
-    if(null == accountList){
+    if (null == accountList) {
       accountList = new Array();
     }
     if ("DOT" !== chainType) {
-      for (let i = 0; i < accountList.length; i++) {
+      let i;
+      for (i = 0; i < accountList.length; i++) {
         if (type == accountList[i].type){
           break;
         }
@@ -41,7 +42,8 @@ class AccountRecords {
     if (!accountList) {
       return;
     }
-    for (let i = 0; i < accountList.length; i++) {
+    let i;
+    for (i = 0; i < accountList.length; i++) {
       if (accountList[i].address == addr) {
         break;
       }
@@ -82,11 +84,11 @@ class AccountRecords {
 
   checkAccountData(chainType, addr) {
     let accountList = this.mapAccountRecords.get(chainType);
-    if(!accountList){
+    if (!accountList) {
       return false;
     }
-    for(let i=0; i<accountList.length; i++){
-      if(accountList[i].address == addr){
+    for (let i = 0; i < accountList.length; i++) {
+      if (accountList[i].address == addr) {
         return true;
       }
     }

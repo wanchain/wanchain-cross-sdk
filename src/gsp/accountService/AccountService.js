@@ -18,7 +18,7 @@ module.exports = class AccountService {
     }
 
     async onMetaMaskAccountChanged(accounts) {
-        return connectMetaMask();
+        return this.connectMetaMask();
     }
 
     async onMetaMaskChainChanged(params) {
@@ -59,7 +59,7 @@ module.exports = class AccountService {
         }
     }
 
-    getChainId() {
+    getChainId(chainType) {
         if (chainType === "DOT") {
             return this.polkadotMaskService.getChainId();
         } else {

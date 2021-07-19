@@ -59,7 +59,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let apiServerConfig = await configService.getGlobalConfig("apiServer");
 
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let btcInfo = await chainInfoService.getChainInfoByName("BTC");
+      let btcInfo = await chainInfoService.getChainInfoByType("BTC");
       let network = bitcoin.networks[btcInfo.NETWORK];
 
       const random = crypto.randomBytes(32).toString('hex');

@@ -94,7 +94,7 @@ module.exports = class ProcessMintLtcFromLitecoin {
       let apiServerConfig = await configService.getGlobalConfig("apiServer");
 
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let ltcInfo = await chainInfoService.getChainInfoByName("LTC");
+      let ltcInfo = await chainInfoService.getChainInfoByType("LTC");
       let network = bitcoin.networks[ltcInfo.NETWORK];
 
       const random = crypto.randomBytes(32).toString('hex');

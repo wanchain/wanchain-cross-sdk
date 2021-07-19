@@ -5,7 +5,8 @@ module.exports = class ChainInfoService {
     this.m_wanInfo = {};
     this.m_ethInfo = {};
     this.m_mapChainIdObj = new Map();   // chainId - > chainInfo
-    this.m_mapChainTypeObj = new Map();  // chainName - > chainInfo
+    this.m_mapChainNameObj = new Map();  // chainName - > chainInfo
+    this.m_mapChainTypeObj = new Map();  // chainType - > chainInfo
     this.m_mapMaskChainIdObj = new Map(); // MaskChainId - > chainInfo
   }
 
@@ -17,6 +18,7 @@ module.exports = class ChainInfoService {
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];
       this.m_mapChainIdObj.set(obj.chainId, obj);
+      this.m_mapChainNameObj.set(obj.chainName, obj);
       this.m_mapChainTypeObj.set(obj.chainType, obj);
       if (obj.MaskChainId) {
         this.m_mapMaskChainIdObj.set(obj.MaskChainId, obj);
@@ -27,6 +29,7 @@ module.exports = class ChainInfoService {
     for (let idx = 0; idx < noEthChainInfo.length; ++idx) {
       let obj = noEthChainInfo[idx];
       this.m_mapChainIdObj.set(obj.chainId, obj);
+      this.m_mapChainNameObj.set(obj.chainName, obj);
       this.m_mapChainTypeObj.set(obj.chainType, obj);
     }
     // console.log("ChainInfoService this.m_mapChainIdObj:", this.m_mapChainIdObj);
@@ -40,7 +43,7 @@ module.exports = class ChainInfoService {
   }
 
   getChainInfoByName(chainName) {
-    let obj = this.m_mapChainTypeObj.get(chainName);
+    let obj = this.m_mapChainNameObj.get(chainName);
     return obj;
   }
 

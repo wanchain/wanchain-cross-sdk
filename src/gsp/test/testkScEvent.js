@@ -22,7 +22,6 @@ module.exports = class CheckScEvent {
 //    wanchainHash
 //       0x7e55590d3f2f1f6d2dd8e915483ec4b1527729d74be590ebc322379247496b20
 //       height: 13589326
-//    5 秒一块, 1分钟12，一小时720，开始块高度大约:13589326 - 720 = 13588626
     async processSmgMintLogger(obj) {
         console.log("processSmgMintLogger obj", obj);
         let eventHash = this.getSmgMintLoggerTopics();
@@ -97,14 +96,8 @@ module.exports = class CheckScEvent {
                     console.log("processSmgReleaseLogger args.uniqueID:", args.uniqueID.toLowerCase());
                     if (args.uniqueID.toLowerCase() === obj.uniqueID.toLowerCase()) {
                         console.log("processSmgReleaseLogger find obj:", obj);
-                        let uiStrService = this.m_frameworkService.getService("UIStrService");
-                        let strSucceeded = uiStrService.getStrByName("Succeeded");
-                        this.m_WebStores[this.m_storeName].modifyTradeTaskStatus(obj.ccTaskId, strSucceeded);
-
                         let eventService = this.m_frameworkService.getService("EventService");
                         await eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": decodedEvts[i].transactionHash });
-                        await eventService.emitEvent("ModifyTradeTaskStatus", obj.ccTaskId);
-
                         let storageService = this.m_frameworkService.getService("StorageService");
                         await storageService.delete("ScEventScanService", obj.uniqueID);
                         ary.splice(index, 1);
