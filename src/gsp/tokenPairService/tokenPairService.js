@@ -97,11 +97,11 @@ class TokenPairService {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-            tokenPair.fromSymbol = tokenPair.ancestorSymbol + "@" + tokenPair.fromChainName;
+            tokenPair.fromSymbol = tokenPair.ancestorSymbol;
             tokenPair.fromDecimals = tokenPair.ancestorDecimals;
         } else {
             let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.fromChainType, tokenPair.fromAccount);
-            tokenPair.fromSymbol = tokenInfo.symbol + "@" + tokenPair.fromChainName;
+            tokenPair.fromSymbol = tokenInfo.symbol;
             tokenPair.fromDecimals = tokenInfo.decimals;
         }
     }
@@ -110,7 +110,7 @@ class TokenPairService {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.toChainType, tokenPair.toAccount);
-        tokenPair.toSymbol = tokenInfo.symbol + "@" + tokenPair.toChainName;
+        tokenPair.toSymbol = tokenInfo.symbol;
         tokenPair.toDecimals = tokenInfo.decimals;
     }
 

@@ -2,7 +2,6 @@ class CrossChainTaskRecords {
 
   constructor() {
     this.ccTaskRecords = new Map();
-    this.mapTagId2TaskId = new Map();
   }
 
   addNewTradeTask(ccTaskData) {
@@ -25,15 +24,13 @@ class CrossChainTaskRecords {
   attachTagIdByTaskId(ccTaskId, address, tagId, rAddress) {
     // adapted to BTC/XRP crosschain task on 2021.0111     
     let ccTask = this.ccTaskRecords.get(ccTaskId);
-    if (ccTask){
+    if (ccTask) {
+      ccTask.ota = {address};
       if (tagId) {
-        ccTask.tagId = tagId;
-        ccTask.xAddress = address;
-        ccTask.rAddress = rAddress;
-        this.mapTagId2TaskId.set(tagId, ccTaskId);
-      } else {
-        ccTask.disposableAddress = address;
-        this.mapTagId2TaskId.set(address, ccTaskId);
+        ccTask.ota.tagId = tagId;
+      }
+      if (rAddress) {
+        ccTask.ota.rAddress = rAddress;
       }
     }
   };
@@ -97,12 +94,6 @@ class CrossChainTaskRecords {
     for (let i = 0; i < ccTaskObjList.length; i++) {
       let ccTask = ccTaskObjList[i];
       this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
-      // adapted to BTC/XRP crosschain task on 2021.0111 
-      if (ccTask.tagId) {
-        this.mapTagId2TaskId.set(ccTask.tagId, ccTask.ccTaskId);
-      } else if (ccTask.disposableAddress) {
-        this.mapTagId2TaskId.set(ccTask.disposableAddress, ccTask.ccTaskId);
-      }
     }
   };
 }

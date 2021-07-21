@@ -84,11 +84,11 @@ module.exports = class MintDotFromPolkaHandle {
 //  decimals: '12',
 //  fromChainType: 'DOT',
 //  fromChainName: 'polkaTestnet',
-//  fromSymbol: 'WND@polkaTestnet',
+//  fromSymbol: 'WND',
 //  fromDecimals: '12',
 //  toChainType: 'WAN',
 //  toChainName: 'Wanchain',
-//  toSymbol: 'wanWND@Wanchain',
+//  toSymbol: 'wanWND',
 //  toDecimals: '12',
 //  storemangroupList: [[Object], [Object], [Object]]
 //},

@@ -6,10 +6,11 @@ const xrpAddrCodec = require('ripple-address-codec');
 const CrossChainTask = require('./stores/CrossChainTask');
 
 class BridgeTask {
-  constructor(bridge, assetPair, direction, toAccount, amount) {
+  constructor(bridge, assetPair, direction, fromAccount, toAccount, amount) {
     this.bridge = bridge;
     this.assetPair = assetPair;
     this.direction = direction;
+    this.fromAccount = fromAccount;
     this.toAccount = toAccount;
     this.amount = amount;
     this.fee = null;
@@ -45,30 +46,45 @@ class BridgeTask {
     let assetPair = this.assetPair;
     let ccTaskData = this.task.ccTaskData;
     
-    // quota
-    let tmpSmgQuota;
-    if (assetPair.storemanGroup[0]) {
-      tmpSmgQuota = await bridge.storemanService.getStroremanGroupQuotaInfo(assetPair.fromChainType, assetPair.assetPairId, assetPair.storemanGroup[0].id);
-      console.log("tmpSmgQuota: %O", tmpSmgQuota);
-      bridge.stores.assetPairs.setSmgQuotaById(assetPair.assetPairId, assetPair.storemanGroup[0].id, tmpSmgQuota.maxQuota);
+    // swap according direction
+    let fromSymbol, toSymbol, fromChainType, toChainType, fromChainName, toChainName;
+    if (this.direction == 'MINT') {
+      fromSymbol = assetPair.fromSymbol;
+      toSymbol = assetPair.toSymbol;
+      fromChainType = assetPair.fromChainType;
+      toChainType = assetPair.toChainType;
+      fromChainName = assetPair.fromChainName;
+      toChainName = assetPair.toChainName;      
+    } else {
+      fromSymbol = assetPair.toSymbol;
+      toSymbol = assetPair.fromSymbol;
+      fromChainType = assetPair.toChainType;
+      toChainType = assetPair.fromChainType;
+      fromChainName = assetPair.toChainName;
+      toChainName = assetPair.fromChainName;       
     }
 
+    // quota
+    let smgQuota = await bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[0].id);
+    console.log("%s smgQuota: %O", this.direction, smgQuota);
+
     // tag
-    let bDestinationTag = ["BTC", "XRP", "LTC"].includes(assetPair.fromChainType) && (this.direction == "MINT");
-    console.log("bDestinationTag: %O", bDestinationTag);
+    let bDestinationTag = ["BTC", "XRP", "LTC"].includes(fromChainType);
+    console.log("%s bDestinationTag: %O", this.direction, bDestinationTag);
 
     // task
     let jsonTaskAssetPair = {
       assetPairId: assetPair.assetPairId,
-      srcAsset: assetPair.srcAsset,
-      dstAsset: assetPair.dstAsset,
-      bMintType: this.direction == 'MINT',
-      assetSMGs: assetPair.storemanGroup,
-      storemanGroup: assetPair.storemanGroup[0].id,
-      storemanQuota: tmpSmgQuota.maxQuota,
       assetType: assetPair.assetType,
-      fromChainType: assetPair.fromChainType,
-      toChainType: assetPair.toChainType
+      direction: this.direction,
+      fromSymbol,
+      toSymbol,
+      fromChainType,
+      toChainType,
+      fromChainName,
+      toChainName,
+      smg: assetPair.smgs[0],
+      smgQuota: smgQuota.maxQuota
     };
     console.log("jsonTaskAssetPair: %O", jsonTaskAssetPair);
 
@@ -77,6 +93,7 @@ class BridgeTask {
     this.task.setOperateFee(this.fee.operateFee.value);
     this.task.setNetworkFee(this.fee.networkFee.value);
     this.task.setDestinationTag(bDestinationTag);
+    this.task.setTaskAccountAddress('From', this.fromAccount);
     this.task.setTaskAccountAddress('To', this.toAccount);
     this.task.setTaskAmount(this.amount);
 
@@ -105,29 +122,19 @@ class BridgeTask {
 
   async checkTaskSteps() {
     let ccTaskData = this.task.ccTaskData;
-    let gpk = '';
-    for (let i = 0; i < ccTaskData.assetSMGs.length; i++) {
-      if (ccTaskData.assetSMGs[i].id === ccTaskData.storemanGroup) {
-        if (0 == ccTaskData.assetSMGs[i].curve1) {
-          gpk = ccTaskData.assetSMGs[i].gpk1;
-        } else {
-          gpk = ccTaskData.assetSMGs[i].gpk2;
-        }
-      }
-    }
+    let gpk = (0 == ccTaskData.smg.curve1)? ccTaskData.smg.gpk1 : ccTaskData.smg.gpk2;
     // to get the stepsFunc from server api
     let convertJson = {
-      "ccTaskId": ccTaskData.ccTaskId,
-      "tokenPairId": ccTaskData.assetPairId,
-      "convertType": ccTaskData.convertType,
-      "fromChainType": ccTaskData.fromChainType,
-      "fromSymbol": ccTaskData.srcAsset,
-      "fromAddr": this.bridge.stores.accountRecords.getCurAccount(ccTaskData.fromChainType, ccTaskData.toChainType, this.direction),
-      "toSymbol": ccTaskData.dstAsset,
-      "toAddr": ccTaskData.destAccount,
-      "storemanGroupId": ccTaskData.storemanGroup,
-      "storemanGroupGpk": gpk,
-      "value": ccTaskData.amount
+      ccTaskId: ccTaskData.ccTaskId,
+      tokenPairId: ccTaskData.assetPairId,
+      convertType: ccTaskData.convertType,
+      fromSymbol: ccTaskData.fromSymbol,
+      fromAddr: ccTaskData.fromAccount,
+      toSymbol: ccTaskData.toSymbol,
+      toAddr: ccTaskData.toAccount,
+      storemanGroupId: ccTaskData.smg.id,
+      storemanGroupGpk: gpk,
+      value: ccTaskData.amount
     }; 
     // console.log("checkTaskSteps: %O", convertJson);
     let retRslt = await this.bridge.storemanService.getConvertInfo(convertJson);
@@ -216,18 +223,8 @@ class BridgeTask {
   }
 
   genXAddressByTagId(tagId) {
-    let records = this.bridge.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(this.id);
-    let gpk = '';
-    for (let i = 0; i < ccTask.assetSMGs.length; i++) {
-      if (ccTask.assetSMGs[i].id === ccTask.storemanGroup) {
-        if (0 == ccTask.assetSMGs[i].curve1) {
-          gpk = ccTask.assetSMGs[i].gpk1;
-        }else{
-          gpk = ccTask.assetSMGs[i].gpk2;
-        }
-      }
-    }
+    let ccTaskData = this.task.ccTaskData;
+    let gpk = (0 == ccTaskData.smg.curve1)? ccTaskData.smg.gpk1 : ccTaskData.smg.gpk2;
     let pubkey = Secp256k1.keyFromPublic("04"+ gpk.slice(2), 'hex');
     let compressed = pubkey.getPublic(true, 'hex');
     let deriveAddress = keypairs.deriveAddress(compressed.toUpperCase());
@@ -240,7 +237,7 @@ class BridgeTask {
       tagId
     }
     return xrpAddr;
-  }  
+  }
 }
 
 module.exports = BridgeTask;

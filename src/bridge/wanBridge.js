@@ -67,18 +67,18 @@ class WanBridge extends EventEmitter {
     let taskId = taskLockHash.ccTaskId;
     let txHash = taskLockHash.txhash;
     let value = taskLockHash.sentAmount;
-    let taskData = records.ccTaskRecords.get(taskId);
-    if (!taskData){
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask){
       return;
     }
-    if (parseFloat(taskData.networkFee) >= parseFloat(value)) {
+    if (parseFloat(ccTask.networkFee) >= parseFloat(value)) {
       records.modifyTradeTaskStatus(taskId, "Failed");
     }else{
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
     records.setTaskSentAmount(taskId, value);
     records.setTaskLockTxHash(taskId, txHash);
-    this.storageService.save("crossChainTaskRecords", taskId, taskData);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("lock", {taskId, txHash});
   }
 
@@ -87,23 +87,23 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskRedeemHash.ccTaskId;
     let txHash = taskRedeemHash.txhash;
-    let preTask = records.ccTaskRecords.get(taskId);
-    let toAccountType = preTask.toChainType;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask){
+      return;
+    }
+    let toAccountType = ccTask.toChainType;
     let txResult = "Succeeded";
     if ("XRP" == toAccountType) {
-      if (preTask.destAccount != taskRedeemHash.xrpAddr) {
-        console.error("xrp received account %s is not match the destination account %s ", taskRedeemHash.xrpAddr, preTask.destAccount);
+      if (ccTask.toAccount != taskRedeemHash.xrpAddr) {
+        console.error("xrp received account %s is not match toAccount %s", taskRedeemHash.xrpAddr, ccTask.toAccount);
         txResult = "Error";
        } else {
-        console.log("xrp received account is the same with the destination address: ", taskRedeemHash.xrpAddr, preTask.destAccount);
+        console.log("xrp received account %s is the same with toAccount %s", taskRedeemHash.xrpAddr, ccTask.toAccount);
       }
     }
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (ccTask) {
-      records.modifyTradeTaskStatus(taskId, txResult);
-      records.setTaskRedeemTxHash(taskId, txHash);
-      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    }
+    records.modifyTradeTaskStatus(taskId, txResult);
+    records.setTaskRedeemTxHash(taskId, txHash);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
   }
 
@@ -128,21 +128,32 @@ class WanBridge extends EventEmitter {
   }
 
   isReady() {
-    return this.stores.assetPairs.isInitialized();
+    return this.stores.assetPairs.isReady();
   }
 
-  async createTask(assetPair, direction, amount, toAccount = "") {
+  async createTask(assetPair, direction, amount, fromAccount, toAccount = "") {
     direction = direction.toUpperCase();
     if (!["MINT", "BURN"].includes(direction)) {
       throw "Invalid direction, must be MINT or BURN";
     }
-    let to = toAccount || this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
-    if (to && this.validateToAccount(assetPair, direction, to)) {
-      let task = new BridgeTask(this, assetPair, direction, to, amount);
+    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    if (fromAccount) {
+      let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
+      if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
+        throw "Invalid fromAccount";
+      }
+    } else if (!["BTC", "LTC", "XRP"].includes(fromChainType)) {
+      throw "Missing fromAccount";
+    } else {
+      fromAccount = "";
+    }
+    toAccount = toAccount || fromAccount;
+    if (toAccount && this.validateToAccount(assetPair, direction, toAccount)) {
+      let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount);
       await task.init();
       return task;
     } else {
-      throw "Invalid to address";
+      throw "Invalid toAccount";
     }
   }
 
@@ -197,6 +208,15 @@ class WanBridge extends EventEmitter {
     return {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
   }
 
+  async getQuota(assetPair, direction) {
+    direction = direction.toUpperCase();
+    if (!["MINT", "BURN"].includes(direction)) {
+      throw "Invalid direction, must be MINT or BURN";
+    }    
+    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    return this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[0].id);
+  }
+
   validateToAccount(assetPair, direction, account) {
     direction = direction.toUpperCase();
     if (!["MINT", "BURN"].includes(direction)) {
@@ -235,16 +255,19 @@ class WanBridge extends EventEmitter {
           pairId: task.assetPairId,
           timestamp: task.ccTaskId,
           asset: task.assetType,
-          fromChain: task.srcAsset.split('@')[1],
-          toChain: task.dstAsset.split('@')[1],
           direction,
+          fromSymbol: task.fromSymbol,
+          toSymbol: task.toSymbol,          
+          fromChain: task.fromChainName,
+          toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
           fee: {operateFee: {value: task.operateFee, unit: operateFeeUnit}, networkFee: {value: task.networkFee, unit: networkFeeUnit}},
-          toAddress: task.destAccount,
-          ota: task.disposableAddress,
+          fromAccount: task.fromAccount,
+          toAccount: task.toAccount,
+          ota: task.ota,
           lockHash: task.lockHash,
           redeemHash: task.redeemHash,
-          status: task.status,
+          status: task.status
         }
         history.push(item);
       }
