@@ -33,7 +33,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("ModifyTradeTaskStatus", this.onModifyTradeTaskStatus.bind(this));
     this.eventService.addEventListener("LockTxHash", this.onLockTxHash.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this.onRedeemTxHash.bind(this));
-    this.eventService.addEventListener("networkFee", this.onTaskNetworkFee.bind(this));
+    this.eventService.addEventListener("networkFee", this.onNetworkFee.bind(this));
     this.eventService.addEventListener("AccountChanged", this.onAccountChanged.bind(this));
     await this.service.start();
   }
@@ -107,8 +107,8 @@ class WanBridge extends EventEmitter {
     this.emit("redeem", {taskId, txHash});
   }
 
-  onTaskNetworkFee(taskNetworkFee) {
-    console.log("onTaskNetworkFee: %O", taskNetworkFee);
+  onNetworkFee(taskNetworkFee) {
+    console.log("onNetworkFee: %O", taskNetworkFee);
     let records = this.stores.crossChainTaskRecords;
     let ccTaskId = taskNetworkFee.ccTaskId;
     let networkFee = taskNetworkFee.apiServerNetworkFee;
@@ -261,7 +261,7 @@ class WanBridge extends EventEmitter {
           fromChain: task.fromChainName,
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
-          fee: {operateFee: {value: task.operateFee, unit: operateFeeUnit}, networkFee: {value: task.networkFee, unit: networkFeeUnit}},
+          fee: task.fee,
           fromAccount: task.fromAccount,
           toAccount: task.toAccount,
           ota: task.ota,

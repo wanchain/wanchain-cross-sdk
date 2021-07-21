@@ -59,9 +59,11 @@ Step 4: Choose a asset pair and create mint or burn cross chain task.
 
 ```javascript
 let assetPair = assetPairs[0];
-let task = await bridge.createTask(assetPair, 'mint', 0.1, 'your-receiver-address-on-destination-chain');
-await task.init(); // Check wallet, and fetch fee from server
-console.log("crosschain operateFee: %s, networkFee: %s", assetPair.fromChainType, task.operateFee, task.networkFee);
-// If the user accepts the fee, start the task, otherwise just return
+let fromAccount = this.bridge.getWalletAccount(assetPair, "mint"); // get connected wallet account
+let toAccount = 'receiver-address-on-destination-chain'
+let fee = await this.bridge.estimateFee(assetPair, "burn");
+console.log("crosschain operateFee: %s %s, networkFee: %s %s", fee.operateFee.value, fee.operateFee.unit, fee.networkFee.value, fee.networkFee.unit);
+// If the user accepts the fee, create and start a task
+let task = await bridge.createTask(assetPair, 'mint', 0.1, fromAccount, toAccount);
 task.start();
 ```

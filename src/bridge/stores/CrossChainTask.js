@@ -24,8 +24,7 @@ class CrossChainTask {
       stepNums: 0, // convert steps num
       minTokenMintValue: '',
       fromAccountBalance: '',
-      operateFee: '', // add operate fee on 2021.0105 
-      networkFee: '',
+      fee: null, 
       bDestinationTag: false, // adapted to BTC/XRP crosschain task on 2021.0111 
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
     };
@@ -61,12 +60,8 @@ class CrossChainTask {
     this.ccTaskData.fromAccountBalance = balance;
   };
 
-  setOperateFee(operateFee) {
-    this.ccTaskData.operateFee = operateFee; //add operate fee on 2021.0105 
-  };
-
-  setNetworkFee(networkFee) {
-    this.ccTaskData.networkFee = networkFee; //add operate fee on 2021.0105 
+  setFee(fee) {
+    this.ccTaskData.fee = fee;
   };
 
   setDestinationTag(bDestinationTag) {

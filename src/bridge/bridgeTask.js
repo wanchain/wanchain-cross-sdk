@@ -90,8 +90,7 @@ class BridgeTask {
 
     this.task.setCCTaskID(this.id);
     this.task.setTaskAssetPair(jsonTaskAssetPair);
-    this.task.setOperateFee(this.fee.operateFee.value);
-    this.task.setNetworkFee(this.fee.networkFee.value);
+    this.task.setFee(this.fee);
     this.task.setDestinationTag(bDestinationTag);
     this.task.setTaskAccountAddress('From', this.fromAccount);
     this.task.setTaskAccountAddress('To', this.toAccount);
