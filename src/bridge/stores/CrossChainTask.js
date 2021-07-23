@@ -13,7 +13,6 @@ class CrossChainTask {
       fromChainName: '',  // fromChain name
       toChainName: '', // toChain name
       smg: null, // storemanGroup for this task
-      smgQuota: '', // storemanGroup quota
       fromAccount: '', // the from account
       toAccount: '', // the to account
       amount: '',  // convert amount
@@ -22,10 +21,9 @@ class CrossChainTask {
       lockHash: '',
       redeemHash: '',
       stepNums: 0, // convert steps num
-      minTokenMintValue: '',
       fromAccountBalance: '',
       fee: null, 
-      bDestinationTag: false, // adapted to BTC/XRP crosschain task on 2021.0111 
+      isOtaTx: false, // adapted to BTC/XRP crosschain task on 2021.0111 
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
     };
   }
@@ -41,7 +39,6 @@ class CrossChainTask {
     this.ccTaskData.fromChainName = jsonTaskAssetPair.fromChainName;
     this.ccTaskData.toChainName = jsonTaskAssetPair.toChainName;    
     this.ccTaskData.smg = jsonTaskAssetPair.smg;
-    this.ccTaskData.smgQuota = jsonTaskAssetPair.smgQuota;
   };
 
   setTaskAccountAddress(accountTags, addr) {
@@ -52,10 +49,6 @@ class CrossChainTask {
     }
   };
 
-  setMinTokenMintValue(minValue) {
-    this.ccTaskData.minTokenMintValue = minValue;
-  };
-
   setFromAccountBalance(balance) {
     this.ccTaskData.fromAccountBalance = balance;
   };
@@ -64,9 +57,9 @@ class CrossChainTask {
     this.ccTaskData.fee = fee;
   };
 
-  setDestinationTag(bDestinationTag) {
-    this.ccTaskData.bDestinationTag = bDestinationTag; // adapted to BTC/XRP crosschain task on 2021.0111  
-    if(true === bDestinationTag){
+  setOtaTx(isOtaTx) {
+    this.ccTaskData.isOtaTx = isOtaTx; // adapted to BTC/XRP crosschain task on 2021.0111  
+    if (isOtaTx) {
       this.ccTaskData.fromAccount = '';
     }
   };

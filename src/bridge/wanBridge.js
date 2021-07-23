@@ -25,6 +25,7 @@ class WanBridge extends EventEmitter {
     await this.service.init(this.network, this.stores, iwanAuth);
     this.accountSrv = this.service.getService("AccountService");
     this.eventService = this.service.getService("EventService");
+    this.configService = this.service.getService("ConfigService");
     this.storemanService = this.service.getService("StoremanService");
     this.storageService = this.service.getService("StorageService");
     this.feesService = this.service.getService("CrossChainFeesService");
@@ -131,11 +132,16 @@ class WanBridge extends EventEmitter {
     return this.stores.assetPairs.isReady();
   }
 
-  async createTask(assetPair, direction, amount, fromAccount, toAccount = "") {
+  unifyDirection(direction) {
     direction = direction.toUpperCase();
     if (!["MINT", "BURN"].includes(direction)) {
       throw "Invalid direction, must be MINT or BURN";
     }
+    return direction;
+  }
+
+  async createTask(assetPair, direction, amount, fromAccount, toAccount = "") {
+    direction = this.unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     if (fromAccount) {
       let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
@@ -151,6 +157,7 @@ class WanBridge extends EventEmitter {
     if (toAccount && this.validateToAccount(assetPair, direction, toAccount)) {
       let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount);
       await task.init();
+      task.start();
       return task;
     } else {
       throw "Invalid toAccount";
@@ -158,6 +165,7 @@ class WanBridge extends EventEmitter {
   }
 
   checkWallet(assetPair, direction) {
+    direction = this.unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.MaskChainId) {
@@ -169,10 +177,7 @@ class WanBridge extends EventEmitter {
   }
 
   getWalletAccount(assetPair, direction) {
-    direction = direction.toUpperCase();
-    if (!["MINT", "BURN"].includes(direction)) {
-      throw "Invalid direction, must be MINT or BURN";
-    }
+    direction = this.unifyDirection(direction);
     if (this.checkWallet(assetPair, direction)) {
       return this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
     } else {
@@ -181,16 +186,13 @@ class WanBridge extends EventEmitter {
   };
 
   async getAccountAsset(assetPair, direction, account) {
-    direction = direction.toUpperCase();
+    direction = this.unifyDirection(direction);
     let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, false);
     return parseFloat(balance);
   };
 
   async estimateFee(assetPair, direction) {
-    direction = direction.toUpperCase();
-    if (!["MINT", "BURN"].includes(direction)) {
-      throw "Invalid direction, must be MINT or BURN";
-    }
+    direction = this.unifyDirection(direction);
     let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
     let operateFeeValue = '', operateFeeUnit = '', networkFeeValue = '', networkFeeUnit = '';
@@ -209,19 +211,13 @@ class WanBridge extends EventEmitter {
   }
 
   async getQuota(assetPair, direction) {
-    direction = direction.toUpperCase();
-    if (!["MINT", "BURN"].includes(direction)) {
-      throw "Invalid direction, must be MINT or BURN";
-    }    
+    direction = this.unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     return this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[0].id);
   }
 
   validateToAccount(assetPair, direction, account) {
-    direction = direction.toUpperCase();
-    if (!["MINT", "BURN"].includes(direction)) {
-      throw "Invalid direction, must be MINT or BURN";
-    }
+    direction = this.unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "DEV", "MATIC"].includes(chainType)) {
       return tool.isValidEthAddress(account);
@@ -247,15 +243,12 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     records.ccTaskRecords.forEach((task, id) => {
       if ((taskId == undefined) || (taskId == id)) {
-        let direction = task.convertType;
-        let operateFeeUnit = (direction == 'MINT')? task.fromChainType : task.toChainType;
-        let networkFeeUnit = task.fromChainType;
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
           timestamp: task.ccTaskId,
           asset: task.assetType,
-          direction,
+          direction: task.convertType,
           fromSymbol: task.fromSymbol,
           toSymbol: task.toSymbol,          
           fromChain: task.fromChainName,

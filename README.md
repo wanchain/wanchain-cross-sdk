@@ -63,7 +63,6 @@ let fromAccount = this.bridge.getWalletAccount(assetPair, "mint"); // get connec
 let toAccount = 'receiver-address-on-destination-chain'
 let fee = await this.bridge.estimateFee(assetPair, "burn");
 console.log("crosschain operateFee: %s %s, networkFee: %s %s", fee.operateFee.value, fee.operateFee.unit, fee.networkFee.value, fee.networkFee.unit);
-// If the user accepts the fee, create and start a task
+// If the user accepts the fee, create a task
 let task = await bridge.createTask(assetPair, 'mint', 0.1, fromAccount, toAccount);
-task.start();
 ```

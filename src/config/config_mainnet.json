@@ -1,5 +1,4 @@
 {
-  "GlobalConfigExample": "globalConfig Example Value",
   "StoremanService": [
     {
       "name": "WanInfo",

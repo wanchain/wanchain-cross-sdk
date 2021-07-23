@@ -25,6 +25,10 @@ function hexCharCodeToStr(hexCharCodeStr) {
   return resultStr.join('');
 }
 
+function getCurTimeSec() {
+  return parseInt(new Date().getTime() / 1000);
+}
+
 async function sleep(time) {
   return new Promise(function(resolve) {
     setTimeout(() => {
@@ -110,25 +114,21 @@ function isValidLtcAddress(address, network) {
   return false;
 }
 
-function isValidDotAddress(account, network){
-  let formattedAddr = '';
+function isValidDotAddress(account, network) {  
   try {
-    if (network == 'mainnet') {
-      formattedAddr = dotTxWrapper.deriveAddress(account, dotTxWrapper.POLKADOT_SS58_FORMAT);
-      console.log("POLKADOT_SS58_FORMAT account: %s", formattedAddr);
-    } else {
-      formattedAddr = dotTxWrapper.deriveAddress(account, dotTxWrapper.WESTEND_SS58_FORMAT);
-      console.log("WESTEND_SS58_FORMAT account: %s", formattedAddr);
-    }
+    let format = ("testnet" == network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
+    let addr = dotTxWrapper.deriveAddress(account, format);
+    console.log("DOT %s account %s formatted to %s", network, account, addr);
     return true;
   } catch(err) {
-    console.log("validate DOT account %s err: %O", account, err);
+    console.log("DOT %s account %s is invalid: %s", network, account, err);
     return false;
   }
 }
 
 module.exports = {
   hexCharCodeToStr,
+  getCurTimeSec,
   sleep,
   isValidEthAddress,
   isValidWanAddress,

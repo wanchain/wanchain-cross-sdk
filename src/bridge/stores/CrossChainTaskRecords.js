@@ -47,7 +47,7 @@ class CrossChainTaskRecords {
           // to update the task status if necessary if needed
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
-          } else if ((stepNo === ccTask.stepNums) && (!ccTask.bDestinationTag)) {
+          } else if ((stepNo === ccTask.stepNums) && (!ccTask.isOtaTx)) {
             ccTask.lockHash = txHash;
             ccTask.status = "Converting";
             isLockTx = true;

@@ -27,17 +27,11 @@ class StoremanService {
                 //console.log("getStroremanGroupQuotaInfo:", fromChainType, storemanGroupId, [obj_tokenPair.ancestorSymbol]);
                 let ret = await this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [obj_tokenPair.ancestorSymbol]);
                 //console.log("mint ret:", ret);
-                let maxQuota = new BigNumber(ret[0].maxQuota);
-                maxQuota = maxQuota.div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
-                //maxQuota = maxQuota.toFixed(6, 1);
-
-                let minQuota = new BigNumber(ret[0].minQuota);
-                minQuota = minQuota.div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
-                //minQuota = minQuota.toFixed(6, 1);
-
+                let maxQuota = new BigNumber(ret[0].maxQuota).div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
+                let minQuota = new BigNumber(ret[0].minQuota).div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
                 ret = {
-                    "maxQuota": maxQuota,
-                    "minQuota": minQuota
+                    "maxQuota": maxQuota.toString(),
+                    "minQuota": minQuota.toString()
                 };
                 return ret;
             }
@@ -122,7 +116,7 @@ class StoremanService {
             }
         }
         catch (err) {
-            console.log("getBalance err:", err);
+            console.log("get assetPair %s type %s address %s balance err:", assetPairId, type, addr, err);
             return 0;
         }
     }
