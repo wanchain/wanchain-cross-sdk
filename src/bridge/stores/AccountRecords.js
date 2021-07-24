@@ -98,7 +98,11 @@ class AccountRecords {
   getCurAccount(fromChainType, toChainType, direction) {
     let chainType = (direction == "MINT")? fromChainType : toChainType;
     let accountList = this.mapAccountRecords.get(chainType);
-    return accountList? accountList[0].address : '';
+    if (chainType == "DOT") {
+      return accountList.map(account => account.address);
+    } else {
+      return accountList? accountList[0].address : '';
+    }    
   };
 }
 

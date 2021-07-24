@@ -4,6 +4,9 @@ const elliptic = require('elliptic');
 const Secp256k1 = elliptic.ec('secp256k1');
 const xrpAddrCodec = require('ripple-address-codec');
 const dotTxWrapper = require('@substrate/txwrapper');
+const polkaUtil = require("@polkadot/util");
+const polkaUtilCrypto = require("@polkadot/util-crypto");
+const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
 
 class BridgeTask {
@@ -100,7 +103,7 @@ class BridgeTask {
       smgAddr = this.getSmgXrpClassicAddress();
       minValue = this.bridge.configService.getGlobalConfig("MinXrpValue");
     } else if ("DOT" == fromChainType) {
-      smgAddr = this.genSmgPolkaAddress(ccTaskData);
+      smgAddr = this.genSmgPolkaAddress();
       minValue = this.bridge.configService.getGlobalConfig("MinDotValue");
     } else {
       return "";
@@ -321,7 +324,7 @@ class BridgeTask {
 
   genSmgPolkaAddress() {
     let format = ("testnet" === this.bridge.network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
-    pubKey = '0x04' + this.secp256k1Gpk.slice(2);
+    let pubKey = '0x04' + this.secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);
     const keyring = new Keyring({type: 'ecdsa', ss58Format: format});
