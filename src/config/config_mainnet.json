@@ -14,7 +14,7 @@
       "chainDecimals": 18,
       "MaskChainId": 888,
       "ScScanInfo": {
-        "taskInterval": 3000
+        "taskInterval": 5000
       }
     },
     {
@@ -48,7 +48,7 @@
       "chainDecimals": 18,
       "MaskChainId": 56,
       "ScScanInfo": {
-        "taskInterval": 3000
+        "taskInterval": 5000
       }
     },
     {
@@ -65,7 +65,7 @@
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "ScScanInfo": {
-        "taskInterval": 3000
+        "taskInterval": 5000
       }
     },
     {
@@ -82,7 +82,7 @@
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 0,
       "ScScanInfo": {
-        "taskInterval": 3000
+        "taskInterval": 5000
       }
     },
     {
@@ -99,7 +99,7 @@
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 0,
       "ScScanInfo": {
-        "taskInterval": 3000
+        "taskInterval": 5000
       }
     }
   ],
@@ -150,9 +150,6 @@
   "TaskService": {
     "taskInterval": 2000
   },
-  "WanMaskService": {
-    "checkInterval": 2000
-  },
   "apiServer": {
     "url": "https://bridgeapi.wanchain.org"
   },
@@ -190,7 +187,7 @@
       "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 6,
       "TxScanInfo": {
-        "taskInterval": 10000
+        "taskInterval": 5000
       }
     },
     {

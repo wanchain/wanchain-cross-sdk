@@ -118,7 +118,7 @@ module.exports = class PolkadotMaskService {
         return balance.free;
     }
 
-    async getChainId() {
+    getChainId() {
         return 0;
     }
 

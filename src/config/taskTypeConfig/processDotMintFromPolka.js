@@ -53,8 +53,8 @@ module.exports = class ProcessDotMintFromPolka {
       console.log("totalTransferValue:", totalTransferValue, ",", totalTransferValue.toNumber());
       totalTransferValue = "0x" + totalTransferValue.toString(16);
       let txs = [
-        api.tx.balances.transfer(storemanGroupAddr, totalTransferValue),
-        api.tx.system.remark(memo)
+        api.tx.system.remark(memo),
+        api.tx.balances.transfer(storemanGroupAddr, totalTransferValue)
       ];
       // console.log("txs:", txs);
       // 3 计算交易费用

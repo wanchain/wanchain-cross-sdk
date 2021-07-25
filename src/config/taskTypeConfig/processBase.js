@@ -10,7 +10,6 @@ module.exports = class ProcessBase {
     this.m_storageService = frameworkService.getService("StorageService");
 
     let ethMaskService = this.m_frameworkService.getService("MetaMaskService");
-    let wanMaskService = this.m_frameworkService.getService("WanMaskService");
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
 
     this.m_maskService = {
