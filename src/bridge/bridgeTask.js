@@ -261,6 +261,8 @@ class BridgeTask {
       }
       if (this.isOtaTx) {
         this.procOtaAddr(taskStep);
+      } else if ((taskStep.jsonParams.name == "erc20Approve") && (this.fromChainInfo.chainType == "DEV")) {
+        await tool.sleep(30000); // wait Moonbeam approve take effect
       }
       this.updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
       this.curStep++;
