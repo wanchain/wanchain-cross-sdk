@@ -89,7 +89,7 @@
       "name": "MATIC",
       "chainId": "2147484614",
       "chainType": "MATIC",
-      "chainName": "Matic",
+      "chainName": "Polygon",
       "chainDecimals": 18,
       "crossScAddr": "0x....................................",
       "coinFastMintGasLimit": 300000,
