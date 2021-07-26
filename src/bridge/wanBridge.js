@@ -8,9 +8,10 @@ const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/commonTool.js');
 
 class WanBridge extends EventEmitter {
-  constructor(network) {
+  constructor(network = "testnet", smgIndex = 0) { // smgIndex is for testing only
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
+    this.smgIndex = smgIndex;
     this.service = new StartService();
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
@@ -31,7 +32,6 @@ class WanBridge extends EventEmitter {
     this.feesService = this.service.getService("CrossChainFeesService");
     this.chainInfoService = this.service.getService("ChainInfoService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this.onStoremanInitilized.bind(this));
-    this.eventService.addEventListener("ModifyTradeTaskStatus", this.onModifyTradeTaskStatus.bind(this));
     this.eventService.addEventListener("LockTxHash", this.onLockTxHash.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this.onRedeemTxHash.bind(this));
     this.eventService.addEventListener("networkFee", this.onNetworkFee.bind(this));
@@ -50,16 +50,6 @@ class WanBridge extends EventEmitter {
 
   onAccountChanged(info) {
     this.emit("account", info);
-  }
-
-  onModifyTradeTaskStatus(taskId) {
-    console.log("onModifyTradeTaskStatus taskId %s", taskId);
-    let records = this.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (ccTask) {
-      records.modifyTradeTaskStatus(taskId, 'Succeeded');
-      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    }
   }
 
   onLockTxHash(taskLockHash) {
@@ -213,7 +203,7 @@ class WanBridge extends EventEmitter {
   async getQuota(assetPair, direction) {
     direction = this.unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    return this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[0].id);
+    return this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[this.smgIndex % assetPair.smgs.length].id);
   }
 
   validateToAccount(assetPair, direction, account) {

@@ -18,7 +18,7 @@ class BridgeTask {
     this.fromAccount = fromAccount;
     this.toAccount = toAccount;
     this.amount = parseFloat(amount);
-    this.smg = assetPair.smgs[0]; // PLAN: to select smg
+    this.smg = assetPair.smgs[this.bridge.smgIndex % assetPair.smgs.length];
     this.secp256k1Gpk = (0 == this.smg.curve1)? this.smg.gpk1 : this.smg.gpk2;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
