@@ -62,18 +62,17 @@ Step 4: Choose a asset pair and create mint or burn cross-chain task.
 ```javascript
 try {
   let assetPair = assetPairs[0];
-  let fromAccount = this.bridge.getWalletAccount(assetPair, "mint"); // get connected wallet account
+  let fromAccount = bridge.getWalletAccount(assetPair, "mint"); // get connected wallet account
   let toAccount = 'receiver-address-on-destination-chain'
   let amount = 0.1;
-  let fee = await this.bridge.estimateFee(assetPair, "burn");
-  console.log("cross-chain operateFee: %s %s, networkFee: %s %s", fee.operateFee.value, fee.operateFee.unit, fee.networkFee.value, fee.networkFee.unit);
+  let fee = await bridge.estimateFee(assetPair, "burn");
   // If the user accepts the fee, create a task
   let task = await bridge.createTask(assetPair, 'mint', amount, fromAccount, toAccount);
 } catch(err) {
   console.error(err);
 }
 ```
-The tasks will be automatically scheduled, once it is successfully completed, the 'redeem' event will be emitted, if it fails, the 'error' event will be emitted.
+The tasks will be automatically scheduled, once it is successfully completed, the "redeem" event will be emitted, if it fails, the "error" event will be emitted.
 
 ## Advanced
 
@@ -81,17 +80,17 @@ Inappropriate parameters may cause the cross-chain task to fail. Before creating
 
 ```javascript
 // check to-address format
-let validTo = this.bridge.validateToAccount(assetPair, "mint", to);
+let validTo = bridge.validateToAccount(assetPair, "mint", to);
 if (validTo === false) {
   console.error("Invalid to-address");
 }
 // check asset balance
-let balance = await this.bridge.getAccountAsset(assetPair, "mint", fromAccount);
+let balance = await bridge.getAccountAsset(assetPair, "mint", fromAccount);
 if (balance < amount) {
   console.error("Insufficient balance");
 }
 // check storeman group quota
-let quota = await this.bridge.getQuota(assetPair, "mint");
+let quota = await bridge.getQuota(assetPair, "mint");
 if (amount < quota.minQuota || amount > quota.maxQuota) {
   console.error("Invalid amount");
 }
