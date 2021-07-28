@@ -18,7 +18,11 @@ module.exports = class AccountService {
     }
 
     async onMetaMaskAccountChanged(accounts) {
-        return this.connectMetaMask();
+        try {
+            await this.connectMetaMask();
+        } catch (err) {
+            // do nothing
+        }
     }
 
     async onMetaMaskChainChanged(params) {
