@@ -173,7 +173,7 @@ class WanBridge extends EventEmitter {
     } else {
       throw "Invalid wallet";
     }
-  };
+  }
 
   async getAccountAsset(assetPair, direction, account) {
     direction = this.unifyDirection(direction);

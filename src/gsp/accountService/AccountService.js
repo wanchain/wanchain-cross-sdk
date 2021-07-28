@@ -27,29 +27,23 @@ module.exports = class AccountService {
     }
 
     async connectMetaMask() {
-        try {
-            let chainId = await this.m_metaMaskService.getChainId();
-            let chainInfo = await this.chainInfoService.getChainInfoByMaskChainId(chainId);
-            if (chainInfo) {
-                let accounts = await this.m_metaMaskService.getAccountAry();
-                let account = (accounts.length)? accounts[0] : "";
-                console.log("connectMetaMask chain %s accounts: ", chainInfo.chainType, account);
-                this.m_WebStores[this.m_accountStoreName].setAccountData(chainInfo.chainType, "MetaMask", account);
-                await this.m_eventService.emitEvent("AccountChanged", {wallet: "MetaMask", account});
-                return account;
-            } else {
-                console.log("wallet chainId %s does not match bridge network", chainId);
-                return "";
-            }
-        } catch (err) {
-            console.log("connectMetaMask err:", err);
-            return "";
+        let chainId = this.m_metaMaskService.getChainId();
+        let chainInfo = this.chainInfoService.getChainInfoByMaskChainId(chainId);
+        if (chainInfo) {
+            let accounts = await this.m_metaMaskService.getAccountAry();
+            let account = (accounts.length)? accounts[0] : "";
+            console.log("connect MetaMask chain %s account: %s", chainInfo.chainType, account);
+            this.m_WebStores[this.m_accountStoreName].setAccountData(chainInfo.chainType, "MetaMask", account);
+            await this.m_eventService.emitEvent("AccountChanged", {wallet: "MetaMask", account});
+        } else {
+            console.log("wallet chainId %s does not match bridge network", chainId);
+            throw "Invalid network";
         }
     }
 
     async connectPolkadot() {
         let accounts = await this.polkadotMaskService.getAccountAry();
-        console.log("Polkadot accounts: %O", accounts);
+        console.log("connect polkadot{.js} accounts: %O", accounts);
         if (accounts.length > 0) {
             for (let i = 0; i < accounts.length; i++) {
                 this.m_WebStores[this.m_accountStoreName].setAccountData("DOT", "PolkaDot", accounts[i]);
@@ -57,6 +51,7 @@ module.exports = class AccountService {
         } else {
             this.m_WebStores[this.m_accountStoreName].setAccountData("DOT", "PolkaDot", "");
         }
+        await this.m_eventService.emitEvent("AccountChanged", {wallet: "polkadot{.js}", accounts});
     }
 
     getChainId(chainType) {
