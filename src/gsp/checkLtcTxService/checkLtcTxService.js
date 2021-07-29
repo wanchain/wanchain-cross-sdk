@@ -15,6 +15,7 @@ module.exports = class CheckLtcTxService {
 
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
+        this.m_utilService = frameworkService.getService("UtilService");
     }
 
     async loadTradeTask(ltcAry) {
@@ -67,15 +68,17 @@ module.exports = class CheckLtcTxService {
                 // console.log("CheckLtcTxService queryUrl:", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
-                    obj.uniqueID = "0x" + ret.data.data.ltcHash;
+                    let txhash = ret.data.data.ltcHash;
+                    let sender = await this.m_utilService.getBtcTxSender("LTC", txhash);
                     let eventService = this.m_frameworkService.getService("EventService");
                     await eventService.emitEvent("LockTxHash",
                         {
-                            "ccTaskId": obj.ccTaskId,
-                            "txhash": ret.data.data.ltcHash,
-                            "sentAmount": ret.data.data.value
+                            ccTaskId: obj.ccTaskId,
+                            txhash,
+                            sentAmount: ret.data.data.value,
+                            sender
                         });
-
+                    obj.uniqueID = "0x" + txhash;
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
                     await this.m_eventService.emitEvent("crossChainTaskSubmitted", obj.ccTaskId);

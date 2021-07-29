@@ -72,10 +72,13 @@ class CrossChainTaskRecords {
     }
   };
 
-  setTaskLockTxHash(ccTaskId, txHash) {
+  setTaskLockTxHash(ccTaskId, txHash, sender = undefined) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       ccTask.lockHash = txHash;
+      if (sender) {
+        ccTask.fromAccount = sender;
+      }
     }
   };
 

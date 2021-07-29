@@ -67,7 +67,7 @@ class WanBridge extends EventEmitter {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
     records.setTaskSentAmount(taskId, value);
-    records.setTaskLockTxHash(taskId, txHash);
+    records.setTaskLockTxHash(taskId, txHash, taskLockHash.sender);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("lock", {taskId, txHash});
   }

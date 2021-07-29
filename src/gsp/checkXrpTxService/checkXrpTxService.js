@@ -61,15 +61,17 @@ module.exports = class CheckXrpTxService {
             let obj = this.m_xrpCheckTagAry[index];
             try {
                 let queryUrl = url + obj.tagId;
+                // console.log("CheckXrpTxService queryUrl:", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
                     obj.uniqueID = "0x" + ret.data.data.xrpHash;
                     let eventService = this.m_frameworkService.getService("EventService");
                     await eventService.emitEvent("LockTxHash",
                         {
-                            "ccTaskId": obj.ccTaskId,
-                            "txhash": ret.data.data.xrpHash,
-                            "sentAmount": ret.data.data.sentValue
+                            ccTaskId: obj.ccTaskId,
+                            txhash: ret.data.data.xrpHash,
+                            sentAmount: ret.data.data.sentValue,
+                            sender: ret.data.data.xrpAddr
                         });
 
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");

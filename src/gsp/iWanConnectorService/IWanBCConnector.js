@@ -180,8 +180,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getTxInfo(chain, txHash) {
-        let ret = await this.apiClient.getTxInfo(chain, txHash);
+    async getTxInfo(chain, txHash, options) {
+        let ret = await this.apiClient.getTxInfo(chain, txHash, options);
         return ret;
     }
 
