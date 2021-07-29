@@ -175,9 +175,9 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  async getAccountAsset(assetPair, direction, account) {
+  async getAccountAsset(assetPair, direction, account, isCoin = false) {
     direction = this.unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, false);
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin);
     return parseFloat(balance);
   };
 
