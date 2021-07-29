@@ -34,7 +34,6 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("ReadStoremanInfoComplete", this.onStoremanInitilized.bind(this));
     this.eventService.addEventListener("LockTxHash", this.onLockTxHash.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this.onRedeemTxHash.bind(this));
-    this.eventService.addEventListener("networkFee", this.onNetworkFee.bind(this));
     this.eventService.addEventListener("AccountChanged", this.onAccountChanged.bind(this));
     await this.service.start();
   }
@@ -96,18 +95,6 @@ class WanBridge extends EventEmitter {
     records.setTaskRedeemTxHash(taskId, txHash);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
-  }
-
-  onNetworkFee(taskNetworkFee) {
-    console.log("onNetworkFee: %O", taskNetworkFee);
-    let records = this.stores.crossChainTaskRecords;
-    let ccTaskId = taskNetworkFee.ccTaskId;
-    let networkFee = taskNetworkFee.apiServerNetworkFee;
-    let ccTask = records.ccTaskRecords.get(ccTaskId);
-    if (ccTask) {
-      records.setTaskNetworkFee(ccTaskId, networkFee);
-      this.storageService.save("crossChainTaskRecords", ccTaskId, ccTask);
-    }
   }
 
   async connectMetaMask() {
