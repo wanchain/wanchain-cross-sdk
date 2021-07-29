@@ -5,7 +5,7 @@ const AssetPairs = require('./stores/AssetPairs');
 const CrossChainTaskSteps = require('./stores/CrossChainTaskSteps');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
-const tool = require('../utils/commonTool.js');
+const tool = require('../utils/tool.js');
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", smgIndex = 0) { // smgIndex is for testing only
@@ -175,14 +175,14 @@ class WanBridge extends EventEmitter {
     let operateFeeValue = '', operateFeeUnit = '', networkFeeValue = '', networkFeeUnit = '';
     if (direction == 'MINT') {
       operateFeeValue = parseFloat(operateFee.mintFee);
-      operateFeeUnit = assetPair.fromChainType;
+      operateFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
       networkFeeValue = parseFloat(networkFee.mintFee);
-      networkFeeUnit = assetPair.fromChainType;
+      networkFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
     } else {
       operateFeeValue = parseFloat(operateFee.burnFee);
-      operateFeeUnit = assetPair.toChainType;
+      operateFeeUnit = tool.getFeeUnit(assetPair.toChainType, assetPair.toChainName);
       networkFeeValue = parseFloat(networkFee.burnFee);
-      networkFeeUnit = assetPair.fromChainType;
+      networkFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
     }
     return {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
   }

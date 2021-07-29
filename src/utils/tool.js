@@ -119,10 +119,18 @@ function isValidDotAddress(account, network) {
     let format = ("testnet" == network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
     let addr = dotTxWrapper.deriveAddress(account, format);
     console.log("DOT %s account %s formatted to %s", network, account, addr);
-    return true;
+    return (account === addr);
   } catch(err) {
     console.log("DOT %s account %s is invalid: %s", network, account, err);
     return false;
+  }
+}
+
+function getFeeUnit(chainType, chainName) {
+  if ((chainType == "DOT") && (chainName == "PolkaTestnet")) {
+    return "WND";
+  } else {
+    return chainType;
   }
 }
 
@@ -135,5 +143,6 @@ module.exports = {
   isValidXrpAddress,
   isValidBtcAddress,
   isValidLtcAddress,
-  isValidDotAddress
+  isValidDotAddress,
+  getFeeUnit
 }

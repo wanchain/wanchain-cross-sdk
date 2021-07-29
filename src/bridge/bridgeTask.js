@@ -1,4 +1,4 @@
-const tool = require("../utils/commonTool.js");
+const tool = require("../utils/tool.js");
 const keypairs = require('ripple-keypairs');
 const elliptic = require('elliptic');
 const Secp256k1 = elliptic.ec('secp256k1');
