@@ -39,6 +39,7 @@ module.exports = class AccountService {
             console.log("connect MetaMask chain %s account: %s", chainInfo.chainType, account);
             this.m_WebStores[this.m_accountStoreName].setAccountData(chainInfo.chainType, "MetaMask", account);
             await this.m_eventService.emitEvent("AccountChanged", {wallet: "MetaMask", account});
+            return account;
         } else {
             console.log("wallet chainId %s does not match bridge network", chainId);
             throw "Invalid network";
@@ -56,6 +57,7 @@ module.exports = class AccountService {
             this.m_WebStores[this.m_accountStoreName].setAccountData("DOT", "PolkaDot", "");
         }
         await this.m_eventService.emitEvent("AccountChanged", {wallet: "polkadot{.js}", accounts});
+        return accounts;
     }
 
     getChainId(chainType) {

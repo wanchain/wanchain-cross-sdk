@@ -58,7 +58,7 @@ class WanBridge extends EventEmitter {
     let txHash = taskLockHash.txhash;
     let value = taskLockHash.sentAmount;
     let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask){
+    if (!ccTask) {
       return;
     }
     if (parseFloat(ccTask.networkFee) >= parseFloat(value)) {
