@@ -54,7 +54,7 @@ module.exports = class PolkadotMaskService {
         options.blockHash = blockHash.toHex();
         options.era = 64;
 
-        const txHash = await api.tx.utility.batch(txs).signAndSend(senderAddr, options);
+        const txHash = await api.tx.utility.batchAll(txs).signAndSend(senderAddr, options);
 
         //console.log("sendTransaction txHash:", txHash);
         //console.log("sendTransaction txHash.toHex():", txHash.toHex());

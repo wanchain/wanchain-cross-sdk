@@ -99,7 +99,7 @@ class AccountRecords {
     let chainType = (direction == "MINT")? fromChainType : toChainType;
     let accountList = this.mapAccountRecords.get(chainType);
     if (chainType == "DOT") {
-      return accountList.map(account => account.address);
+      return accountList? accountList.map(account => account.address) : [];
     } else {
       return accountList? accountList[0].address : '';
     }    
