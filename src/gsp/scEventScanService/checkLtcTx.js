@@ -88,7 +88,7 @@ module.exports = class CheckLtcTx{
                     if (ret.data.data) {
                         // found
                         let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.ltcHash, ltcAddr: ret.data.data.ltcAddr});
+                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.ltcHash, toAccount: ret.data.data.ltcAddr});
                         let storageService = this.m_frameworkService.getService("StorageService");
                         storageService.delete("ScEventScanService", obj.uniqueID);
                         this.m_CheckAry.splice(index, 1);

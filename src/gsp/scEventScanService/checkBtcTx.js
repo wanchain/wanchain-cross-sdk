@@ -88,7 +88,7 @@ module.exports = class CheckBtcTx{
                     if (ret.data.data) {
                         // found
                         let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.btcHash, btcAddr: ret.data.data.btcAddr});
+                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.btcHash, toAccount: ret.data.data.btcAddr});
                         let storageService = this.m_frameworkService.getService("StorageService");
                         storageService.delete("ScEventScanService", obj.uniqueID);
                         this.m_CheckAry.splice(index, 1);

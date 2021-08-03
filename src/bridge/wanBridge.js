@@ -81,20 +81,17 @@ class WanBridge extends EventEmitter {
     if (!ccTask){
       return;
     }
-    let toAccountType = ccTask.toChainType;
-    let txResult = "Succeeded";
-    if ("XRP" == toAccountType) {
-      if (ccTask.toAccount != taskRedeemHash.xrpAddr) {
-        console.error("xrp received account %s is not match toAccount %s", taskRedeemHash.xrpAddr, ccTask.toAccount);
-        txResult = "Error";
-       } else {
-        console.log("xrp received account %s is the same with toAccount %s", taskRedeemHash.xrpAddr, ccTask.toAccount);
+    let status = "Succeeded";
+    if (taskRedeemHash.toAccount !== undefined) {
+      if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+        console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
+        status = "Error";
       }
     }
-    records.modifyTradeTaskStatus(taskId, txResult);
+    records.modifyTradeTaskStatus(taskId, status);
     records.setTaskRedeemTxHash(taskId, txHash);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("redeem", {taskId, txHash});
+    this.emit("redeem", {taskId, txHash, status});
   }
 
   async connectMetaMask() {

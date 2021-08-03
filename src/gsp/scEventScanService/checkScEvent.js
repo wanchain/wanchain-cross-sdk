@@ -192,10 +192,10 @@ module.exports = class CheckScEvent {
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
-          let txhash = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
-          if (txhash) {
-            console.log("find obj:", obj);
-            await this.updateUIAndStorage(obj, txhash);
+          let event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
+          if (event) {
+            console.log("finish task: %O", obj);
+            await this.updateUIAndStorage(obj, event.txhash, event.toAccount);
             ary.splice(index, 1);
           } else { // wait next scan
             obj.fromBlockNumber = toBlockNumber + 1;
@@ -221,15 +221,15 @@ module.exports = class CheckScEvent {
     for (let i = 0; i < decodedEvts.length; ++i) {
       let args = decodedEvts[i].args;
       if (args.uniqueID.toLowerCase() === uniqueID.toLowerCase()) {
-        return decodedEvts[i].transactionHash;
+        return {txhash: decodedEvts[i].transactionHash, toAccount: args.userAccount};
       }
     }
     return null;
   }
 
-  async updateUIAndStorage(obj, txhash) {
+  async updateUIAndStorage(obj, txhash, toAccount) {
     try {
-      this.m_eventService.emitEvent("RedeemTxHash", { "ccTaskId": obj.ccTaskId, "txhash": txhash });
+      this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash, toAccount});
       let storageService = this.m_frameworkService.getService("StorageService");
       await storageService.delete("ScEventScanService", obj.uniqueID);
     }

@@ -65,7 +65,7 @@ module.exports = class CheckBtcTxService {
 
             try {
                 let queryUrl = url + obj.oneTimeAddr;
-                console.log("CheckBtcTxService queryUrl:", queryUrl);
+                console.debug("CheckBtcTxService queryUrl: %s", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
                     let txhash = ret.data.data.btcHash;
@@ -86,7 +86,7 @@ module.exports = class CheckBtcTxService {
                 }
             }
             catch (err) {
-                console.log("CheckBtcTxService runTask err:", err);
+                console.error("CheckBtcTxService runTask err: %O", err);
             }
         }
     }

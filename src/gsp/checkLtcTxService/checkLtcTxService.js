@@ -65,7 +65,7 @@ module.exports = class CheckLtcTxService {
 
             try {
                 let queryUrl = url + obj.oneTimeAddr;
-                // console.log("CheckLtcTxService queryUrl:", queryUrl);
+                console.debug("CheckLtcTxService queryUrl: %s", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
                     let txhash = ret.data.data.ltcHash;
@@ -86,7 +86,7 @@ module.exports = class CheckLtcTxService {
                 }
             }
             catch (err) {
-                console.log("CheckLtcTxService runTask err:", err);
+                console.error("CheckLtcTxService runTask err: %O", err);
             }
         }
     }
