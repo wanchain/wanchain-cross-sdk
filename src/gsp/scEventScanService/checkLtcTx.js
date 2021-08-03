@@ -82,9 +82,8 @@ module.exports = class CheckLtcTx{
                 let index = count - idx - 1;
                 let obj = this.m_CheckAry[index];
                 let txUrl = url + obj.uniqueID;
-                console.log("checkLtcTx index:", index, ",txUrl:", txUrl);
                 let ret = await axios.get(txUrl);
-                console.log("checkLtcTx ret.data:", ret.data);
+                console.debug("checkLtcTx %s ret.data: %O", txUrl, ret.data);
                 if (ret.data.success === true) {
                     if (ret.data.data) {
                         // found
@@ -98,7 +97,7 @@ module.exports = class CheckLtcTx{
             }
         }
         catch (err) {
-            console.log("CheckBtcTx runTask err:", err);
+            console.error("CheckBtcTx runTask err: %O", err);
         }
     }
 };

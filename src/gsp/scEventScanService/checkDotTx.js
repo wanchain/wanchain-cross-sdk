@@ -66,11 +66,9 @@ module.exports = class CheckDotTx {
       for (let idx = 0; idx < count; ++idx) {
         let index = count - idx - 1;
         let obj = this.m_CheckAry[index];
-
         let txUrl = url + obj.fromChain + "/" + obj.uniqueID;
-        console.log("CheckDotTx txUrl:", txUrl);
         let ret = await axios.get(txUrl);
-        console.log("CheckDotTx ret.data:", ret.data);
+        console.debug("CheckDotTx %s ret.data: %O", txUrl, ret.data);
         if (ret.data.success === true) {
           if (ret.data.data) {
             // found
@@ -84,7 +82,7 @@ module.exports = class CheckDotTx {
       }
     }
     catch (err) {
-      console.log("CheckDotTx runTask err:", err);
+      console.error("CheckDotTx runTask err: %O", err);
     }
   }
 };

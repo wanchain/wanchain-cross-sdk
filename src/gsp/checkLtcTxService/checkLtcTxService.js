@@ -81,7 +81,6 @@ module.exports = class CheckLtcTxService {
                     obj.uniqueID = "0x" + txhash;
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
-                    await this.m_eventService.emitEvent("crossChainTaskSubmitted", obj.ccTaskId);
                     await storageService.delete("CheckLtcTxService", obj.ccTaskId);
                     this.m_ltcCheckOTAAry.splice(index, 1);
                 }

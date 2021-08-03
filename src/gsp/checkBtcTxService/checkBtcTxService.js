@@ -81,7 +81,6 @@ module.exports = class CheckBtcTxService {
                     obj.uniqueID = "0x" + txhash;
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
-                    await this.m_eventService.emitEvent("crossChainTaskSubmitted", obj.ccTaskId);
                     await storageService.delete("CheckBtcTxService", obj.ccTaskId);
                     this.m_btcCheckOTAAry.splice(index, 1);
                 }

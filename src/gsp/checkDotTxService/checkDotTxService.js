@@ -28,8 +28,8 @@ module.exports = class CheckDotTxService {
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
         let dotChainInfo = await chainInfoService.getChainInfoByType("DOT");
 
-        //console.log("dotChainInfo.checkInterval:", dotChainInfo.checkInterval);
-        this.m_taskService.addTask(this, dotChainInfo.checkInterval, "");
+        //console.log("dotChainInfo.taskInterval:", dotChainInfo.TxScanInfo.taskInterval);
+        this.m_taskService.addTask(this, dotChainInfo.TxScanInfo.taskInterval, "");
     }
 
     async addDotInfo(obj) {
@@ -79,7 +79,6 @@ module.exports = class CheckDotTxService {
                       await eventService.emitEvent("LockTxHash", tmpObj);
                         let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                         await scEventScanService.add(obj);
-                        await this.m_eventService.emitEvent("crossChainTaskSubmitted", obj.ccTaskId);
                         await storageService.delete("CheckDotTxService", obj.ccTaskId);
                         this.m_dotCheckAry.splice(index, 1);
                     }

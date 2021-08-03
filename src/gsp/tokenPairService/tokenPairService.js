@@ -54,6 +54,9 @@ class TokenPairService {
             let tokenPairs = await this.iwanBCConnector.getTokenPairs({isAllTokenPairs: true});
             let tokenPairMap = new Map();
             await Promise.all(tokenPairs.map(async (pair) => {
+                if (pair.ancestorSymbol === "EOS") {
+                    return; // hide legacy tokens
+                }
                 let valid = await this.updateTokenPairInfo(pair);
                 if (valid) { // ignore unsupported token pair
                     pair.storemangroupList = workingList;

@@ -76,7 +76,6 @@ module.exports = class CheckXrpTxService {
 
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
-                    await this.m_eventService.emitEvent("crossChainTaskSubmitted", obj.ccTaskId);
                     await storageService.delete("CheckXrpTxService", obj.ccTaskId);
                     this.m_xrpCheckTagAry.splice(index, 1);
                 }

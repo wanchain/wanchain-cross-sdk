@@ -182,7 +182,7 @@ module.exports = class CheckScEvent {
     for (let idx = 0; idx < count; ++idx) {
       let index = count - idx - 1;
       let obj = ary[index];
-      console.log("processScLogger:", type, obj);
+      console.debug("processScLogger %s: %O", type, obj);
       try {
         let topics = [eventHash, obj.uniqueID.toLowerCase()];
         let fromBlockNumber = obj.fromBlockNumber;
@@ -202,7 +202,7 @@ module.exports = class CheckScEvent {
           }
         }
       } catch (err) {
-        console.log("processScLogger:", type, obj, ",err:", err);
+        console.error("processScLogger %s %O error: %O", type, obj, err);
       }
     }
   }

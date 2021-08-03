@@ -78,9 +78,8 @@ module.exports = class CheckXrpTx {
                 let index = count - idx - 1;
                 let obj = this.m_CheckAry[index];
                 let txUrl = url + obj.uniqueID;
-                console.log("checkXrpTx index:", index, ",txUrl:", txUrl);
                 let ret = await axios.get(txUrl);
-                console.log("checkXrpTx ret.data:", ret.data);
+                console.debug("checkXrpTx %s ret.data: %O", txUrl, ret.data);
                 if (ret.data.success === true) {
                     if (ret.data.data) {
                         // found
@@ -94,7 +93,7 @@ module.exports = class CheckXrpTx {
             }
         }
         catch (err) {
-            console.log("CheckXrpTx err:", err);
+            console.error("CheckXrpTx err: %O", err);
         }
     }
 };
