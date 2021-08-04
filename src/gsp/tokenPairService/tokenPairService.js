@@ -54,13 +54,12 @@ class TokenPairService {
             let tokenPairs = await this.iwanBCConnector.getTokenPairs({isAllTokenPairs: true});
             let tokenPairMap = new Map();
             await Promise.all(tokenPairs.map(async (pair) => {
-                if (pair.ancestorSymbol === "EOS") {
-                    return; // hide legacy tokens
-                }
-                let valid = await this.updateTokenPairInfo(pair);
-                if (valid) { // ignore unsupported token pair
-                    pair.storemangroupList = workingList;
-                    tokenPairMap.set(pair.id, pair);
+                if (pair.ancestorSymbol !== "EOS") { // hide legacy tokens
+                    let valid = await this.updateTokenPairInfo(pair);
+                    if (valid) { // ignore unsupported token pair
+                        pair.storemangroupList = workingList;
+                        tokenPairMap.set(pair.id, pair);
+                    }
                 }
             }));
             this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), workingList);
@@ -81,16 +80,16 @@ class TokenPairService {
     }
 
     async updateTokenPairInfo(tokenPair) {
-        try {
-            tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
-            tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
+        tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
+        tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
+        if (tokenPair.fromScInfo && tokenPair.toScInfo) {
             await Promise.all([
                 this.updateTokenPairFromChainInfo(tokenPair),
                 this.updateTokenPairToChainInfo(tokenPair),
                 this.updateTokenPairCcHandle(tokenPair)
             ]);
             return true;
-        } catch(err) {
+        } else {
             console.log("ignore unsupported token pair %s", tokenPair.id);
             return false; // unsupported
         }
