@@ -29,7 +29,6 @@ let CrossChainFeesService = require("../crossChainFeesService/crossChainFees");
 let XrpService = require("../xrpService/xrpService");
 let BtcService = require("../btcService/btcService");
 let LtcService = require("../ltcService/ltcService");
-let EosService = require("../eosService/eosService");
 
 let CCTHandleService = require("../CCTHandleService/CCTHandleService");
 let TxTaskHandleService = require("../txTaskHandleService/txTaskHandleService");
@@ -130,10 +129,6 @@ class StartService {
             let ltcService = new LtcService();
             await ltcService.init(frameworkService);
             frameworkService.registerService("LtcService", ltcService);
-
-            let eosService = new EosService();
-            await eosService.init(frameworkService);
-            frameworkService.registerService("EosService", eosService);
 
             let checkDotTxService = new CheckDotTxService();
             await checkDotTxService.init(frameworkService);
