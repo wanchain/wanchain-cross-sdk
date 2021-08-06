@@ -17,7 +17,9 @@ class CrossChainTaskRecords {
   modifyTradeTaskStatus(id, ccTaskStatus) {
     let ccTask = this.ccTaskRecords.get(id);
     if (ccTask) {
-      ccTask.status = ccTaskStatus;
+      if (!["Failed", "Succeeded", "Error"].includes(ccTask.status)) {
+        ccTask.status = ccTaskStatus;
+      }
     }    
   }
 

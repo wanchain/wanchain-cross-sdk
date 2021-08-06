@@ -12,102 +12,31 @@ class WanBridge extends EventEmitter {
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
     this.smgIndex = smgIndex;
-    this.service = new StartService();
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       accountRecords: new AccountRecords(),
       assetPairs: new AssetPairs(),
       crossChainTaskSteps: new CrossChainTaskSteps()
     };
+    this._service = new StartService();
   }
 
   async init(iwanAuth) {
     console.log("init WanBridge SDK");
-    await this.service.init(this.network, this.stores, iwanAuth);
-    this.accountSrv = this.service.getService("AccountService");
-    this.eventService = this.service.getService("EventService");
-    this.configService = this.service.getService("ConfigService");
-    this.storemanService = this.service.getService("StoremanService");
-    this.storageService = this.service.getService("StorageService");
-    this.feesService = this.service.getService("CrossChainFeesService");
-    this.chainInfoService = this.service.getService("ChainInfoService");
-    this.eventService.addEventListener("ReadStoremanInfoComplete", this.onStoremanInitilized.bind(this));
-    this.eventService.addEventListener("LockTxHash", this.onLockTxHash.bind(this));
-    this.eventService.addEventListener("RedeemTxHash", this.onRedeemTxHash.bind(this));
-    this.eventService.addEventListener("TaskCancel", this.onTaskCancel.bind(this));
-    this.eventService.addEventListener("AccountChanged", this.onAccountChanged.bind(this));
-    await this.service.start();
+    await this._service.init(this.network, this.stores, iwanAuth);
+    this.accountSrv = this._service.getService("AccountService");
+    this.eventService = this._service.getService("EventService");
+    this.configService = this._service.getService("ConfigService");
+    this.storemanService = this._service.getService("StoremanService");
+    this.storageService = this._service.getService("StorageService");
+    this.feesService = this._service.getService("CrossChainFeesService");
+    this.chainInfoService = this._service.getService("ChainInfoService");
+    this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this));
+    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this));
+    this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this));
+    this.eventService.addEventListener("AccountChanged", this._onAccountChanged.bind(this));
+    await this._service.start();
   }
-
-  onStoremanInitilized(success) {
-    if (success) {
-      this.emit("ready", this.stores.assetPairs.assetPairList);
-    } else {
-      this.emit("error", {reason: "Failed to initialize storeman"});
-    }
-    console.log("assetPairList: %O", this.stores.assetPairs.assetPairList);
-  }
-
-  onAccountChanged(info) {
-    this.emit("account", info);
-  }
-
-  onLockTxHash(taskLockHash) {
-    console.log("onLockTxHash: %O", taskLockHash);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskLockHash.ccTaskId;
-    let txHash = taskLockHash.txhash;
-    let value = taskLockHash.sentAmount;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask) {
-      return;
-    }
-    if (parseFloat(ccTask.networkFee) >= parseFloat(value)) {
-      records.modifyTradeTaskStatus(taskId, "Failed");
-    }else{
-      records.modifyTradeTaskStatus(taskId, "Converting");
-    }
-    records.setTaskSentAmount(taskId, value);
-    records.setTaskLockTxHash(taskId, txHash, taskLockHash.sender);
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("lock", {taskId, txHash});
-  }
-
-  onRedeemTxHash(taskRedeemHash) {
-    console.log("onRedeemTxHash: %O", taskRedeemHash);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskRedeemHash.ccTaskId;
-    let txHash = taskRedeemHash.txhash;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask){
-      return;
-    }
-    let status = "Succeeded";
-    if (taskRedeemHash.toAccount !== undefined) {
-      if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
-        console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
-        status = "Error";
-      }
-    }
-    records.modifyTradeTaskStatus(taskId, status);
-    records.setTaskRedeemTxHash(taskId, txHash);
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("redeem", {taskId, txHash, status});
-  }
-
-  onTaskCancel(taskCancel) {
-    console.log("onTaskCancel: %O", taskCancel);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskCancel.ccTaskId;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask){
-      return;
-    }
-    let status = "Rejected";
-    records.modifyTradeTaskStatus(taskId, status);
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("cancel", {taskId});
-  }  
 
   async connectMetaMask() {
     return this.accountSrv.connectMetaMask();
@@ -121,16 +50,8 @@ class WanBridge extends EventEmitter {
     return this.stores.assetPairs.isReady();
   }
 
-  unifyDirection(direction) {
-    direction = direction.toUpperCase();
-    if (!["MINT", "BURN"].includes(direction)) {
-      throw "Invalid direction, must be MINT or BURN";
-    }
-    return direction;
-  }
-
   async createTask(assetPair, direction, amount, fromAccount, toAccount = "") {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     if (fromAccount) {
       let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
@@ -153,8 +74,19 @@ class WanBridge extends EventEmitter {
     }
   }
 
+  cancelTask(taskId) {
+    // only set the status, do not really stop the task
+    let records = this.stores.crossChainTaskRecords;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask){
+      return;
+    }
+    records.modifyTradeTaskStatus(taskId, "Rejected");
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+  }  
+
   checkWallet(assetPair, direction) {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.MaskChainId) {
@@ -166,7 +98,7 @@ class WanBridge extends EventEmitter {
   }
 
   getWalletAccount(assetPair, direction) {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     if (this.checkWallet(assetPair, direction)) {
       return this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
     } else {
@@ -175,13 +107,13 @@ class WanBridge extends EventEmitter {
   }
 
   async getAccountAsset(assetPair, direction, account, isCoin = false) {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin);
     return parseFloat(balance);
   };
 
   async estimateFee(assetPair, direction) {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
     let operateFeeValue = '', operateFeeUnit = '', networkFeeValue = '', networkFeeUnit = '';
@@ -200,13 +132,13 @@ class WanBridge extends EventEmitter {
   }
 
   async getQuota(assetPair, direction) {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     return this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[this.smgIndex % assetPair.smgs.length].id);
   }
 
   validateToAccount(assetPair, direction, account) {
-    direction = this.unifyDirection(direction);
+    direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "DEV", "MATIC"].includes(chainType)) {
       return tool.isValidEthAddress(account);
@@ -255,6 +187,70 @@ class WanBridge extends EventEmitter {
       }
     });
     return history;
+  }
+
+  _onStoremanInitilized(success) {
+    if (success) {
+      this.emit("ready", this.stores.assetPairs.assetPairList);
+    } else {
+      this.emit("error", {reason: "Failed to initialize storeman"});
+    }
+    console.log("assetPairList: %O", this.stores.assetPairs.assetPairList);
+  }
+
+  _onAccountChanged(info) {
+    this.emit("account", info);
+  }
+
+  _onLockTxHash(taskLockHash) {
+    console.log("_onLockTxHash: %O", taskLockHash);
+    let records = this.stores.crossChainTaskRecords;
+    let taskId = taskLockHash.ccTaskId;
+    let txHash = taskLockHash.txhash;
+    let value = taskLockHash.sentAmount;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask) {
+      return;
+    }
+    if (parseFloat(ccTask.networkFee) >= parseFloat(value)) {
+      records.modifyTradeTaskStatus(taskId, "Failed");
+    }else{
+      records.modifyTradeTaskStatus(taskId, "Converting");
+    }
+    records.setTaskSentAmount(taskId, value);
+    records.setTaskLockTxHash(taskId, txHash, taskLockHash.sender);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    this.emit("lock", {taskId, txHash});
+  }
+
+  _onRedeemTxHash(taskRedeemHash) {
+    console.log("_onRedeemTxHash: %O", taskRedeemHash);
+    let records = this.stores.crossChainTaskRecords;
+    let taskId = taskRedeemHash.ccTaskId;
+    let txHash = taskRedeemHash.txhash;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask){
+      return;
+    }
+    let status = "Succeeded";
+    if (taskRedeemHash.toAccount !== undefined) {
+      if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+        console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
+        status = "Error";
+      }
+    }
+    records.modifyTradeTaskStatus(taskId, status);
+    records.setTaskRedeemTxHash(taskId, txHash);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    this.emit("redeem", {taskId, txHash, status});
+  }
+
+  _unifyDirection(direction) {
+    direction = direction.toUpperCase();
+    if (!["MINT", "BURN"].includes(direction)) {
+      throw "Invalid direction, must be MINT or BURN";
+    }
+    return direction;
   }
 }
 
