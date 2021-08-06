@@ -41,7 +41,7 @@ class BridgeTask {
     this.quota = null;
     this.fee = null;
     // storage
-    this.task = new CrossChainTask();
+    this.task = new CrossChainTask(this.id);
     // runtime context
     this.curStep = 0;
     this.executedStep = -1;
@@ -177,7 +177,6 @@ class BridgeTask {
     };
     console.log("jsonTaskAssetPair: %O", jsonTaskAssetPair);
 
-    this.task.setCCTaskID(this.id);
     this.task.setTaskAssetPair(jsonTaskAssetPair);
     this.task.setFee(this.fee);
     this.task.setOtaTx(this.isOtaTx);
@@ -227,14 +226,6 @@ class BridgeTask {
       return true;
     } else {
       return false;
-    }
-  }
-
-  updateStorageService(taskId) { // TODO: update status on exception
-    let records = this.bridge.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (ccTask) { 
-      this.bridge.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }
 
@@ -333,6 +324,11 @@ class BridgeTask {
     const smgAddr = keyring.encodeAddress(hash);
     console.log("DOT smgAddr: %s", smgAddr);
     return smgAddr;
+  }
+
+  cancel() {
+    // only set the status, do not really stop the task
+    this.bridge.eventService.emitEvent("TaskCancel", {ccTaskId: this.id});
   }
 }
 

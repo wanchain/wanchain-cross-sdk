@@ -34,6 +34,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("ReadStoremanInfoComplete", this.onStoremanInitilized.bind(this));
     this.eventService.addEventListener("LockTxHash", this.onLockTxHash.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this.onRedeemTxHash.bind(this));
+    this.eventService.addEventListener("TaskCancel", this.onTaskCancel.bind(this));
     this.eventService.addEventListener("AccountChanged", this.onAccountChanged.bind(this));
     await this.service.start();
   }
@@ -93,6 +94,20 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash, status});
   }
+
+  onTaskCancel(taskCancel) {
+    console.log("onTaskCancel: %O", taskCancel);
+    let records = this.stores.crossChainTaskRecords;
+    let taskId = taskCancel.ccTaskId;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask){
+      return;
+    }
+    let status = "Rejected";
+    records.modifyTradeTaskStatus(taskId, status);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    this.emit("cancel", {taskId});
+  }  
 
   async connectMetaMask() {
     return this.accountSrv.connectMetaMask();

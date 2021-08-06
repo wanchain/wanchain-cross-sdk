@@ -12,14 +12,14 @@ class CrossChainTaskRecords {
     ccTaskData.lockHash = null;
     ccTaskData.redeemHash = null;
     this.ccTaskRecords.set(ccTaskData.ccTaskId, ccTaskData);
-  };
+  }
 
   modifyTradeTaskStatus(id, ccTaskStatus) {
     let ccTask = this.ccTaskRecords.get(id);
     if (ccTask) {
       ccTask.status = ccTaskStatus;
     }    
-  };
+  }
 
   attachTagIdByTaskId(ccTaskId, address, tagId, rAddress) {
     // adapted to BTC/XRP crosschain task on 2021.0111     
@@ -33,7 +33,7 @@ class CrossChainTaskRecords {
         ccTask.ota.rAddress = rAddress;
       }
     }
-  };
+  }
 
   updateTaskStepResult(ccTaskId, stepNo, txHash, result) {
     let isLockTx = false;
@@ -56,21 +56,21 @@ class CrossChainTaskRecords {
       }
     }
     return isLockTx;
-  };
+  }
 
   setTaskSentAmount(ccTaskId, value) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       ccTask.sentAmount = value;
     }
-  };
+  }
 
   setTaskNetworkFee(ccTaskId, fee) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
       ccTask.fee.networkFee.value = fee;
     }
-  };
+  }
 
   setTaskLockTxHash(ccTaskId, txHash, sender = undefined) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
@@ -80,25 +80,25 @@ class CrossChainTaskRecords {
         ccTask.fromAccount = sender;
       }
     }
-  };
+  }
 
   setTaskRedeemTxHash(ccTaskId, txHash) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       ccTask.redeemHash = txHash;
     }
-  };
+  }
 
   removeTradeTask(ccTaskId) {
     this.ccTaskRecords.delete(ccTaskId);
-  };
+  }
 
   loadTradeTask(ccTaskObjList) {
     for (let i = 0; i < ccTaskObjList.length; i++) {
       let ccTask = ccTaskObjList[i];
       this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
     }
-  };
+  }
 }
 
 module.exports = CrossChainTaskRecords;

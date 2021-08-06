@@ -1,8 +1,8 @@
 class CrossChainTask {
 
-  constructor() {
+  constructor(taskId) {
     this.ccTaskData = {
-      ccTaskId: 0,  // the unique id for convert task
+      ccTaskId: taskId, // the unique id for convert task
       assetPairId: '', // the token pair id of this convert task
       assetType: '', // the token ancestorySymbol
       convertType: '', // the value is "MINT" or "BURN", used by web server 
@@ -39,7 +39,7 @@ class CrossChainTask {
     this.ccTaskData.fromChainName = jsonTaskAssetPair.fromChainName;
     this.ccTaskData.toChainName = jsonTaskAssetPair.toChainName;    
     this.ccTaskData.smg = jsonTaskAssetPair.smg;
-  };
+  }
 
   setTaskAccountAddress(accountTags, addr) {
     if('From' === accountTags){
@@ -47,34 +47,30 @@ class CrossChainTask {
     }else{
       this.ccTaskData.toAccount = addr;
     }
-  };
+  }
 
   setFromAccountBalance(balance) {
     this.ccTaskData.fromAccountBalance = balance;
-  };
+  }
 
   setFee(fee) {
     this.ccTaskData.fee = fee;
-  };
+  }
 
   setOtaTx(isOtaTx) {
     this.ccTaskData.isOtaTx = isOtaTx; // adapted to BTC/XRP crosschain task on 2021.0111  
     if (isOtaTx) {
       this.ccTaskData.fromAccount = '';
     }
-  };
+  }
 
   setTaskAmount(amount) {
     this.ccTaskData.amount = amount;
-  };
-
-  setCCTaskID(ccTaskId) {
-    this.ccTaskData.ccTaskId = ccTaskId;
-  };
+  }
 
   setTaskStepNums(stepNums) {
     this.ccTaskData.stepNums = stepNums;
-  };
+  }
 }
 
 module.exports = CrossChainTask;

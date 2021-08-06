@@ -18,7 +18,7 @@ class CrossChainTaskSteps {
       steps.push(step);
     };
     this.mapCCTaskStepsArray.set(taskId, steps);
-  };
+  }
 
   finishTaskStep(taskId, stepIndex, txHash, stepRslt) {
     let steps = this.mapCCTaskStepsArray.get(taskId);

@@ -35,7 +35,7 @@ class AccountRecords {
       accountList.push(account);
     }
     this.mapAccountRecords.set(chainType, accountList);
-  };
+  }
 
   removeAccountData(chainType, addr) {
     let accountList = this.mapAccountRecords.get(chainType)
@@ -52,7 +52,7 @@ class AccountRecords {
       accountList.splice(i, 1);
     }    
     this.mapAccountRecords.set(chainType, accountList);    
-  };
+  }
 
   setAccountData(chainType, srctype, addr, name) {
     let isMetaMask = (srctype == "MetaMask")? true : false;
@@ -79,7 +79,7 @@ class AccountRecords {
         this.addAccountData(chainType, addr, name, srctype);
       }
     }
-  };
+  }
 
 
   checkAccountData(chainType, addr) {
@@ -103,7 +103,7 @@ class AccountRecords {
     } else {
       return accountList? accountList[0].address : '';
     }    
-  };
+  }
 }
 
 module.exports = AccountRecords;
