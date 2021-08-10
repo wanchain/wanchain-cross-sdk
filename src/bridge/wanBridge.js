@@ -98,16 +98,16 @@ class WanBridge extends EventEmitter {
     // only set the status, do not really stop the task
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask){
+    if (!ccTask) {
       return;
     }
     records.modifyTradeTaskStatus(taskId, "Rejected");
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, isCoin = false, wallet = null) {
+  async getAccountAsset(assetPair, direction, account, isCoin = false) {
     direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin, wallet);
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin);
     return parseFloat(balance);
   };
 
@@ -228,7 +228,7 @@ class WanBridge extends EventEmitter {
     let taskId = taskRedeemHash.ccTaskId;
     let txHash = taskRedeemHash.txhash;
     let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask){
+    if (!ccTask) {
       return;
     }
     let status = "Succeeded";

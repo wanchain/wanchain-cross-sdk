@@ -155,7 +155,7 @@ class BridgeTask {
     } else {
       return "";
     }
-    let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true, this._wallet);
+    let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true);
     console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance);
     let estimateBalance = parseFloat(smgBalance) + this._amount;
     if (estimateBalance < minValue) {
@@ -165,8 +165,8 @@ class BridgeTask {
   }
 
   async _checkFromAccount() {
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, true, this._wallet);
-    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false, this._wallet);
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, true);
+    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
     let requiredCoin = this._fee.operateFee.value;
     let requiredAsset = this._amount;
     if ((this._assetPair.fromAccount == 0) && (this._direction == "MINT")) { // asset is coin
@@ -195,7 +195,7 @@ class BridgeTask {
     } else {
       return "";
     }
-    let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, true, this._wallet);
+    let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, true);
     console.log("toAccount %s balance: %s", this._toAccount, balance);
     let estimateBalance = parseFloat(balance) + this._amount;
     if (estimateBalance < minValue) {
