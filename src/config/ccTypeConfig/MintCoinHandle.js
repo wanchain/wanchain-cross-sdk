@@ -71,8 +71,7 @@ module.exports = class MintCoinHandle {
       "fee": fees.mintFeeBN
     };
 
-    let accountService = await this.m_frameworkService.getService("AccountService");
-    userFastMintParaJson.chainId = await accountService.getChainId(userFastMintParaJson.scChainType);
+    userFastMintParaJson.chainId = await convertJson.wallet.getChainId();
 
     let ret = [
       { "name": "userFastMint", "stepIndex": 1, "title": this.m_strMintTitle, "desc": this.m_strMintDesc, "params": userFastMintParaJson }

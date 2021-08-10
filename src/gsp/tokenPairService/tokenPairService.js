@@ -37,9 +37,9 @@ class TokenPairService {
     }
 
     async readAssetPair() {
-        let t_start = new Date().getTime();  
+        let t_start = new Date().getTime();
         try {
-            let smgList = await this.iwanBCConnector.getStoremanGroupList();        
+            let smgList = await this.iwanBCConnector.getStoremanGroupList();
             let workingList = [];
             for (let i = 0; i < smgList.length; i++) {
                 let group = smgList[i];
@@ -83,12 +83,17 @@ class TokenPairService {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
-            await Promise.all([
-                this.updateTokenPairFromChainInfo(tokenPair),
-                this.updateTokenPairToChainInfo(tokenPair),
-                this.updateTokenPairCcHandle(tokenPair)
-            ]);
-            return true;
+            try {
+                await Promise.all([
+                    this.updateTokenPairFromChainInfo(tokenPair),
+                    this.updateTokenPairToChainInfo(tokenPair),
+                    this.updateTokenPairCcHandle(tokenPair)
+                ]);
+                return true;
+            } catch(err) {
+                console.error("ignore unavailable token pair %s", tokenPair.id);
+                return false;
+            }
         } else {
             console.log("ignore unsupported token pair %s", tokenPair.id);
             return false; // unsupported

@@ -57,7 +57,7 @@ module.exports = class ProcessMintLtcFromLitecoin {
   //    "taskType": "ProcessMintLtcFromBitcoin",
   //    "fee": fees.mintFeeBN
   //};
-  async process(paramsJson) {
+  async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let params = paramsJson.params;
     try {

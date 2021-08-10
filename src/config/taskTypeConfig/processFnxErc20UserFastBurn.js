@@ -8,7 +8,7 @@ module.exports = class ProcessFnxErc20UserFastBurn extends ProcessBase {
     super(frameworkService);
   }
 
-  async process(paramsJson) {
+  async process(paramsJson, wallet) {
     //console.log("ProcessFnxErc20UserFastBurn paramsJson:", paramsJson);
     let uiStrService = this.m_frameworkService.getService("UIStrService");
     let strFailed = uiStrService.getStrByName("Failed");
@@ -16,7 +16,7 @@ module.exports = class ProcessFnxErc20UserFastBurn extends ProcessBase {
     let params = paramsJson.params;
     //console.log("ProcessFnxErc20UserFastBurn params:", params);
     try {
-      if (!(await this.checkChainId(paramsJson))) {
+      if (!(await this.checkChainId(paramsJson, wallet))) {
         return;
       }
       if (typeof params.value === "string") {
@@ -47,7 +47,7 @@ module.exports = class ProcessFnxErc20UserFastBurn extends ProcessBase {
 
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
-      await this.sendTransactionData(paramsJson, txData, params.fromAddr);
+      await this.sendTransactionData(paramsJson, txData, wallet);
       return;
     }
     catch (err) {

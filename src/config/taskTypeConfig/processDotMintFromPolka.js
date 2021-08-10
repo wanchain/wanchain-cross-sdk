@@ -20,7 +20,7 @@ module.exports = class ProcessDotMintFromPolka {
   //    "taskType": "ProcessDotMintFromPolka",
   //    "fee": fees.mintFeeBN
   //};
-  async process(paramsJson) {
+  async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
     //console.log("ProcessDotMintFromPolka paramsJson:", paramsJson);
@@ -90,7 +90,7 @@ module.exports = class ProcessDotMintFromPolka {
       // 5 签名并发送
       let txHash;
       try {
-        txHash = await polkadotMaskService.sendTransaction(params.fromAddr, txs);
+        txHash = await polkadotMaskService.sendTransaction(params.fromAddr, txs, wallet);
       }
       catch (err) {
         if (err.message === "Cancelled") {

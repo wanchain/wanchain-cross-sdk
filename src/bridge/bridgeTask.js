@@ -10,7 +10,7 @@ const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
 
 class BridgeTask {
-  constructor(bridge, assetPair, direction, fromAccount, toAccount, amount) {
+  constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
     this.id = Date.now();
     this._bridge = bridge;
     this._assetPair = assetPair;
@@ -18,6 +18,7 @@ class BridgeTask {
     this._fromAccount = fromAccount;
     this._toAccount = toAccount;
     this._amount = parseFloat(amount);
+    this._wallet = wallet;
     this._smg = assetPair.smgs[this._bridge.smgIndex % assetPair.smgs.length];
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     let fromChainInfo = {
@@ -45,12 +46,12 @@ class BridgeTask {
     // runtime context
     this._curStep = 0;
     this._executedStep = -1;
-    this._isOtaTx = ["BTC", "XRP", "LTC"].includes(this._fromChainInfo.chainType);
     this._ota = '';
   }
 
   async init() {
-    if (!this._bridge.checkWallet(this._assetPair, this._direction)) {
+    let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
+    if (!validWallet) {
       throw "Invalid wallet";
     }
     let feeErr = await this._checkFee();
@@ -95,7 +96,7 @@ class BridgeTask {
 
     this._task.setTaskAssetPair(jsonTaskAssetPair);
     this._task.setFee(this._fee);
-    this._task.setOtaTx(this._isOtaTx);
+    this._task.setOtaTx(!this._wallet);
     this._task.setTaskAccountAddress('From', this._fromAccount);
     this._task.setTaskAccountAddress('To', this._toAccount);
     this._task.setTaskAmount(this._amount);
@@ -216,7 +217,8 @@ class BridgeTask {
       toAddr: ccTaskData.toAccount,
       storemanGroupId: ccTaskData.smg.id,
       storemanGroupGpk: this._secp256k1Gpk,
-      value: ccTaskData.amount
+      value: ccTaskData.amount,
+      wallet: this._wallet
     }; 
     // console.log("checkTaskSteps: %O", convertJson);
     let retRslt = await this._bridge.storemanService.getConvertInfo(convertJson);
@@ -239,7 +241,7 @@ class BridgeTask {
         if (this._executedStep != this._curStep) {
           let jsonStepHandle = taskStep.jsonParams;
           // to call server to execute the api
-          await this._bridge.storemanService.processTxTask(jsonStepHandle);
+          await this._bridge.storemanService.processTxTask(jsonStepHandle, this._wallet);
           this._executedStep = this._curStep;
         }
         await tool.sleep(10000);
@@ -250,7 +252,7 @@ class BridgeTask {
         this._bridge.emit('error', {taskId: this.id, reason: stepResult});
         break;
       }
-      if (this._isOtaTx) {
+      if (!this._wallet) {
         this._procOtaAddr(taskStep);
       } else if ((taskStep.jsonParams.name == "erc20Approve") && (this._fromChainInfo.chainType == "DEV")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect

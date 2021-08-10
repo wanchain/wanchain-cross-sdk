@@ -130,8 +130,7 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
 
     retAry.push({ "name": "userFastBurnParaJson", "stepIndex": retAry.length + 1, "title": this.m_strBurnTitle, "desc": this.m_strBurnDesc, "params": userFastBurnParaJson });
 
-    let accountService = await this.m_frameworkService.getService("AccountService");
-    let chainId = await accountService.getChainId(userFastBurnParaJson.scChainType);
+    let chainId = await convertJson.wallet.getChainId();
     for (let idx = 0; idx < retAry.length; ++idx) {
       retAry[idx].params.chainId = chainId;
     }

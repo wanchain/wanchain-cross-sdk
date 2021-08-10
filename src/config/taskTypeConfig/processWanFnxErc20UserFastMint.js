@@ -8,14 +8,14 @@ module.exports = class ProcessWanFnxErc20UserFastMint extends ProcessBase {
     super(frameworkService);
   }
 
-  async process(paramsJson) {
+  async process(paramsJson, wallet) {
     console.log("ProcessWanFnxErc20UserFastMint paramsJson:", paramsJson);
     let uiStrService = this.m_frameworkService.getService("UIStrService");
     let strFailed = uiStrService.getStrByName("Failed");
     let params = paramsJson.params;
     try {
       console.log("ProcessWanFnxErc20UserFastMint 2");
-      if (!(await this.checkChainId(paramsJson))) {
+      if (!(await this.checkChainId(paramsJson, wallet))) {
         return;
       }
       console.log("ProcessWanFnxErc20UserFastMint 3");
@@ -61,7 +61,7 @@ module.exports = class ProcessWanFnxErc20UserFastMint extends ProcessBase {
       // async generateTx(toAddress, value, txData)
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, 0, params.gasLimit, params.crossScAddr, txValue, scData, params.fromAddr);
-      await this.sendTransactionData(paramsJson, txData);
+      await this.sendTransactionData(paramsJson, txData, wallet);
       console.log("ProcessWanFnxErc20UserFastMint 9");
       return;
     }

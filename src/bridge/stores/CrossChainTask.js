@@ -58,10 +58,7 @@ class CrossChainTask {
   }
 
   setOtaTx(isOtaTx) {
-    this.ccTaskData.isOtaTx = isOtaTx; // adapted to BTC/XRP crosschain task on 2021.0111  
-    if (isOtaTx) {
-      this.ccTaskData.fromAccount = '';
-    }
+    this.ccTaskData.isOtaTx = isOtaTx;
   }
 
   setTaskAmount(amount) {

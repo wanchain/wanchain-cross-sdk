@@ -47,9 +47,9 @@ class StoremanService {
         return await cctHandleService.getConvertInfo(convertJson);
     }
 
-    async processTxTask(taskParas) {
+    async processTxTask(taskParas, wallet) {
         let txTaskHandleService = this.m_frameworkService.getService("TxTaskHandleService");
-        await txTaskHandleService.processTxTask(taskParas);
+        await txTaskHandleService.processTxTask(taskParas, wallet);
     }
 
     // assetPairId,Mint/Burn,addr

@@ -8,7 +8,7 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
         super(frameworkService);
     }
 
-    async process(paramsJson) {
+    async process(paramsJson, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
 
@@ -16,7 +16,7 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
 
         try {
 
-            if (!(await this.checkChainId(paramsJson))) {
+            if (!(await this.checkChainId(paramsJson, wallet))) {
                 return;
             }
 
@@ -37,7 +37,7 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
             let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.erc20Abi, params.spenderAddr, params.value);
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.erc20Addr, 0, scData, params.fromAddr);
 
-            await this.sendTransactionData(paramsJson, txData);
+            await this.sendTransactionData(paramsJson, txData, wallet);
             return;
         }
         catch (err) {

@@ -8,10 +8,8 @@ let CheckiWanSpeed = require("../checkiWanSpeedService/checkiWanSpeed");
 let IWanBCConnector = require("../iWanConnectorService/IWanBCConnector");
 
 let StorageService = require("../storageService/storageService");
-let AccountService = require("../accountService/AccountService");
 
 let TaskService = require("../taskService/TaskService");
-let MetaMaskService = require("../metaMaskService/MetaMaskService");
 
 let StoremanService = require("../storemanService/StoremanService");
 let TxGeneratorService = require("../txGeneratorService/TxGeneratorService");
@@ -25,10 +23,6 @@ let UIStrService = require("../uiStrService/uiStrService");
 let ScEventScanService = require("../scEventScanService/scEventScanService");
 let UtilService = require("../utilService/utilService");
 let CrossChainFeesService = require("../crossChainFeesService/crossChainFees");
-
-let XrpService = require("../xrpService/xrpService");
-let BtcService = require("../btcService/btcService");
-let LtcService = require("../ltcService/ltcService");
 
 let CCTHandleService = require("../CCTHandleService/CCTHandleService");
 let TxTaskHandleService = require("../txTaskHandleService/txTaskHandleService");
@@ -106,29 +100,9 @@ class StartService {
             await iwanBCConnector.init(frameworkService);
             frameworkService.registerService("iWanConnectorService", iwanBCConnector);
 
-            let metaMaskService = new MetaMaskService();
-            await metaMaskService.init(frameworkService);
-            frameworkService.registerService("MetaMaskService", metaMaskService);
-
             let polkadotMaskService = new PolkadotMaskService();
             await polkadotMaskService.init(frameworkService);
             frameworkService.registerService("PolkadotMaskService", polkadotMaskService);
-
-            let accountService = new AccountService();
-            await accountService.init(frameworkService);
-            frameworkService.registerService("AccountService", accountService);
-
-            let xrpService = new XrpService();
-            await xrpService.init(frameworkService);
-            frameworkService.registerService("XrpService", xrpService);
-
-            let btcService = new BtcService();
-            await btcService.init(frameworkService);
-            frameworkService.registerService("BtcService", btcService);
-
-            let ltcService = new LtcService();
-            await ltcService.init(frameworkService);
-            frameworkService.registerService("LtcService", ltcService);
 
             let checkDotTxService = new CheckDotTxService();
             await checkDotTxService.init(frameworkService);
@@ -173,19 +147,6 @@ class StartService {
             let crossChainFeesService = new CrossChainFeesService();
             await crossChainFeesService.init(frameworkService);
             frameworkService.registerService("CrossChainFeesService", crossChainFeesService);
-
-            //{
-            //    // only for test
-            //    let chainType = "ETH";
-            //    let chainAddr = "0xeb195290a199F78d184B02BbF71fA6460371fcfC";
-            //    let storemanGroupPublic = "02b3a6e024cd7949510d0a491eec36104d89ba4d6c063d40563de02c674e1f0929";
-            //    let ret = await btcService.generateOnetimeAddress(chainType, chainAddr, storemanGroupPublic);
-            //    console.log("startService ota:", ret);
-            //    await btcService.confirmOnetimeAddress(ret.address);
-
-            //    ret = await xrpService.getTagId("xrpAddr", "WAN", "chainAddr", "storemanGroupPublic");
-            //    await xrpService.confirmTagId(ret.tagId);
-            //}
         }
         catch (err) {
             console.log("StartService.init err:", err);

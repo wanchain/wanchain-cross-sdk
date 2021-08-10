@@ -24,12 +24,12 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
         super(frameworkService);
     }
 
-    async process(paramsJson) {
+    async process(paramsJson, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
         let params = paramsJson.params;
         try {
-            if (!(await this.checkChainId(paramsJson))) {
+            if (!(await this.checkChainId(paramsJson, wallet))) {
                 return;
             }
 
@@ -64,7 +64,7 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
             // async generateTx(toAddress, value, txData)
             let txValue = params.fee;
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr, txValue, scData, params.fromAddr);
-            await this.sendTransactionData(paramsJson, txData);
+            await this.sendTransactionData(paramsJson, txData, wallet);
             return;
         }
         catch (err) {

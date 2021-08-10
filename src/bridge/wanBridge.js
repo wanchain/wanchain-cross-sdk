@@ -24,7 +24,6 @@ class WanBridge extends EventEmitter {
   async init(iwanAuth) {
     console.log("init WanBridge SDK");
     await this._service.init(this.network, this.stores, iwanAuth);
-    this.accountSrv = this._service.getService("AccountService");
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
     this.storemanService = this._service.getService("StoremanService");
@@ -38,40 +37,57 @@ class WanBridge extends EventEmitter {
     await this._service.start();
   }
 
-  async connectMetaMask() {
-    return this.accountSrv.connectMetaMask();
-  }
-
-  async connectPolkadot() {
-    return this.accountSrv.connectPolkadot();
-  }
-
   isReady() {
     return this.stores.assetPairs.isReady();
   }
 
-  async createTask(assetPair, direction, amount, fromAccount, toAccount = "") {
+  async checkWallet(assetPair, direction, wallet) {
+    direction = this._unifyDirection(direction);
+    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    if (this._isThirdPartyWallet(chainType)) {
+      return true;
+    } else {
+      let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
+      if (chainInfo && wallet) {
+        let walletChainId = await wallet.getChainId();
+        return (chainInfo.MaskChainId == walletChainId);
+      } else {
+        return false;
+      }
+    }
+  }
+
+  async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    if (fromAccount) {
+    // check fromAccount
+    if (this._isThirdPartyWallet(fromChainType)) {
+      fromAccount = "";
+    } else if (fromAccount) {
       let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
       if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
         throw "Invalid fromAccount";
       }
-    } else if (!["BTC", "LTC", "XRP"].includes(fromChainType)) {
+    } else {
       throw "Missing fromAccount";
-    } else {
-      fromAccount = "";
     }
-    toAccount = toAccount || fromAccount;
-    if (toAccount && this.validateToAccount(assetPair, direction, toAccount)) {
-      let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount);
-      await task.init();
-      task.start();
-      return task;
-    } else {
+    // check toAccount
+    if (!(toAccount && this.validateToAccount(assetPair, direction, toAccount))) {
       throw "Invalid toAccount";
     }
+    // check wallet
+    if (this._isThirdPartyWallet(fromChainType)) {
+      wallet = null;
+    } else if (wallet) {
+      wallet = this._unifyWallet(wallet);
+    } else {
+      throw "Missing wallet";
+    }
+    // create task
+    let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount, wallet);
+    await task.init();
+    task.start();
+    return task;
   }
 
   cancelTask(taskId) {
@@ -83,27 +99,6 @@ class WanBridge extends EventEmitter {
     }
     records.modifyTradeTaskStatus(taskId, "Rejected");
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-  }  
-
-  checkWallet(assetPair, direction) {
-    direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
-    if (chainInfo.MaskChainId) {
-      let walletChainId = this.accountSrv.getChainId(chainType);
-      return (chainInfo.MaskChainId == walletChainId);
-    } else {
-      return true;
-    }
-  }
-
-  getWalletAccount(assetPair, direction) {
-    direction = this._unifyDirection(direction);
-    if (this.checkWallet(assetPair, direction)) {
-      return this.stores.accountRecords.getCurAccount(assetPair.fromChainType, assetPair.toChainType, direction);
-    } else {
-      throw "Invalid wallet";
-    }
   }
 
   async getAccountAsset(assetPair, direction, account, isCoin = false) {
@@ -251,6 +246,14 @@ class WanBridge extends EventEmitter {
       throw "Invalid direction, must be MINT or BURN";
     }
     return direction;
+  }
+
+  _unifyWallet(wallet) { // TODO
+    return wallet;
+  }
+
+  _isThirdPartyWallet(chainType) {
+    return ["BTC", "LTC", "XRP"].includes(chainType);
   }
 }
 

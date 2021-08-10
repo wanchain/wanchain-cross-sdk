@@ -8,13 +8,13 @@ module.exports = class ProcessBurnOtherCoinBetweenEthWan extends ProcessBase {
         super(frameworkService);
     }
 
-    async process(paramsJson) {
+    async process(paramsJson, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
 
         let params = paramsJson.params;
         try {
-            if (!(await this.checkChainId(paramsJson))) {
+            if (!(await this.checkChainId(paramsJson, wallet))) {
                 return;
             }
 
@@ -47,7 +47,7 @@ module.exports = class ProcessBurnOtherCoinBetweenEthWan extends ProcessBase {
 
             let txValue = params.fee;
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
-            await this.sendTransactionData(paramsJson, txData, params.fromAddr);
+            await this.sendTransactionData(paramsJson, txData, wallet);
             return;
         }
         catch (err) {

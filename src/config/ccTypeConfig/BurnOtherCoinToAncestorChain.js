@@ -177,8 +177,7 @@ module.exports = class BurnOtherCoinToAncestorChain {
     //console.log("ProcessBurnOtherCoinToAncestorChain value:", value, ",typeof value:", typeof value);
     retAry.push({ "name": "ProcessBurnOtherCoinToAncestorChain", "stepIndex": retAry.length + 1, "title": this.m_strBurnTitle, "desc": this.m_strBurnDesc, "params": userFastBurnParaJson });
 
-    let accountService = await this.m_frameworkService.getService("AccountService");
-    let chainId = await accountService.getChainId(userFastBurnParaJson.scChainType);
+    let chainId = await convertJson.wallet.getChainId();
     for (let idx = 0; idx < retAry.length; ++idx) {
       retAry[idx].params.chainId = chainId;
     }

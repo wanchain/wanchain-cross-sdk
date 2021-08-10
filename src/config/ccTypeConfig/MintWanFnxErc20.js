@@ -119,8 +119,7 @@ module.exports = class MintWanFnxErc20 {
     };
     retAry.push({ "name": "Erc20UserFastMint", "stepIndex": retAry.length + 1, "title": this.m_strMintTitle, "desc": this.m_strMintDesc, "params": userErc20FastMintParaJson });
 
-    let accountService = await this.m_frameworkService.getService("AccountService");
-    let chainId = await accountService.getChainId(userErc20FastMintParaJson.scChainType);
+    let chainId = await convertJson.wallet.getChainId();
     for (let idx = 0; idx < retAry.length; ++idx) {
       retAry[idx].params.chainId = chainId;
     }
