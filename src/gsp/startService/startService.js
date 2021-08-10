@@ -31,7 +31,7 @@ let ChainInfoService = require("../chainInfoService/chainInfoService");
 
 const GlobalConstant = require("../globalConstantService/globalConstant");
 
-let PolkadotMaskService = require("../polkadotMaskService/polkadotMaskService");
+let PolkadotService = require("../polkadotService/polkadotService");
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
 
 class StartService {
@@ -100,9 +100,9 @@ class StartService {
             await iwanBCConnector.init(frameworkService);
             frameworkService.registerService("iWanConnectorService", iwanBCConnector);
 
-            let polkadotMaskService = new PolkadotMaskService();
-            await polkadotMaskService.init(frameworkService);
-            frameworkService.registerService("PolkadotMaskService", polkadotMaskService);
+            let polkadotService = new PolkadotService();
+            await polkadotService.init(frameworkService);
+            frameworkService.registerService("PolkadotService", polkadotService);
 
             let checkDotTxService = new CheckDotTxService();
             await checkDotTxService.init(frameworkService);

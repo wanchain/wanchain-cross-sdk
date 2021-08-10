@@ -22,13 +22,13 @@ module.exports = class ProcessDotMintFromPolka {
   //};
   async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
-    let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
+    let polkadotService = this.m_frameworkService.getService("PolkadotService");
     //console.log("ProcessDotMintFromPolka paramsJson:", paramsJson);
     let params = paramsJson.params;
     try {
       let tokenPairId = parseInt(params.tokenPairID);
       //console.log("typeof params.fee:", typeof params.fee, "fee:", params.fee);
-      let memo = await polkadotMaskService.buildUserLockMemo(tokenPairId, params.userAccount, params.fee.toString(16));
+      let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee.toString(16));
       console.log("ProcessDotMintFromPolka memo:", memo);
 
       if (typeof params.value === "string") {
@@ -40,11 +40,11 @@ module.exports = class ProcessDotMintFromPolka {
       //console.log("DOT value:", params.value, "fee:", params.fee);
       //console.log("DOT value:", params.value.toString(), "fee:", params.fee.toString());
 
-      let api = await polkadotMaskService.getApi();
+      let api = await polkadotService.getApi();
 
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
       //console.log("params.fromAddr:", params.fromAddr);
-      let storemanGroupAddr = await polkadotMaskService.longPubKeyToAddress(params.storemanGroupGpk);
+      let storemanGroupAddr = await polkadotService.longPubKeyToAddress(params.storemanGroupGpk);
       //console.log("storemanGroupAddr:", storemanGroupAddr);
 
       // 2 生成交易串
@@ -58,10 +58,10 @@ module.exports = class ProcessDotMintFromPolka {
       ];
       // console.log("txs:", txs);
       // 3 计算交易费用
-      let estimateFee = await polkadotMaskService.estimateFee(params.fromAddr, txs);
+      let estimateFee = await polkadotService.estimateFee(params.fromAddr, txs);
 
       // 4 校验:balance >= (value + fee + estimateFee + minReserved)
-      let balance = await polkadotMaskService.getBalance(params.fromAddr);
+      let balance = await polkadotService.getBalance(params.fromAddr);
       let bnBalance = new BigNumber(balance);
 
       let totalNeed = params.value;
@@ -90,7 +90,7 @@ module.exports = class ProcessDotMintFromPolka {
       // 5 签名并发送
       let txHash;
       try {
-        txHash = await polkadotMaskService.sendTransaction(params.fromAddr, txs, wallet);
+        txHash = await wallet.sendTransaction(txs, params.fromAddr);
       }
       catch (err) {
         if (err.message === "Cancelled") {

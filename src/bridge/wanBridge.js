@@ -48,11 +48,15 @@ class WanBridge extends EventEmitter {
       return true;
     } else {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
-      if (chainInfo && wallet) {
-        let walletChainId = await wallet.getChainId();
-        return (chainInfo.MaskChainId == walletChainId);
+      if (chainInfo.MaskChainId) {
+        if (wallet) {
+          let walletChainId = await wallet.getChainId();
+          return (chainInfo.MaskChainId == walletChainId);
+        } else {
+          return false;
+        }
       } else {
-        return false;
+        return true;
       }
     }
   }
@@ -101,9 +105,9 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, isCoin = false) {
+  async getAccountAsset(assetPair, direction, account, isCoin = false, wallet = null) {
     direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin);
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin, wallet);
     return parseFloat(balance);
   };
 

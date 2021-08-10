@@ -66,16 +66,16 @@ class StoremanService {
                 if (type === "MINT") {
                     decimals = assetPair.fromDecimals;
                     if (assetPair.fromChainType === "DOT") {
-                        let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
-                        balance = await polkadotMaskService.getBalance(addr);
+                        let polkadotService = this.m_frameworkService.getService("PolkadotService");
+                        balance = await polkadotService.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                     }
                 }
                 else if (type === "BURN") {
                     if (assetPair.toChainType === "DOT") {
-                        let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
-                        balance = await polkadotMaskService.getBalance(addr);
+                        let polkadotService = this.m_frameworkService.getService("PolkadotService");
+                        balance = await polkadotService.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
                     }
@@ -94,8 +94,9 @@ class StoremanService {
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
                         if (assetPair.fromChainType === "DOT") {
-                            let polkadotMaskService = this.m_frameworkService.getService("PolkadotMaskService");
-                            balance = await polkadotMaskService.getBalance(addr);
+                            let polkadotService = this.m_frameworkService.getService("PolkadotService");
+                            console.log({polkadotService})
+                            balance = await polkadotService.getBalance(addr);
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                         }
