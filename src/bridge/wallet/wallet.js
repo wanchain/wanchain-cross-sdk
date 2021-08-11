@@ -10,7 +10,7 @@ class Wallet {
       throw "Invalid provider";
     }
     this.type = type;
-    if (["MetaMask", "WanMask"].includes(type)) {
+    if (["MetaMask", "WanMask", "WalletConnect"].includes(type)) {
       return new Web3Compatible(type, provider);
     } else if (type == "polkadot{.js}") {
       return new Polkadot(type, provider);
@@ -18,7 +18,7 @@ class Wallet {
   }
 
   _checkType(type) { // case sensitive
-    let supports = ["MetaMask", "WanMask", "polkadot{.js}"];
+    let supports = ["MetaMask", "WanMask", "WalletConnect", "polkadot{.js}"];
     return supports.includes(type);
   }
 }
