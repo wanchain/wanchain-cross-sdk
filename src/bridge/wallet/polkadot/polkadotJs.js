@@ -23,7 +23,7 @@ class Polkadot {
 
   async getAccounts() {
     try {
-      const allInjected = await web3Enable('wanBridge');
+      const allInjected = await web3Enable('WanBridge');
       if (allInjected.length) {
         let accounts = await web3Accounts();
         return accounts.map(a => a.address);

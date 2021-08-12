@@ -1,34 +1,32 @@
 wanchain-cross-sdk
 ========
 
-SDK for executing cross-chain transactions based on Wanchain Bridge.
+SDK for executing cross-chain transactions based on WanBridge.
 
 ## Installation
 Use NPM or Yarn to install the package:
 ```bash
 npm install --save wanchain-cross-sdk
 ```
-
 ## Prerequisites
 <li>wanchain-cross-sdk relies on iWan service, it is accessed through api key, you can apply for api key from [iWan website](https://iwan.wanchain.org).
-<li>If you plan to send transactions on Wanchain, Ethereum, BSC, Avalanche, Moonbeam or Polygon, you need to install the [MetaMask plugin](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn) for your browser.
-<li>If you plan to send transactions on Polkadot, you need to install the [polkadot{.js} extension](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd) for your browser.
-<br><br>
+<li>Install wallets extension for your browser, such as:
+
+[MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)
+[WanMask](https://github.com/wanchain/wanmask) and [polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd).
 
 ## Usage
-
-Step 1: Import WanBridge, create a bridge object and subscribe to events.
+Step 1: Import WanBridge and Wallet, create a bridge object and subscribe to events.
 
 ```javascript
-import { WanBridge } from 'wanchain-cross-sdk'
+import { WanBridge, Wallet } from 'wanchain-cross-sdk'
 
 let bridge = new WanBridge("testnet"); // testnet or mainnet
 bridge.on("ready", assetPairs => {
   // The bridge is initialized successfully and is ready for cross-chain
+  // You can filter assetPairs by asset and chain type as needed
 }).on("error", info => {
   // Failed to initialize the bridge, or cross-chain task failed
-}).on("account", info => {
-  // The wallet account is changed
 }).on("ota", info => {
   // The one-time-addess to receive Bitcoin, Litecoin or XRP is generated
 }).on("lock", info => {
@@ -49,49 +47,84 @@ let iwanAuth = {
 bridge.init(iwanAuth);
 ```
 
-Step 3: Connect to MetaMask and polkadot{.js} wallet. (Optional)
-<br>
-If you plan to send transactions on Wanchain, Ethereum, BSC, Avalanche, Moonbeam or Polygon, you should connect to MetaMask, if you plan to send transactions on Polkadot, you should connect to polkadot{.js} wallet.
+Step 3: Connect to wallets.
+
+wanchain-cross-sdk supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
 ```javascript
-bridge.connectMetaMask();
-bridge.connectPolkadot();
+// connect to the wallet in your own way and get the provider, such as:
+let metaMaskWallet = window.ethereum;
+let wanMaskWallet = window.wanchain;
+
+// SDK provides an easy way to use polkadot wallet, you can only provide url address instead of provider
+let polkadotWallet = "wss://nodes-testnet.wandevs.org/polkadot";
 ```
 
-Step 4: Choose a asset pair and create mint or burn cross-chain task.
+Step 4: Select a asset pair and create cross-chain task.
 
 ```javascript
 try {
+  // select a asset pair from assetPairs, and choose "mint" or "brun" direction
   let assetPair = assetPairs[0];
+
+  // create a wallet according fromChain of assetPair
+  let wallet = new Wallet("MataMask", metaMaskWallet);
+
+  // check wallet network
+  let checkWallet = await bridge.checkWallet(assetPair, "mint", wallet);
+  if (checkWallet === false) {
+    throw "Invalid wallet or network";
+  } 
+
+  // for polkadot, you can call wallet.getAccounts() to get all accounts and then select one as fromAccount
   let fromAccount = "sender-address-on-from-chain";
-  let toAccount = 'receiver-address-on-to-chain'
+
+  // input toAccount and amount manully
+  let toAccount = 'receiver-address-on-to-chain';
   let amount = 0.1;
+
+  // check to-address format
+  let validTo = bridge.validateToAccount(assetPair, "mint", to);
+  if (validTo === false) {
+    throw "Invalid to-address";
+  }
+
+  // check asset balance
+  let balance = await bridge.getAccountAsset(assetPair, "mint", fromAccount);
+  if (balance < amount) {
+    throw "Insufficient balance";
+  }
+
+  // check storeman group quota
+  let quota = await bridge.getQuota(assetPair, "mint");
+  if (amount < quota.minQuota) || amount > quota.maxQuota) {
+    throw "Less than minQuota";
+  } else if (amount > quota.maxQuota) {
+    throw "Exceed maxQuota";
+  }
+
+  // if the user accepts the fee, create a task
   let fee = await bridge.estimateFee(assetPair, "burn");
-  // If the user accepts the fee, create a task
-  let task = await bridge.createTask(assetPair, 'mint', amount, fromAccount, toAccount);
+
+  // create a task
+  let task = await bridge.createTask(assetPair, 'mint', amount, fromAccount, toAccount, wallet);
 } catch(err) {
   console.error(err);
 }
 ```
 The tasks will be automatically scheduled, once it is successfully completed, the "redeem" event will be emitted, if it fails, the "error" event will be emitted.
 
-## Advanced
+You can call bridge.cancelTask(task.id) at an appropriate time to cancel the task, but it only changes the task state, but does not stop the task.
 
-Inappropriate parameters may cause the cross-chain task to fail. Before creating the task, you can call some APIs to check the task parameters.
+A cross-chain task can be in the following states: 
+<li>Performing: Start running task
+<li>Converting: Lock transaction has been sent
+<li>Succeeded:  Redeem transaction has been sent, and the task has been successfully completed
+<li>Failed:     Failed to finish the task
+<li>Error:      Task is finished, but it does not meet expectations, such as the asset is temporarily transferred to the foundation account
+<li>Rejected:   Task is cancelled
 
-```javascript
-// check to-address format
-let validTo = bridge.validateToAccount(assetPair, "mint", to);
-if (validTo === false) {
-  console.error("Invalid to-address");
-}
-// check asset balance
-let balance = await bridge.getAccountAsset(assetPair, "mint", fromAccount);
-if (balance < amount) {
-  console.error("Insufficient balance");
-}
-// check storeman group quota
-let quota = await bridge.getQuota(assetPair, "mint");
-if (amount < quota.minQuota || amount > quota.maxQuota) {
-  console.error("Invalid amount");
-}
-```    
+When the task is in the "Performing" state, do not close or refresh the web page, otherwise the task will stop and cannot be resumed.
+
+Step 5: Get transaction records.
+
+You can call bridge.getHistory(taskId) at any time to get the transaction records of all tasks or one task, and the records are saved in the browser's local storage.

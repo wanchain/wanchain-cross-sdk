@@ -33,7 +33,6 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this));
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this));
-    this.eventService.addEventListener("AccountChanged", this._onAccountChanged.bind(this));
     await this._service.start();
   }
 
@@ -195,10 +194,6 @@ class WanBridge extends EventEmitter {
       this.emit("error", {reason: "Failed to initialize storeman"});
     }
     console.log("assetPairList: %O", this.stores.assetPairs.assetPairList);
-  }
-
-  _onAccountChanged(info) {
-    this.emit("account", info);
   }
 
   _onLockTxHash(taskLockHash) {
