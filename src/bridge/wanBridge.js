@@ -187,15 +187,17 @@ class WanBridge extends EventEmitter {
 
   _onStoremanInitilized(success) {
     if (success) {
-      this.emit("ready", this.stores.assetPairs.assetPairList);
+      let assetPairList = this.stores.assetPairs.assetPairList;
+      this.emit("ready", assetPairList);
+      console.debug("WanBridge is ready: %O", assetPairList);
     } else {
       this.emit("error", {reason: "Failed to initialize storeman"});
+      console.error("WanBridge has error");
     }
-    console.debug("assetPairList: %O", this.stores.assetPairs.assetPairList);
   }
 
   _onLockTxHash(taskLockHash) {
-    console.log("_onLockTxHash: %O", taskLockHash);
+    console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
     let txHash = taskLockHash.txhash;
@@ -216,7 +218,7 @@ class WanBridge extends EventEmitter {
   }
 
   _onRedeemTxHash(taskRedeemHash) {
-    console.log("_onRedeemTxHash: %O", taskRedeemHash);
+    console.debug("_onRedeemTxHash: %O", taskRedeemHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskRedeemHash.ccTaskId;
     let txHash = taskRedeemHash.txhash;

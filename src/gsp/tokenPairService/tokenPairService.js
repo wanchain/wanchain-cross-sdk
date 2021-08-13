@@ -71,7 +71,7 @@ class TokenPairService {
             console.log("readAssetPair err: %O", err);
         }
         let t_end = new Date().getTime();
-        console.log("readAssetPair cost time: ", t_end - t_start);
+        console.log("readAssetPair consume %s ms", t_end - t_start);
     }
 
     async getTokenPairObjById(tokenPairId) {
@@ -92,11 +92,11 @@ class TokenPairService {
                 return true;
             } catch(err) {
                 console.error("ignore unavailable token pair %s: %O", tokenPair.id, err);
-                return false;
+                return false; // can not get token info from chain
             }
         } else {
             console.log("ignore unsupported token pair %s", tokenPair.id);
-            return false; // unsupported
+            return false; // lack of chain config, need to upgrade sdk
         }
     }
 
