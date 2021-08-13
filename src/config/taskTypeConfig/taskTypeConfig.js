@@ -50,31 +50,16 @@ let taskTypeConfigJson = {
     },
     {
       "number": 10,
-      "name": "ProcessFnxErc20UserFastBurn",
-      "handle": require("./processFnxErc20UserFastBurn")
-    },
-    {
-      "number": 11,
-      "name": "ProcessWanFnxErc20UserFastMint",
-      "handle": require("./processWanFnxErc20UserFastMint")
-    },
-    {
-      "number": 12,
-      "name": "ProcessWanFnxErc20UserFastBurn",
-      "handle": require("./processWanFnxErc20UserFastBurn")
-    },
-    {
-      "number": 13,
       "name": "ProcessMintLtcFromLitecoin",
       "handle": require("./processMintLtcFromLitecoin")
     },
     {
-      "number": 14,
+      "number": 11,
       "name": "ProcessDotMintFromPolka",
       "handle": require("./processDotMintFromPolka")
     },
     {
-      "number": 15,
+      "number": 12,
       "name": "ProcessBurnErc20ProxyToken",
       "handle": require("./ProcessBurnErc20ProxyToken")
     }

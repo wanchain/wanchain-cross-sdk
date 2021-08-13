@@ -45,31 +45,16 @@ let ccTypeConfigJson = {
     },
     {
       "number": 9,
-      "name": "BurnFnxErc20",
-      "handle": require("./BurnFnxErc20Handle")
-    },
-    {
-      "number": 10,
-      "name": "MintWanFnxErc20",
-      "handle": require("./MintWanFnxErc20")
-    },
-    {
-      "number": 11,
-      "name": "BurnWanFnxErc20",
-      "handle": require("./BurnWanFnxErc20")
-    },
-    {
-      "number": 12,
       "name": "MintLtcFromLitecoinHandle",
       "handle": require("./MintLtcFromLitecoinHandle")
     },
     {
-      "number": 13,
+      "number": 10,
       "name": "MintDotFromPolkaHandle",
       "handle": require("./MintDotFromPolkaHandle")
     },
     {
-      "number": 14,
+      "number": 11,
       "name": "BurnErc20ProxyToken",
       "handle": require("./BurnErc20ProxyToken")
     }
