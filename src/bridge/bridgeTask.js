@@ -156,7 +156,7 @@ class BridgeTask {
       return "";
     }
     let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true);
-    console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance);
+    console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toString());
     let estimateBalance = parseFloat(smgBalance) + this._amount;
     if (estimateBalance < minValue) {
       let diff = parseFloat(minValue) - parseFloat(smgBalance);

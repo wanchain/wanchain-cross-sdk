@@ -74,9 +74,9 @@ module.exports = class ProcessXrpMintFromRipple {
         "networkFee": fee.toString(),
         "value": params.value.toString()
       };
-      console.log("ProcessXrpMintFromRipple data:", data);
+      console.debug("ProcessXrpMintFromRipple data:", data);
       let ret = await axios.post(url, data);
-      console.log("ProcessXrpMintFromRipple url:", url);
+      console.debug("ProcessXrpMintFromRipple url:", url);
       if (ret.data.success === true) {
         data.tagId = ret.data.tagId;
         data.ccTaskId = params.ccTaskId;

@@ -45,7 +45,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       return;
     }
     catch (err) {
-      console.log("ProcessCoinUserFastMint process err:", err);
+      console.error("ProcessCoinUserFastMint process err:", err);
       WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Failed");
     }
   }

@@ -23,13 +23,13 @@ module.exports = class ProcessDotMintFromPolka {
   async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let polkadotService = this.m_frameworkService.getService("PolkadotService");
-    //console.log("ProcessDotMintFromPolka paramsJson:", paramsJson);
+    //console.debug("ProcessDotMintFromPolka paramsJson:", paramsJson);
     let params = paramsJson.params;
     try {
       let tokenPairId = parseInt(params.tokenPairID);
-      //console.log("typeof params.fee:", typeof params.fee, "fee:", params.fee);
+      //console.debug("typeof params.fee:", typeof params.fee, "fee:", params.fee);
       let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee.toString(16));
-      console.log("ProcessDotMintFromPolka memo:", memo);
+      console.debug("ProcessDotMintFromPolka memo:", memo);
 
       if (typeof params.value === "string") {
         params.value = new BigNumber(params.value);
@@ -50,7 +50,7 @@ module.exports = class ProcessDotMintFromPolka {
       // 2 生成交易串
       let totalTransferValue = params.value;
       //totalTransferValue = totalTransferValue.plus(params.fee);
-      console.log("totalTransferValue:", totalTransferValue, ",", totalTransferValue.toNumber());
+      console.debug("totalTransferValue:", totalTransferValue, ",", totalTransferValue.toNumber());
       totalTransferValue = "0x" + totalTransferValue.toString(16);
       let txs = [
         api.tx.system.remark(memo),
@@ -82,8 +82,8 @@ module.exports = class ProcessDotMintFromPolka {
       //console.log("processDOT minReserved:", minReserved, ",", minReserved.toNumber());
       //console.log("processDOT totalNeed:", totalNeed, ",", totalNeed.toNumber());
       if (bnBalance.isLessThan(totalNeed)) {
-        console.log("balance < totalNeed");
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "Failed", "Failed");
+        console.error("insufficient balance");
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed");
         return;
       }
 

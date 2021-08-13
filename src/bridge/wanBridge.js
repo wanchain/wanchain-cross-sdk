@@ -150,7 +150,7 @@ class WanBridge extends EventEmitter {
       // PLAN: adapted to polka app
       return tool.isValidDotAddress(account, this.network);
     } else {
-      console.log("unsupported chain %s", chainType);
+      console.error("unsupported chain %s", chainType);
       return false;
     }
   }
