@@ -67,6 +67,11 @@ let ccTypeConfigJson = {
       "number": 13,
       "name": "MintDotFromPolkaHandle",
       "handle": require("./MintDotFromPolkaHandle")
+    },
+    {
+      "number": 14,
+      "name": "BurnErc20ProxyToken",
+      "handle": require("./BurnErc20ProxyToken")
     }
   ]
 };

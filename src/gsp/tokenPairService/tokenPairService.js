@@ -91,7 +91,7 @@ class TokenPairService {
                 ]);
                 return true;
             } catch(err) {
-                console.error("ignore unavailable token pair %s", tokenPair.id);
+                console.error("ignore unavailable token pair %s: %O", tokenPair.id, err);
                 return false;
             }
         } else {
@@ -134,6 +134,13 @@ class TokenPairService {
             tokenPair.ccType["BURN"] = tokenPairCfg.burnHandle;
             if (tokenPairCfg.wanchainTokenAddr) {
                 tokenPair.wanchainTokenAddr = tokenPairCfg.wanchainTokenAddr;
+            } else {
+                if (tokenPairCfg.fromNativeToken) {
+                    tokenPair.fromNativeToken = tokenPairCfg.fromNativeToken;
+                }
+                if (tokenPairCfg.toNativeToken) {
+                    tokenPair.toNativeToken = tokenPairCfg.toNativeToken;
+                }
             }
             return;
         }

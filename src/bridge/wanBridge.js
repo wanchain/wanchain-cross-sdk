@@ -1,6 +1,5 @@
 const EventEmitter = require('events').EventEmitter;
 const CrossChainTaskRecords = require('./stores/CrossChainTaskRecords');
-const AccountRecords = require('./stores/AccountRecords');
 const AssetPairs = require('./stores/AssetPairs');
 const CrossChainTaskSteps = require('./stores/CrossChainTaskSteps');
 const StartService = require('../gsp/startService/startService.js');
@@ -14,7 +13,6 @@ class WanBridge extends EventEmitter {
     this.smgIndex = smgIndex;
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
-      accountRecords: new AccountRecords(),
       assetPairs: new AssetPairs(),
       crossChainTaskSteps: new CrossChainTaskSteps()
     };
@@ -138,7 +136,7 @@ class WanBridge extends EventEmitter {
   validateToAccount(assetPair, direction, account) {
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "DEV", "MATIC"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "DEV", "MATIC", "ARETH"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" == chainType) {
       return tool.isValidWanAddress(account);

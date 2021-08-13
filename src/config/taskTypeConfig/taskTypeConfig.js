@@ -72,6 +72,11 @@ let taskTypeConfigJson = {
       "number": 14,
       "name": "ProcessDotMintFromPolka",
       "handle": require("./processDotMintFromPolka")
+    },
+    {
+      "number": 15,
+      "name": "ProcessBurnErc20ProxyToken",
+      "handle": require("./ProcessBurnErc20ProxyToken")
     }
   ]
 };
