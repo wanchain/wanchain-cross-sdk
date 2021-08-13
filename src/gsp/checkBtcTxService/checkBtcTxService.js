@@ -27,7 +27,7 @@ module.exports = class CheckBtcTxService {
 
     async start() {
         let checkBtcTxServiceCfg = await this.m_configService.getGlobalConfig("CheckBtcTxService");
-        console.log("checkBtcTxServiceCfg:", checkBtcTxServiceCfg);
+        console.debug("checkBtcTxServiceCfg:", checkBtcTxServiceCfg);
         this.m_taskService.addTask(this, checkBtcTxServiceCfg.queryActionInfoInterval, "");
     }
 

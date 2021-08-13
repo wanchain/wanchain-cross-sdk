@@ -17,7 +17,7 @@ module.exports = class ScEventScanService {
     this.m_mapCheckHandle = new Map();
 
     let chainsInfo = await this.m_configService.getGlobalConfig("StoremanService");
-    console.log("chainInfoService chainsInfo:", chainsInfo);
+    console.debug("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];
       let checkScEventObj = new CheckScEvent(this.m_frameworkService);

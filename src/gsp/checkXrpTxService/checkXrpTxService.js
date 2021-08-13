@@ -27,7 +27,7 @@ module.exports = class CheckXrpTxService {
 
     async start() {
         let checkXrpTxServiceCfg = await this.m_configService.getGlobalConfig("CheckXrpTxService");
-        console.log("checkXrpTxServiceCfg:", checkXrpTxServiceCfg);
+        console.debug("checkXrpTxServiceCfg:", checkXrpTxServiceCfg);
         this.m_taskService.addTask(this, checkXrpTxServiceCfg.queryActionInfoInterval, "");
     }
 

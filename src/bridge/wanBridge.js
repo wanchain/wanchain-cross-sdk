@@ -191,7 +191,7 @@ class WanBridge extends EventEmitter {
     } else {
       this.emit("error", {reason: "Failed to initialize storeman"});
     }
-    console.log("assetPairList: %O", this.stores.assetPairs.assetPairList);
+    console.debug("assetPairList: %O", this.stores.assetPairs.assetPairList);
   }
 
   _onLockTxHash(taskLockHash) {

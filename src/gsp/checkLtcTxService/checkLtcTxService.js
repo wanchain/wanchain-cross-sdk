@@ -27,7 +27,7 @@ module.exports = class CheckLtcTxService {
 
     async start() {
         let checkLtcTxServiceCfg = await this.m_configService.getGlobalConfig("CheckLtcTxService");
-        console.log("checkLtcTxServiceCfg:", checkLtcTxServiceCfg);
+        console.debug("checkLtcTxServiceCfg:", checkLtcTxServiceCfg);
         this.m_taskService.addTask(this, checkLtcTxServiceCfg.queryActionInfoInterval, "");
     }
 
