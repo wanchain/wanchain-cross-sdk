@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 
-class Web3Compatible {
+class Web3Wallet {
   constructor(type, provider) {
     this.type = type;
     this.web3 = new Web3(provider);
@@ -26,4 +26,4 @@ class Web3Compatible {
   }
 }
 
-module.exports = Web3Compatible;
+module.exports = Web3Wallet;

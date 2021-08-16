@@ -91,11 +91,11 @@ class TokenPairService {
                 ]);
                 return true;
             } catch(err) {
-                console.error("ignore unavailable token pair %s: %O", tokenPair.id, err);
+                console.error("ignore unavailable token pair %s(%s, %s<->%s): %O", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName, err);
                 return false; // can not get token info from chain
             }
         } else {
-            console.log("ignore unsupported token pair %s", tokenPair.id);
+            console.log("ignore unsupported token pair %s(%s, %s<->%s)", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName);
             return false; // lack of chain config, need to upgrade sdk
         }
     }
