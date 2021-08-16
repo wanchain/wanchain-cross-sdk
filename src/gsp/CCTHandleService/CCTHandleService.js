@@ -26,18 +26,23 @@ module.exports = class CCTHandleService {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let tokenPairObj = await tokenPairService.getTokenPairObjById(convertJson.tokenPairId);
             if (!tokenPairObj) {
-                return 0;
+                return {
+                    stepNum: 0,
+                    // errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR
+                };
             }
-
             let ccType = tokenPairObj.ccType[convertJson.convertType];
             let CCTypeHandle = this.m_mapCCTypeToHandler.get(ccType);
             let handler = new CCTypeHandle(this.m_frameworkService);
-            let len = await handler.process(tokenPairObj, convertJson);
-            return len;
+            let stepInfo = await handler.process(tokenPairObj, convertJson);
+            return stepInfo;
         }
         catch (err) {
             console.log("getConvertInfo err:", err);
-            return 0;
+            return {
+                stepNum: 0,
+                // errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR
+            };
         }
     }
 

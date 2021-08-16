@@ -102,9 +102,9 @@ class BridgeTask {
     this._task.setTaskAmount(this._amount);
 
     // build steps
-    let bValidSteps = await this._checkTaskSteps();
-    if (false === bValidSteps) {
-      bridge.emit("error", {taskId: this.id, reason: "Can not convert"});
+    let errInfo = await this._checkTaskSteps();
+    if (errInfo) {
+      bridge.emit("error", {taskId: this.id, reason: errInfo});
       return;
     }
 
@@ -136,13 +136,13 @@ class BridgeTask {
     }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    // this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-    // console.log("%s quota: %O", this._direction, this._quota);
-    // if (this._amount < this._quota.minQuota) {
-    //   return "Less than minQuota";
-    // } else if (this._amount > this._quota.maxQuota) {
-    //   return "Exceed maxQuota";
-    // }
+    this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
+    console.log("%s quota: %O", this._direction, this._quota);
+    if (this._amount < this._quota.minQuota) {
+      return "Less than minQuota";
+    } else if (this._amount > this._quota.maxQuota) {
+      return "Exceed maxQuota";
+    }
     // check activating balance
     let smgAddr = "";
     let minValue = 0;
@@ -221,13 +221,13 @@ class BridgeTask {
       wallet: this._wallet
     }; 
     // console.log("checkTaskSteps: %O", convertJson);
-    let retRslt = await this._bridge.storemanService.getConvertInfo(convertJson);
-    // console.log("getConvertInfo: %O", retRslt);
-    if (retRslt.stepNum > 0) {
-      this._task.setTaskStepNums(retRslt.stepNum);
-      return true;
+    let stepInfo = await this._bridge.storemanService.getConvertInfo(convertJson);
+    // console.log("getConvertInfo: %O", stepInfo);
+    if (stepInfo.stepNum > 0) {
+      this._task.setTaskStepNums(stepInfo.stepNum);
+      return "";
     } else {
-      return false;
+      return this._getErrInfo(stepInfo.errCode);
     }
   }
 
@@ -325,6 +325,20 @@ class BridgeTask {
     const keyring = new Keyring({type: 'ecdsa', ss58Format: format});
     const smgAddr = keyring.encodeAddress(hash);
     return smgAddr;
+  }
+
+  _getErrInfo(errCode) {
+    let ERR_CODE = this._bridge.globalConstant;
+    switch(errCode) {
+      case ERR_CODE.ERR_INSUFFICIENT_BALANCE:
+        return "Insufficient balance";
+      case ERR_CODE.ERR_INSUFFICIENT_GAS:
+          return "Insufficient gas";
+      case ERR_CODE.ERR_INSUFFICIENT_TOKEN_BALANCE:
+        return "Insufficient asset";
+      default:
+        return "Unknown error";
+    }
   }
 }
 

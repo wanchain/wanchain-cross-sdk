@@ -28,6 +28,7 @@ class WanBridge extends EventEmitter {
     this.storageService = this._service.getService("StorageService");
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
+    this.globalConstant = this._service.getService("GlobalConstant");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this));
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this));
