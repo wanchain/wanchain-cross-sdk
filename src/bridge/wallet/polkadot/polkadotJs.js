@@ -22,18 +22,13 @@ class Polkadot {
   }
 
   async getAccounts() {
-    try {
-      const allInjected = await web3Enable('WanBridge');
-      if (allInjected.length) {
-        let accounts = await web3Accounts();
-        return accounts.map(a => a.address);
-      } else {
-        console.error("polkadot{.js} no installed");
-        return [];
-      }
-    } catch (err) {
-      console.log("DOT getAccounts error:", err);
-      return [];
+    const allInjected = await web3Enable('WanBridge');
+    if (allInjected.length) {
+      let accounts = await web3Accounts();
+      return accounts.map(a => a.address);
+    } else {
+      console.error("polkadot{.js} not installed");
+      throw "Not installed";
     }
   }  
 
