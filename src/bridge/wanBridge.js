@@ -88,7 +88,7 @@ class WanBridge extends EventEmitter {
     // create task
     let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount, wallet);
     await task.init();
-    task.start();
+    await task.start();
     return task;
   }
 

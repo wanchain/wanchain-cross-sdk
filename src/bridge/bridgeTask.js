@@ -116,7 +116,7 @@ class BridgeTask {
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
     bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
 
-    //excute
+    // background process
     this._parseTaskStatus(taskSteps);
   }
 
