@@ -11,7 +11,13 @@ class Web3Wallet {
   }
 
   async getAccounts() {
-    return this.web3.eth.requestAccounts();
+    if (this.web3.eth.requestAccounts) {
+      return this.web3.eth.requestAccounts();
+    } else if (this.web3.eth.getAccounts) {
+      return this.web3.eth.getAccounts();
+    } else {
+      throw "Not support";
+    }
   }  
 
   async sendTransaction(txData, sender) {
