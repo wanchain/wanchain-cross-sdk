@@ -11,11 +11,13 @@ class Web3Wallet {
   }
 
   async getAccounts() {
+    let accounts = [];
     try { // WalletConnect do not support requestAccounts
-      return this.web3.eth.requestAccounts();
+      accounts = await this.web3.eth.requestAccounts();
     } catch(err) {
-      return this.web3.eth.getAccounts();
+      accounts = await this.web3.eth.getAccounts();
     }
+    return accounts;
   }
 
   async sendTransaction(txData, sender) {
