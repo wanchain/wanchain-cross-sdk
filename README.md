@@ -9,10 +9,13 @@ Use NPM or Yarn to install the package:
 npm install --save wanchain-cross-sdk
 ```
 ## Prerequisites
-<li>wanchain-cross-sdk relies on iWan service, it is accessed through api key, you can apply for api key from [iWan website](https://iwan.wanchain.org).
+<li>wanchain-cross-sdk relies on iWan service, accessed through API key, you can apply from iWan website.
+
+[iWan](https://iwan.wanchain.org)
+
 <li>Install wallets extension for your browser, such as:
 
-[MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)
+[MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn),
 [WanMask](https://github.com/wanchain/wanmask) and [polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd).
 
 ## Usage
@@ -36,7 +39,7 @@ bridge.on("ready", assetPairs => {
 });
 ```
 
-Step 2: Initialize the bridge with your api key.
+Step 2: Initialize the bridge with your API key.
 
 ```javascript
 let iwanAuth = {
