@@ -64,6 +64,7 @@ Step 4: Select a asset pair and create cross-chain task.
 ```javascript
 try {
   // select a asset pair from assetPairs, and choose "mint" or "brun" direction
+  // each asset pair contains fromChain and toChain, if the asset is converted from fromChain to toChain, the direction is "mint", otherwise, the direction is "burn"
   let assetPair = assetPairs[0];
 
   // create a wallet according fromChain of assetPair
@@ -118,12 +119,12 @@ You can call bridge.cancelTask(task.id) at an appropriate time to cancel the tas
 A cross-chain task can be in the following states: 
 <li>Performing: Start running task
 <li>Converting: Lock transaction has been sent
-<li>Succeeded:  Redeem transaction has been sent, and the task has been successfully completed
+<li>Succeeded:  Redeem transaction has been sent and the task has been successfully completed
 <li>Failed:     Failed to finish the task
-<li>Error:      Task is finished, but it does not meet expectations, such as the asset is temporarily transferred to the foundation account
+<li>Error:      The task is completed but incorrect, the asset is not transferred to the account specified by the user
 <li>Rejected:   Task is cancelled
 
-When the task is in the "Performing" state, do not close or refresh the web page, otherwise the task will stop and cannot be resumed.
+Do not close or refresh the web page before receiving the "locked" event, otherwise the task will stop and cannot be resumed.
 
 Step 5: Get transaction records.
 
