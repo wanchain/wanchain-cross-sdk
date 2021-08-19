@@ -87,7 +87,7 @@ try {
   let amount = 0.1;
 
   // check to-address format
-  let validTo = bridge.validateToAccount(assetPair, "mint", to);
+  let validTo = bridge.validateToAccount(assetPair, "mint", toAccount);
   if (validTo === false) {
     throw "Invalid to-address";
   }
