@@ -91,8 +91,8 @@ module.exports = class ProcessDotMintFromPolka {
       let txHash;
       try {
         txHash = await wallet.sendTransaction(txs, params.fromAddr);
-      }
-      catch (err) {
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txHash);
+      } catch (err) {
         if (err.message === "Cancelled") {
           console.log("dot mask Cancelled");
           WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Rejected");
@@ -110,6 +110,7 @@ module.exports = class ProcessDotMintFromPolka {
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
+        stepIndex: paramsJson.stepIndex,
         fromBlockNumber: blockNumber,
         txHash: txHash,
         chain: params.toChainType,
@@ -119,10 +120,7 @@ module.exports = class ProcessDotMintFromPolka {
 
       let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addDotInfo(checkPara);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txHash, "Succeeded");
-      return;
-    }
-    catch (err) {
+    } catch (err) {
       console.log("ProcessDotMintFromPolka process err:", err);
       WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Failed");
     }

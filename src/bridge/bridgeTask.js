@@ -44,8 +44,6 @@ class BridgeTask {
     // storage
     this._task = new CrossChainTask(this.id);
     // runtime context
-    this._curStep = 0;
-    this._executedStep = -1;
     this._ota = '';
   }
 
@@ -233,16 +231,21 @@ class BridgeTask {
 
   async _parseTaskStatus(ccTaskStepsArray) {
     console.log("task %s steps: %d", this.id, ccTaskStepsArray.length);
-    for (; this._curStep < ccTaskStepsArray.length; ) {
-      let taskStep = ccTaskStepsArray[this._curStep];
-      console.debug("check task %d step %d: %O", this.id, this._curStep, taskStep);
+    let curStep = 0, executedStep = -1, stepTxHash = "";
+    for (; curStep < ccTaskStepsArray.length; ) {
+      let taskStep = ccTaskStepsArray[curStep];
+      console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
-        if (this._executedStep != this._curStep) {
+        if (taskStep.txHash && !stepTxHash) {
+          this._updateTaskStepData(taskStep.stepNo, taskStep.txHash);
+          stepTxHash = taskStep.txHash;
+        }
+        if (executedStep != curStep) {
           let jsonStepHandle = taskStep.jsonParams;
           // to call server to execute the api
           await this._bridge.storemanService.processTxTask(jsonStepHandle, this._wallet);
-          this._executedStep = this._curStep;
+          executedStep = curStep;
         }
         await tool.sleep(10000);
         continue;
@@ -258,7 +261,8 @@ class BridgeTask {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
       this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
-      this._curStep++;
+      curStep++;
+      stepTxHash = "";
     }
   }
 
@@ -292,8 +296,11 @@ class BridgeTask {
     const ccTaskRecords = records.ccTaskRecords;
     let ccTask = ccTaskRecords.get(this.id);    
     if (ccTask) {
-      if (records.updateTaskStepResult(this.id, stepNo, txHash, stepResult)) {
-        this._bridge.emit("lock", {taskId: this.id, txHash});
+      let isLockTx = records.updateTaskStepResult(this.id, stepNo, txHash, stepResult);
+      if (isLockTx) {
+        let lockEvent = {taskId: this.id, txHash};
+        console.debug("lockTxHash: %O", lockEvent);
+        this._bridge.emit("lock", lockEvent);
       }
       this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
     }

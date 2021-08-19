@@ -34,27 +34,28 @@ module.exports = class ProcessBase {
         return;
       }
 
-      let ret = await wallet.sendTransaction(txData);
-      if (!ret.result) {
-        console.log("ProcessBase sendTransactionData result: %O", ret);
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, ret.txhash, ret.desc);
+      let txhash = "";
+      try {
+        txhash = await wallet.sendTransaction(txData); 
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txhash);
+      } catch (err) {
+        let result = (err.code === 4001)? "Rejected" : "Failed";
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", result);
         return;
-      } else {
-        paramsJson.txhash = ret.txhash;
-        let convertCheckInfo = await this.getConvertInfoForCheck(paramsJson);
-        let obj = {
-          "chain": params.scChainType,
-          "ccTaskId": params.ccTaskId,
-          "stepIndex": paramsJson.stepIndex,
-          "txhash": ret.txhash,
-          "convertCheckInfo": convertCheckInfo
-        };
-        let checkTxReceiptService = this.m_frameworkService.getService("CheckTxReceiptService");
-        await checkTxReceiptService.add(obj);
       }
-      return;
-    }
-    catch (err) {
+
+      paramsJson.txhash = txhash;
+      let convertCheckInfo = await this.getConvertInfoForCheck(paramsJson);
+      let obj = {
+        chain: params.scChainType,
+        ccTaskId: params.ccTaskId,
+        stepIndex: paramsJson.stepIndex,
+        txhash,
+        convertCheckInfo: convertCheckInfo
+      };
+      let checkTxReceiptService = this.m_frameworkService.getService("CheckTxReceiptService");
+      await checkTxReceiptService.add(obj);
+    } catch (err) {
       console.error("ProcessBase sendTransactionData err:", err);
     }
   }

@@ -95,7 +95,6 @@ class StoremanService {
                         // COIN
                         if (assetPair.fromChainType === "DOT") {
                             let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                            console.log({polkadotService})
                             balance = await polkadotService.getBalance(addr);
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);

@@ -207,9 +207,9 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    if (parseFloat(ccTask.networkFee) >= parseFloat(value)) {
+    if (parseFloat(ccTask.fee.networkFee.value) >= parseFloat(value)) {
       records.modifyTradeTaskStatus(taskId, "Failed");
-    }else{
+    } else {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
     records.setTaskSentAmount(taskId, value);

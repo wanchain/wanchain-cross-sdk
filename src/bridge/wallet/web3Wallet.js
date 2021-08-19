@@ -21,14 +21,16 @@ class Web3Wallet {
   }
 
   async sendTransaction(txData, sender) {
-    try {
-      let receipt = await this.web3.eth.sendTransaction(txData);
-      let txhash = receipt.transactionHash;
-      return {result: true, txhash, desc: "Succeeded"};
-    } catch(err) {
-      let desc = (err.code === 4001)? "Rejected" : "Failed"; // refused
-      return {result: false, txhash: err.message, desc};
-    }
+    return new Promise((resolve, reject) => {
+      this.web3.eth.sendTransaction(txData)
+      .on("transactionHash", txHash => {
+        resolve(txHash);
+      })
+      .on("error", err => {
+        console.error("web3Wallet sendTransaction error: %O", err);
+        reject(err);
+      })
+    });
   }
 }
 

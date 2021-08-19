@@ -20,15 +20,18 @@ class CrossChainTaskSteps {
     this.mapCCTaskStepsArray.set(taskId, steps);
   }
 
-  finishTaskStep(taskId, stepIndex, txHash, stepRslt) {
+  // maybe only update txHash, not really finished
+  finishTaskStep(taskId, stepIndex, txHash, stepRslt = undefined) {
     let steps = this.mapCCTaskStepsArray.get(taskId);
     for (let i = 0; i < steps.length; i++) {
       if (stepIndex == steps[i].stepNo) {
-        steps[i].stepResult = stepRslt;
         steps[i].txHash = txHash;
+        if (stepRslt) {
+          steps[i].stepResult = stepRslt;
+        }
       }
-    };
-  };
+    }
+  }
 }
 
 module.exports = CrossChainTaskSteps;

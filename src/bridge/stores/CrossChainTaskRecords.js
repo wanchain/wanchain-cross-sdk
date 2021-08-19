@@ -37,22 +37,28 @@ class CrossChainTaskRecords {
     }
   }
 
-  updateTaskStepResult(ccTaskId, stepNo, txHash, result) {
+  updateTaskStepResult(ccTaskId, stepNo, txHash, result = undefined) {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
         let stepInfo = ccTask.stepData[i];
         if (stepInfo.stepNo == stepNo) {
-          stepInfo.stepResult = result;
           stepInfo.txHash = txHash;
-          // to update the task status if necessary if needed
+          if (result) {
+            stepInfo.stepResult = result;
+          }
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
           } else if ((stepNo === ccTask.stepNums) && (!ccTask.isOtaTx)) {
-            ccTask.lockHash = txHash;
-            ccTask.status = "Converting";
-            isLockTx = true;
+            if (txHash && !ccTask.lockHash) {
+              // update txHash and notify dapp, then wait receipt, do not change status
+              ccTask.lockHash = txHash;
+              isLockTx = true;
+            }
+            if (result) {
+              ccTask.status = "Converting";
+            }
           }
         }
       }

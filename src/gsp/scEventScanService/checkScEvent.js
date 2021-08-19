@@ -194,7 +194,6 @@ module.exports = class CheckScEvent {
           }
           let event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
           if (event) {
-            console.log("finish task: %O", obj);
             await this.updateUIAndStorage(obj, event.txhash, event.toAccount);
             ary.splice(index, 1);
           } else { // wait next scan
