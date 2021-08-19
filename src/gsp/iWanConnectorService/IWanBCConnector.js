@@ -170,8 +170,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getStoremanGroupQuota(chainType, groupId, symbol) {
-        let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol);
+    async getStoremanGroupQuota(chainType, groupId, symbol, targetChainType) {
+        let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol, targetChainType);
         return ret;
     }
 

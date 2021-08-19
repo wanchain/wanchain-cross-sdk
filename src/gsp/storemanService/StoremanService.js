@@ -18,17 +18,18 @@ class StoremanService {
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let obj_tokenPair = await tokenPairService.getTokenPairObjById(tokenPairId); //WYH: 是从内存中取
-            if (obj_tokenPair) {
-                if (obj_tokenPair.ancestorSymbol === "EOS" && obj_tokenPair.fromChainType === fromChainType) {
+            let tokenPair = await tokenPairService.getTokenPairObjById(tokenPairId); //WYH: 是从内存中取
+            if (tokenPair) {
+                let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
+                if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
                     // wanEOS特殊处理wan -> eth mint storeman采用旧的处理方式
                     fromChainType = "EOS";
                 }
-                //console.log("getStroremanGroupQuotaInfo:", fromChainType, storemanGroupId, [obj_tokenPair.ancestorSymbol]);
-                let ret = await this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [obj_tokenPair.ancestorSymbol]);
+                //console.log("getStroremanGroupQuotaInfo:", fromChainType, storemanGroupId, [tokenPair.ancestorSymbol]);
+                let ret = await this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType);
                 //console.log("mint ret:", ret);
-                let maxQuota = new BigNumber(ret[0].maxQuota).div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
-                let minQuota = new BigNumber(ret[0].minQuota).div(Math.pow(10, parseInt(obj_tokenPair.ancestorDecimals)));
+                let maxQuota = new BigNumber(ret[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
+                let minQuota = new BigNumber(ret[0].minQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 ret = {
                     "maxQuota": maxQuota.toString(),
                     "minQuota": minQuota.toString()
@@ -42,6 +43,7 @@ class StoremanService {
             return {};
         }
     }
+
     async getConvertInfo(convertJson) {
         let cctHandleService = this.m_frameworkService.getService("CCTHandleService");
         return await cctHandleService.getConvertInfo(convertJson);

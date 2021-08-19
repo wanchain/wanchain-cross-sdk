@@ -124,7 +124,7 @@ module.exports = class BurnErc20ProxyToken {
       };
     }
     else {
-      console.log("BurnErc20ProxyToken balance < gas");
+      console.error("BurnErc20ProxyToken insufficient gas");
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,

@@ -7197,12 +7197,12 @@ class ApiInstance extends WsInstance {
       ]
    *
    */
-    getStoremanGroupQuota(chainType, groupId, symbol, callback) {
+    getStoremanGroupQuota(chainType, groupId, symbol, targetChainType, callback) {
         if (callback) {
             callback = utils.wrapCallback(callback);
         }
         let method = 'getStoremanGroupQuota';
-        let params = { chainType: chainType, groupId: groupId, symbol: symbol };
+        let params = { chainType, groupId, symbol, targetChainType };
         return utils.promiseOrCallback(callback, cb => {
             this._request(method, params, (err, result) => {
                 if (err) {
