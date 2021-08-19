@@ -50,7 +50,7 @@ let iwanAuth = {
 bridge.init(iwanAuth);
 ```
 
-Step 3: Connect to wallets.
+Step 3: Connect a wallet.
 
 wanchain-cross-sdk supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
 ```javascript
@@ -58,7 +58,7 @@ wanchain-cross-sdk supports polkadot{.js}, MetaMask, WanMask and other web3-comp
 let metaMaskWallet = window.ethereum;
 let wanMaskWallet = window.wanchain;
 
-// SDK provides an easy way to use polkadot wallet, you can only provide url address instead of provider
+// SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
 let polkadotWallet = "wss://nodes-testnet.wandevs.org/polkadot";
 ```
 
@@ -77,7 +77,7 @@ try {
   let checkWallet = await bridge.checkWallet(assetPair, "mint", wallet);
   if (checkWallet === false) {
     throw "Invalid wallet or network";
-  } 
+  }
 
   // for polkadot, you can call wallet.getAccounts() to get all accounts and then select one as fromAccount
   let fromAccount = "sender-address-on-from-chain";
