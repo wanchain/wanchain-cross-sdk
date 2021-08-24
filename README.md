@@ -70,8 +70,8 @@ try {
   // each asset pair contains fromChain and toChain, if the asset is converted from fromChain to toChain, the direction is "mint", otherwise, the direction is "burn"
   let assetPair = assetPairs[0];
 
-  // create a wallet according fromChain of assetPair
-  let wallet = new Wallet("MataMask", metaMaskWallet);
+  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "OtherWeb3" or "polkadot{.js}"
+  let wallet = new Wallet("MetaMask", metaMaskWallet);
 
   // check wallet network
   let checkWallet = await bridge.checkWallet(assetPair, "mint", wallet);
