@@ -18,6 +18,8 @@ npm install --save wanchain-cross-sdk
 [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn),
 [WanMask](https://github.com/wanchain/wanmask) and [polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd).
 
+<li>Install BTC, LTC and XRP wallets if you need to convert asset from Bitcoin, Litecoin or XRP Ledger.
+
 ## Usage
 Step 1: Import WanBridge and Wallet, create a bridge object and subscribe to events.
 
@@ -26,7 +28,7 @@ import { WanBridge, Wallet } from 'wanchain-cross-sdk'
 
 let bridge = new WanBridge("testnet"); // testnet or mainnet
 bridge.on("ready", assetPairs => {
-  /* the bridge is initialized successfully and is ready for cross-chain, you can filter assetPairs by asset and chain type as needed
+  /* the bridge is initialized successfully and is ready for cross-chain, you can filter assetPairs by asset and chain type as needed.
     assetPairs example: [
       {
         assetPairId: "39",
@@ -44,14 +46,14 @@ bridge.on("ready", assetPairs => {
     ]
   */
 }).on("error", info => {
-  /* failed to initialize the bridge, or cross-chain task failed
+  /* failed to initialize the bridge, or cross-chain task failed.
     error info structure: {
       taskId, // optional, only task error info has taskId field
       reason
     }
   */
 }).on("ota", info => {
-  /* the one-time-addess to receive Bitcoin, Litecoin or XRP is generated
+  /* the one-time-addess is generated to receive BTC, LTC or XRP.
     ota info structure: {
       taskId,
       address:, // BTC/LTC ota address, or XRP xAddress
@@ -67,7 +69,7 @@ bridge.on("ready", assetPairs => {
     }
   */
 }).on("redeem", info => {
-  /* the redeem transaction hash, indicates that the cross-chain task is finished
+  /* the redeem transaction hash, indicates that the cross-chain task is finished.
     redeem info structure: {
       taskId,
       txHash,
@@ -98,6 +100,7 @@ let wanMaskWallet = window.wanchain;
 // SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
 let polkadotWallet = "wss://nodes-testnet.wandevs.org/polkadot";
 ```
+SDK does not support BTC, LTC or XRP wallets, when you convert asset from Bitcoin, Litecoin or XRP Ledger to other chains, please use a third-party wallet to send the asset to the ota address manually.
 
 Step 4: Select a asset pair and create cross-chain task.
 
@@ -108,6 +111,7 @@ try {
   let assetPair = assetPairs[0];
 
   // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "OtherWeb3" or "polkadot{.js}"
+  // no need to create this wallet when converting assets from Bitcoin, Litecoin or XRP Ledger
   let wallet = new Wallet("MetaMask", metaMaskWallet);
 
   // check wallet network
