@@ -26,19 +26,56 @@ import { WanBridge, Wallet } from 'wanchain-cross-sdk'
 
 let bridge = new WanBridge("testnet"); // testnet or mainnet
 bridge.on("ready", assetPairs => {
-  // The bridge is initialized successfully and is ready for cross-chain
-  // You can filter assetPairs by asset and chain type as needed
+  /* the bridge is initialized successfully and is ready for cross-chain, you can filter assetPairs by asset and chain type as needed
+    assetPairs example: [
+      {
+        assetPairId: "39",
+        assetType: "AVAX",
+        decimals: "18",
+        fromChainName: "Avalanche C-Chain",
+        fromChainType: "AVAX",
+        fromSymbol: "AVAX",
+        smgs: [], // available storeman groups
+        toChainName: "Wanchain",
+        toChainType: "WAN",
+        toSymbol: "wanAVAX"
+      },
+      ......
+    ]
+  */
 }).on("error", info => {
-  // Failed to initialize the bridge, or cross-chain task failed
+  /* failed to initialize the bridge, or cross-chain task failed
+    error info structure: {
+      taskId, // optional, only task error info has taskId field
+      reason
+    }
+  */
 }).on("ota", info => {
-  // The one-time-addess to receive Bitcoin, Litecoin or XRP is generated
+  /* the one-time-addess to receive Bitcoin, Litecoin or XRP is generated
+    ota info structure: {
+      taskId,
+      address:, // BTC/LTC ota address, or XRP xAddress
+      rAddress, // optional, XRP rAddress
+      tagId     // optional, XRP tag ID
+    }
+  */
 }).on("lock", info => {
-  // The lock transaction hash
+  /* the lock transaction hash
+    lock info structure: {
+      taskId,
+      txHash
+    }
+  */
 }).on("redeem", info => {
-  // The redeem transaction hash, indicates that the cross-chain task is finished
+  /* the redeem transaction hash, indicates that the cross-chain task is finished
+    redeem info structure: {
+      taskId,
+      txHash,
+      status    // "Succeeded" or "Error"
+    }
+  */
 });
 ```
-
 Step 2: Initialize the bridge with your API key.
 
 ```javascript
@@ -113,6 +150,22 @@ try {
   let task = await bridge.createTask(assetPair, 'mint', amount, fromAccount, toAccount, wallet);
 } catch(err) {
   console.error(err);
+  /* createTask will check the task context and may throw the following error:
+    "Invalid fromAccount"
+    "Missing fromAccount"
+    "Invalid toAccount"
+    "Missing wallet"
+    "Invalid wallet"
+    "Amount is too small to pay the network fee"
+    "Smg timeout"
+    "Less than minQuota"
+    "Exceed maxQuota"
+    "Amount is too small to activate smg"
+    "Insufficient balance"
+    "Amount is too small to activate toAccount"
+    "Insufficient gas"
+    "Insufficient asset"
+  */
 }
 ```
 The tasks will be automatically scheduled, once it is successfully completed, the "redeem" event will be emitted, if it fails, the "error" event will be emitted.

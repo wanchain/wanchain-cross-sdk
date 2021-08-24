@@ -121,7 +121,7 @@ class BridgeTask {
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
     if (this._amount <= this._fee.networkFee.value) {
-      return ("Amount is too small, must greater than " + this._fee.networkFee.value + " " + this._fromChainInfo.symbol);
+      return ("Amount is too small to pay the network fee, must greater than " + this._fee.networkFee.value + " " + this._fromChainInfo.symbol);
     }
     return "";
   }
@@ -158,7 +158,7 @@ class BridgeTask {
     let estimateBalance = parseFloat(smgBalance) + this._amount;
     if (estimateBalance < minValue) {
       let diff = parseFloat(minValue) - parseFloat(smgBalance);
-      return ("The amount is too small, at least " + diff + " " + this._fromChainInfo.symbol);
+      return ("Amount is too small to activate smg, at least " + diff + " " + this._fromChainInfo.symbol);
     }
   }
 
@@ -198,7 +198,7 @@ class BridgeTask {
     let estimateBalance = parseFloat(balance) + this._amount;
     if (estimateBalance < minValue) {
       let diff = parseFloat(minValue) - parseFloat(balance);
-      return ("Amount is too small, at least " + diff + " " + this._toChainInfo.symbol);
+      return ("Amount is too small to activate toAccount, at least " + diff + " " + this._toChainInfo.symbol);
     }
   }
 
