@@ -169,6 +169,7 @@ try {
     "Amount is too small to activate toAccount"
     "Insufficient gas"
     "Insufficient asset"
+    "Unknown error"
   */
 }
 ```

@@ -343,6 +343,7 @@ class BridgeTask {
           return "Insufficient gas";
       case ERR_CODE.ERR_INSUFFICIENT_TOKEN_BALANCE:
         return "Insufficient asset";
+      case ERR_CODE.ERR_OTHER_UNKNOWN_ERR:
       default:
         return "Unknown error";
     }
