@@ -148,7 +148,7 @@ try {
   }
 
   // if the user accepts the fee, create a task
-  let fee = await bridge.estimateFee(assetPair, "burn");
+  let fee = await bridge.estimateFee(assetPair, "mint");
 
   // create a task
   let task = await bridge.createTask(assetPair, 'mint', amount, fromAccount, toAccount, wallet);
