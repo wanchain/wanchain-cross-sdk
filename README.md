@@ -141,7 +141,7 @@ try {
 
   // check storeman group quota
   let quota = await bridge.getQuota(assetPair, "mint");
-  if (amount < quota.minQuota) || amount > quota.maxQuota) {
+  if (amount < quota.minQuota) {
     throw "Less than minQuota";
   } else if (amount > quota.maxQuota) {
     throw "Exceed maxQuota";
