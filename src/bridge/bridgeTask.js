@@ -102,8 +102,7 @@ class BridgeTask {
     // build steps
     let errInfo = await this._checkTaskSteps();
     if (errInfo) {
-      bridge.emit("error", {taskId: this.id, reason: errInfo});
-      return;
+      throw errInfo;
     }
 
     // save context
@@ -175,7 +174,8 @@ class BridgeTask {
       this._task.setFromAccountBalance(assetBalance);
     }
     if (coinBalance < requiredCoin) {
-      return ("Insufficient " + this._fromChainInfo.chainType + " balance");
+      let symbol = tool.getFeeUnit(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
+      return ("Insufficient " + symbol + " balance");
     }
     if (assetBalance < requiredAsset) {
       return ("Insufficient " + this._fromChainInfo.symbol + " balance");
@@ -198,7 +198,7 @@ class BridgeTask {
     let estimateBalance = parseFloat(balance) + this._amount;
     if (estimateBalance < minValue) {
       let diff = parseFloat(minValue) - parseFloat(balance);
-      return ("Amount is too small to activate toAccount, at least " + diff + " " + this._toChainInfo.symbol);
+      return ("Amount is too small to activate toAccount, at least " + diff + " " + this._fromChainInfo.symbol);
     }
   }
 
@@ -252,7 +252,7 @@ class BridgeTask {
       }
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
         this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
-        this._bridge.emit('error', {taskId: this.id, reason: stepResult});
+        this._bridge.emit("error", {taskId: this.id, reason: stepResult});
         break;
       }
       if (!this._wallet) {
@@ -287,7 +287,7 @@ class BridgeTask {
     } else {
       throw ("Invalid ota chain type " + chainType);
     }
-    this._bridge.emit('ota', ota);
+    this._bridge.emit("ota", ota);
     console.log("%s OTA: %O", chainType, ota);
   }
 
