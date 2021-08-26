@@ -175,9 +175,9 @@ try {
 ```
 The tasks will be automatically scheduled, once it is successfully completed, the "redeem" event will be emitted, if it fails, the "error" event will be emitted.
 
-You can call bridge.cancelTask(task.id) at an appropriate time to cancel the task, it only changes the task state, but does not stop the task.
+You can call bridge.cancelTask(task.id) at an appropriate time to cancel the task, it only changes the task status, but does not stop the task.
 
-A cross-chain task can be in the following states: 
+A cross-chain task can be in the following statuses:
 <li>Performing: Start running task
 <li>Converting: Lock transaction has been sent
 <li>Succeeded:  Redeem transaction has been sent and the task has been successfully completed
