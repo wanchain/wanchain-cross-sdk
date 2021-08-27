@@ -67,29 +67,3 @@ module.exports = class MintDotFromPolkaHandle {
     }
   }
 };
-
-//{
-//  id: '30',
-//  fromChainID: '2147484002',
-//  fromAccount: '0x0000000000000000000000000000000000000000',
-//  toChainID: '2153201998',
-//  toAccount: '0xafec1dbd8db90398cc710d3cb8006a08f5828696',
-//  ancestorSymbol: 'WND',
-//  ancestorDecimals: '12',
-//  ancestorAccount: '0x0000000000000000000000000000000000000000',
-//  ancestorName: 'polkaTestnet',
-//  ancestorChainID: '2147484002',
-//  name: 'wanWND@wanchain',
-//  symbol: 'wanWND',
-//  decimals: '12',
-//  fromChainType: 'DOT',
-//  fromChainName: 'polkaTestnet',
-//  fromSymbol: 'WND',
-//  fromDecimals: '12',
-//  toChainType: 'WAN',
-//  toChainName: 'Wanchain',
-//  toSymbol: 'wanWND',
-//  toDecimals: '12',
-//  storemangroupList: [[Object], [Object], [Object]]
-//},
-

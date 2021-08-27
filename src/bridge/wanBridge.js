@@ -137,7 +137,7 @@ class WanBridge extends EventEmitter {
   validateToAccount(assetPair, direction, account) {
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "DEV", "MATIC", "ARETH"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" == chainType) {
       return tool.isValidWanAddress(account);

@@ -69,24 +69,24 @@
       }
     },
     {
-      "name": "MoonbeamInfo",
+      "name": "MoonriverInfo",
       "chainId": "1073741825",
-      "chainType": "DEV",
-      "chainName": "Moonbeam",
+      "chainType": "MOVR",
+      "chainName": "Moonriver",
       "chainDecimals": 18,
-      "crossScAddr": "..................................",
+      "crossScAddr": "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-      "MaskChainId": 0,
+      "MaskChainId": 1285,
       "ScScanInfo": {
         "taskInterval": 10000
       }
     },
     {
-      "name": "MATIC",
+      "name": "PolygonInfo",
       "chainId": "2147484614",
       "chainType": "MATIC",
       "chainName": "Polygon",
@@ -97,24 +97,24 @@
       "erc20FastBurnGasLimit": 350000,
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-      "MaskChainId": 0,
+      "MaskChainId": 137,
       "ScScanInfo": {
         "taskInterval": 10000
       }
     },
     {
-      "name": "ARETH TODO: update to mainnet",
+      "name": "ArbitrumInfo",
       "chainId": "1073741826",
       "chainType": "ARETH",
       "chainName": "Arbitrum",
       "chainDecimals": 18,
-      "crossScAddr": "0xbf0deB5CD8E072018632e9646b4fE998d4047a86",
+      "crossScAddr": "0x....................................",
       "coinFastMintGasLimit": 30000000,
       "erc20ApproveGasLimit": 7500000,
       "erc20FastBurnGasLimit": 35000000,
       "erc20FastMintGasLimit": 35000000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-      "MaskChainId": 421611,
+      "MaskChainId": 0,
       "ScScanInfo": {
         "taskInterval": 10000
       }
@@ -234,12 +234,12 @@
       "burnHandle": "BurnErc20"
     },
     {
-      "id": "66 TODO: update to mainnet",
+      "id": "66",
       "comment": "native token between Arbitrum<->Polygon",
       "mintHandle": "BurnErc20ProxyToken",
       "burnHandle": "BurnErc20ProxyToken",
-      "fromNativeToken": "0xd4b5f10d61916bd6e0860144a91ac658de8a1437",
-      "toNativeToken": "0x5b0b9d1a58cacb8e3f7cb72225996fc535530f6b"
+      "fromNativeToken": "0x....................................",
+      "toNativeToken": "0x...................................."
     }
   ],
   "MinXrpValue": 21,

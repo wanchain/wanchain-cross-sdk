@@ -109,6 +109,8 @@ function isValidDotAddress(account, network) {
 function getFeeUnit(chainType, chainName) {
   if ((chainType == "DOT") && (chainName == "PolkaTestnet")) {
     return "WND";
+  } else if ((chainType == "MOVR") && (chainName == "Moonriver")) {
+    return "DEV";
   } else {
     return chainType;
   }

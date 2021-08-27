@@ -71,7 +71,7 @@
     {
       "name": "MoonbeamInfo",
       "chainId": "1073741825",
-      "chainType": "DEV",
+      "chainType": "MOVR",
       "chainName": "Moonbeam",
       "chainDecimals": 18,
       "crossScAddr": "0x9274Be9167c7dBa7F81b61d3870e0272cB8474f6",
@@ -86,7 +86,7 @@
       }
     },
     {
-      "name": "MATIC",
+      "name": "PolygonInfo",
       "chainId": "2147484614",
       "chainType": "MATIC",
       "chainName": "Polygon",
@@ -103,7 +103,7 @@
       }
     },
     {
-      "name": "ARETH",
+      "name": "ArbitrumInfo",
       "chainId": "1073741826",
       "chainType": "ARETH",
       "chainName": "Arbitrum",

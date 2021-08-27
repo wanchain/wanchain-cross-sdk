@@ -166,7 +166,7 @@ class BridgeTask {
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
     let requiredCoin = this._fee.operateFee.value;
     let requiredAsset = this._amount;
-    if ((this._assetPair.fromAccount == 0) && (this._direction == "MINT")) { // asset is coin
+    if ((this._assetPair.fromSymbol == this._assetPair.assetType) && (this._direction == "MINT")) { // asset is coin
       requiredCoin = requiredCoin + requiredAsset;
       requiredAsset = 0;
       this._task.setFromAccountBalance(coinBalance);
@@ -174,11 +174,10 @@ class BridgeTask {
       this._task.setFromAccountBalance(assetBalance);
     }
     if (coinBalance < requiredCoin) {
-      let symbol = tool.getFeeUnit(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
-      return ("Insufficient " + symbol + " balance");
+      return ("Insufficient balance");
     }
     if (assetBalance < requiredAsset) {
-      return ("Insufficient " + this._fromChainInfo.symbol + " balance");
+      return ("Insufficient asset");
     }
   }
 
@@ -257,7 +256,7 @@ class BridgeTask {
       }
       if (!this._wallet) {
         this._procOtaAddr(taskStep);
-      } else if ((taskStep.jsonParams.name == "erc20Approve") && (this._fromChainInfo.chainType == "DEV")) {
+      } else if ((taskStep.jsonParams.name == "erc20Approve") && (this._fromChainInfo.chainType == "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
       this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
