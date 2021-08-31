@@ -39,13 +39,14 @@ class IWanBCConnector {
     }
 
     async oniwanCheckSpeedSuccess(iwanInstAry, iwanInstance) {
-        console.log("oniwanCheckSpeedSuccess ")
+        console.log("oniwanCheckSpeedSuccess");
         this.apiClient = iwanInstance;
         await this.onConnect();
         await this.closeOtherIwan(iwanInstAry, this.apiClient);
     }
 
     async oniwanCheckSpeedFail(iwanInstAry) {
+        console.error("oniwanCheckSpeedFail");
         await this.apiClient.addConnectNotify(this.onConnect.bind(this));
         await this.closeOtherIwan(iwanInstAry, this.apiClient);
     }

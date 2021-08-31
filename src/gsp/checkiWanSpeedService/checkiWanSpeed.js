@@ -21,10 +21,10 @@ class CheckiWanSpeed {
                 if (_inner_apiInst.isConnetionOpen()) {
                     try {
                         let firstTime = new Date().getTime();
-                        let epochId = await _inner_apiInst.getEpochID('WAN');
+                        let blockNumber = await _inner_apiInst.getBlockNumber('WAN');
                         let secondTime = new Date().getTime();
-                        if (epochId) {
-                            //console.log('fun_test_speed --- epochId', epochId);
+                        if (blockNumber) {
+                            console.debug("checkiwanSpeed blockNumber: %s", blockNumber);
                             let ret = {
                                 cnn: true,
                                 inst: _inner_apiInst,
@@ -33,6 +33,7 @@ class CheckiWanSpeed {
                             return ret;
                         }
                     } catch (e) {
+                        console.debug("checkiwanSpeed error: %O", e);
                     }
                 }
 
