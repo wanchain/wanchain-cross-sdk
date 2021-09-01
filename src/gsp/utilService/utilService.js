@@ -17,23 +17,15 @@ module.exports = class UtilService {
             let balance = await iwanBCConnector.getBalance(chainType, fromAddr);
             balance = new BigNumber(balance);
             let gas = new BigNumber(0);
-
-            
             let gasPrice = await iwanBCConnector.getGasPrice(chainType);
-
             gasPrice = new BigNumber(gasPrice);
-
             for (let idx = 0; idx < retAry.length; ++idx) {
                 let gasLimit = new BigNumber(retAry[idx].params.gasLimit);
-
                 let gasFee = gasLimit.multipliedBy(gasPrice);
                 gas = gas.plus(gasFee);
-
-
             }
             gas = gas.plus(fee);
-
-            return balance.isGreaterThanOrEqualTo(gas);
+            return balance.gte(gas);
         }
         catch (err) {
             console.log("UtilService checkBalanceGasFee err:", err);

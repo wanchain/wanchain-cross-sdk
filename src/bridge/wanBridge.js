@@ -5,6 +5,7 @@ const CrossChainTaskSteps = require('./stores/CrossChainTaskSteps');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
+const BigNumber = require("bignumber.js");
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", smgIndex = 0) { // smgIndex is for testing only
@@ -20,7 +21,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.log("init WanBridge SDK");
+    console.log("init %s WanBridge SDK", this.network);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -106,8 +107,8 @@ class WanBridge extends EventEmitter {
   async getAccountAsset(assetPair, direction, account, isCoin = false) {
     direction = this._unifyDirection(direction);
     let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin);
-    return parseFloat(balance);
-  };
+    return balance.toFixed();
+  }
 
   async estimateFee(assetPair, direction) {
     direction = this._unifyDirection(direction);
@@ -115,14 +116,14 @@ class WanBridge extends EventEmitter {
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
     let operateFeeValue = '', operateFeeUnit = '', networkFeeValue = '', networkFeeUnit = '';
     if (direction == 'MINT') {
-      operateFeeValue = parseFloat(operateFee.mintFee);
+      operateFeeValue = new BigNumber(operateFee.mintFee).toFixed();
       operateFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeValue = parseFloat(networkFee.mintFee);
+      networkFeeValue = new BigNumber(networkFee.mintFee).toFixed();
       networkFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
     } else {
-      operateFeeValue = parseFloat(operateFee.burnFee);
+      operateFeeValue = new BigNumber(operateFee.burnFee).toFixed();
       operateFeeUnit = tool.getFeeUnit(assetPair.toChainType, assetPair.toChainName);
-      networkFeeValue = parseFloat(networkFee.burnFee);
+      networkFeeValue = new BigNumber(networkFee.burnFee).toFixed();
       networkFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
     }
     return {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
@@ -207,7 +208,7 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    if (parseFloat(ccTask.fee.networkFee.value) >= parseFloat(value)) {
+    if (new BigNumber(ccTask.fee.networkFee.value).gte(value)) {
       records.modifyTradeTaskStatus(taskId, "Failed");
     } else {
       records.modifyTradeTaskStatus(taskId, "Converting");

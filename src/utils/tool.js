@@ -96,7 +96,7 @@ function isValidLtcAddress(address, network) {
 
 function isValidDotAddress(account, network) {  
   try {
-    let format = ("testnet" == network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
+    let format = ("testnet" === network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
     let addr = dotTxWrapper.deriveAddress(account, format);
     console.log("DOT %s account %s formatted to %s", network, account, addr);
     return (account === addr);
@@ -107,9 +107,9 @@ function isValidDotAddress(account, network) {
 }
 
 function getFeeUnit(chainType, chainName) {
-  if ((chainType == "DOT") && (chainName == "PolkaTestnet")) {
+  if ((chainType === "DOT") && (chainName === "PolkaTestnet")) {
     return "WND";
-  } else if ((chainType == "MOVR") && (chainName == "Moonriver")) {
+  } else if ((chainType === "MOVR") && (chainName === "Moonriver")) {
     return "DEV";
   } else {
     return chainType;

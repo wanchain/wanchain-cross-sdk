@@ -18,7 +18,7 @@ class BridgeTask {
     this._direction = direction;
     this._fromAccount = fromAccount;
     this._toAccount = toAccount;
-    this._amount = parseFloat(amount);
+    this._amount = new BigNumber(amount).toFixed();
     this._wallet = wallet;
     this._smg = assetPair.smgs[this._bridge.smgIndex % assetPair.smgs.length];
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
@@ -120,7 +120,7 @@ class BridgeTask {
 
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    if (this._amount <= this._fee.networkFee.value) {
+    if (new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
       return ("Amount is too small to pay the network fee, must greater than " + this._fee.networkFee.value + " " + this._fromChainInfo.symbol);
     }
     return "";
@@ -135,30 +135,31 @@ class BridgeTask {
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
     this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-    console.log("%s quota: %O", this._direction, this._quota);
-    if (this._amount < this._quota.minQuota) {
+    console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
+    let amount = new BigNumber(this._amount);
+    if (amount.lt(this._quota.minQuota)) {
       return "Less than minQuota";
-    } else if (this._amount > this._quota.maxQuota) {
+    } else if (amount.gt(this._quota.maxQuota)) {
       return "Exceed maxQuota";
     }
     // check activating balance
     let smgAddr = "";
     let minValue = 0;
-    if ("XRP" == fromChainType) {
+    if ("XRP" === fromChainType) {
       smgAddr = this._getSmgXrpClassicAddress();
       minValue = this._bridge.configService.getGlobalConfig("MinXrpValue");
-    } else if ("DOT" == fromChainType) {
+    } else if ("DOT" === fromChainType) {
       smgAddr = this._genSmgPolkaAddress();
       minValue = this._bridge.configService.getGlobalConfig("MinDotValue");
     } else {
       return "";
     }
     let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true);
-    console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toString());
-    let estimateBalance = parseFloat(smgBalance) + this._amount;
-    if (estimateBalance < minValue) {
-      let diff = parseFloat(minValue) - parseFloat(smgBalance);
-      return ("Amount is too small to activate smg, at least " + diff + " " + this._fromChainInfo.symbol);
+    console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
+    let estimateBalance = smgBalance.plus(this._amount);
+    if (estimateBalance.lt(minValue)) {
+      let diff = new BigNumber(minValue).minus(smgBalance);
+      return ("Amount is too small to activate smg, at least " + diff.toFixed() + " " + this._fromChainInfo.symbol);
     }
   }
 
@@ -179,7 +180,7 @@ class BridgeTask {
       return ("Insufficient balance");
     }
     if (assetBalance.lt(requiredAsset)) {
-      console.debug("required asset balance: %s/%s", requiredAsset.toFixed(), assetBalance.toFixed());
+      console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       return ("Insufficient asset");
     }
   }
@@ -188,19 +189,19 @@ class BridgeTask {
     // check activating balance
     let toChainType = this._toChainInfo.chainType;
     let minValue = 0;
-    if ("XRP" == toChainType) {
+    if ("XRP" === toChainType) {
       minValue = this._bridge.configService.getGlobalConfig("MinXrpValue");
-    } else if ("DOT" == toChainType) {
+    } else if ("DOT" === toChainType) {
       minValue = this._bridge.configService.getGlobalConfig("MinDotValue");
     } else {
       return "";
     }
     let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, true);
-    console.log("toAccount %s balance: %s", this._toAccount, balance);
-    let estimateBalance = parseFloat(balance) + this._amount;
-    if (estimateBalance < minValue) {
-      let diff = parseFloat(minValue) - parseFloat(balance);
-      return ("Amount is too small to activate toAccount, at least " + diff + " " + this._fromChainInfo.symbol);
+    console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
+    let estimateBalance = balance.plus(this._amount);
+    if (estimateBalance.lt(minValue)) {
+      let diff = new BigNumber(minValue).minus(balance);
+      return ("Amount is too small to activate toAccount, at least " + diff.toFixed() + " " + this._fromChainInfo.symbol);
     }
   }
 
@@ -259,7 +260,7 @@ class BridgeTask {
       }
       if (!this._wallet) {
         this._procOtaAddr(taskStep);
-      } else if ((taskStep.jsonParams.name == "erc20Approve") && (this._fromChainInfo.chainType == "MOVR")) {
+      } else if ((taskStep.jsonParams.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
       this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
@@ -279,7 +280,7 @@ class BridgeTask {
       records.attachTagIdByTaskId(this.id, taskStep.stepResult);
       this._ota = taskStep.stepResult;
       ota.address = this._ota;
-    } else if (chainType == 'XRP') {
+    } else if (chainType === 'XRP') {
       let xrpAddr = this._getXAddressByTagId(taskStep.stepResult);
       records.attachTagIdByTaskId(this.id, xrpAddr.xAddr, xrpAddr.tagId, xrpAddr.rAddr);
       this._ota = xrpAddr.xAddr;
