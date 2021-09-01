@@ -31,6 +31,7 @@ module.exports = class ProcessBase {
       let accountAry = await wallet.getAccounts();
       if ((!accountAry) || (accountAry.length === 0) || (accountAry[0] !== params.fromAddr)) {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+        console.error("wallet account changes from %s to %O", params.fromAddr, accountAry);
         return;
       }
 
@@ -41,6 +42,7 @@ module.exports = class ProcessBase {
       } catch (err) {
         let result = (err.code === 4001)? "Rejected" : "Failed";
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", result);
+        console.error("task %s sendTransactionData error: %O", params.ccTaskId, err);
         return;
       }
 
@@ -61,21 +63,21 @@ module.exports = class ProcessBase {
   }
 
   async checkChainId(paramsJson, wallet) {
+    let uiStrService = this.m_frameworkService.getService("UIStrService");
+    let strFailed = uiStrService.getStrByName("Failed");
+    let params = paramsJson.params;
     try {
-      let uiStrService = this.m_frameworkService.getService("UIStrService");
-      let strFailed = uiStrService.getStrByName("Failed");
-
-      let params = paramsJson.params;
       let chainId = await wallet.getChainId();
       if (chainId === params.chainId) {
         return true;
-      }
-      else {
+      } else {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+        console.error("wallet chainId changes from %s to %s", params.chainId, chainId);
         return false;
       }      
     } catch (err) {
-      console.log("checkChainId err:", err);
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+      console.error("task %s checkChainId err: %O", params.ccTaskId, err);
       return false;
     }
   }
