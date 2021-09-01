@@ -1,5 +1,5 @@
 "use strict";
-let BigNumber = require("bignumber.js");
+const BigNumber = require("bignumber.js");
 
 class StoremanService {
     constructor() {
@@ -60,7 +60,7 @@ class StoremanService {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
             if (!assetPair) {
-                return 0;
+                return new BigNumber(0);
             }
             if (isCoin) {
                 let balance;
@@ -119,7 +119,7 @@ class StoremanService {
         }
         catch (err) {
             console.log("get assetPair %s type %s address %s balance err:", assetPairId, type, addr, err);
-            return 0;
+            return new BigNumber(0);
         }
     }
 

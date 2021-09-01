@@ -8,6 +8,7 @@ const polkaUtil = require("@polkadot/util");
 const polkaUtilCrypto = require("@polkadot/util-crypto");
 const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
+const BigNumber = require("bignumber.js");
 
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
@@ -166,17 +167,19 @@ class BridgeTask {
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
     let requiredCoin = this._fee.operateFee.value;
     let requiredAsset = this._amount;
-    if ((this._assetPair.fromSymbol == this._assetPair.assetType) && (this._direction == "MINT")) { // asset is coin
-      requiredCoin = requiredCoin + requiredAsset;
+    if (tool.getFeeUnit(this._fromChainInfo.chainType, this._fromChainInfo.chainName) === this._fromChainInfo.symbol) { // asset is coin
+      requiredCoin = new BigNumber(requiredCoin).plus(requiredAsset);
       requiredAsset = 0;
-      this._task.setFromAccountBalance(coinBalance);
+      this._task.setFromAccountBalance(coinBalance.toFixed());
     } else {
-      this._task.setFromAccountBalance(assetBalance);
+      this._task.setFromAccountBalance(assetBalance.toFixed());
     }
-    if (coinBalance < requiredCoin) {
+    if (coinBalance.lt(requiredCoin)) {
+      console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
       return ("Insufficient balance");
     }
-    if (assetBalance < requiredAsset) {
+    if (assetBalance.lt(requiredAsset)) {
+      console.debug("required asset balance: %s/%s", requiredAsset.toFixed(), assetBalance.toFixed());
       return ("Insufficient asset");
     }
   }
