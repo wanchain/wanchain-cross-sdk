@@ -104,7 +104,11 @@ class CrossChainTaskRecords {
   loadTradeTask(ccTaskObjList) {
     for (let i = 0; i < ccTaskObjList.length; i++) {
       let ccTask = ccTaskObjList[i];
-      this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
+      if (ccTask.ota !== undefined) {
+        this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
+      } else {
+        console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);
+      }
     }
   }
 }
