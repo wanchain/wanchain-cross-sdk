@@ -4,6 +4,7 @@ const btcValidate = require('bitcoin-address-validation').default;
 const xrpAddrCodec = require('ripple-address-codec');
 const litecore = require('litecore-lib');
 const dotTxWrapper = require('@substrate/txwrapper');
+const WAValidator = require('multicoin-address-validator');
 
 function getCurTimeSec() {
   return parseInt(new Date().getTime() / 1000);
@@ -54,14 +55,6 @@ function isValidWanAddress(address) {
   }
 }
 
-function isValidXrpAddress(accountAddr) {
-  let isValid = xrpAddrCodec.isValidXAddress(accountAddr);
-  if (true != isValid) {
-    isValid = xrpAddrCodec.isValidClassicAddress(accountAddr);
-  }
-  return isValid;
-}
-
 function isValidBtcAddress(address, network) {
   try {
     return btcValidate(address, network);
@@ -94,6 +87,20 @@ function isValidLtcAddress(address, network) {
   return false;
 }
 
+function isValidDogeAddress(address, network) {
+  networkType = (network === "testnet")? "testnet" : "prod";
+  let valid = WAValidator.validate(address, 'DOGE', networkType);
+  return valid;
+}
+
+function isValidXrpAddress(accountAddr) {
+  let isValid = xrpAddrCodec.isValidXAddress(accountAddr);
+  if (true != isValid) {
+    isValid = xrpAddrCodec.isValidClassicAddress(accountAddr);
+  }
+  return isValid;
+}
+
 function isValidDotAddress(account, network) {  
   try {
     let format = ("testnet" === network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
@@ -121,9 +128,10 @@ module.exports = {
   sleep,
   isValidEthAddress,
   isValidWanAddress,
-  isValidXrpAddress,
   isValidBtcAddress,
   isValidLtcAddress,
+  isValidDogeAddress,
+  isValidXrpAddress,
   isValidDotAddress,
   getCoinSymbol
 }

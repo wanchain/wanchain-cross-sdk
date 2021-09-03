@@ -17,7 +17,6 @@ let CheckTxReceiptService = require("../checkTxReceiptService/checkTxReceiptServ
 
 let CheckBtcTxService = require("../checkBtcTxService/checkBtcTxService");
 let CheckXrpTxService = require("../checkXrpTxService/checkXrpTxService");
-let CheckLtcTxService = require("../checkLtcTxService/checkLtcTxService");
 
 let UIStrService = require("../uiStrService/uiStrService");
 let ScEventScanService = require("../scEventScanService/scEventScanService");
@@ -124,13 +123,17 @@ class StartService {
             await checkTxReceiptService.init(frameworkService);
             frameworkService.registerService("CheckTxReceiptService", checkTxReceiptService);
 
-            let checkBtcTxService = new CheckBtcTxService();
+            let checkBtcTxService = new CheckBtcTxService("BTC");
             await checkBtcTxService.init(frameworkService);
             frameworkService.registerService("CheckBtcTxService", checkBtcTxService);
 
-            let checkLtcTxService = new CheckLtcTxService();
+            let checkLtcTxService = new CheckBtcTxService("LTC");
             await checkLtcTxService.init(frameworkService);
             frameworkService.registerService("CheckLtcTxService", checkLtcTxService);
+
+            let checkDogeTxService = new CheckBtcTxService("DOGE");
+            await checkDogeTxService.init(frameworkService);
+            frameworkService.registerService("CheckDogeTxService", checkDogeTxService);
 
             let checkXrpTxService = new CheckXrpTxService();
             await checkXrpTxService.init(frameworkService);
@@ -167,6 +170,9 @@ class StartService {
 
             let checkLtcTxService = frameworkService.getService("CheckLtcTxService");
             await checkLtcTxService.start();
+
+            let checkDogeTxService = frameworkService.getService("CheckDogeTxService");
+            await checkDogeTxService.start();            
 
             let checkXrpTxService = frameworkService.getService("CheckXrpTxService");
             await checkXrpTxService.start();

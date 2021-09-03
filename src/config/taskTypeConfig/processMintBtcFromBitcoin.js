@@ -1,38 +1,81 @@
 'use strict';
-let BigNumber = require("bignumber.js");
 
 const crypto = require('crypto');
 const bitcoin = require('bitcoinjs-lib');
 const axios = require("axios");
 
+const names = {
+  BTC: "ProcessMintBtcFromBitcoin",
+  LTC: "ProcessMintLtcFromLitecoin",
+  DOGE: "ProcessMintDogeFromDogecoin"
+};
+
+const litecoinPrefix = '\\x19Litecoin Signed Message:\n';
+const DogecoinPrefix = "\\x19Dogecoin Signed Message:\n";
+const testnetBip32 = {
+  public: 0x019DA462,
+  private: 0x019D9CFE,
+};
+
+const networks = {
+  BTC: bitcoin.networks,
+  LTC: {
+    mainnet: {
+      messagePrefix: litecoinPrefix,
+      bip32: {
+        private: 0x488ADE4,
+        public: 0x488B21E,
+      },
+      bech32: 'ltc',
+      scriptHash: 0x32,
+      pubKeyHash: 0x30,
+      wif: 0xb0,
+    },
+    testnet: {
+      messagePrefix: litecoinPrefix,
+      bip32: testnetBip32,
+      bech32: 'tltc',
+      scriptHash: 0x3a,
+      pubKeyHash: 0x6f,
+      wif: 0xef,
+    }
+  },
+  DOGE: {
+    mainnet: {
+      messagePrefix: DogecoinPrefix,
+      bip32: {
+        public: 0x02facafd,
+        private: 0x02fac398,
+      },
+      pubKeyHash: 0x1e,
+      scriptHash: 0x16,
+      wif: 0x9e,
+    },
+    testnet: {
+      messagePrefix: DogecoinPrefix,
+      bip32: testnetBip32,
+      pubKeyHash: 0x71,
+      scriptHash: 0xc4,
+      wif: 0xf1,
+    }
+  }
+}
 
 module.exports = class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
 
-  //let userFastMintParaJson = {
-  //    "ccTaskId": convertJson.ccTaskId,
-  //    "toChainType": tokenPairObj.toChainType,
-  //    "userAccount": convertJson.toAddr,
-  //    "storemanGroupId": convertJson.storemanGroupId,
-  //    "storemanGroupGpk": convertJson.storemanGroupGpk,
-  //    "tokenPairID": convertJson.tokenPairId,
-  //    "value": value,
-  //    "taskType": "ProcessMintBtcFromBitcoin",
-  //    "fee": fees.mintFeeBN
-  //};
   async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let params = paramsJson.params;
+    let processorName = names[params.fromChainType];
     try {
-      let p2sh = await this.generateOnetimeAddress(paramsJson, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
-      //console.log("ProcessMintBtcFromBitcoin finishStep:", params.ccTaskId, paramsJson.stepIndex, p2sh.address);
+      let p2sh = await this.generateOnetimeAddress(paramsJson, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
+      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, paramsJson.stepIndex, p2sh.address);
       if (p2sh.address === "") {
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed");
-        return;
-      }
-      else {
+      } else {
         // networkfee
         let eventService = this.m_frameworkService.getService("EventService");
         let obj = {
@@ -40,18 +83,15 @@ module.exports = class ProcessMintBtcFromBitcoin {
           "apiServerNetworkFee": p2sh.apiServerNetworkFee
         };
         await eventService.emitEvent("networkFee", obj);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", p2sh.address);// networkfee
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", p2sh.address); // networkfee
       }
-      return;
-    }
-    catch (err) {
-      console.error("ProcessCoinUserFastMint process err:", err);
+    } catch (err) {
+      console.error("%s err: %O", processorName, err);
       WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Failed");
     }
   }
 
-  // BTC->WAN/ETH
-  async generateOnetimeAddress(paramsJson, chainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
+  async generateOnetimeAddress(paramsJson, fromChainType, toChainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
     let params = paramsJson.params;
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
@@ -59,8 +99,8 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let apiServerConfig = await configService.getGlobalConfig("apiServer");
 
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let btcInfo = await chainInfoService.getChainInfoByType("BTC");
-      let network = bitcoin.networks[btcInfo.NETWORK];
+      let chainInfo = await chainInfoService.getChainInfoByType(fromChainType);
+      let network = networks[fromChainType][chainInfo.NETWORK];
 
       const random = crypto.randomBytes(32).toString('hex');
       const id = '0x' + random;
@@ -77,12 +117,12 @@ module.exports = class ProcessMintBtcFromBitcoin {
       }
 
       let p2sh = this.getP2SH(hashValue, tmpGPK, network);
-      let url = apiServerConfig.url + "/api/btc/addAddrInfo";
+      let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
       // save p2sh 和id 到apiServer
       let data = {
         "oneTimeAddr": p2sh,
         "randomId": id,
-        "chainType": chainType,
+        "chainType": toChainType,
         "chainAddr": chainAddr,
         "smgPublicKey": storemanGroupPublicKey,
         "smgId": storemanGroupId,
@@ -93,23 +133,23 @@ module.exports = class ProcessMintBtcFromBitcoin {
 
       let ret = await axios.post(url, data);
       if (ret.data.success === true) {
-        let blockNumber = await iwanBCConnector.getBlockNumber(chainType);
-        let checkBtcTxService = this.m_frameworkService.getService("CheckBtcTxService");
+        let blockNumber = await iwanBCConnector.getBlockNumber(toChainType);
+        let serviceName = "Check" + fromChainType.charAt(0).toUpperCase() + fromChainType.substr(1).toLowerCase() + "TxService"
+        let checkTxService = this.m_frameworkService.getService(serviceName);
         data.fromBlockNumber = blockNumber;
         data.ccTaskId = params.ccTaskId;
-        await checkBtcTxService.addOTAInfo(data);
+        await checkTxService.addOTAInfo(data);
         return {
           address: p2sh,
           apiServerNetworkFee: ret.data.apiServerNetworkFee
         };
-      }
-      else {
+      } else {
         return {
           address: ""
         };
       }
     } catch (error) {
-      console.log('generateOnetimeAddress error', error);
+      console.log('%s generateOnetimeAddress error: %O', names[fromChainType], error);
       return {
         address: ""
       }
@@ -142,18 +182,3 @@ module.exports = class ProcessMintBtcFromBitcoin {
     )
   }
 };
-
-
-// { "name": "userFastMint", "stepIndex": retAry.length + 1, "title": "userFastMint title", "desc": "userFastMint desc", "params": userFastMintParaJson }
-//let userFastMintParaJson = {
-//    "fromAddr": convertJson.fromAddr,
-//    "scChainType": mintChainInfo.chaintype,
-//    "crossScAddr": mintChainScInfo.crossScAddr,
-//    "crossScAbi": mintChainScInfo.crossScAbiJson,
-//    "storemanGroupId": convertJson.storemanGroupId,
-//    "tokenPairID": convertJson.tokenPairId,
-//    "value": convertJson.value,
-//    "userAccount": convertJson.toAddr,
-//    "processHandler": new ProcessUserFastMint(this.m_frameworkService)
-//};
-

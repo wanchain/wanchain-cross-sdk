@@ -144,10 +144,12 @@ class WanBridge extends EventEmitter {
       return tool.isValidWanAddress(account);
     } else if ("BTC" == chainType) {
       return tool.isValidBtcAddress(account, this.network);
-    } else if ("XRP" == chainType) {
-      return tool.isValidXrpAddress(account);
     } else if ("LTC" == chainType) {
       return tool.isValidLtcAddress(account, this.network);
+    } else if ("DOGE" == chainType) {
+      return tool.isValidDogeAddress(account, this.network);
+    } else if ("XRP" == chainType) {
+      return tool.isValidXrpAddress(account);
     } else if ("DOT" == chainType) {
       // PLAN: adapted to polka app
       return tool.isValidDotAddress(account, this.network);
@@ -254,7 +256,7 @@ class WanBridge extends EventEmitter {
   }
 
   _isThirdPartyWallet(chainType) {
-    return ["BTC", "LTC", "XRP"].includes(chainType);
+    return ["BTC", "LTC", "DOGE","XRP"].includes(chainType);
   }
 }
 

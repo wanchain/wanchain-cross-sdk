@@ -155,10 +155,13 @@
   "CheckBtcTxService": {
     "queryActionInfoInterval": 60000
   },
-  "CheckXrpTxService": {
+  "CheckLtcTxService": {
     "queryActionInfoInterval": 60000
   },
-  "CheckLtcTxService": {
+  "CheckDogeTxService": {
+    "queryActionInfoInterval": 60000
+  },
+  "CheckXrpTxService": {
     "queryActionInfoInterval": 60000
   },
   "noEthChainInfo": [
@@ -166,6 +169,34 @@
       "chainId": "2147483648",
       "chainType": "BTC",
       "chainName": "Bitcoin",
+      "NETWORK": "testnet",
+      "mintNetworkFee": "mintNetworkFee",
+      "burnNetworkFee": "burnNetworkFee",
+      "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 8,
+      "TxScanInfo": {
+        "taskInterval": 60000
+      }
+    },
+    {
+      "chainId": "2147483650",
+      "chainType": "LTC",
+      "chainName": "Litecoin",
+      "NETWORK": "testnet",
+      "mintNetworkFee": "mintNetworkFee",
+      "burnNetworkFee": "burnNetworkFee",
+      "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 8,
+      "TxScanInfo": {
+        "taskInterval": 60000
+      }
+    },
+    {
+      "chainId": "2147483651",
+      "chainType": "DOGE",
+      "chainName": "Dogecoin",
       "NETWORK": "testnet",
       "mintNetworkFee": "mintNetworkFee",
       "burnNetworkFee": "burnNetworkFee",
@@ -187,20 +218,6 @@
       "chainDecimals": 6,
       "TxScanInfo": {
         "taskInterval": 10000
-      }
-    },
-    {
-      "chainId": "2147483650",
-      "chainType": "LTC",
-      "chainName": "Litecoin",
-      "NETWORK": "testnet",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
-      "mintFromChainHandle": "MintLtcFromLitecoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
-      "chainDecimals": 8,
-      "TxScanInfo": {
-        "taskInterval": 60000
       }
     },
     {

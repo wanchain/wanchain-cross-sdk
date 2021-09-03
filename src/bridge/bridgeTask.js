@@ -276,11 +276,11 @@ class BridgeTask {
     let records = this._bridge.stores.crossChainTaskRecords;
     let chainType = this._fromChainInfo.chainType;
     let ota = {taskId: this.id};
-    if (['BTC', 'LTC'].includes(chainType)) {
+    if (["BTC", "LTC", "DOGE"].includes(chainType)) {
       records.attachTagIdByTaskId(this.id, taskStep.stepResult);
       this._ota = taskStep.stepResult;
       ota.address = this._ota;
-    } else if (chainType === 'XRP') {
+    } else if (chainType === "XRP") {
       let xrpAddr = this._getXAddressByTagId(taskStep.stepResult);
       records.attachTagIdByTaskId(this.id, xrpAddr.xAddr, xrpAddr.tagId, xrpAddr.rAddr);
       this._ota = xrpAddr.xAddr;
