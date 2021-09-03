@@ -125,7 +125,7 @@ try {
 
   // input toAccount and amount manully
   let toAccount = 'receiver-address-on-to-chain';
-  let amount = 0.1;
+  let amount = new BigNumber(0.1);
 
   // check to-address format
   let validTo = bridge.validateToAccount(assetPair, "mint", toAccount);
@@ -135,15 +135,15 @@ try {
 
   // check asset balance
   let balance = await bridge.getAccountAsset(assetPair, "mint", fromAccount);
-  if (balance < amount) {
+  if (amount.gt(balance)) {
     throw "Insufficient balance";
   }
 
   // check storeman group quota
   let quota = await bridge.getQuota(assetPair, "mint");
-  if (amount < quota.minQuota) {
+  if (amount.lt(quota.minQuota)) {
     throw "Less than minQuota";
-  } else if (amount > quota.maxQuota) {
+  } else if (amount.gt(quota.maxQuota)) {
     throw "Exceed maxQuota";
   }
 

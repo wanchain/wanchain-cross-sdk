@@ -117,14 +117,14 @@ class WanBridge extends EventEmitter {
     let operateFeeValue = '', operateFeeUnit = '', networkFeeValue = '', networkFeeUnit = '';
     if (direction == 'MINT') {
       operateFeeValue = new BigNumber(operateFee.mintFee).toFixed();
-      operateFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
+      operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
       networkFeeValue = new BigNumber(networkFee.mintFee).toFixed();
-      networkFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
       operateFeeValue = new BigNumber(operateFee.burnFee).toFixed();
-      operateFeeUnit = tool.getFeeUnit(assetPair.toChainType, assetPair.toChainName);
+      operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
       networkFeeValue = new BigNumber(networkFee.burnFee).toFixed();
-      networkFeeUnit = tool.getFeeUnit(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     }
     return {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
   }

@@ -168,7 +168,7 @@ class BridgeTask {
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
     let requiredCoin = this._fee.operateFee.value;
     let requiredAsset = this._amount;
-    if (tool.getFeeUnit(this._fromChainInfo.chainType, this._fromChainInfo.chainName) === this._fromChainInfo.symbol) { // asset is coin
+    if (tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName) === this._fromChainInfo.symbol) { // asset is coin
       requiredCoin = new BigNumber(requiredCoin).plus(requiredAsset);
       requiredAsset = 0;
       this._task.setFromAccountBalance(coinBalance.toFixed());
