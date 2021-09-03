@@ -128,7 +128,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
         "smgId": storemanGroupId,
         "tokenPairId": params.tokenPairID,
         "networkFee": params.networkFee,
-        "value": params.value.toString()
+        "value": params.value.toFixed()
       };
 
       let ret = await axios.post(url, data);

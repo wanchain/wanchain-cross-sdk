@@ -42,7 +42,7 @@ module.exports = class crossChainFees {
         let mintFeeBN = mint;
         let pows = new BigNumber(Math.pow(10, tokenPairObj.fromScInfo.chainDecimals));
         mint = mint.div(pows);
-        mint = mint.toString();
+        mint = mint.toFixed();
         let ret = {
             "fee": mint,
             "mintFee": mint,
@@ -68,7 +68,7 @@ module.exports = class crossChainFees {
         let burnFeeBN = burn;
         let pows = new BigNumber(Math.pow(10, tokenPairObj.toScInfo.chainDecimals));
         burn = burn.div(pows);
-        burn = burn.toString();
+        burn = burn.toFixed();
         let ret = {
             "fee": burn,
             "burnFee": burn,
@@ -156,7 +156,7 @@ module.exports = class crossChainFees {
         let originFee = fee;
         let originFeeBN = feeBN;
         feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.toDecimals)));
-        fee = feeBN.toString();
+        fee = feeBN.toFixed();
         return {
             "fee": fee,
             "feeBN": feeBN,
@@ -174,7 +174,7 @@ module.exports = class crossChainFees {
         let originFee = fee;
         let originFeeBN = feeBN;
         feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.fromDecimals)));
-        fee = feeBN.toString();
+        fee = feeBN.toFixed();
         return {
             "fee": fee,
             "feeBN": feeBN,

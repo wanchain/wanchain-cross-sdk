@@ -38,7 +38,7 @@ module.exports = class ProcessDotMintFromPolka {
         params.fee = new BigNumber(params.fee);
       }
       //console.log("DOT value:", params.value, "fee:", params.fee);
-      //console.log("DOT value:", params.value.toString(), "fee:", params.fee.toString());
+      //console.log("DOT value:", params.value.toFixed(), "fee:", params.fee.toFixed());
 
       let api = await polkadotService.getApi();
 

@@ -71,8 +71,8 @@ module.exports = class ProcessXrpMintFromRipple {
         "smgId": storemanGroupId,
         "tokenPairId": params.tokenPairID,
         //"_networkFee": params.networkFee,
-        "networkFee": fee.toString(),
-        "value": params.value.toString()
+        "networkFee": fee.toFixed(),
+        "value": params.value.toFixed()
       };
       console.debug("ProcessXrpMintFromRipple data:", data);
       let ret = await axios.post(url, data);
