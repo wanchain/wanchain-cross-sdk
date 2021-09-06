@@ -1,8 +1,5 @@
 const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
-const btcValidate = require('bitcoin-address-validation').default;
-const xrpAddrCodec = require('ripple-address-codec');
-const litecore = require('litecore-lib');
 const dotTxWrapper = require('@substrate/txwrapper');
 const WAValidator = require('multicoin-address-validator');
 
@@ -19,20 +16,8 @@ async function sleep(time) {
 }
 
 function isValidEthAddress(address) {
-  try {
-    let isValid;
-    if (/^0x[0-9a-f]{40}$/.test(address)) {
-      isValid = true;
-    } else if (/^0x[0-9A-F]{40}$/.test(address)) {
-      isValid = true;
-    } else {
-      isValid = ethUtil.isValidChecksumAddress(address);
-    }
-    return isValid;
-  } catch(err) {
-    console.log("validate ETH address %s err: %O", address, err);
-    return false;
-  }
+  let valid = WAValidator.validate(address, 'ETH');
+  return valid;
 }
 
 function isValidWanAddress(address) {
@@ -56,49 +41,32 @@ function isValidWanAddress(address) {
 }
 
 function isValidBtcAddress(address, network) {
-  try {
-    return btcValidate(address, network);
-  } catch(err) {
-    console.log("validate BTC address %s err: %O", address, err);
-    return false;
+  if (network !== "testnet") {
+    network = "prod";
   }
-}
-
-function isValidLtcAddress(address, network) {
-  if (typeof (address) != 'string') {
-    return false;
-  }
-  try {
-    let isMainNet = (network == 'mainnet')? true : false;
-    if (litecore.Address.isValid(address, isMainNet? 'livenet' : 'testnet')) {
-      return true;
-    }
-    if ((isMainNet && address.startsWith('ltc1')) || (!isMainNet && address.startsWith('tltc1'))) {
-      try {
-        bech32.decode(address);
-        return true;
-      } catch (err) {
-        return false;
-      }
-    }
-  } catch (err) {
-    return false;
-  }
-  return false;
-}
-
-function isValidDogeAddress(address, network) {
-  networkType = (network === "testnet")? "testnet" : "prod";
-  let valid = WAValidator.validate(address, 'DOGE', networkType);
+  let valid = WAValidator.validate(address, 'BTC', network);
   return valid;
 }
 
-function isValidXrpAddress(accountAddr) {
-  let isValid = xrpAddrCodec.isValidXAddress(accountAddr);
-  if (true != isValid) {
-    isValid = xrpAddrCodec.isValidClassicAddress(accountAddr);
+function isValidLtcAddress(address, network) {
+  if (network !== "testnet") {
+    network = "prod";
   }
-  return isValid;
+  let valid = WAValidator.validate(address, 'LTC', network);
+  return valid;
+}
+
+function isValidDogeAddress(address, network) {
+  if (network !== "testnet") {
+    network = "prod";
+  }
+  let valid = WAValidator.validate(address, 'DOGE', network);
+  return valid;
+}
+
+function isValidXrpAddress(address) {
+  let valid = WAValidator.validate(address, 'XRP');
+  return valid;
 }
 
 function isValidDotAddress(account, network) {  
