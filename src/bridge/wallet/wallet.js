@@ -7,7 +7,7 @@ class Wallet {
       throw "Invalid provider";
     }
     this.type = type;
-    if (["MetaMask", "WanMask", "WalletConnect", "OtherWeb3"].includes(type)) {
+    if (["MetaMask", "WanMask", "WalletConnect", "WanWallet", "OtherWeb3"].includes(type)) {
       return new Web3Wallet(type, provider);
     } else if (type === "polkadot{.js}") {
       return new Polkadot(type, provider);

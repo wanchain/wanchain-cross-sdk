@@ -110,7 +110,7 @@ try {
   // each asset pair contains fromChain and toChain, if the asset is converted from fromChain to toChain, the direction is "mint", otherwise, the direction is "burn"
   let assetPair = assetPairs[0];
 
-  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "OtherWeb3" or "polkadot{.js}"
+  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "WanWallet", "OtherWeb3" or "polkadot{.js}"
   // no need to create this wallet when converting assets from Bitcoin, Litecoin or XRP Ledger
   let wallet = new Wallet("MetaMask", metaMaskWallet);
 
