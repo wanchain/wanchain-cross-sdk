@@ -184,6 +184,7 @@ A cross-chain task can be in the following statuses:
 <li>Failed:     Failed to finish the task
 <li>Error:      The task is completed but incorrect, the asset is not transferred to the account specified by the user
 <li>Rejected:   Task is cancelled
+<li>Timeout:    Waiting for locking asset more than 24 hours
 
 Do not close or refresh the web page before receiving the "lock" event, otherwise the task will stop and cannot be resumed.
 
