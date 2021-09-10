@@ -253,8 +253,6 @@
     }
   ],
   "MinXrpValue": 21,
-  "MinDotValue": 0.01
+  "MinDotValue": 0.01,
+  "LockTxTimeout": 86400000
 }
-
-
-

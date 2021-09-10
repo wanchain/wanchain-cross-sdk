@@ -32,6 +32,7 @@ class WanBridge extends EventEmitter {
     this.globalConstant = this._service.getService("GlobalConstant");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this));
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this));
+    this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this));
     await this._service.start();
   }
@@ -219,6 +220,18 @@ class WanBridge extends EventEmitter {
     records.setTaskLockTxHash(taskId, txHash, taskLockHash.sender);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("lock", {taskId, txHash});
+  }
+
+  _onLockTxTimeout(taskLockTimeout) {
+    console.debug("_onLockTxTimeout: %O", taskLockTimeout);
+    let records = this.stores.crossChainTaskRecords;
+    let taskId = taskLockTimeout.ccTaskId;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (ccTask && (ccTask.status !== "Timeout")) {
+      records.modifyTradeTaskStatus(taskId, "Timeout");
+      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+      this.emit("error", {taskId, reason: "Waiting for locking asset timeout"});
+    }
   }
 
   _onRedeemTxHash(taskRedeemHash) {

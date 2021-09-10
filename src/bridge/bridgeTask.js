@@ -128,7 +128,7 @@ class BridgeTask {
 
   async _checkSmg() {
     // check timeout
-    let curTime = tool.getCurTimeSec();
+    let curTime = tool.getCurTimestamp(true);
     if (curTime >= this._smg.endTime) {
       return "Smg timeout";
     }

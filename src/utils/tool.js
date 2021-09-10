@@ -3,8 +3,19 @@ const ethUtil = require('ethereumjs-util');
 const dotTxWrapper = require('@substrate/txwrapper');
 const WAValidator = require('multicoin-address-validator');
 
-function getCurTimeSec() {
-  return parseInt(new Date().getTime() / 1000);
+function getCurTimestamp(toSecond = false) {
+  let ts = new Date().getTime();
+  if (toSecond) {
+    ts = parseInt(ts / 1000);
+  }
+  return ts;
+}
+
+function checkTimeout(baseTimestamp, milliSecond) {
+  let cur = getCurTimestamp();
+  let base = parseInt(baseTimestamp);
+  let timeout = parseInt(milliSecond);
+  return (cur > (base + timeout));
 }
 
 async function sleep(time) {
@@ -92,7 +103,8 @@ function getCoinSymbol(chainType, chainName) {
 }
 
 module.exports = {
-  getCurTimeSec,
+  getCurTimestamp,
+  checkTimeout,
   sleep,
   isValidEthAddress,
   isValidWanAddress,

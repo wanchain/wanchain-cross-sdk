@@ -1,7 +1,7 @@
 'use strict';
 
 const axios = require("axios");
-
+const tool = require("../../utils/tool.js");
 module.exports = class CheckBtcTxService {
     constructor(chainType = "BTC") {
         this.chainType = chainType;
@@ -18,6 +18,8 @@ module.exports = class CheckBtcTxService {
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
         this.m_utilService = frameworkService.getService("UtilService");
+
+        this.lockTxTimeout = await this.m_configService.getGlobalConfig("LockTxTimeout");
     }
 
     async loadTradeTask(otas) {
@@ -59,18 +61,23 @@ module.exports = class CheckBtcTxService {
                     let txHashField = this.chainType.toLowerCase() + "Hash";
                     let txhash = ret.data.data[txHashField];
                     let sender = await this.m_utilService.getBtcTxSender(this.chainType, txhash);
-                    let eventService = this.m_frameworkService.getService("EventService");
-                    await eventService.emitEvent("LockTxHash",
-                        {
-                            ccTaskId: obj.ccTaskId,
-                            txhash,
-                            sentAmount: ret.data.data.value,
-                            sender
-                        });
+                    await this.m_eventService.emitEvent("LockTxHash", {
+                        ccTaskId: obj.ccTaskId,
+                        txhash,
+                        sentAmount: ret.data.data.value,
+                        sender
+                    });
                     obj.uniqueID = "0x" + txhash;
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
                     await storageService.delete(this.serviceName, obj.ccTaskId);
+                    this.checkOtas.splice(index, 1);
+                } else if (tool.checkTimeout(obj.ccTaskId, this.lockTxTimeout)) {
+                    console.debug("task %s wait lock tx timeout", obj.ccTaskId);
+                    await this.m_eventService.emitEvent("LockTxTimeout", {
+                        ccTaskId: obj.ccTaskId
+                    });
+                    // DO NOT delete from storage, can be resumed by refreshing page
                     this.checkOtas.splice(index, 1);
                 }
             }

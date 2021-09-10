@@ -1,6 +1,7 @@
 'use strict';
 
 const axios = require("axios");
+const tool = require("../../utils/tool.js");
 
 module.exports = class CheckXrpTxService {
     constructor() {
@@ -15,6 +16,8 @@ module.exports = class CheckXrpTxService {
 
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
+
+        this.lockTxTimeout = await this.m_configService.getGlobalConfig("LockTxTimeout");
     }
 
     async loadTradeTask(xrpAry) {
@@ -61,27 +64,31 @@ module.exports = class CheckXrpTxService {
             let obj = this.m_xrpCheckTagAry[index];
             try {
                 let queryUrl = url + obj.tagId;
-                // console.log("CheckXrpTxService queryUrl:", queryUrl);
+                console.debug("CheckXrpTxService queryUrl:", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
                     obj.uniqueID = "0x" + ret.data.data.xrpHash;
-                    let eventService = this.m_frameworkService.getService("EventService");
-                    await eventService.emitEvent("LockTxHash",
-                        {
-                            ccTaskId: obj.ccTaskId,
-                            txhash: ret.data.data.xrpHash,
-                            sentAmount: ret.data.data.sentValue,
-                            sender: ret.data.data.xrpAddr
-                        });
-
+                    await this.m_eventService.emitEvent("LockTxHash", {
+                        ccTaskId: obj.ccTaskId,
+                        txhash: ret.data.data.xrpHash,
+                        sentAmount: ret.data.data.sentValue,
+                        sender: ret.data.data.xrpAddr
+                    });
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
                     await storageService.delete("CheckXrpTxService", obj.ccTaskId);
                     this.m_xrpCheckTagAry.splice(index, 1);
+                } else if (tool.checkTimeout(obj.ccTaskId, this.lockTxTimeout)) {
+                    console.debug("task %s wait lock tx timeout", obj.ccTaskId);
+                    await this.m_eventService.emitEvent("LockTxTimeout", {
+                        ccTaskId: obj.ccTaskId
+                    });
+                    // DO NOT delete from storage, can be resumed by refreshing page
+                    this.m_xrpCheckTagAry.splice(index, 1);
                 }
             }
             catch (err) {
-                console.log("CheckXrpTxService runTask err:", err);
+                console.error("CheckXrpTxService runTask err:", err);
             }
         }
     }
