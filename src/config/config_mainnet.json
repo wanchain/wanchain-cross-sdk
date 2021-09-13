@@ -257,6 +257,13 @@
       "burnHandle": "BurnErc20ProxyToken",
       "fromNativeToken": "0x....................................",
       "toNativeToken": "0x...................................."
+    },
+    {
+      "id": "74",
+      "comment": "Ethereum <-> Avalanche native token",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20ProxyToken",
+      "toNativeToken": "0x...................................."
     }
   ],
   "MinXrpValue": 21,
