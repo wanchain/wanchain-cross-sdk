@@ -3,19 +3,21 @@
 const axios = require("axios");
 
 module.exports = class CheckBtcTx{
-    constructor(frameworkService) {
+    constructor(frameworkService, chainType) {
         this.m_frameworkService = frameworkService;
+        this.chainType = chainType;
+        this.serviceName = "Check" + this.chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "Tx";
         this.m_CheckAry = [];
     }
 
-  async init(chainType) {
+  async init() {
         this.m_taskService = this.m_frameworkService.getService("TaskService");
 
         this.m_configService = this.m_frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
 
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoByType(chainType);
+        let chainInfo = await chainInfoService.getChainInfoByType(this.chainType);
 
         this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
         this.m_eventService = this.m_frameworkService.getService("EventService");
@@ -37,33 +39,32 @@ module.exports = class CheckBtcTx{
             return false;
         }
         catch (err) {
-            console.log("deleteTaskById err:", err);
+            console.error("deleteTaskById err:", err);
             return false;
         }
     }
 
     async add(obj) {
         try {
-            console.log("checkBtcTx add obj:", obj);
-            let url = this.m_apiServerConfig.url + "/api/btc/addTxInfo";
+            console.log("%s add obj:", this.serviceName, obj);
+            let url = this.m_apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/addTxInfo";
             let postJson = {
-                btcAddr: obj.toAddr,
                 chainType: obj.fromChain,
                 chainAddr: obj.fromAddr,
                 chainHash: obj.chainHash
             };
+            let addrField = this.chainType.toLowerCase() + "Addr";
+            postJson[addrField] = obj.toAddr;
             let ret = await axios.post(url, postJson);
             if (ret.data.success === true) {
-                console.log("CheckBtcTx save to apiServer success");
+                console.log("%s save to apiServer success", this.serviceName);
                 this.m_CheckAry.unshift(obj);
-            }
-            else {
-                console.log("CheckBtcTx save to apiServer fail");
+            } else {
+                console.error("%s save to apiServer fail", this.serviceName);
                 // ???
             }
-        }
-        catch (err) {
-            console.log("checkBtcTx add err:", err);
+        } catch (err) {
+            console.error("%s add err:", this.serviceName, err);
         }
     }
 
@@ -76,28 +77,29 @@ module.exports = class CheckBtcTx{
             if (this.m_CheckAry.length <= 0) {
                 return;
             }
-            let url = this.m_apiServerConfig.url + "/api/btc/queryTxAckInfo/";
+            let url = this.m_apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/queryTxAckInfo/";
             let count = this.m_CheckAry.length;
             for (let idx = 0; idx < count; ++idx) {
                 let index = count - idx - 1;
                 let obj = this.m_CheckAry[index];
                 let txUrl = url + obj.uniqueID;
                 let ret = await axios.get(txUrl);
-                console.debug("checkBtcTx %s ret.data: %O", txUrl, ret.data);
+                console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
                 if (ret.data.success === true) {
                     if (ret.data.data) {
                         // found
                         let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.btcHash, toAccount: ret.data.data.btcAddr});
+                        let txHashField = this.chainType.toLowerCase + "Hash";
+                        let addrField = this.chainType.toLowerCase + "Addr";
+                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data[txHashField], toAccount: ret.data.data[addrField]});
                         let storageService = this.m_frameworkService.getService("StorageService");
                         storageService.delete("ScEventScanService", obj.uniqueID);
                         this.m_CheckAry.splice(index, 1);
                     }
                 }
             }
-        }
-        catch (err) {
-            console.error("CheckBtcTx runTask err: %O", err);
+        } catch (err) {
+            console.error("%s runTask err: %O", this.serviceName, err);
         }
     }
 };
