@@ -18,10 +18,12 @@ class CrossChainTaskRecords {
     let ccTask = this.ccTaskRecords.get(id);
     if (ccTask) {
       if (!["Failed", "Succeeded", "Error"].includes(ccTask.status)) {
-        ccTask.status = ccTaskStatus;
-        if (errInfo) {
+        if (errInfo) { // set errInfo
           ccTask.errInfo = errInfo;
+        } else if ((ccTaskStatus === "Converting") && (ccTask.status === "Timeout")) {
+          ccTask.errInfo = ""; // clear temporary Timeout status
         }
+        ccTask.status = ccTaskStatus;
       }
     }    
   }

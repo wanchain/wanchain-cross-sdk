@@ -166,10 +166,6 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     records.ccTaskRecords.forEach((task, id) => {
       if ((taskId == undefined) || (taskId == id)) {
-        let errInfo = "";
-        if (!["Performing", "Converting", "Succeeded"].includes(task.status)) {
-          errInfo = task.errInfo || task.status;
-        }
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
@@ -189,7 +185,7 @@ class WanBridge extends EventEmitter {
           lockHash: task.lockHash,
           redeemHash: task.redeemHash,
           status: task.status,
-          errInfo
+          errInfo: task.errInfo
         }
         history.push(item);
       }
