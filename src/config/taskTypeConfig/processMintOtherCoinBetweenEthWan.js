@@ -47,7 +47,7 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
                 tokenPair.fromScInfo.erc20AbiJson);
             let bn_allowance = new BigNumber(allowance);
             if (bn_allowance.isLessThan(params.value)) {
-                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
                 return;
             }
 
@@ -68,8 +68,8 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
             return;
         }
         catch (err) {
-            console.log("ProcessErc20UserFastMint process err:", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, strFailed);
+            console.error("ProcessErc20UserFastMint process err: %O", err);
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
         }
     }
 

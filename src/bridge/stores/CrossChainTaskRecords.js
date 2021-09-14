@@ -14,11 +14,14 @@ class CrossChainTaskRecords {
     this.ccTaskRecords.set(ccTaskData.ccTaskId, ccTaskData);
   }
 
-  modifyTradeTaskStatus(id, ccTaskStatus) {
+  modifyTradeTaskStatus(id, ccTaskStatus, errInfo = "") {
     let ccTask = this.ccTaskRecords.get(id);
     if (ccTask) {
       if (!["Failed", "Succeeded", "Error"].includes(ccTask.status)) {
         ccTask.status = ccTaskStatus;
+        if (errInfo) {
+          ccTask.errInfo = errInfo;
+        }
       }
     }    
   }
@@ -37,7 +40,7 @@ class CrossChainTaskRecords {
     }
   }
 
-  updateTaskStepResult(ccTaskId, stepNo, txHash, result = undefined) {
+  updateTaskStepResult(ccTaskId, stepNo, txHash, result, errInfo = "") {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
@@ -50,6 +53,9 @@ class CrossChainTaskRecords {
           }
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
+            if (errInfo) {
+              ccTask.errInfo = errInfo;
+            }            
           } else if ((stepNo === ccTask.stepNums) && (!ccTask.isOtaTx)) {
             if (txHash && !ccTask.lockHash) {
               // update txHash and notify dapp, then wait receipt, do not change status

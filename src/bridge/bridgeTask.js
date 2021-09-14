@@ -121,7 +121,8 @@ class BridgeTask {
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
     if (new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
-      return ("Amount is too small to pay the network fee, must greater than " + this._fee.networkFee.value + " " + this._fromChainInfo.symbol);
+      console.error("Amount must be greater than fee: %s %s", this._fee.networkFee.value, this._fromChainInfo.symbol);
+      return "Amount must be greater than fee";
     }
     return "";
   }
@@ -159,7 +160,8 @@ class BridgeTask {
     let estimateBalance = smgBalance.plus(this._amount);
     if (estimateBalance.lt(minValue)) {
       let diff = new BigNumber(minValue).minus(smgBalance);
-      return ("Amount is too small to activate smg, at least " + diff.toFixed() + " " + this._fromChainInfo.symbol);
+      console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+      return "Amount is too small to activate smg";
     }
   }
 
@@ -201,7 +203,8 @@ class BridgeTask {
     let estimateBalance = balance.plus(this._amount);
     if (estimateBalance.lt(minValue)) {
       let diff = new BigNumber(minValue).minus(balance);
-      return ("Amount is too small to activate toAccount, at least " + diff.toFixed() + " " + this._fromChainInfo.symbol);
+      console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+      return "Amount is too small to activate toAccount";
     }
   }
 
@@ -241,7 +244,7 @@ class BridgeTask {
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
-          this._updateTaskStepData(taskStep.stepNo, taskStep.txHash);
+          this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, ""); // only update txHash, no result
           stepTxHash = taskStep.txHash;
         }
         if (executedStep != curStep) {
@@ -254,8 +257,8 @@ class BridgeTask {
         continue;
       }
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
-        this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
-        this._bridge.emit("error", {taskId: this.id, reason: stepResult});
+        this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+        this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
         break;
       }
       if (!this._wallet) {
@@ -263,7 +266,7 @@ class BridgeTask {
       } else if ((taskStep.jsonParams.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
-      this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult);
+      this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
       curStep++;
       stepTxHash = "";
     }
@@ -294,12 +297,12 @@ class BridgeTask {
     console.log("%s OTA: %O", chainType, ota);
   }
 
-  _updateTaskStepData(stepNo, txHash, stepResult) {
+  _updateTaskStepData(stepNo, txHash, stepResult, errInfo = "") {
     let records = this._bridge.stores.crossChainTaskRecords;
     const ccTaskRecords = records.ccTaskRecords;
     let ccTask = ccTaskRecords.get(this.id);    
     if (ccTask) {
-      let isLockTx = records.updateTaskStepResult(this.id, stepNo, txHash, stepResult);
+      let isLockTx = records.updateTaskStepResult(this.id, stepNo, txHash, stepResult, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId: this.id, txHash};
         console.debug("lockTxHash: %O", lockEvent);

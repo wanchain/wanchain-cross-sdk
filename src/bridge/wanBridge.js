@@ -102,6 +102,7 @@ class WanBridge extends EventEmitter {
       return;
     }
     records.modifyTradeTaskStatus(taskId, "Rejected");
+    this.emit("error", {taskId, reason: "Rejected"});
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
@@ -165,6 +166,10 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     records.ccTaskRecords.forEach((task, id) => {
       if ((taskId == undefined) || (taskId == id)) {
+        let errInfo = "";
+        if (!["Performing", "Converting", "Succeeded"].includes(task.status)) {
+          errInfo = task.errInfo || task.status;
+        }
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
@@ -182,7 +187,8 @@ class WanBridge extends EventEmitter {
           ota: task.ota,
           lockHash: task.lockHash,
           redeemHash: task.redeemHash,
-          status: task.status
+          status: task.status,
+          errInfo
         }
         history.push(item);
       }
@@ -212,7 +218,9 @@ class WanBridge extends EventEmitter {
       return;
     }
     if (new BigNumber(ccTask.fee.networkFee.value).gte(value)) {
-      records.modifyTradeTaskStatus(taskId, "Failed");
+      let errInfo = "Sent amount too small";
+      records.modifyTradeTaskStatus(taskId, "Failed", errInfo);
+      this.emit("error", {taskId, reason: errInfo});
     } else {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
@@ -228,9 +236,10 @@ class WanBridge extends EventEmitter {
     let taskId = taskLockTimeout.ccTaskId;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask && (ccTask.status !== "Timeout")) {
-      records.modifyTradeTaskStatus(taskId, "Timeout");
+      let errInfo = "Waiting for locking asset timeout";
+      records.modifyTradeTaskStatus(taskId, "Timeout", errInfo);
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-      this.emit("error", {taskId, reason: "Waiting for locking asset timeout"});
+      this.emit("error", {taskId, reason: errInfo});
     }
   }
 
@@ -243,17 +252,19 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    let status = "Succeeded";
+    let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
       if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
+        errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
+        this.emit("error", {taskId, reason: errInfo});
       }
     }
-    records.modifyTradeTaskStatus(taskId, status);
+    records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("redeem", {taskId, txHash, status});
+    this.emit("redeem", {taskId, txHash});
   }
 
   _unifyDirection(direction) {

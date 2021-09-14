@@ -74,7 +74,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let p2sh = await this.generateOnetimeAddress(paramsJson, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
       // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, paramsJson.stepIndex, p2sh.address);
       if (p2sh.address === "") {
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed");
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
       } else {
         // networkfee
         let eventService = this.m_frameworkService.getService("EventService");
@@ -87,7 +87,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       }
     } catch (err) {
       console.error("%s err: %O", processorName, err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Failed");
+      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
     }
   }
 

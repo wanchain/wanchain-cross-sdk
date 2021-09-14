@@ -55,15 +55,16 @@ module.exports = class CheckTxReceiptService {
                 let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txhash);
                 if (txReceipt) {
                     let result = "Failed";
+                    let errInfo = "Transaction failed";
                     if (txReceipt.status === "0x1" || txReceipt.status === true) {// 旧版0x0/0x1,1.2.6版true/false
                         result = "Succeeded";
+                        errInfo = "";
                         await this.addToScEventScan(obj);
                     }
-                    this.m_WebStores["crossChainTaskSteps"].finishTaskStep(obj.ccTaskId, obj.stepIndex, obj.txhash, result);
+                    this.m_WebStores["crossChainTaskSteps"].finishTaskStep(obj.ccTaskId, obj.stepIndex, obj.txhash, result, errInfo);
                     await storageService.delete("CheckTxReceiptService", obj.ccTaskId);
                     this.m_tradeTaskAry.splice(index, 1);
-                }
-                else {
+                } else {
                     //let tx = await this.m_iwanBCConnector.getTxInfo(obj.chain, obj.txhash);
                     //if (tx) {
                     //    continue;// 仍在队列中
