@@ -16,6 +16,8 @@ class CrossChainTask {
       fromAccount: '', // the from account
       toAccount: '', // the to account
       amount: '',  // convert amount
+      sentAmount: '', // actually sent amount
+      receivedAmount: '', // final received amount
       status: '',
       stepData: [],
       lockHash: '',

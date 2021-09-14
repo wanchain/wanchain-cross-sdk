@@ -181,6 +181,7 @@ class WanBridge extends EventEmitter {
           fromChain: task.fromChainName,
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
+          receivedAmount: task.receivedAmount,
           fee: task.fee,
           fromAccount: task.fromAccount,
           toAccount: task.toAccount,
@@ -224,8 +225,7 @@ class WanBridge extends EventEmitter {
     } else {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
-    records.setTaskSentAmount(taskId, value);
-    records.setTaskLockTxHash(taskId, txHash, taskLockHash.sender);
+    records.setTaskLockTxHash(taskId, txHash, value, taskLockHash.sender);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("lock", {taskId, txHash});
   }
@@ -252,6 +252,7 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
+    // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
       if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
@@ -261,8 +262,18 @@ class WanBridge extends EventEmitter {
         this.emit("error", {taskId, reason: errInfo});
       }
     }
+    // received amount, TODO: get from chain
+    let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
+    if (['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'].includes(ccTask.assetType)) { // not-smart-contract asset
+      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
+        receivedAmount = receivedAmount.minus(ccTask.fee.networkFee.value);
+      }
+      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
+        receivedAmount = receivedAmount.minus(ccTask.fee.operateFee.value);
+      }
+    }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
-    records.setTaskRedeemTxHash(taskId, txHash);
+    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount.toFixed());
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
   }
