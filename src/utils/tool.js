@@ -95,7 +95,7 @@ function isValidDotAddress(account, network) {
 function getCoinSymbol(chainType, chainName) {
   if ((chainType === "DOT") && (chainName === "PolkaTestnet")) {
     return "WND";
-  } else if ((chainType === "MOVR") && (chainName === "Moonbeam")) {
+  } else if ((chainType === "MOVR") && (chainName === "Moonbase Alpha")) {
     return "DEV";
   } else {
     return chainType;
