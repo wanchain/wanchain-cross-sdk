@@ -30,7 +30,7 @@ module.exports = class ProcessBase {
 
       let accountAry = await wallet.getAccounts();
       if ((!accountAry) || (accountAry.length === 0) || (accountAry[0] !== params.fromAddr)) {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Wallet account mismatch");
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
         console.error("wallet account changes from %s to %O", params.fromAddr, accountAry);
         return;
       }
@@ -77,12 +77,12 @@ module.exports = class ProcessBase {
       if (chainId === params.chainId) {
         return true;
       } else {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Wallet chain mismatch");
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
         console.error("wallet chainId changes from %s to %s", params.chainId, chainId);
         return false;
       }      
     } catch (err) {
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to get wallet chain");
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
       console.error("task %s checkChainId err: %O", params.ccTaskId, err);
       return false;
     }

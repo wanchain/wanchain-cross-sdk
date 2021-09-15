@@ -51,7 +51,7 @@ module.exports = class MintCoinHandle {
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_GAS
+        errCode: globalConstant.ERR_INSUFFICIENT_BALANCE
       };
     }
 
