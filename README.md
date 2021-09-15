@@ -51,20 +51,20 @@ bridge.on("ready", assetPairs => {
       taskId, // optional, only task error info has taskId field
       reason
     }
-    a task error info may includes following reason:
-      "Invalid wallet"
-      "Failed to send transaction"
-      "Rejected"
-      "Insufficient ERC20 token allowance"
-      "Failed to generate transaction data"
-      "Insufficient balance"
-      "Repeated approval of erc20 tokens"
-      "Failed to approve ERC20 token"
-      "Failed to generate ota"
-      "Transaction failed"
-      "Amount is too small to pay the fee"
-      "Waiting for locking asset timeout"
-      "Please contact the Wanchain Foundation (techsupport@wanchain.org)"
+    a task error info may includes the following reason:
+    "Invalid wallet"
+    "Failed to send transaction"
+    "Rejected"
+    "Insufficient ERC20 token allowance"
+    "Failed to generate transaction data"
+    "Insufficient balance"
+    "Repeated approval of erc20 tokens"
+    "Failed to approve ERC20 token"
+    "Failed to generate ota"
+    "Transaction failed"
+    "Amount is too small to pay the fee"
+    "Waiting for locking asset timeout"
+    "Please contact the Wanchain Foundation (techsupport@wanchain.org)"
   */
 }).on("ota", info => {
   /* the one-time-addess is generated to receive BTC, LTC or XRP.
@@ -86,8 +86,7 @@ bridge.on("ready", assetPairs => {
   /* the redeem transaction hash, indicates that the cross-chain task is finished.
     redeem info structure: {
       taskId,
-      txHash,
-      status    // "Succeeded" or "Error"
+      txHash
     }
   */
 });
