@@ -197,7 +197,7 @@ class WanBridge extends EventEmitter {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
       this.emit("ready", assetPairList);
-      console.debug("WanBridge is ready: %O", assetPairList);
+      console.debug("WanBridge is ready for %d assetPairs", assetPairList.length);
     } else {
       this.emit("error", {reason: "Failed to initialize storeman"});
       console.error("WanBridge has error");

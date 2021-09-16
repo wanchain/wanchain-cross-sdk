@@ -1,5 +1,17 @@
 "use strict";
 
+const low = require('lowdb');
+
+let adapter;
+if (typeof(window) !== "undefined") {
+    const LocalStorage = require('lowdb/adapters/LocalStorage');
+    adapter = new LocalStorage('WanBridgeDb');
+} else {
+    const FileSync = require('lowdb/adapters/FileSync');
+    adapter = new FileSync('./WanBridgeDb.json');
+}
+const db = low(adapter);
+
 // 存储格式参考
 //let all = {
 //    "StorageService_stores": [
@@ -29,18 +41,18 @@ class StorageService {
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
         this.m_WebStores = this.m_frameworkService.getService("WebStores");
-        //await this.init_load();
+        db.read();
     }
 
     async init_load() {
         this.m_mapStoreKeys.clear();
-        let storeNamesStr = window.localStorage.getItem("StorageService_storeNames");
+        let storeNamesStr = db.get("StorageService_storeNames").value();
         if (storeNamesStr) {
             let storeNamesAry = JSON.parse(storeNamesStr);
             for (let idx = 0; idx < storeNamesAry.length; ++idx) {
                 let storeName = storeNamesAry[idx];
                 let key = storeName + "_keys";
-                let storeKeysStr = window.localStorage.getItem(key);
+                let storeKeysStr = db.get(key).value();
                 if (storeKeysStr) {
                     try {
                         let storeKeysAry = JSON.parse(storeKeysStr);
@@ -50,11 +62,10 @@ class StorageService {
                             try {
                                 let keyName = storeKeysAry[storeKeyIdx];
                                 key = storeName + "_" + keyName;
-                                let value = window.localStorage.getItem(key);
+                                let value = db.get(key).value();
                                 valueAry.push(JSON.parse(value));
                                 storeKeysMap.set(keyName, true);
-                            }
-                            catch (err) {
+                            } catch (err) {
                                 console.log("init_load 1 err:", err);
                             }
                         }
@@ -65,12 +76,10 @@ class StorageService {
                             if (processInst) {
                                 processInst.loadTradeTask(valueAry);
                             }
-                        }
-                        catch (err) {
+                        } catch (err) {
                             console.log("init_load 2 err:", err);
                         }
-                    }
-                    catch (err) {
+                    } catch (err) {
                         console.log("init_load 3 err:", err);
                     }
                 }
@@ -83,7 +92,6 @@ class StorageService {
         if (storeInst) {
             return storeInst;
         }
-
         let serviceInst = this.m_frameworkService.getService(storeName);
         return serviceInst;
     }
@@ -94,51 +102,45 @@ class StorageService {
             if (!storeKeysMap.has(key)) {
                 storeKeysMap.set(key, true);
                 let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-                window.localStorage.setItem(storeName + "_keys", JSON.stringify(storeKeysAry));
+                db.set(storeName + "_keys", JSON.stringify(storeKeysAry));
             }
-        }
-        else {
+        } else {
             let storeKeysMap = new Map();
             storeKeysMap.set(key, true);
             this.m_mapStoreKeys.set(storeName, storeKeysMap);
             let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
-            window.localStorage.setItem("StorageService_storeNames", JSON.stringify(storeNamesAry));
-
+            db.set("StorageService_storeNames", JSON.stringify(storeNamesAry));
             let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-            window.localStorage.setItem(storeName + "_keys", JSON.stringify(storeKeysAry));
+            db.set(storeName + "_keys", JSON.stringify(storeKeysAry));
         }
-        window.localStorage.setItem(storeName + "_" + key, JSON.stringify(val));
+        db.set(storeName + "_" + key, JSON.stringify(val)).write();
     }
 
     async delete(storeName, key) {
         if (!this.m_mapStoreKeys.has(storeName)) {
             return;
         }
-
         let storeKeysMap = this.m_mapStoreKeys.get(storeName);
         if (!storeKeysMap.has(key)) {
             return;
         }
-
-        window.localStorage.removeItem(storeName + "_" + key);
+        db.unset(storeName + "_" + key);
         storeKeysMap.delete(key);
-
         let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
         if (storeKeysAry.length > 0) {
-            window.localStorage.setItem(storeName + "_keys", JSON.stringify(storeKeysAry));
-        }
-        else {
-            window.localStorage.removeItem(storeName + "_keys");
+            db.set(storeName + "_keys", JSON.stringify(storeKeysAry));
+        } else {
+            db.unset(storeName + "_keys");
             this.m_mapStoreKeys.delete(storeName);
             let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
             if (storeNamesAry.length > 0) {
-                window.localStorage.setItem("StorageService_storeNames", JSON.stringify(storeNamesAry));
+                db.set("StorageService_storeNames", JSON.stringify(storeNamesAry));
             }
             else {
-                window.localStorage.removeItem("StorageService_storeNames");
+                db.unset("StorageService_storeNames");
             }
         }
-        
+        db.write();
     }
 
     getKeyAryFromMap(paraMap) {

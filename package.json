@@ -19,7 +19,10 @@
     "ripple-keypairs": "^1.0.2",
     "wanchain-util": "^1.2.0",
     "web3": "^1.3.0",
-    "multicoin-address-validator": "^0.5.2"
+    "multicoin-address-validator": "^0.5.2",
+    "ws": "^5.2.2",
+    "@truffle/hdwallet-provider": "^1.5.0",
+    "lowdb": "^1.0.0"
   },
   "main": "index.js",
   "scripts": {

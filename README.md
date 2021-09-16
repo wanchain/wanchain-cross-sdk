@@ -20,6 +20,10 @@ npm install --save wanchain-cross-sdk
 
 <li>Install BTC, LTC and XRP wallets if you need to convert asset from Bitcoin, Litecoin or XRP Ledger.
 
+<li>Or use Truffle HDWallet to sign and send transactions in Node.js script.
+
+[HDWalletProvider](https://www.npmjs.com/package/@truffle/hdwallet-provider)
+
 ## Usage
 Step 1: Import WanBridge and Wallet, create a bridge object and subscribe to events.
 
@@ -104,7 +108,7 @@ bridge.init(iwanAuth);
 
 Step 3: Connect a wallet.
 
-wanchain-cross-sdk supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
+SDK for browser supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
 ```javascript
 // connect to the wallet in your own way and get the provider, such as:
 let metaMaskWallet = window.ethereum;
@@ -112,6 +116,15 @@ let wanMaskWallet = window.wanchain;
 
 // SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
 let polkadotWallet = "wss://nodes-testnet.wandevs.org/polkadot";
+```
+SDK for Node.js currently only supports Truffle HDWallet.
+```javascript
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+
+const hdWallet = new HDWalletProvider({
+  privateKeys: ["your-private-key"],
+  providerOrUrl
+});
 ```
 SDK does not support BTC, LTC or XRP wallets, when you convert asset from Bitcoin, Litecoin or XRP Ledger to other chains, please use a third-party wallet to send the asset to the ota address manually.
 
@@ -123,7 +136,7 @@ try {
   // each asset pair contains fromChain and toChain, if the asset is converted from fromChain to toChain, the direction is "mint", otherwise, the direction is "burn"
   let assetPair = assetPairs[0];
 
-  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "WanWallet", "OtherWeb3" or "polkadot{.js}"
+  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "WanWallet" or "polkadot{.js}" for browser, and "TruffleHD" for Node.js.
   // no need to create this wallet when converting assets from Bitcoin, Litecoin or XRP Ledger
   let wallet = new Wallet("MetaMask", metaMaskWallet);
 
