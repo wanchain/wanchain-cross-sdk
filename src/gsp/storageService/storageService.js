@@ -84,6 +84,54 @@ class StorageService {
                     }
                 }
             }
+        } else if (typeof(window) !== "undefined") { // try to migrate old version history to lowdb for compatibility, delete later
+            console.log("try to migrate old version history");
+            await this.loadLegacy();
+        }
+    }
+
+    async loadLegacy() {
+        let storeNamesStr = window.localStorage.getItem("StorageService_storeNames");
+        if (storeNamesStr) {
+            db.set("StorageService_storeNames", storeNamesStr).write();
+            let storeNamesAry = JSON.parse(storeNamesStr);
+            for (let idx = 0; idx < storeNamesAry.length; ++idx) {
+                let storeName = storeNamesAry[idx];
+                let key = storeName + "_keys";
+                let storeKeysStr = window.localStorage.getItem(key);
+                if (storeKeysStr) {
+                    db.set(key, storeKeysStr).write();
+                    try {
+                        let storeKeysAry = JSON.parse(storeKeysStr);
+                        let valueAry = [];
+                        let storeKeysMap = new Map();
+                        for (let storeKeyIdx = 0; storeKeyIdx < storeKeysAry.length; ++storeKeyIdx) {
+                            try {
+                                let keyName = storeKeysAry[storeKeyIdx];
+                                key = storeName + "_" + keyName;
+                                let value = window.localStorage.getItem(key);
+                                db.set(key, value).write();
+                                valueAry.push(JSON.parse(value));
+                                storeKeysMap.set(keyName, true);
+                            } catch (err) {
+                                console.log("init_load 1 err:", err);
+                            }
+                        }
+                        this.m_mapStoreKeys.set(storeName, storeKeysMap);
+                        // 初始加载
+                        try {
+                            let processInst = await this.getProcessInst(storeName);
+                            if (processInst) {
+                                processInst.loadTradeTask(valueAry);
+                            }
+                        } catch (err) {
+                            console.log("init_load 2 err:", err);
+                        }
+                    } catch (err) {
+                        console.log("init_load 3 err:", err);
+                    }
+                }
+            }
         }
     }
 
@@ -102,16 +150,16 @@ class StorageService {
             if (!storeKeysMap.has(key)) {
                 storeKeysMap.set(key, true);
                 let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-                db.set(storeName + "_keys", JSON.stringify(storeKeysAry));
+                db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
             }
         } else {
             let storeKeysMap = new Map();
             storeKeysMap.set(key, true);
             this.m_mapStoreKeys.set(storeName, storeKeysMap);
             let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
-            db.set("StorageService_storeNames", JSON.stringify(storeNamesAry));
+            db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
             let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-            db.set(storeName + "_keys", JSON.stringify(storeKeysAry));
+            db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
         }
         db.set(storeName + "_" + key, JSON.stringify(val)).write();
     }
@@ -124,23 +172,22 @@ class StorageService {
         if (!storeKeysMap.has(key)) {
             return;
         }
-        db.unset(storeName + "_" + key);
+        db.unset(storeName + "_" + key).write();
         storeKeysMap.delete(key);
         let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
         if (storeKeysAry.length > 0) {
-            db.set(storeName + "_keys", JSON.stringify(storeKeysAry));
+            db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
         } else {
-            db.unset(storeName + "_keys");
+            db.unset(storeName + "_keys").write();
             this.m_mapStoreKeys.delete(storeName);
             let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
             if (storeNamesAry.length > 0) {
-                db.set("StorageService_storeNames", JSON.stringify(storeNamesAry));
+                db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
             }
             else {
-                db.unset("StorageService_storeNames");
+                db.unset("StorageService_storeNames").write();
             }
         }
-        db.write();
     }
 
     getKeyAryFromMap(paraMap) {
