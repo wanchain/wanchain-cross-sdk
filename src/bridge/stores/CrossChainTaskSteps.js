@@ -13,7 +13,8 @@ class CrossChainTaskSteps {
         stepDesc: taskSteps[i].desc, // 
         stepResult: taskSteps[i].stepResult,
         txHash: taskSteps[i].txHash,
-        jsonParams: taskSteps[i]
+        jsonParams: taskSteps[i],
+        errInfo: "",
       }
       steps.push(step);
     };
@@ -21,13 +22,18 @@ class CrossChainTaskSteps {
   }
 
   // maybe only update txHash, not really finished
-  finishTaskStep(taskId, stepIndex, txHash, stepRslt = undefined) {
+  finishTaskStep(taskId, stepIndex, txHash, stepResult, errInfo = "") {
     let steps = this.mapCCTaskStepsArray.get(taskId);
     for (let i = 0; i < steps.length; i++) {
       if (stepIndex == steps[i].stepNo) {
-        steps[i].txHash = txHash;
-        if (stepRslt) {
-          steps[i].stepResult = stepRslt;
+        if (txHash) {
+          steps[i].txHash = txHash;
+        }
+        if (stepResult) {
+          steps[i].stepResult = stepResult;
+        }
+        if (errInfo) {
+          steps[i].errInfo = errInfo;
         }
       }
     }

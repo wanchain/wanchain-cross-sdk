@@ -48,7 +48,7 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
         tokenPair.toScInfo.erc20AbiJson);
       let bn_allowance = new BigNumber(allowance);
       if (bn_allowance.isLessThan(params.value)) {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
         return;
       }
 
@@ -69,8 +69,8 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
       return;
     }
     catch (err) {
-      console.log("ProcessUserFastBurn process err:", err);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, strFailed);
+      console.error("ProcessUserFastBurn process err: %O", err);
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
     }
   }
 

@@ -31,8 +31,8 @@ class StoremanService {
                 let maxQuota = new BigNumber(ret[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 let minQuota = new BigNumber(ret[0].minQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 ret = {
-                    "maxQuota": maxQuota.toString(),
-                    "minQuota": minQuota.toString()
+                    "maxQuota": maxQuota.toFixed(),
+                    "minQuota": minQuota.toFixed()
                 };
                 return ret;
             }

@@ -43,15 +43,15 @@ module.exports = class MintCoinHandle {
     let fees = await crossChainFeesService.getServcieFees(tokenPairObj.id, "MINT");
     gas_value = gas_value.plus(fees.mintFeeBN);
 
-    //console.log("mint coin value:", value.toString(), ",typeof value:", typeof value);
-    //console.log("mint coin balance:", balance.toString(), ",typeof balance:", typeof balance);
-    //console.log("mint coin gas_value:", gas_value.toString(), ",typeof gas_value:", typeof gas_value);
+    //console.log("mint coin value:", value.toFixed(), ",typeof value:", typeof value);
+    //console.log("mint coin balance:", balance.toFixed(), ",typeof balance:", typeof balance);
+    //console.log("mint coin gas_value:", gas_value.toFixed(), ",typeof gas_value:", typeof gas_value);
     if (balance.isLessThan(gas_value)) {
       console.log("MintCoinHandle balance:", balance, " <= gas_value:", gas_value);
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_GAS
+        errCode: globalConstant.ERR_INSUFFICIENT_BALANCE
       };
     }
 

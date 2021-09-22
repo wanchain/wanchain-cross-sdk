@@ -3,7 +3,6 @@
 let CheckScEvent = require("./checkScEvent");
 let CheckBtcTx = require("./checkBtcTx");
 let CheckXrpTx = require("./checkXrpTx");
-let CheckLtcTx = require("./checkLtcTx");
 let CheckDotTx = require("./checkDotTx");
 
 module.exports = class ScEventScanService {
@@ -17,7 +16,7 @@ module.exports = class ScEventScanService {
     this.m_mapCheckHandle = new Map();
 
     let chainsInfo = await this.m_configService.getGlobalConfig("StoremanService");
-    console.debug("chainInfoService chainsInfo:", chainsInfo);
+    // console.debug("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];
       let checkScEventObj = new CheckScEvent(this.m_frameworkService);
@@ -25,17 +24,21 @@ module.exports = class ScEventScanService {
       this.m_mapCheckHandle.set(obj.chainType, checkScEventObj);
     }
 
-    let checkBtcTx = new CheckBtcTx(this.m_frameworkService);
-    await checkBtcTx.init("BTC");
+    let checkBtcTx = new CheckBtcTx(this.m_frameworkService, "BTC");
+    await checkBtcTx.init();
     this.m_mapCheckHandle.set("BTC", checkBtcTx);
+
+    let checkLtcTx = new CheckBtcTx(this.m_frameworkService, "LTC");
+    await checkLtcTx.init();
+    this.m_mapCheckHandle.set("LTC", checkLtcTx);
+
+    let checkDogeTx = new CheckBtcTx(this.m_frameworkService, "DOGE");
+    await checkDogeTx.init();
+    this.m_mapCheckHandle.set("DOGE", checkDogeTx);
 
     let checkXrpTx = new CheckXrpTx(this.m_frameworkService);
     await checkXrpTx.init("XRP");
     this.m_mapCheckHandle.set("XRP", checkXrpTx);
-
-    let checkLtcTx = new CheckLtcTx(this.m_frameworkService);
-    await checkLtcTx.init("LTC");
-    this.m_mapCheckHandle.set("LTC", checkLtcTx);
 
     let checkDotTx = new CheckDotTx(this.m_frameworkService);
     await checkDotTx.init("DOT");

@@ -132,15 +132,11 @@ class TokenPairService {
         if (tokenPairCfg) {
             tokenPair.ccType["MINT"] = tokenPairCfg.mintHandle;
             tokenPair.ccType["BURN"] = tokenPairCfg.burnHandle;
-            if (tokenPairCfg.wanchainTokenAddr) {
-                tokenPair.wanchainTokenAddr = tokenPairCfg.wanchainTokenAddr;
-            } else {
-                if (tokenPairCfg.fromNativeToken) {
-                    tokenPair.fromNativeToken = tokenPairCfg.fromNativeToken;
-                }
-                if (tokenPairCfg.toNativeToken) {
-                    tokenPair.toNativeToken = tokenPairCfg.toNativeToken;
-                }
+            if (tokenPairCfg.fromNativeToken) {
+                tokenPair.fromNativeToken = tokenPairCfg.fromNativeToken;
+            }
+            if (tokenPairCfg.toNativeToken) {
+                tokenPair.toNativeToken = tokenPairCfg.toNativeToken;
             }
             return;
         }

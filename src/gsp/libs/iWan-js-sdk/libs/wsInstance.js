@@ -2,6 +2,13 @@ const EventEmitter = require('events').EventEmitter;
 
 const config = require('../conf/config.js');
 
+let WebSocketClass = undefined;
+if (typeof(WebSocket) !== "undefined") {
+    WebSocketClass = WebSocket;
+} else {
+    WebSocketClass = require('ws');
+}
+
 const CONN_OPTIONS = {
     'handshakeTimeout': 12000,
     rejectUnauthorized: false
@@ -37,7 +44,7 @@ class WsInstance {
 
     createWebSocket() {
         try {
-            this.wss = new WebSocket(this.ws_url);
+            this.wss = new WebSocketClass(this.ws_url);
             this.initEventHandle();
         } catch (e) {
             this.reconnect();

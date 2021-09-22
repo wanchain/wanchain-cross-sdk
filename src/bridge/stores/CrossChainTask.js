@@ -16,6 +16,8 @@ class CrossChainTask {
       fromAccount: '', // the from account
       toAccount: '', // the to account
       amount: '',  // convert amount
+      sentAmount: '', // actually sent amount
+      receivedAmount: '', // final received amount
       status: '',
       stepData: [],
       lockHash: '',
@@ -25,6 +27,7 @@ class CrossChainTask {
       fee: null, 
       isOtaTx: false, // adapted to BTC/XRP crosschain task on 2021.0111 
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
+      errInfo: ''
     };
   }
 

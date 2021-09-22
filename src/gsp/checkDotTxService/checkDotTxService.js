@@ -74,7 +74,7 @@ module.exports = class CheckDotTxService {
                       // let tmpObj = {
                       //   "ccTaskId": obj.ccTaskId,
                       //   "txhash": ret.data.data.txHash,
-                      //   "sentAmount": sentAmount.toString()
+                      //   "sentAmount": sentAmount.toFixed()
                       // };
                       // console.log("dot tmpObj:", tmpObj);
                       // await eventService.emitEvent("LockTxHash", tmpObj);

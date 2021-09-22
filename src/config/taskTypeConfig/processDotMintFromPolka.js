@@ -38,7 +38,7 @@ module.exports = class ProcessDotMintFromPolka {
         params.fee = new BigNumber(params.fee);
       }
       //console.log("DOT value:", params.value, "fee:", params.fee);
-      //console.log("DOT value:", params.value.toString(), "fee:", params.fee.toString());
+      //console.log("DOT value:", params.value.toFixed(), "fee:", params.fee.toFixed());
 
       let api = await polkadotService.getApi();
 
@@ -82,8 +82,8 @@ module.exports = class ProcessDotMintFromPolka {
       //console.log("processDOT minReserved:", minReserved, ",", minReserved.toNumber());
       //console.log("processDOT totalNeed:", totalNeed, ",", totalNeed.toNumber());
       if (bnBalance.isLessThan(totalNeed)) {
-        console.error("insufficient balance");
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed");
+        console.error("Insufficient balance");
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
@@ -91,16 +91,14 @@ module.exports = class ProcessDotMintFromPolka {
       let txHash;
       try {
         txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txHash);
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.message === "Cancelled") {
-          console.log("dot mask Cancelled");
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Rejected");
+          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Rejected");
+        } else {
+          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to send transaction");
         }
-        else {
-          console.log("dot mask unknown error");
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Failed");
-        }
+        console.debug("polkadot wallet error: %O", err);
         return;
       }
       paramsJson.txhash = txHash;
@@ -121,8 +119,8 @@ module.exports = class ProcessDotMintFromPolka {
       let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addDotInfo(checkPara);
     } catch (err) {
-      console.log("ProcessDotMintFromPolka process err:", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, "Failed");
+      console.error("ProcessDotMintFromPolka process err: %O", err);
+      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to send transaction");
     }
   }
 };

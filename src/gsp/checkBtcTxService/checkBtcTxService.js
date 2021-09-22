@@ -1,10 +1,12 @@
 'use strict';
 
 const axios = require("axios");
-
+const tool = require("../../utils/tool.js");
 module.exports = class CheckBtcTxService {
-    constructor() {
-        this.m_btcCheckOTAAry = [];
+    constructor(chainType = "BTC") {
+        this.chainType = chainType;
+        this.serviceName = "Check" + this.chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "TxService";
+        this.checkOtas = [];
     }
 
     async init(frameworkService) {
@@ -16,33 +18,21 @@ module.exports = class CheckBtcTxService {
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
         this.m_utilService = frameworkService.getService("UtilService");
+
+        this.lockTxTimeout = await this.m_configService.getGlobalConfig("LockTxTimeout");
     }
 
-    async loadTradeTask(btcAry) {
-        for (let idx = 0; idx < btcAry.length; ++idx) {
-            let obj = btcAry[idx];
-            this.m_btcCheckOTAAry.push(obj);
-        }
+    async loadTradeTask(otas) {
+        otas.map(ota => this.checkOtas.push(ota));
     }
 
     async start() {
-        let checkBtcTxServiceCfg = await this.m_configService.getGlobalConfig("CheckBtcTxService");
-        console.debug("checkBtcTxServiceCfg:", checkBtcTxServiceCfg);
-        this.m_taskService.addTask(this, checkBtcTxServiceCfg.queryActionInfoInterval, "");
+        let cfg = await this.m_configService.getGlobalConfig(this.serviceName);
+        console.debug("%s cfg: %O", this.serviceName, cfg);
+        this.m_taskService.addTask(this, cfg.queryActionInfoInterval, "");
     }
 
     async addOTAInfo(obj) {
-        //{
-        //    ccTaskId: 1612254034475,
-        //    chainAddr: "0xeb195290a199f78d184b02bbf71fa6460371fcfc",
-        //    chainType: "ETH",
-        //    fromBlockNumber: 8001718,
-        //    oneTimeAddr: "2Mxafcik8cDyZjnKbGHeeDQgQT69ZjjiNHs",
-        //    randomId: "0xe5796e22fb67555f18f1383017450dd9eb54b49491046899d7ef0acfdc24716b",
-        //    smgId: "0x000000000000000000000000000000000000000000746573746e65745f303139",
-        //    smgPublicKey: "0x22d052cc97bf5eb3932ac5d7123967140d31c48d90de5272eecdf1ae0799bf180fbae2a72a9ec7af25d29548dcc5dd2cad637fcd2df0e21c1a15f206296c0c20"
-        //};
-        //console.log("CheckBtcTxService addOTAInfo obj:", obj);
         let tmpObj = {
             "ccTaskId": obj.ccTaskId,
             "oneTimeAddr": obj.oneTimeAddr,
@@ -51,60 +41,66 @@ module.exports = class CheckBtcTxService {
             "taskType": "MINT"
         };
         let storageService = this.m_frameworkService.getService("StorageService");
-        await storageService.save("CheckBtcTxService", obj.ccTaskId, tmpObj);
-        this.m_btcCheckOTAAry.unshift(tmpObj);
+        await storageService.save(this.serviceName, obj.ccTaskId, tmpObj);
+        this.checkOtas.unshift(tmpObj);
     }
 
     async runTask(taskPara) {
         let storageService = this.m_frameworkService.getService("StorageService");
-        let url = this.m_apiServerConfig.url + "/api/btc/queryActionInfo/";
-        let count = this.m_btcCheckOTAAry.length;
+        let url = this.m_apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/queryActionInfo/";
+        let count = this.checkOtas.length;
         for (let idx = 0; idx < count; ++idx) {
             let index = count - idx - 1;
-            let obj = this.m_btcCheckOTAAry[index];
+            let obj = this.checkOtas[index];
 
             try {
                 let queryUrl = url + obj.oneTimeAddr;
-                console.debug("CheckBtcTxService queryUrl: %s", queryUrl);
+                console.debug("%s queryUrl: %s", this.serviceName, queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
-                    let txhash = ret.data.data.btcHash;
-                    let sender = await this.m_utilService.getBtcTxSender("BTC", txhash);
-                    let eventService = this.m_frameworkService.getService("EventService");
-                    await eventService.emitEvent("LockTxHash",
-                        {
-                            ccTaskId: obj.ccTaskId,
-                            txhash,
-                            sentAmount: ret.data.data.value,
-                            sender
-                        });
+                    let txHashField = this.chainType.toLowerCase() + "Hash";
+                    let txhash = ret.data.data[txHashField];
+                    let sender = await this.m_utilService.getBtcTxSender(this.chainType, txhash);
+                    await this.m_eventService.emitEvent("LockTxHash", {
+                        ccTaskId: obj.ccTaskId,
+                        txhash,
+                        sentAmount: ret.data.data.value,
+                        sender
+                    });
                     obj.uniqueID = "0x" + txhash;
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
-                    await storageService.delete("CheckBtcTxService", obj.ccTaskId);
-                    this.m_btcCheckOTAAry.splice(index, 1);
+                    await storageService.delete(this.serviceName, obj.ccTaskId);
+                    this.checkOtas.splice(index, 1);
+                } else if (tool.checkTimeout(obj.ccTaskId, this.lockTxTimeout)) {
+                    console.debug("task %s wait lock tx timeout", obj.ccTaskId);
+                    await this.m_eventService.emitEvent("LockTxTimeout", {
+                        ccTaskId: obj.ccTaskId
+                    });
+                    // DO NOT delete from storage, can be resumed by refreshing page
+                    this.checkOtas.splice(index, 1);
                 }
             }
             catch (err) {
-                console.error("CheckBtcTxService runTask err: %O", err);
+                console.error("%s runTask err: %O", this.serviceName, err);
             }
         }
     }
 
     async onDeleteTask(ccTaskId) {
         try {
-            for (let idx = 0; idx < this.m_btcCheckOTAAry.length; ++idx) {
-                let obj = this.m_btcCheckOTAAry[idx];
+            for (let idx = 0; idx < this.checkOtas.length; ++idx) {
+                let obj = this.checkOtas[idx];
                 if (obj.ccTaskId === ccTaskId) {
-                    this.m_btcCheckOTAAry.splice(idx, 1);
+                    this.checkOtas.splice(idx, 1);
                     let storageService = this.m_frameworkService.getService("StorageService");
-                    await storageService.delete("CheckBtcTxService", obj.ccTaskId);
+                    await storageService.delete(this.serviceName, obj.ccTaskId);
                     break;
                 }
             }
         }
         catch (err) {
-            console.log("CheckBtcTxService onDeleteTask err:", err);
+            console.log("%s onDeleteTask err: %O", this.serviceName, err);
         }
     }
 }

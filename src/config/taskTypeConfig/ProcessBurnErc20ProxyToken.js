@@ -40,7 +40,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         chainInfo.erc20AbiJson);
       let bn_allowance = new BigNumber(allowance);
       if (bn_allowance.isLessThan(params.value)) {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
         return;
       }
       let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
@@ -60,7 +60,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
     }
     catch (err) {
       console.log("ProcessBurnErc20ProxyToken process err: %O", err);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, strFailed);
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
     }
   }
 
@@ -70,6 +70,8 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
     let tokenPair = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
     let chainType = (paramsJson.params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
+    let nativeToken = (paramsJson.params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;
+    let taskType = nativeToken? "MINT" : "BURN"; // adapt to CheckScEvent task to scan SmgMintLogger or SmgReleaseLogger
     let obj = {
       needCheck: true,
       checkInfo: {
@@ -81,7 +83,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         "value": paramsJson.params.value,
         "chain": chainType,
         "fromBlockNumber": blockNumber,
-        "taskType": "MINT" // adapt to CheckScEvent task to scan SmgMintLogger
+        "taskType": taskType
       }
     };
     return obj;

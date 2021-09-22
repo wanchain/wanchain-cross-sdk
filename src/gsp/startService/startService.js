@@ -17,7 +17,6 @@ let CheckTxReceiptService = require("../checkTxReceiptService/checkTxReceiptServ
 
 let CheckBtcTxService = require("../checkBtcTxService/checkBtcTxService");
 let CheckXrpTxService = require("../checkXrpTxService/checkXrpTxService");
-let CheckLtcTxService = require("../checkLtcTxService/checkLtcTxService");
 
 let UIStrService = require("../uiStrService/uiStrService");
 let ScEventScanService = require("../scEventScanService/scEventScanService");
@@ -31,7 +30,11 @@ let ChainInfoService = require("../chainInfoService/chainInfoService");
 
 const GlobalConstant = require("../globalConstantService/globalConstant");
 
-let PolkadotService = require("../polkadotService/polkadotService");
+let PolkadotService = undefined;
+if (typeof(window) !== "undefined") {
+    PolkadotService = require("../polkadotService/polkadotService");
+}
+
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
 
 class StartService {
@@ -100,9 +103,11 @@ class StartService {
             await iwanBCConnector.init(frameworkService);
             frameworkService.registerService("iWanConnectorService", iwanBCConnector);
 
-            let polkadotService = new PolkadotService();
-            await polkadotService.init(frameworkService);
-            frameworkService.registerService("PolkadotService", polkadotService);
+            if (typeof(window) !== "undefined") {
+                let polkadotService = new PolkadotService();
+                await polkadotService.init(frameworkService);
+                frameworkService.registerService("PolkadotService", polkadotService);
+            }
 
             let checkDotTxService = new CheckDotTxService();
             await checkDotTxService.init(frameworkService);
@@ -124,13 +129,17 @@ class StartService {
             await checkTxReceiptService.init(frameworkService);
             frameworkService.registerService("CheckTxReceiptService", checkTxReceiptService);
 
-            let checkBtcTxService = new CheckBtcTxService();
+            let checkBtcTxService = new CheckBtcTxService("BTC");
             await checkBtcTxService.init(frameworkService);
             frameworkService.registerService("CheckBtcTxService", checkBtcTxService);
 
-            let checkLtcTxService = new CheckLtcTxService();
+            let checkLtcTxService = new CheckBtcTxService("LTC");
             await checkLtcTxService.init(frameworkService);
             frameworkService.registerService("CheckLtcTxService", checkLtcTxService);
+
+            let checkDogeTxService = new CheckBtcTxService("DOGE");
+            await checkDogeTxService.init(frameworkService);
+            frameworkService.registerService("CheckDogeTxService", checkDogeTxService);
 
             let checkXrpTxService = new CheckXrpTxService();
             await checkXrpTxService.init(frameworkService);
@@ -156,6 +165,7 @@ class StartService {
     async start() {
         try {
             let frameworkService = this.frameworkService;
+
             let storageService = frameworkService.getService("StorageService");
             await storageService.init_load();
 
@@ -167,6 +177,9 @@ class StartService {
 
             let checkLtcTxService = frameworkService.getService("CheckLtcTxService");
             await checkLtcTxService.start();
+
+            let checkDogeTxService = frameworkService.getService("CheckDogeTxService");
+            await checkDogeTxService.start();            
 
             let checkXrpTxService = frameworkService.getService("CheckXrpTxService");
             await checkXrpTxService.start();

@@ -27,7 +27,7 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
                 let allowance = await this.m_iwanBCConnector.getErc20Allowance(params.scChainType, params.erc20Addr, params.fromAddr, params.spenderAddr, params.erc20Abi);
                 console.log("ProcessErc20Approve allowance:", allowance);
                 if (allowance > 0) {
-                    this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+                    this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Repeated approval of erc20 tokens");
                     return;
                 }
             }
@@ -39,10 +39,9 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
 
             await this.sendTransactionData(paramsJson, txData, wallet);
             return;
-        }
-        catch (err) {
-            console.log("ProcessErc20Approve process err:", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, strFailed);
+        } catch (err) {
+            console.error("ProcessErc20Approve process err: %O", err);
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to approve ERC20 token");
         }
     }
 };

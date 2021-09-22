@@ -50,16 +50,11 @@ let taskTypeConfigJson = {
     },
     {
       "number": 10,
-      "name": "ProcessMintLtcFromLitecoin",
-      "handle": require("./processMintLtcFromLitecoin")
-    },
-    {
-      "number": 11,
       "name": "ProcessDotMintFromPolka",
       "handle": require("./processDotMintFromPolka")
     },
     {
-      "number": 12,
+      "number": 11,
       "name": "ProcessBurnErc20ProxyToken",
       "handle": require("./ProcessBurnErc20ProxyToken")
     }

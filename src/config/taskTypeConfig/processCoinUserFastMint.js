@@ -26,7 +26,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             let txValue = params.value.plus(params.fee);
             let totalCost = txValue.plus(params.gasLimit);
             if (acc_balance.isLessThan(totalCost)) {
-                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed);
+                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient balance");
                 return;
             }
             
@@ -42,10 +42,9 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr);
             await this.sendTransactionData(paramsJson, txData, wallet);
             return;
-        }
-        catch (err) {
-            console.log("ProcessCoinUserFastMint process err:", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, err.message, strFailed);
+        } catch (err) {
+            console.error("ProcessCoinUserFastMint process err: %O", err);
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
         }
     }
 

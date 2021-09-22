@@ -20,6 +20,10 @@ npm install --save wanchain-cross-sdk
 
 <li>Install BTC, LTC and XRP wallets if you need to convert asset from Bitcoin, Litecoin or XRP Ledger.
 
+<li>Or use Truffle HDWallet to sign and send transactions in Node.js script.
+
+[HDWalletProvider](https://www.npmjs.com/package/@truffle/hdwallet-provider)
+
 ## Usage
 Step 1: Import WanBridge and Wallet, create a bridge object and subscribe to events.
 
@@ -51,6 +55,20 @@ bridge.on("ready", assetPairs => {
       taskId, // optional, only task error info has taskId field
       reason
     }
+    a task error info may includes the following reason:
+    "Invalid wallet"
+    "Failed to send transaction"
+    "Rejected"
+    "Insufficient ERC20 token allowance"
+    "Failed to generate transaction data"
+    "Insufficient balance"
+    "Repeated approval of erc20 tokens"
+    "Failed to approve ERC20 token"
+    "Failed to generate ota"
+    "Transaction failed"
+    "Amount is too small to pay the fee"
+    "Waiting for locking asset timeout"
+    "Please contact the Wanchain Foundation (techsupport@wanchain.org)"
   */
 }).on("ota", info => {
   /* the one-time-addess is generated to receive BTC, LTC or XRP.
@@ -72,8 +90,7 @@ bridge.on("ready", assetPairs => {
   /* the redeem transaction hash, indicates that the cross-chain task is finished.
     redeem info structure: {
       taskId,
-      txHash,
-      status    // "Succeeded" or "Error"
+      txHash
     }
   */
 });
@@ -91,7 +108,7 @@ bridge.init(iwanAuth);
 
 Step 3: Connect a wallet.
 
-wanchain-cross-sdk supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
+SDK for browser supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
 ```javascript
 // connect to the wallet in your own way and get the provider, such as:
 let metaMaskWallet = window.ethereum;
@@ -99,6 +116,15 @@ let wanMaskWallet = window.wanchain;
 
 // SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
 let polkadotWallet = "wss://nodes-testnet.wandevs.org/polkadot";
+```
+SDK for Node.js currently only supports Truffle HDWallet.
+```javascript
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+
+const hdWallet = new HDWalletProvider({
+  privateKeys: ["your-private-key"],
+  providerOrUrl
+});
 ```
 SDK does not support BTC, LTC or XRP wallets, when you convert asset from Bitcoin, Litecoin or XRP Ledger to other chains, please use a third-party wallet to send the asset to the ota address manually.
 
@@ -110,7 +136,7 @@ try {
   // each asset pair contains fromChain and toChain, if the asset is converted from fromChain to toChain, the direction is "mint", otherwise, the direction is "burn"
   let assetPair = assetPairs[0];
 
-  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "OtherWeb3" or "polkadot{.js}"
+  // create a wallet according fromChain of assetPair, the wallet type can be "MetaMask", "WanMask", "WalletConnect", "WanWallet" or "polkadot{.js}" for browser, and "TruffleHD" for Node.js.
   // no need to create this wallet when converting assets from Bitcoin, Litecoin or XRP Ledger
   let wallet = new Wallet("MetaMask", metaMaskWallet);
 
@@ -160,7 +186,7 @@ try {
     "Invalid toAccount"
     "Missing wallet"
     "Invalid wallet"
-    "Amount is too small to pay the network fee"
+    "Amount is too small to pay the fee"
     "Smg timeout"
     "Less than minQuota"
     "Exceed maxQuota"
@@ -184,6 +210,7 @@ A cross-chain task can be in the following statuses:
 <li>Failed:     Failed to finish the task
 <li>Error:      The task is completed but incorrect, the asset is not transferred to the account specified by the user
 <li>Rejected:   Task is cancelled
+<li>Timeout:    Waiting for locking asset more than 24 hours
 
 Do not close or refresh the web page before receiving the "lock" event, otherwise the task will stop and cannot be resumed.
 
