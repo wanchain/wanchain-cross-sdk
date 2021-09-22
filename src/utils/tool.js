@@ -3,6 +3,7 @@ const ethUtil = require('ethereumjs-util');
 const btcValidate = require('bitcoin-address-validation').default;
 const xrpAddrCodec = require('ripple-address-codec');
 const litecore = require('litecore-lib');
+const { bech32 } = require('bech32');
 const dotTxWrapper = require('@substrate/txwrapper');
 
 function getCurTimeSec() {
