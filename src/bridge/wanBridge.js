@@ -62,6 +62,8 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
+    console.debug("wanBridge createTask at %s ms", tool.getCurTimestamp());
+    
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
@@ -106,9 +108,9 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, isCoin = false) {
+  async getAccountAsset(assetPair, direction, account, isCoin = false, toKeepAlive = false) {
     direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin);
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin, toKeepAlive);
     return balance.toFixed();
   }
 

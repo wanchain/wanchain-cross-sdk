@@ -216,6 +216,7 @@
       "mintFromChainHandle": "MintXrpFromRippleHandle",
       "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 6,
+      "minReserved": 10,
       "TxScanInfo": {
         "taskInterval": 10000
       }
@@ -259,7 +260,5 @@
       "toNativeToken": "0x4be13Aee4D6ce3CA7A20f411f0B9ba41D23b4835"
     }
   ],
-  "MinXrpValue": 21,
-  "MinDotValue": 0.01,
   "LockTxTimeout": 86400000
 }
