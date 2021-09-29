@@ -9,8 +9,7 @@ class StoremanService {
         try {
             this.m_frameworkService = frameworkService;
             this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-        }
-        catch (err) {
+        } catch (err) {
             console.log("StoremanService init err:", err);
         }
     }
@@ -37,8 +36,7 @@ class StoremanService {
                 return ret;
             }
             return {};
-        }
-        catch (err) {
+        } catch (err) {
             console.log("getStroremanGroupQuotaInfo err:", err);
             return {};
         }
@@ -55,44 +53,35 @@ class StoremanService {
     }
 
     // assetPairId,Mint/Burn,addr
-    async getAccountBalance(assetPairId, type, addr, isCoin) { //WYH: TODO：这个调用频率如何？ ==》 好像不会呈 线性增长，还行，可以不优化
+    async getAccountBalance(assetPairId, type, addr, isCoin, toKeepAlive = false) { //WYH: TODO：这个调用频率如何？ ==》 好像不会呈 线性增长，还行，可以不优化
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
             if (!assetPair) {
                 return new BigNumber(0);
             }
+            let balance, decimals, kaChainInfo = null;
             if (isCoin) {
-                let balance;
-                let decimals;
                 if (type === "MINT") {
-                    decimals = assetPair.fromDecimals;
                     if (assetPair.fromChainType === "DOT") {
                         let polkadotService = this.m_frameworkService.getService("PolkadotService");
                         balance = await polkadotService.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                     }
-                }
-                else if (type === "BURN") {
+                    kaChainInfo = assetPair.fromScInfo;
+                    decimals = assetPair.fromScInfo.chainDecimals;
+                } else if (type === "BURN") {
                     if (assetPair.toChainType === "DOT") {
                         let polkadotService = this.m_frameworkService.getService("PolkadotService");
                         balance = await polkadotService.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
                     }
-                    decimals = assetPair.toDecimals;
+                    decimals = assetPair.toScInfo.chainDecimals;
                 }
-                balance = new BigNumber(balance);
-                let pows = new BigNumber(Math.pow(10, decimals));
-                balance = balance.div(pows);
-                return balance;
-            }
-            else {
-                let balance;
-                let decimals;
+            } else {
                 if (type === "MINT") {
-                    decimals = assetPair.fromDecimals;
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
                         if (assetPair.fromChainType === "DOT") {
@@ -101,23 +90,26 @@ class StoremanService {
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                         }
-                    }
-                    else {
+                        kaChainInfo = assetPair.fromScInfo;
+                    } else {
                         balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.fromChainType, addr, assetPair.fromAccount);
                     }
-                }
-                else if (type === "BURN") {
+                } else if (type === "BURN") {
                     balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.toChainType, addr, assetPair.toAccount);
-                    decimals = assetPair.toDecimals;
                 }
-
-                balance = new BigNumber(balance);
-                let pows = new BigNumber(Math.pow(10, decimals));
-                balance = balance.div(pows);
-                return balance;
+                decimals = assetPair.ancestorDecimals;
             }
-        }
-        catch (err) {
+            balance = new BigNumber(balance).div(Math.pow(10, decimals));
+            if (kaChainInfo && toKeepAlive) {
+                if (kaChainInfo.minReserved) {
+                    balance = balance.minus(kaChainInfo.minReserved);
+                    if (balance.lt(0)) {
+                        balance = new BigNumber(0);
+                    }
+                }
+            }
+            return balance;
+        } catch (err) {
             console.log("get assetPair %s type %s address %s balance err:", assetPairId, type, addr, err);
             return new BigNumber(0);
         }
