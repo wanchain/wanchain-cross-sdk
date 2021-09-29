@@ -1,5 +1,7 @@
 const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
+const litecore = require('litecore-lib');
+const { bech32 } = require('bech32');
 const dotTxWrapper = require('@substrate/txwrapper');
 const WAValidator = require('multicoin-address-validator');
 
@@ -60,11 +62,26 @@ function isValidBtcAddress(address, network) {
 }
 
 function isValidLtcAddress(address, network) {
-  if (network !== "testnet") {
-    network = "prod";
+  if (typeof (address) !== 'string') {
+    return false;
   }
-  let valid = WAValidator.validate(address, 'LTC', network);
-  return valid;
+  try {
+    let isMainNet = (network === 'mainnet')? true : false;
+    if (litecore.Address.isValid(address, isMainNet? 'livenet' : 'testnet')) {
+      return true;
+    }
+    if ((isMainNet && address.startsWith('ltc1')) || (!isMainNet && address.startsWith('tltc1'))) {
+      try {
+        bech32.decode(address);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+  } catch (err) {
+    return false;
+  }
+  return false;
 }
 
 function isValidDogeAddress(address, network) {
