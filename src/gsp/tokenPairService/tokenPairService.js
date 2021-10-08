@@ -116,9 +116,8 @@ class TokenPairService {
     async updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
-        let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.toChainType, tokenPair.toAccount);
-        tokenPair.toSymbol = tokenInfo.symbol;
-        tokenPair.toDecimals = tokenInfo.decimals;
+        tokenPair.toSymbol = tokenPair.symbol;
+        tokenPair.toDecimals = tokenPair.decimals;
     }
 
     async updateTokenPairCcHandle(tokenPair) {
