@@ -138,14 +138,14 @@ class BridgeTask {
     }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-    console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
-    let amount = new BigNumber(this._amount);
-    if (amount.lt(this._quota.minQuota)) {
-      return "Less than minQuota";
-    } else if (amount.gt(this._quota.maxQuota)) {
-      return "Exceed maxQuota";
-    }
+    // this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
+    // console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
+    // let amount = new BigNumber(this._amount);
+    // if (amount.lt(this._quota.minQuota)) {
+    //   return "Less than minQuota";
+    // } else if (amount.gt(this._quota.maxQuota)) {
+    //   return "Exceed maxQuota";
+    // }
     // check activating balance
     let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(fromChainType);
     if (chainInfo.minReserved) {
