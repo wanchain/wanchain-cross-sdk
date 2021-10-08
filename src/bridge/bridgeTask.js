@@ -51,28 +51,26 @@ class BridgeTask {
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
 
-    let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
+    let [validWallet, feeErr, smgErr] = await Promise.all([
+      this._bridge.checkWallet(this._assetPair, this._direction, this._wallet),
+      this._checkFee(),
+      this._checkSmg()
+    ]);
     if (!validWallet) {
       throw "Invalid wallet";
     }
-    let feeErr = await this._checkFee();
-    if (feeErr) {
-      throw feeErr;
+    let err = feeErr || smgErr;
+    if (err) {
+      throw err;
     }
-    let smgErr = await this._checkSmg();
-    if (smgErr) {
-      throw smgErr;
+    let [fromAccountErr, toAccountErr] = await Promise.all([
+      this._checkFromAccount(),
+      this._checkToAccount()
+    ]);
+    err = fromAccountErr || toAccountErr;
+    if (err) {
+      throw err;
     }
-    if (this._fromAccount) {
-      let fromAccountErr = await this._checkFromAccount();
-      if (fromAccountErr) {
-        throw fromAccountErr;
-      }
-    }
-    let toAccountErr = await this._checkToAccount();
-    if (toAccountErr) {
-      throw toAccountErr;
-    }    
   }
 
   async start() {
@@ -165,6 +163,9 @@ class BridgeTask {
   }
 
   async _checkFromAccount() {
+    if (!this._fromAccount) {
+      return "";
+    }
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, true);
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
     let requiredCoin = new BigNumber(this._fee.operateFee.value);
@@ -178,11 +179,11 @@ class BridgeTask {
     }
     if (coinBalance.lt(requiredCoin)) {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
-      return ("Insufficient balance");
+      return "Insufficient balance";
     }
     if (assetBalance.lt(requiredAsset)) {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
-      return ("Insufficient asset");
+      return "Insufficient asset";
     }
   }
 
