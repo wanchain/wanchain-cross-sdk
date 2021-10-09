@@ -146,7 +146,7 @@ try {
     throw "Invalid wallet or network";
   }
 
-  // for polkadot, you can call wallet.getAccounts() to get all accounts and then select one as fromAccount
+  // for polkadot, you can call wallet.getAccounts(network) to get all accounts and then select one as fromAccount
   let fromAccount = "sender-address-on-from-chain";
 
   // input toAccount and amount manully

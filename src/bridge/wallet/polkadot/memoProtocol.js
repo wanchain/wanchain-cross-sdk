@@ -35,12 +35,12 @@ function hexTrip0x(hexs) {
  * @private
  */
 function buildUserlockMemo(tokenPairID, toPeerChainAccount, fee) {
-  let memo = ""
+  let memo = "";
   toPeerChainAccount = hexTrip0x(toPeerChainAccount);
-  if (typeof tokenPairID === "number" && toPeerChainAccount.length === WanAccountLen) {
-    const typeString = TX_TYPE.UserLock.toString(16).padStart(MemoTypeLen, 0);
-    const tokenPairIdSting =  parseInt(tokenPairID).toString(16).padStart(TokenPairIDLen, 0);
-    memo = typeString + tokenPairIdSting + toPeerChainAccount + '' + fee
+  if ((typeof tokenPairID === "number") && (toPeerChainAccount.length === WanAccountLen)) {
+    let typeString = TX_TYPE.UserLock.toString(16).padStart(MemoTypeLen, 0);
+    let tokenPairIdSting = parseInt(tokenPairID).toString(16).padStart(TokenPairIDLen, 0);
+    memo = typeString + tokenPairIdSting + toPeerChainAccount + '' + fee;
   } else {
     console.error("buildUserlockMemo parameter invalid");
   }
