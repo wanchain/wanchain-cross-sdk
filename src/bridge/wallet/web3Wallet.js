@@ -10,7 +10,7 @@ class Web3Wallet {
     return this.web3.eth.getChainId();
   }
 
-  async getAccounts() {
+  async getAccounts(network) {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
