@@ -23,7 +23,6 @@ class Polkadot {
   }
 
   async getAccounts(network) {
-    console.log("polka getAccounts network: %s", network)
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
       let ss58Format = ("testnet" === network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
