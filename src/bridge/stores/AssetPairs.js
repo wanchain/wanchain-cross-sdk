@@ -21,11 +21,13 @@ class AssetPairs {
         assetType: pair.ancestorSymbol,    // the ancestory symbol for this token
         fromSymbol: pair.fromSymbol,       // token symbol for fromChain
         toSymbol: pair.toSymbol,           // token symbol for toChain
-        decimals: pair.decimals,           // the token decimals  
-        fromChainType: pair.fromChainType, // from Chain Type  
-        toChainType: pair.toChainType,     // to Chain Type  
-        fromChainName: pair.fromChainName, // from Chain Name 
-        toChainName: pair.toChainName,     // to Chain Name    
+        decimals: pair.decimals,           // the token decimals
+        fromChainType: pair.fromChainType, // from Chain Type
+        toChainType: pair.toChainType,     // to Chain Type
+        fromChainName: pair.fromChainName, // from Chain Name
+        toChainName: pair.toChainName,     // to Chain Name
+        fromAccount: pair.fromAccount,     // from Chain token account
+        toAccount: pair.toAccount,         // to Chain token account
         smgs: shareSmgs                    // active storeman groups
       }
     });
