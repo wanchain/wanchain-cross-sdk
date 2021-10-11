@@ -29,9 +29,10 @@ module.exports = class ProcessBase {
       let params = paramsJson.params;
 
       let accountAry = await wallet.getAccounts();
-      if ((!accountAry) || (accountAry.length === 0) || (accountAry[0] !== params.fromAddr)) {
+      let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
+      if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
-        console.error("wallet account changes from %s to %O", params.fromAddr, accountAry);
+        console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
         return;
       }
 
