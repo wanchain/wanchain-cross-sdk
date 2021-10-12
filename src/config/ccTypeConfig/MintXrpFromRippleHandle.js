@@ -55,13 +55,12 @@ module.exports = class MintXrpFromRipple {
         stepNum: ret.length,
         errCode: null
       };
-    }
-    catch (err) {
-      console.log("MintXrpFromRipple err:", err);
+    } catch (err) {
+      console.log("MintXrpFromRipple err: %O", err);
       WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,
-        errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR
+        errCode: err
       };
     }
   }

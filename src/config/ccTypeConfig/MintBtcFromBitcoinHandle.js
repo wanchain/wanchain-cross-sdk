@@ -61,7 +61,7 @@ module.exports = class MintBtcFromBitcoinHandle {
       WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,
-        errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR
+        errCode: err
       };
     }
   }

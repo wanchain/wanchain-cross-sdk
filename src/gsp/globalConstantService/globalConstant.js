@@ -1,11 +1,11 @@
 
 
 let globalConstant = {
-    ERR_SUCCESS: 0,
-    ERR_INSUFFICIENT_BALANCE: 1,
-    ERR_INSUFFICIENT_GAS: 2,
-    ERR_INSUFFICIENT_TOKEN_BALANCE: 3,
-    ERR_OTHER_UNKNOWN_ERR: 4,
+    ERR_SUCCESS: "Success",
+    ERR_INSUFFICIENT_BALANCE: "Insufficient balance",
+    ERR_INSUFFICIENT_GAS: "Insufficient gas",
+    ERR_INSUFFICIENT_TOKEN_BALANCE: "Insufficient asset",
+    ERR_OTHER_UNKNOWN_ERR: "Unknown error",
 };
 
 module.exports = globalConstant;
