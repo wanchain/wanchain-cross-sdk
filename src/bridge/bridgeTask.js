@@ -3,7 +3,7 @@ const keypairs = require('ripple-keypairs');
 const elliptic = require('elliptic');
 const Secp256k1 = elliptic.ec('secp256k1');
 const xrpAddrCodec = require('ripple-address-codec');
-const dotTxWrapper = require('@substrate/txwrapper');
+const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
 const polkaUtil = require("@polkadot/util");
 const polkaUtilCrypto = require("@polkadot/util-crypto");
 const { Keyring } = require('@polkadot/api');
@@ -329,7 +329,7 @@ class BridgeTask {
   }
 
   _getSmgPolkaAddress() {
-    let format = ("testnet" === this._bridge.network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
+    let format = ("testnet" === this._bridge.network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
     let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);

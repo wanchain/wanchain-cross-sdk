@@ -2,7 +2,7 @@ const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
 const litecore = require('litecore-lib');
 const { bech32 } = require('bech32');
-const dotTxWrapper = require('@substrate/txwrapper');
+const { PolkadotSS58Format, deriveAddress } = require('@substrate/txwrapper-core');
 const WAValidator = require('multicoin-address-validator');
 
 function getCurTimestamp(toSecond = false) {
@@ -99,8 +99,8 @@ function isValidXrpAddress(address) {
 
 function isValidDotAddress(account, network) {  
   try {
-    let format = ("testnet" === network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
-    let addr = dotTxWrapper.deriveAddress(account, format);
+    let format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
+    let addr = deriveAddress(account, format);
     console.log("DOT %s account %s formatted to %s", network, account, addr);
     return (account === addr);
   } catch(err) {
