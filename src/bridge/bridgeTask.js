@@ -339,17 +339,12 @@ class BridgeTask {
   }
 
   _getErrInfo(errCode) {
-    let ERR_CODE = this._bridge.globalConstant;
-    switch(errCode) {
-      case ERR_CODE.ERR_INSUFFICIENT_BALANCE:
-        return "Insufficient balance";
-      case ERR_CODE.ERR_INSUFFICIENT_GAS:
-          return "Insufficient gas";
-      case ERR_CODE.ERR_INSUFFICIENT_TOKEN_BALANCE:
-        return "Insufficient asset";
-      case ERR_CODE.ERR_OTHER_UNKNOWN_ERR:
-      default:
-        return "Unknown error";
+    if (typeof(errCode) === "string") {
+      return errCode;
+    } else if (errCode && errCode.message) {
+      return errCode.message;
+    } else {
+      this._bridge.globalConstant.ERR_OTHER_UNKNOWN_ERR;
     }
   }
 }

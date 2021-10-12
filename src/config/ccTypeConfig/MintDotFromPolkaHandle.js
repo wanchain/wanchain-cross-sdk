@@ -56,13 +56,12 @@ module.exports = class MintDotFromPolkaHandle {
         stepNum: ret.length,
         errCode: null
       };
-    }
-    catch (err) {
-      console.log("MintDotFromPolkaHandle err:", err);
+    } catch (err) {
+      console.log("MintDotFromPolkaHandle err: %O", err);
       WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,
-        errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR
+        errCode: err
       };
     }
   }

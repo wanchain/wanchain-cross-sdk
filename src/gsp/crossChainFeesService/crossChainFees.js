@@ -95,58 +95,48 @@ module.exports = class crossChainFees {
     }
 
     async estimateMintNetworkFee(tokenPairId) {
-        try {
-            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
+        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
 
-            let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-            let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
-            if (chainInfo.mintNetworkFee) {
-                let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.mintNetworkFee);
-                return await feeHandle(tokenPairObj);
-            }
-            else {
-                return {
-                    "fee": 0,
-                    "feeBN": new BigNumber(0),
-                    "mintFee": 0,
-                    "mintFeeBN": new BigNumber(0),
-                    "originFee": 0,
-                    "originFeeBN": new BigNumber(0)
-                };
-            }
+        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+        let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
+        if (chainInfo.mintNetworkFee) {
+            let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.mintNetworkFee);
+            return await feeHandle(tokenPairObj);
         }
-        catch (err) {
-            console.log("estimateMintNetworkFee err:", err);
+        else {
+            return {
+                "fee": 0,
+                "feeBN": new BigNumber(0),
+                "mintFee": 0,
+                "mintFeeBN": new BigNumber(0),
+                "originFee": 0,
+                "originFeeBN": new BigNumber(0)
+            };
         }
     }
 
     async estimateBurnNetworkFee(tokenPairId) {
-        try {
-            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
+        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
 
-            let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-            let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
-            if (chainInfo.burnNetworkFee) {
-                let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.burnNetworkFee);
-                return await feeHandle(tokenPairObj);
-            }
-            else {
-                return {
-                    "fee": 0,
-                    "feeBN": new BigNumber(0),
-                    "burnFee": 0,
-                    "burnFeeBN": new BigNumber(0),
-                    "originFee": 0,
-                    "originFeeBN": new BigNumber(0)
-                };
-            }
+        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+        let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
+        if (chainInfo.burnNetworkFee) {
+            let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.burnNetworkFee);
+            return await feeHandle(tokenPairObj);
+        }
+        else {
+            return {
+                "fee": 0,
+                "feeBN": new BigNumber(0),
+                "burnFee": 0,
+                "burnFeeBN": new BigNumber(0),
+                "originFee": 0,
+                "originFeeBN": new BigNumber(0)
+            };
+        }
 
-        }
-        catch (err) {
-            console.log("estimateBurnNetworkFee err:", err);
-        }
     }
 
     async getBurnNetworkFee(tokenPairObj) {

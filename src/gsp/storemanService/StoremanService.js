@@ -110,7 +110,7 @@ class StoremanService {
             }
             return balance;
         } catch (err) {
-            console.log("get assetPair %s type %s address %s balance err:", assetPairId, type, addr, err);
+            console.log("get assetPair %s type %s address %s balance err: %O", assetPairId, type, addr, err);
             return new BigNumber(0);
         }
     }

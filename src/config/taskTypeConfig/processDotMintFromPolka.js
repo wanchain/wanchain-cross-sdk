@@ -96,9 +96,9 @@ module.exports = class ProcessDotMintFromPolka {
         if (err.message === "Cancelled") {
           WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Rejected");
         } else {
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to send transaction");
+          console.error("polkadot sendTransaction error: %O", err);
+          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
-        console.debug("polkadot wallet error: %O", err);
         return;
       }
       paramsJson.txhash = txHash;
@@ -119,8 +119,8 @@ module.exports = class ProcessDotMintFromPolka {
       let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addDotInfo(checkPara);
     } catch (err) {
-      console.error("ProcessDotMintFromPolka process err: %O", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to send transaction");
+      console.error("ProcessDotMintFromPolka process error: %O", err);
+      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
     }
   }
 };
