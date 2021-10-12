@@ -1,7 +1,7 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
 const { buildUserlockMemo } = require("./memoProtocol");
-const dotTxWrapper = require('@substrate/txwrapper');
+const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
 
 class Polkadot {
   // mainnet: "wss://nodes.wandevs.org/polkadot"
@@ -25,7 +25,7 @@ class Polkadot {
   async getAccounts(network) {
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
-      let ss58Format = ("testnet" === network)? dotTxWrapper.WESTEND_SS58_FORMAT : dotTxWrapper.POLKADOT_SS58_FORMAT;
+      let ss58Format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
       let accounts = await web3Accounts({ss58Format});
       return accounts.map(a => a.address);
     } else {
