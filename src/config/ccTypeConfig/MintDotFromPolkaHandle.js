@@ -20,8 +20,6 @@ module.exports = class MintDotFromPolkaHandle {
   //     convertType: undefined, // the value is "MINT" or "BURN", used by web server 
   //};
   async process(tokenPairObj, convertJson) {
-    let globalConstant = this.m_frameworkService.getService("GlobalConstant");
-
     let WebStores = this.m_frameworkService.getService("WebStores");
     try {
       let decimals = Number(tokenPairObj.fromDecimals);

@@ -14,7 +14,6 @@ module.exports = class MintBtcFromBitcoinHandle {
   }
 
   async process(tokenPair, convertJson) {
-    let globalConstant = this.m_frameworkService.getService("GlobalConstant");
     let WebStores = this.m_frameworkService.getService("WebStores");
     let handleName = handleNames[tokenPair.fromChainType];
 

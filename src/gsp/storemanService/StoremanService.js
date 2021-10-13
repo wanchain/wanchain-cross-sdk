@@ -24,22 +24,16 @@ class StoremanService {
                     // wanEOS特殊处理wan -> eth mint storeman采用旧的处理方式
                     fromChainType = "EOS";
                 }
-                //console.log("getStroremanGroupQuotaInfo:", fromChainType, storemanGroupId, [tokenPair.ancestorSymbol]);
                 let ret = await this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType);
-                //console.log("mint ret:", ret);
+                // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, ret);
                 let maxQuota = new BigNumber(ret[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 let minQuota = new BigNumber(ret[0].minQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
-                ret = {
-                    "maxQuota": maxQuota.toFixed(),
-                    "minQuota": minQuota.toFixed()
-                };
-                return ret;
-            }
-            return {};
+                return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
+            }            
         } catch (err) {
-            console.log("getStroremanGroupQuotaInfo err:", err);
-            return {};
+            console.log("getStroremanGroupQuotaInfo error: %O", err);
         }
+        return {maxQuota: "0", minQuota: "0"};
     }
 
     async getConvertInfo(convertJson) {

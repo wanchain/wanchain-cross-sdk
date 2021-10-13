@@ -130,13 +130,17 @@ class WanBridge extends EventEmitter {
       networkFeeValue = new BigNumber(networkFee.burnFee).toFixed();
       networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     }
-    return {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
+    let fee = {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
+    console.debug("estimateFee: %O", fee);
+    return fee;
   }
 
   async getQuota(assetPair, direction) {
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    return this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[this.smgIndex % assetPair.smgs.length].id);
+    let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[this.smgIndex % assetPair.smgs.length].id);
+    console.debug("getQuota: %O", quota);
+    return quota;
   }
 
   validateToAccount(assetPair, direction, account) {
