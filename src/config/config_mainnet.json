@@ -237,7 +237,7 @@
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 10,
-      "RpcUrl": "wss://nodes.wandevs.org/polkadot",
+      "RpcUrl": "wss://rpc.polkadot.io",
       "minReserved": 1,
       "TxScanInfo": {
         "taskInterval": 10000
