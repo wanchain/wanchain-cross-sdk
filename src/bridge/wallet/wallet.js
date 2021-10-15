@@ -10,7 +10,7 @@ if (typeof(window) !== "undefined") {
 class Wallet {
   constructor(type, provider) {
     if (!provider) {
-      throw "Invalid provider";
+      throw new Error("Invalid provider");
     }
     this.type = type;
     if (["MetaMask", "WanMask", "WalletConnect", "WanWallet"].includes(type)) {
@@ -28,7 +28,7 @@ class Wallet {
         return new Polkadot(type, provider);
       }
     }
-    throw "Unsupported wallet type";
+    throw new Error("Unsupported wallet type");
   }
 }
 

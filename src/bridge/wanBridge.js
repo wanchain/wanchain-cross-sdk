@@ -76,14 +76,14 @@ class WanBridge extends EventEmitter {
     } else if (fromAccount) {
       let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
       if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
-        throw "Invalid fromAccount";
+        throw new Error("Invalid fromAccount");
       }
     } else {
-      throw "Missing fromAccount";
+      throw new Error("Missing fromAccount");
     }
     // check toAccount
     if (!(toAccount && this.validateToAccount(assetPair, direction, toAccount))) {
-      throw "Invalid toAccount";
+      throw new Error("Invalid toAccount");
     }
     // check wallet
     if (this._isThirdPartyWallet(fromChainType)) {
@@ -91,7 +91,7 @@ class WanBridge extends EventEmitter {
     } else if (wallet) {
       wallet = this._unifyWallet(wallet);
     } else {
-      throw "Missing wallet";
+      throw new Error("Missing wallet");
     }
     // create task
     let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount, wallet);
@@ -308,7 +308,7 @@ class WanBridge extends EventEmitter {
   _unifyDirection(direction) {
     direction = direction.toUpperCase();
     if (!["MINT", "BURN"].includes(direction)) {
-      throw "Invalid direction, must be MINT or BURN";
+      throw new Error("Invalid direction, must be MINT or BURN");
     }
     return direction;
   }

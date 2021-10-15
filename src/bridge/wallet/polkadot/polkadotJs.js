@@ -31,7 +31,7 @@ class Polkadot {
       return accounts.map(a => a.address);
     } else {
       console.error("polkadot{.js} not installed or not allowed");
-      throw "Not installed or not allowed";
+      throw new Error("Not installed or not allowed");
     }
   }  
 

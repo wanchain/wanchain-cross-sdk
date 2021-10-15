@@ -57,11 +57,11 @@ class BridgeTask {
       this._checkSmg()
     ]);
     if (!validWallet) {
-      throw "Invalid wallet";
+      throw new Error("Invalid wallet");
     }
     let err = feeErr || smgErr;
     if (err) {
-      throw err;
+      throw new Error(err);
     }
     let [fromAccountErr, toAccountErr] = await Promise.all([
       this._checkFromAccount(),
@@ -69,7 +69,7 @@ class BridgeTask {
     ]);
     err = fromAccountErr || toAccountErr;
     if (err) {
-      throw err;
+      throw new Error(err);
     }
   }
 
@@ -105,7 +105,7 @@ class BridgeTask {
     console.debug("bridgeTask _checkTaskSteps at %s ms", tool.getCurTimestamp());
     let errInfo = await this._checkTaskSteps();
     if (errInfo) {
-      throw errInfo;
+      throw new Error(errInfo);
     }
 
     // save context
@@ -178,11 +178,11 @@ class BridgeTask {
     }
     if (coinBalance.lt(requiredCoin)) {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
-      return "Insufficient balance";
+      return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
     if (assetBalance.lt(requiredAsset)) {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
-      return "Insufficient asset";
+      return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
     }
   }
 
@@ -289,7 +289,7 @@ class BridgeTask {
       ota.rAddress = xrpAddr.rAddr;
       ota.tagId = xrpAddr.tagId;
     } else {
-      throw ("Invalid ota chain type " + chainType);
+      throw new Error("Invalid ota chain type " + chainType);
     }
     this._bridge.emit("ota", ota);
     console.log("%s OTA: %O", chainType, ota);
