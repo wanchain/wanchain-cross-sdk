@@ -7,6 +7,9 @@ const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
 
+const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
+const NOT_SMART_CONTRACT_ASSETS = ['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'];
+
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", smgIndex = 0) { // smgIndex is for testing only
     super();
@@ -34,6 +37,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this));
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this));
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this));
+    this.eventService.addEventListener("networkFee", this._onNetworkFee.bind(this));
     await this._service.start();
   }
 
@@ -118,19 +122,18 @@ class WanBridge extends EventEmitter {
     direction = this._unifyDirection(direction);
     let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
-    let operateFeeValue = '', operateFeeUnit = '', networkFeeValue = '', networkFeeUnit = '';
+    let operateFeeUnit = '', networkFeeUnit = '';
     if (direction == 'MINT') {
-      operateFeeValue = new BigNumber(operateFee.mintFee).toFixed();
       operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeValue = new BigNumber(networkFee.mintFee).toFixed();
       networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
-      operateFeeValue = new BigNumber(operateFee.burnFee).toFixed();
       operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      networkFeeValue = new BigNumber(networkFee.burnFee).toFixed();
       networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     }
-    let fee = {operateFee: {value: operateFeeValue, unit: operateFeeUnit}, networkFee: {value: networkFeeValue, unit: networkFeeUnit}};
+    let fee = {
+      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee},
+      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee}
+    };
     console.debug("estimateFee: %O", fee);
     return fee;
   }
@@ -220,8 +223,18 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    if (new BigNumber(ccTask.fee.networkFee.value).gte(value)) {
+    let fee = new BigNumber(0);
+    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
+      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
+        fee = fee.plus(ccTask.fee.networkFee.value);
+      }
+      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
+        fee = fee.plus(ccTask.fee.operateFee.value);
+      }
+    }
+    if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the fee";
+      console.error({taskId, errInfo});
       records.modifyTradeTaskStatus(taskId, "Failed", errInfo);
       this.emit("error", {taskId, reason: errInfo});
     } else {
@@ -264,9 +277,9 @@ class WanBridge extends EventEmitter {
         this.emit("error", {taskId, reason: errInfo});
       }
     }
-    // received amount, TODO: get from chain
+    // received amount, TODO: get actual value from chain
     let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    if (['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'].includes(ccTask.assetType)) { // not-smart-contract asset
+    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
       if (ccTask.fee.networkFee.unit === ccTask.assetType) {
         receivedAmount = receivedAmount.minus(ccTask.fee.networkFee.value);
       }
@@ -278,6 +291,18 @@ class WanBridge extends EventEmitter {
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount.toFixed());
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
+  }
+
+  _onNetworkFee(taskNetworkFee) {
+    console.log("_onNetworkFee: %O", taskNetworkFee);
+    let records = this.stores.crossChainTaskRecords;
+    let taskId = taskNetworkFee.ccTaskId;
+    let networkFee = new BigNumber(taskNetworkFee.apiServerNetworkFee).toFixed();
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (ccTask) {
+      records.setTaskNetworkFee(taskId, networkFee);
+      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    }
   }
 
   _unifyDirection(direction) {
@@ -293,7 +318,7 @@ class WanBridge extends EventEmitter {
   }
 
   _isThirdPartyWallet(chainType) {
-    return ["BTC", "LTC", "DOGE","XRP"].includes(chainType);
+    return THIRD_PARTY_WALLET_CHAINS.includes(chainType);
   }
 }
 

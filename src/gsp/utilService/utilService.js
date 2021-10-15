@@ -26,9 +26,8 @@ module.exports = class UtilService {
             }
             gas = gas.plus(fee);
             return balance.gte(gas);
-        }
-        catch (err) {
-            console.log("UtilService checkBalanceGasFee err:", err);
+        } catch (err) {
+            console.error("UtilService checkBalanceGasFee error: %O", err);
             return false;
         }
     }

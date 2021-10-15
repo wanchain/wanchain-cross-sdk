@@ -142,13 +142,6 @@
           "flag": "ws",
           "version": "v3",
           "timeout": 300000
-        },
-        {
-          "url": "api.wanglutech.net",
-          "port": 8443,
-          "flag": "ws",
-          "version": "v3",
-          "timeout": 300000
         }
       ]
     }

@@ -182,11 +182,11 @@ module.exports = class CheckScEvent {
     for (let idx = 0; idx < count; ++idx) {
       let index = count - idx - 1;
       let obj = ary[index];
-      console.debug("processScLogger %s: %O", type, obj);
       try {
         let topics = [eventHash, obj.uniqueID.toLowerCase()];
         let fromBlockNumber = obj.fromBlockNumber;
         let latestBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
+        console.debug("%s blockNumber %d-%d processScLogger %s: %O", this.m_chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj);
         if (latestBlockNumber >= fromBlockNumber) {
           let toBlockNumber = fromBlockNumber + 500; // some chain limit to 1000
           if (toBlockNumber > latestBlockNumber) {

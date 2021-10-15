@@ -88,24 +88,11 @@ module.exports = class BurnOtherCoinToAncestorChain {
     this.m_strBurnTitle = this.m_uiStrService.getStrByName("BurnTitle");
     this.m_strBurnDesc = this.m_uiStrService.getStrByName("BurnDesc");
 
-    // Erc20
-    let decimals = Number(tokenPairObj.toDecimals);
-    let value = new BigNumber(convertJson.value);
-    let pows = new BigNumber(Math.pow(10, decimals));
-    value = value.multipliedBy(pows);
-    // check erc20 token
-    let tokenBalance = await this.m_iwanBCConnector.getTokenBalance(tokenPairObj.toChainType, convertJson.fromAddr, tokenPairObj.toAccount);
-    let balance = new BigNumber(tokenBalance);
-    if (balance.isLessThan(value)) {
-      console.log("BurnOtherCoinToAncestorChain 2 tokenBalance:", balance, " <= value:", value);
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE
-      };
-    }
-    let approveMaxValue = new BigNumber(tokenPairObj.toScInfo.approveMaxValue);
+    let retAry = [];    
 
+    // Erc20
+    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.toDecimals));
+    let approveMaxValue = new BigNumber(tokenPairObj.toScInfo.approveMaxValue);
     let erc20ApproveParaJson = {
       "ccTaskId": convertJson.ccTaskId,
       "fromAddr": convertJson.fromAddr,
@@ -119,13 +106,12 @@ module.exports = class BurnOtherCoinToAncestorChain {
       "taskType": "ProcessErc20Approve",
       "fee": new BigNumber(0)
     };
-
+    console.debug("ProcessBurnOtherCoinToAncestorChain erc20ApproveParaJson params: %O", erc20ApproveParaJson);
     let allowance = await this.checkErc20Allowance(tokenPairObj.toChainType,
       tokenPairObj.toAccount,
       convertJson.fromAddr,
       tokenPairObj.toScInfo.crossScAddr,
       tokenPairObj.toScInfo.erc20AbiJson);
-    let retAry = [];
     allowance = new BigNumber(allowance);
     if (allowance.isGreaterThan(0)) {
       if (allowance.isLessThan(value)) {
@@ -135,23 +121,15 @@ module.exports = class BurnOtherCoinToAncestorChain {
         retAry.push({ "name": "erc20Approve0", "stepIndex": retAry.length + 1, "title": this.m_strApprove0Title, "desc": this.m_strApprove0Desc, "params": erc20Approve0ParaJson });
         // 2 approve
         retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
-      }
-      else {
+      } else {
         // allowance >= value,无需approve
       }
-    }
-    else {
+    } else {
       // 1 approve
       retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
     }
 
     //   function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
-    let crossChainFeesService = this.m_frameworkService.getService("CrossChainFeesService");
-    let fees = await crossChainFeesService.getServcieFees(tokenPairObj.id, "BURN");
-    //console.log("sevice Fee:", fees);
-    let userBurnFee = await crossChainFeesService.estimateBurnNetworkFee(tokenPairObj.id);
-    //console.log("userBurnFee:", userBurnFee);
-
     let userAccount = web3.utils.asciiToHex(convertJson.toAddr);
     //console.log("convertJson.toAddr:", convertJson.toAddr, ",userAccount:", userAccount);
 
@@ -169,12 +147,12 @@ module.exports = class BurnOtherCoinToAncestorChain {
       //"userAccount": convertJson.toAddr,
       "userAccount": userAccount,
       "taskType": "ProcessBurnOtherCoinToAncestorChain",
-      "fee": fees.burnFeeBN,
+      "fee": convertJson.fee.operateFee.rawValue,
       "tokenAccount": tokenPairObj.toAccount,
-      "userBurnFee": userBurnFee.originFeeBN,
+      "userBurnFee": convertJson.fee.networkFee.rawValue,
       "toAddr": convertJson.toAddr
     };
-    //console.log("ProcessBurnOtherCoinToAncestorChain value:", value, ",typeof value:", typeof value);
+    console.debug("ProcessBurnOtherCoinToAncestorChain params: %O", userFastBurnParaJson);
     retAry.push({ "name": "ProcessBurnOtherCoinToAncestorChain", "stepIndex": retAry.length + 1, "title": this.m_strBurnTitle, "desc": this.m_strBurnDesc, "params": userFastBurnParaJson });
 
     let chainId = await convertJson.wallet.getChainId();
@@ -183,15 +161,14 @@ module.exports = class BurnOtherCoinToAncestorChain {
     }
     //console.log("BurnErc20Handle retAry:", retAry);
     let utilService = this.m_frameworkService.getService("UtilService");
-    if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.toChainType, convertJson.fromAddr, fees.burnFeeBN)) {
+    if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.toChainType, convertJson.fromAddr, convertJson.fee.operateFee.rawValue)) {
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, retAry);
       return {
         stepNum: retAry.length,
         errCode: null
       };
-    }
-    else {
-      console.log("BurnOtherCoinToAncestorChain balance < gas");
+    } else {
+      console.error("BurnOtherCoinToAncestorChain insufficient gas");
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,

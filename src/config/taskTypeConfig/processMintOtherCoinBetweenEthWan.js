@@ -95,18 +95,3 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
         return obj;
     }
 };
-
-
-// { "name": "userFastMint", "stepIndex": retAry.length + 1, "title": "userFastMint title", "desc": "userFastMint desc", "params": userFastMintParaJson }
-//let userFastMintParaJson = {
-//    "fromAddr": convertJson.fromAddr,
-//    "scChainType": mintChainInfo.chaintype,
-//    "crossScAddr": mintChainScInfo.crossScAddr,
-//    "crossScAbi": mintChainScInfo.crossScAbiJson,
-//    "storemanGroupId": convertJson.storemanGroupId,
-//    "tokenPairID": convertJson.tokenPairId,
-//    "value": convertJson.value,
-//    "userAccount": convertJson.toAddr,
-//    "processHandler": new ProcessUserFastMint(this.m_frameworkService)
-//};
-

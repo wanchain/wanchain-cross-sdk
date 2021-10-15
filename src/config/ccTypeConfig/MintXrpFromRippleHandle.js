@@ -7,46 +7,25 @@ module.exports = class MintXrpFromRipple {
     this.m_frameworkService = frameworkService;
   }
 
-  // data example
-  //    let convertJson = {
-  //    "tokenPairId": "3",
-  //    "fromName": "LINK",
-  //    "toName": "wanLINK@Wanchain",
-  //    "storemanGroupId": "1",
-  //    "toAddr": "0xB2d91924382e8e11065fe47C96D9500B95013F7a",
-  //    "fromAddr": "0x406b41140149f85e2d91d4daf7af8314c6c1437c",
-  //    "value": 123,
-  //    "ccTaskId": "ccTaskId",
-  //     convertType: "", // the value is "MINT" or "BURN", used by web server 
-  //};
   async process(tokenPairObj, convertJson) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     try {
-      let decimals = Number(tokenPairObj.fromDecimals);
-      let value = new BigNumber(convertJson.value);
-      let pows = new BigNumber(Math.pow(10, decimals));
-      value = value.multipliedBy(pows);
-
-      let crossChainFeesService = this.m_frameworkService.getService("CrossChainFeesService");
-      let fees = await crossChainFeesService.getServcieFees(tokenPairObj.id, "MINT");
-      let networkFee = await crossChainFeesService.estimateNetworkFee(tokenPairObj.id, "MINT");
-      //console.log("MintXrpFromRipple fee:", fees, networkFee);
-      let userFastMintParaJson = {
-        "ccTaskId": convertJson.ccTaskId,
-        "toChainType": tokenPairObj.toChainType,
-        "userAccount": convertJson.toAddr,
-        "storemanGroupId": convertJson.storemanGroupId,
-        "storemanGroupGpk": convertJson.storemanGroupGpk,
-        "tokenPairID": convertJson.tokenPairId,
-        "value": value,
-        "taskType": "ProcessXrpMintFromRipple",
-        "fee": fees.mintFeeBN,
-        "networkFee": networkFee.fee,
-        "webNeedToken": true
+      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.fromDecimals)).toFixed();   
+      let params = {
+        ccTaskId: convertJson.ccTaskId,
+        toChainType: tokenPairObj.toChainType,
+        userAccount: convertJson.toAddr,
+        storemanGroupId: convertJson.storemanGroupId,
+        storemanGroupGpk: convertJson.storemanGroupGpk,
+        tokenPairID: convertJson.tokenPairId,
+        value,
+        taskType: "ProcessXrpMintFromRipple",
+        fee: convertJson.fee.operateFee.value,
+        networkFee: convertJson.fee.networkFee.value // not used
       };
-
+      console.debug("MintXrpFromRipple params: %O", params);
       let ret = [
-        { "name": "userFastMint", "stepIndex": 1, "title": "MintTitle", "desc": "MintDesc", "params": userFastMintParaJson }
+        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
       WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, ret);
       return {
@@ -54,7 +33,7 @@ module.exports = class MintXrpFromRipple {
         errCode: null
       };
     } catch (err) {
-      console.log("MintXrpFromRipple err: %O", err);
+      console.error("MintXrpFromRipple error: %O", err);
       WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,

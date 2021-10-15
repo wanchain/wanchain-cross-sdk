@@ -1,7 +1,8 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
-const { buildUserlockMemo } = require("./memoProtocol");
+const { buildUserlockMemo } = require('./memoProtocol');
 const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
+const BigNumber = require('bignumber.js');
 
 class Polkadot {
   // mainnet: "wss://nodes.wandevs.org/polkadot"
@@ -49,7 +50,8 @@ class Polkadot {
   }
 
   async buildUserLockMemo(tokenPairID, toPeerChainAccount, fee) {
-    return buildUserlockMemo(tokenPairID, toPeerChainAccount, fee);
+    let feeHex = new BigNumber(fee).toString(16);
+    return buildUserlockMemo(tokenPairID, toPeerChainAccount, feeHex);
   }
 }
 

@@ -75,8 +75,10 @@ class CrossChainTaskRecords {
   }
 
   setTaskNetworkFee(ccTaskId, fee) {
+    console.log({ccTaskId, fee})
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
+      console.log("setTaskNetworkFee %s -> %s", ccTask.fee.networkFee.value, fee);
       ccTask.fee.networkFee.value = fee;
     }
   }

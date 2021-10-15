@@ -120,15 +120,15 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
       // save p2sh 和id 到apiServer
       let data = {
-        "oneTimeAddr": p2sh,
-        "randomId": id,
-        "chainType": toChainType,
-        "chainAddr": chainAddr,
-        "smgPublicKey": storemanGroupPublicKey,
-        "smgId": storemanGroupId,
-        "tokenPairId": params.tokenPairID,
-        "networkFee": params.networkFee,
-        "value": params.value.toFixed()
+        oneTimeAddr: p2sh,
+        randomId: id,
+        chainType: toChainType,
+        chainAddr: chainAddr,
+        smgPublicKey: storemanGroupPublicKey,
+        smgId: storemanGroupId,
+        tokenPairId: params.tokenPairID,
+        networkFee: params.networkFee,
+        value: params.value.toFixed()
       };
 
       let ret = await axios.post(url, data);

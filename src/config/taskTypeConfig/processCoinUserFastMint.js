@@ -21,15 +21,6 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 params.value = new BigNumber(params.value);
             }
             // 校验balance
-            let balance = await this.m_iwanBCConnector.getBalance(params.scChainType, params.fromAddr);
-            let acc_balance = new BigNumber(balance);
-            let txValue = params.value.plus(params.fee);
-            let totalCost = txValue.plus(params.gasLimit);
-            if (acc_balance.isLessThan(totalCost)) {
-                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient balance");
-                return;
-            }
-            
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
                 params.crossScAbi,
@@ -38,8 +29,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 params.value,
                 params.userAccount);
 
-            let txData;
-            txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr);
+            let txValue = params.value.plus(params.fee);
+            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr);
             await this.sendTransactionData(paramsJson, txData, wallet);
             return;
         } catch (err) {
@@ -70,18 +61,3 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
         return obj;
     }
 };
-
-
-// { "name": "userFastMint", "stepIndex": retAry.length + 1, "title": "userFastMint title", "desc": "userFastMint desc", "params": userFastMintParaJson }
-//let userFastMintParaJson = {
-//    "fromAddr": convertJson.fromAddr,
-//    "scChainType": mintChainInfo.chaintype,
-//    "crossScAddr": mintChainScInfo.crossScAddr,
-//    "crossScAbi": mintChainScInfo.crossScAbiJson,
-//    "storemanGroupId": convertJson.storemanGroupId,
-//    "tokenPairID": convertJson.tokenPairId,
-//    "value": convertJson.value,
-//    "userAccount": convertJson.toAddr,
-//    "processHandler": new ProcessUserFastMint(this.m_frameworkService)
-//};
-

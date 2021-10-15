@@ -49,22 +49,10 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
     this.m_strBurnTitle = this.m_uiStrService.getStrByName("BurnTitle");
     this.m_strBurnDesc = this.m_uiStrService.getStrByName("BurnDesc");
 
+    let retAry = [];
+
     // Erc20
-    let decimals = Number(tokenPairObj.toDecimals);
-    let value = new BigNumber(convertJson.value);
-    let pows = new BigNumber(Math.pow(10, decimals));
-    value = value.multipliedBy(pows);
-    // check erc20 token
-    let tokenBalance = await this.m_iwanBCConnector.getTokenBalance(tokenPairObj.toChainType, convertJson.fromAddr, tokenPairObj.toAccount);
-    let balance = new BigNumber(tokenBalance);
-    if (balance.isLessThan(value)) {
-      console.log("BurnErc20Handle 2 tokenBalance:", balance, " <= value:", value);
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE
-      };
-    }
+    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.toDecimals));
     let approveMaxValue = new BigNumber(tokenPairObj.toScInfo.approveMaxValue);
 
     let erc20ApproveParaJson = {
@@ -80,13 +68,12 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
       "taskType": "ProcessErc20Approve",
       "fee": new BigNumber(0)
     };
-
+    console.debug("BurnOtherCoinBetweenEthWanHandle erc20ApproveParaJson params: %O", erc20ApproveParaJson);
     let allowance = await this.checkErc20Allowance(tokenPairObj.toChainType,
       tokenPairObj.toAccount,
       convertJson.fromAddr,
       tokenPairObj.toScInfo.crossScAddr,
       tokenPairObj.toScInfo.erc20AbiJson);
-    let retAry = [];
     allowance = new BigNumber(allowance);
     if (allowance.isGreaterThan(0)) {
       if (allowance.isLessThan(value)) {
@@ -96,20 +83,15 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
         retAry.push({ "name": "erc20Approve0", "stepIndex": retAry.length + 1, "title": this.m_strApprove0Title, "desc": this.m_strApprove0Desc, "params": erc20Approve0ParaJson });
         // 2 approve
         retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
-      }
-      else {
+      } else {
         // allowance >= value,无需approve
       }
-    }
-    else {
+    } else {
       // 1 approve
       retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
     }
 
     //   function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
-    let crossChainFeesService = this.m_frameworkService.getService("CrossChainFeesService");
-    let fees = await crossChainFeesService.getServcieFees(tokenPairObj.id, "BURN");
-    let userBurnFee = await crossChainFeesService.estimateBurnNetworkFee(tokenPairObj.id);
     let userFastBurnParaJson = {
       "ccTaskId": convertJson.ccTaskId,
       "fromAddr": convertJson.fromAddr,
@@ -123,11 +105,11 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
       "value": value,
       "userAccount": convertJson.toAddr,
       "taskType": "ProcessBurnOtherCoinBetweenEthWan",
-      "fee": fees.burnFeeBN,
+      "fee": convertJson.fee.operateFee.rawValue,
       "tokenAccount": tokenPairObj.toAccount,
-      "userBurnFee": userBurnFee.originFeeBN
+      "userBurnFee": convertJson.fee.networkFee.rawValue
     };
-
+    console.debug("BurnOtherCoinBetweenEthWanHandle userFastBurnParaJson params: %O", userFastBurnParaJson);
     retAry.push({ "name": "userFastBurnParaJson", "stepIndex": retAry.length + 1, "title": this.m_strBurnTitle, "desc": this.m_strBurnDesc, "params": userFastBurnParaJson });
 
     let chainId = await convertJson.wallet.getChainId();
@@ -136,15 +118,14 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
     }
     //console.log("BurnOtherCoinBetweenEthWanHandle retAry:", retAry);
     let utilService = this.m_frameworkService.getService("UtilService");
-    if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.toChainType, convertJson.fromAddr, fees.burnFeeBN)) {
+    if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.toChainType, convertJson.fromAddr, convertJson.fee.operateFee.rawValue)) {
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, retAry);
       return {
         stepNum: retAry.length,
         errCode: null
       };
-    }
-    else {
-      console.log("BurnOtherCoinBetweenEthWanHandle balance < gas");
+    } else {
+      console.error("BurnOtherCoinBetweenEthWanHandle insufficient gas");
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,

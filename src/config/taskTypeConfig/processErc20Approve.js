@@ -45,15 +45,3 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
         }
     }
 };
-
-// { "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": "erc20Approve title", "desc": "erc20Approve desc", "params": erc20ApproveParaJson }
-//let erc20ApproveParaJson = {
-//    "ccTaskId": ccTaskId
-//    "fromAddr": convertJson.fromAddr,
-//    "scChainType": mintChainInfo.chaintype,
-//    "erc20Addr": tokenPairObj.fromAccount,
-//    "erc20Abi": mintChainScInfo.erc20AbiJson,
-//    "value": convertJson.value,
-//    "spenderAddr": mintChainScInfo.crossScAddr,
-//    "processHandler": new ProcessErc20Approve()
-//};

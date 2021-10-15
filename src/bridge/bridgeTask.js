@@ -98,8 +98,7 @@ class BridgeTask {
     this._task.setTaskAssetPair(jsonTaskAssetPair);
     this._task.setFee(this._fee);
     this._task.setOtaTx(!this._wallet);
-    this._task.setTaskAccountAddress('From', this._fromAccount);
-    this._task.setTaskAccountAddress('To', this._toAccount);
+    this._task.setTaskAccounts(this._fromAccount, this._toAccount);
     this._task.setTaskAmount(this._amount);
 
     // build steps
@@ -217,6 +216,7 @@ class BridgeTask {
       storemanGroupId: ccTaskData.smg.id,
       storemanGroupGpk: this._secp256k1Gpk,
       value: ccTaskData.amount,
+      fee: this._fee,
       wallet: this._wallet
     }; 
     // console.log("checkTaskSteps: %O", convertJson);

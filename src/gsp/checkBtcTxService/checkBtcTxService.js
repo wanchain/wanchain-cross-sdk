@@ -28,7 +28,7 @@ module.exports = class CheckBtcTxService {
 
     async start() {
         let cfg = await this.m_configService.getGlobalConfig(this.serviceName);
-        console.debug("%s cfg: %O", this.serviceName, cfg);
+        // console.debug("%s cfg: %O", this.serviceName, cfg);
         this.m_taskService.addTask(this, cfg.queryActionInfoInterval, "");
     }
 
