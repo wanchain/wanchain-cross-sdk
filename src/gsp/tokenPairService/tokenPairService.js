@@ -51,7 +51,9 @@ class TokenPairService {
                 }
             }
             workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
-            let tokenPairs = await this.iwanBCConnector.getTokenPairs({tags: ["bridge"]});
+            let network = this.configService.getNetwork();
+            let options = (network === "mainnet")? {tags: ["bridge"]} : {isAllTokenPairs: true};
+            let tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
             let tokenPairMap = new Map();
             await Promise.all(tokenPairs.map(async (pair) => {
                 if (pair.ancestorSymbol !== "EOS") { // hide legacy tokens
