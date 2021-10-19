@@ -16,12 +16,17 @@ module.exports = class ConfigService extends ConfigServiceInterface {
     }
 
     async init(network) {
+        this.network = network;
         this.m_confgJson = config[network];
         this.m_confgJson.StoremanService.forEach(chainInfo => {
             chainInfo.crossScAbiJson = crossScAbiJson;
             chainInfo.erc20AbiJson = erc20AbiJson; 
         })
         // console.log(this.m_confgJson);
+    }
+
+    getNetwork() {
+        return this.network;
     }
 
     async getConfig(serviceName, propertyPath) {
