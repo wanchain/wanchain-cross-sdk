@@ -175,13 +175,13 @@ module.exports = class CheckScEvent {
 
   async processScLogger(type, eventHash) {
     let ary = this.m_mapCheckAry.get(type);
-    if (ary.length === 0) {
+    let count = ary.length;
+    if (count === 0) {
       return;
     }
-    let count = ary.length;
-    for (let idx = 0; idx < count; ++idx) {
-      let index = count - idx - 1;
-      let obj = ary[index];
+    for (let idx = 0; idx < count; idx++) {
+      let cur = count - idx - 1; // backwards
+      let obj = ary[cur];
       try {
         let topics = [eventHash, obj.uniqueID.toLowerCase()];
         let fromBlockNumber = obj.fromBlockNumber;
@@ -195,7 +195,7 @@ module.exports = class CheckScEvent {
           let event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
           if (event) {
             await this.updateUIAndStorage(obj, event.txhash, event.toAccount);
-            ary.splice(index, 1);
+            ary.splice(cur, 1);
           } else { // wait next scan
             obj.fromBlockNumber = toBlockNumber + 1;
           }
@@ -231,9 +231,8 @@ module.exports = class CheckScEvent {
       this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash, toAccount});
       let storageService = this.m_frameworkService.getService("StorageService");
       await storageService.delete("ScEventScanService", obj.uniqueID);
-    }
-    catch (err) {
-      console.log("updateUIAndStorage err:", err);
+    } catch (err) {
+      console.error("updateUIAndStorage error: %O", err);
     }
   }
 };

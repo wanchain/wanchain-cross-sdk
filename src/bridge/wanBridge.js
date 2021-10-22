@@ -33,11 +33,12 @@ class WanBridge extends EventEmitter {
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
-    this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this));
-    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this));
-    this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this));
-    this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this));
-    this.eventService.addEventListener("networkFee", this._onNetworkFee.bind(this));
+    this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
+    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash
+    this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
+    this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
+    this.eventService.addEventListener("NetworkFee", this._onNetworkFee.bind(this)); // for BTC/LTC/DOGE to update network fee got from api server
+    this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
     await this._service.start();
   }
 
@@ -301,6 +302,20 @@ class WanBridge extends EventEmitter {
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
       records.setTaskNetworkFee(taskId, networkFee);
+      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    }
+  }
+
+  _onTaskStepResult(taskStepResult) {
+    console.log("_onTaskStepResult: %O", taskStepResult);
+    let taskId = taskStepResult.ccTaskId;
+    let errInfo = taskStepResult.errInfo || "";
+    this.stores.crossChainTaskSteps.finishTaskStep(taskId, taskStepResult.stepIndex, taskStepResult.txHash, taskStepResult.result, errInfo);
+    let records = this.stores.crossChainTaskRecords;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (ccTask) {
+      // ignore return value because no need to notify lockHash after localstoreage cleared
+      records.updateTaskByStepResult(taskId, taskStepResult.stepIndex, taskStepResult.txHash, taskStepResult.result, errInfo);
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }

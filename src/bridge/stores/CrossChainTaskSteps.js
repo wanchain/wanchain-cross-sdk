@@ -24,16 +24,18 @@ class CrossChainTaskSteps {
   // maybe only update txHash, not really finished
   finishTaskStep(taskId, stepIndex, txHash, stepResult, errInfo = "") {
     let steps = this.mapCCTaskStepsArray.get(taskId);
-    for (let i = 0; i < steps.length; i++) {
-      if (stepIndex == steps[i].stepNo) {
-        if (txHash) {
-          steps[i].txHash = txHash;
-        }
-        if (stepResult) {
-          steps[i].stepResult = stepResult;
-        }
-        if (errInfo) {
-          steps[i].errInfo = errInfo;
+    if (steps) { // steps do not exist after page refreshed
+      for (let i = 0; i < steps.length; i++) {
+        if (stepIndex == steps[i].stepNo) {
+          if (txHash) {
+            steps[i].txHash = txHash;
+          }
+          if (stepResult) {
+            steps[i].stepResult = stepResult;
+          }
+          if (errInfo) {
+            steps[i].errInfo = errInfo;
+          }
         }
       }
     }

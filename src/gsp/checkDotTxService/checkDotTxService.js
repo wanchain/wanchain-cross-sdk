@@ -78,7 +78,12 @@ module.exports = class CheckDotTxService {
                       // };
                       // console.log("dot tmpObj:", tmpObj);
                       // await eventService.emitEvent("LockTxHash", tmpObj);
-                      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(obj.ccTaskId, obj.stepIndex, obj.txHash, "Succeeded");
+                      await this.m_eventService.emitEvent("TaskStepResult", {
+                        ccTaskId: obj.ccTaskId,
+                        stepIndex: obj.stepIndex,
+                        txHash: obj.txHash,
+                        result: "Succeeded"
+                      });
                       let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                       await scEventScanService.add(obj);
                       await storageService.delete("CheckDotTxService", obj.ccTaskId);

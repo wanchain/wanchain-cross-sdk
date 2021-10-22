@@ -42,23 +42,19 @@ class CrossChainTaskRecords {
     }
   }
 
-  updateTaskStepResult(ccTaskId, stepNo, txHash, result, errInfo = "") {
+  // stepData has been assigned via CrossChainTaskSteps, only process additional logic
+  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo = "") {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
-        let stepInfo = ccTask.stepData[i];
-        if (stepInfo.stepNo == stepNo) {
-          stepInfo.txHash = txHash;
-          if (result) {
-            stepInfo.stepResult = result;
-          }
+        if ( ccTask.stepData[i].stepNo === stepIndex) {
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
             if (errInfo) {
               ccTask.errInfo = errInfo;
             }            
-          } else if ((stepNo === ccTask.stepNums) && (!ccTask.isOtaTx)) {
+          } else if ((stepIndex === ccTask.stepNums) && (!ccTask.isOtaTx)) {
             if (txHash && !ccTask.lockHash) {
               // update txHash and notify dapp, then wait receipt, do not change status
               ccTask.lockHash = txHash;

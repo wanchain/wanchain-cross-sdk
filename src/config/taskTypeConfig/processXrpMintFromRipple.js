@@ -25,7 +25,7 @@ module.exports = class ProcessXrpMintFromRipple {
         //   "ccTaskId": params.ccTaskId,
         //   "apiServerNetworkFee": tagInfo.apiServerNetworkFee
         // };
-        // await eventService.emitEvent("networkFee", obj);
+        // await eventService.emitEvent("NetworkFee", obj);
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", tagInfo.tagId);
       }
       return;
