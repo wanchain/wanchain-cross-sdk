@@ -160,7 +160,7 @@
   },
   "CheckDogeTxService": {
     "queryActionInfoInterval": 60000
-  },  
+  },
   "CheckXrpTxService": {
     "queryActionInfoInterval": 60000
   },
