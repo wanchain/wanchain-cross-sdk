@@ -8,20 +8,22 @@ const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
 
 class WanBridge extends EventEmitter {
-  constructor(network = "testnet", smgIndex = 0) { // smgIndex is for testing only
+  constructor(network = "testnet", smgIndex = 0, isTestMode = false) { // smgIndex is for testing only
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
     this.smgIndex = smgIndex;
+    this.isTestMode = isTestMode;
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
       crossChainTaskSteps: new CrossChainTaskSteps()
     };
-    this._service = new StartService();
+    this._service = new StartService(isTestMode);
   }
 
   async init(iwanAuth) {
     console.log("init %s WanBridge SDK", this.network);
+    console.debug("smgIndex: %s, isTestMode: %s", this.smgIndex, this.isTestMode);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
