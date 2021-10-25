@@ -311,13 +311,21 @@ class WanBridge extends EventEmitter {
   _onTaskStepResult(taskStepResult) {
     console.log("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
+    let stepIndex = taskStepResult.stepIndex;
+    let txHash = taskStepResult.txHash;
+    let result = taskStepResult.result;
     let errInfo = taskStepResult.errInfo || "";
-    this.stores.crossChainTaskSteps.finishTaskStep(taskId, taskStepResult.stepIndex, taskStepResult.txHash, taskStepResult.result, errInfo);
+    this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      // ignore return value because no need to notify lockHash after localstoreage cleared
-      records.updateTaskByStepResult(taskId, taskStepResult.stepIndex, taskStepResult.txHash, taskStepResult.result, errInfo);
+      // need to notify lockHash because page may be refreshed
+      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
+      if (isLockTx) {
+        let lockEvent = {taskId, txHash};
+        console.debug("lockTxHash: %O", lockEvent);
+        this.emit("lock", lockEvent);
+      }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }
