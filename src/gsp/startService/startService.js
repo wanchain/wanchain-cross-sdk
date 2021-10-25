@@ -38,7 +38,8 @@ if (typeof(window) !== "undefined") {
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
 
 class StartService {
-    constructor() {
+    constructor(isTestMode) {
+        this.isTestMode = isTestMode;
         this.frameworkService = new FrameworkService();
     }
 
@@ -117,7 +118,7 @@ class StartService {
             await storemanService.init(frameworkService);
             frameworkService.registerService("StoremanService", storemanService);
 
-            let tokenPairService = new TokenPairService();
+            let tokenPairService = new TokenPairService(this.isTestMode);
             await tokenPairService.init(frameworkService);
             frameworkService.registerService("TokenPairService", tokenPairService);
 

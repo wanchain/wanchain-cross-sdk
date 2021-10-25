@@ -1,7 +1,8 @@
 "use strict";
 
 class TokenPairService {
-    constructor() {
+    constructor(isTestMode) {
+        this.isTestMode = isTestMode;
         this.m_iwanConnected = false;
         this.m_mapTokenPairIdObj = new Map(); // tokenPairId => tokenPairObj
         this.m_mapTokenPairIdCfg = new Map(); // tokenPairId => tokenPairConfig
@@ -52,7 +53,7 @@ class TokenPairService {
             }
             workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
             let network = this.configService.getNetwork();
-            let options = (network === "mainnet")? {tags: ["bridge"]} : {isAllTokenPairs: true};
+            let options = ((network === "mainnet") && !this.isTestMode)? {tags: ["bridge"]} : {isAllTokenPairs: true};
             let tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
             let tokenPairMap = new Map();
             await Promise.all(tokenPairs.map(async (pair) => {

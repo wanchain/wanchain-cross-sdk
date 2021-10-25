@@ -118,6 +118,23 @@
       "ScScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "name": "Fantom",
+      "chainId": "2147484655",
+      "chainType": "FTM",
+      "chainName": "Fantom",
+      "chainDecimals": 18,
+      "crossScAddr": "0x....................................",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "MaskChainId": 250,
+      "ScScanInfo": {
+        "taskInterval": 10000
+      }
     }
   ],
   "UIStrService": {

@@ -11,20 +11,22 @@ const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 const NOT_SMART_CONTRACT_ASSETS = ['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'];
 
 class WanBridge extends EventEmitter {
-  constructor(network = "testnet", smgIndex = 0) { // smgIndex is for testing only
+  constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
+    this.isTestMode = isTestMode;
     this.smgIndex = smgIndex;
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
       crossChainTaskSteps: new CrossChainTaskSteps()
     };
-    this._service = new StartService();
+    this._service = new StartService(isTestMode);
   }
 
   async init(iwanAuth) {
     console.log("init %s WanBridge SDK", this.network);
+    console.debug("isTestMode: %s, smgIndex: %s", this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -150,7 +152,7 @@ class WanBridge extends EventEmitter {
   validateToAccount(assetPair, direction, account) {
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH", "FTM"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" == chainType) {
       return tool.isValidWanAddress(account);
