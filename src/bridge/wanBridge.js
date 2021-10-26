@@ -176,8 +176,8 @@ class WanBridge extends EventEmitter {
   getHistory(taskId = undefined) {
     let history = [];
     let records = this.stores.crossChainTaskRecords;
-    records.ccTaskRecords.forEach((task, id) => {
-      if ((taskId == undefined) || (taskId == id)) {
+    for (let [id, task] of records.ccTaskRecords) {
+      if ((taskId === undefined) || (taskId == id)) {
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
@@ -200,9 +200,25 @@ class WanBridge extends EventEmitter {
           errInfo: task.errInfo
         }
         history.push(item);
+        if (taskId !== undefined) { // only get one
+          break;
+        }
       }
-    });
+    }
     return history;
+  }
+
+  async deleteHistory(taskId = undefined) {
+    let count = 0;
+    let records = this.stores.crossChainTaskRecords;
+    let ids = Array.from(records.ccTaskRecords.keys()).filter(id => ((taskId === undefined) || (taskId == id)));
+    for (let i = 0; i < ids.length; i++) {
+      let id = ids[i];
+      records.removeTradeTask(id);
+      await this.storageService.delete("crossChainTaskRecords", id);
+      count++;
+    }
+    return count;
   }
 
   _onStoremanInitilized(success) {
