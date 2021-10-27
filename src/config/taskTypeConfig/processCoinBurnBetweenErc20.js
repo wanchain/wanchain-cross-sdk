@@ -78,19 +78,3 @@ module.exports = class ProcessCoinBurnBetweenErc20 extends ProcessBase {
         return obj;
     }
 };
-
-// { "name": "userFastBurn", "stepIndex": retAry.length + 1, "title": "userFastMint title", "desc": "userFastMint desc", "params": userFastBurnParaJson }
-//let userFastBurnParaJson = {
-//    "fromAddr": convertJson.fromAddr,
-//    "scChainType": burnChainInfo.chaintype,
-//    "crossScAddr": burnChainScInfo.crossScAddr,
-//    "crossScAbi": burnChainScInfo.crossScAbiJson,
-//    "storemanGroupId": convertJson.storemanGroupId,
-//    "tokenPairID": convertJson.tokenPairId,
-//    "value": convertJson.value,
-//    "userAccount": convertJson.toAddr,
-//    "processHandler": new ProcessUserFastBurn(this.m_frameworkService)
-//};
-
-
-

@@ -23,7 +23,7 @@ class TokenPairService {
                 let obj = tokenPairCfg[idx];
                 this.m_mapTokenPairIdCfg.set(obj.id, obj);
             }
-            console.debug("tokenPairCfg: %O", this.m_mapTokenPairIdCfg);
+            // console.debug("tokenPairCfg: %O", this.m_mapTokenPairIdCfg);
         }
         catch (err) {
             console.log("StoremanService init err:", err);

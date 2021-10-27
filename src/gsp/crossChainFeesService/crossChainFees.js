@@ -38,16 +38,13 @@ module.exports = class crossChainFees {
 
         let mintFees  = await iwanBCConnector.getCrossChainFees(tokenPairObj.fromChainType, [tokenPairObj.fromChainID, tokenPairObj.toChainID]);
         //console.log("mintFees:", mintFees);
-        let mint = new BigNumber(mintFees.lockFee);
-        let mintFeeBN = mint;
-        let pows = new BigNumber(Math.pow(10, tokenPairObj.fromScInfo.chainDecimals));
-        mint = mint.div(pows);
-        mint = mint.toFixed();
+        let originFeeBN = new BigNumber(mintFees.lockFee);
+        let feeBN = originFeeBN.div(Math.pow(10, tokenPairObj.fromScInfo.chainDecimals));
         let ret = {
-            "fee": mint,
-            "mintFee": mint,
-            "feeBN": mintFeeBN,
-            "mintFeeBN": mintFeeBN
+            "fee": feeBN.toFixed(),
+            "feeBN": feeBN,
+            "originFee": originFeeBN.toFixed(),
+            "originFeeBN": originFeeBN
         };
         //console.log("getMintServcieFees ret:", ret);
         return ret;
@@ -64,16 +61,13 @@ module.exports = class crossChainFees {
         }
         let burnFees = await iwanBCConnector.getCrossChainFees(tokenPairObj.toChainType, [tokenPairObj.toChainID, tokenPairObj.fromChainID]);
         //console.log("burnFees:", burnFees);
-        let burn = new BigNumber(burnFees.lockFee);
-        let burnFeeBN = burn;
-        let pows = new BigNumber(Math.pow(10, tokenPairObj.toScInfo.chainDecimals));
-        burn = burn.div(pows);
-        burn = burn.toFixed();
+        let originFeeBN = new BigNumber(burnFees.lockFee);
+        let feeBN = originFeeBN.div(Math.pow(10, tokenPairObj.toScInfo.chainDecimals));
         let ret = {
-            "fee": burn,
-            "burnFee": burn,
-            "feeBN": burnFeeBN,
-            "burnFeeBN": burnFeeBN
+            "fee": feeBN.toFixed(),
+            "feeBN": feeBN,
+            "originFee": originFeeBN.toFixed(),
+            "originFeeBN": originFeeBN
         };
         //console.log("getBurnServiceFees ret:", ret);
         return ret;
@@ -108,8 +102,6 @@ module.exports = class crossChainFees {
             return {
                 "fee": 0,
                 "feeBN": new BigNumber(0),
-                "mintFee": 0,
-                "mintFeeBN": new BigNumber(0),
                 "originFee": 0,
                 "originFeeBN": new BigNumber(0)
             };
@@ -130,8 +122,6 @@ module.exports = class crossChainFees {
             return {
                 "fee": 0,
                 "feeBN": new BigNumber(0),
-                "burnFee": 0,
-                "burnFeeBN": new BigNumber(0),
                 "originFee": 0,
                 "originFeeBN": new BigNumber(0)
             };
@@ -150,8 +140,6 @@ module.exports = class crossChainFees {
         return {
             "fee": fee,
             "feeBN": feeBN,
-            "burnFee": fee,
-            "burnFeeBN": feeBN,
             "originFee": originFee,
             "originFeeBN": originFeeBN
         };
@@ -168,8 +156,6 @@ module.exports = class crossChainFees {
         return {
             "fee": fee,
             "feeBN": feeBN,
-            "mintFee": fee,
-            "mintFeeBN": feeBN,
             "originFee": originFee,
             "originFeeBN": originFeeBN
         };

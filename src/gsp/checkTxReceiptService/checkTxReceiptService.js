@@ -61,7 +61,13 @@ module.exports = class CheckTxReceiptService {
                         errInfo = "";
                         await this.addToScEventScan(obj);
                     }
-                    this.m_WebStores["crossChainTaskSteps"].finishTaskStep(obj.ccTaskId, obj.stepIndex, obj.txhash, result, errInfo);
+                    await this.m_eventService.emitEvent("TaskStepResult", {
+                        ccTaskId: obj.ccTaskId,
+                        stepIndex: obj.stepIndex,
+                        txHash: obj.txhash,
+                        result,
+                        errInfo
+                    });
                     await storageService.delete("CheckTxReceiptService", obj.ccTaskId);
                     this.m_tradeTaskAry.splice(index, 1);
                 } else {

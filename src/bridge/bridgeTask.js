@@ -57,11 +57,11 @@ class BridgeTask {
       this._checkSmg()
     ]);
     if (!validWallet) {
-      throw "Invalid wallet";
+      throw new Error("Invalid wallet");
     }
     let err = feeErr || smgErr;
     if (err) {
-      throw err;
+      throw new Error(err);
     }
     let [fromAccountErr, toAccountErr] = await Promise.all([
       this._checkFromAccount(),
@@ -69,7 +69,7 @@ class BridgeTask {
     ]);
     err = fromAccountErr || toAccountErr;
     if (err) {
-      throw err;
+      throw new Error(err);
     }
   }
 
@@ -98,15 +98,14 @@ class BridgeTask {
     this._task.setTaskAssetPair(jsonTaskAssetPair);
     this._task.setFee(this._fee);
     this._task.setOtaTx(!this._wallet);
-    this._task.setTaskAccountAddress('From', this._fromAccount);
-    this._task.setTaskAccountAddress('To', this._toAccount);
+    this._task.setTaskAccounts(this._fromAccount, this._toAccount);
     this._task.setTaskAmount(this._amount);
 
     // build steps
     console.debug("bridgeTask _checkTaskSteps at %s ms", tool.getCurTimestamp());
     let errInfo = await this._checkTaskSteps();
     if (errInfo) {
-      throw errInfo;
+      throw new Error(errInfo);
     }
 
     // save context
@@ -179,11 +178,11 @@ class BridgeTask {
     }
     if (coinBalance.lt(requiredCoin)) {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
-      return "Insufficient balance";
+      return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
     if (assetBalance.lt(requiredAsset)) {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
-      return "Insufficient asset";
+      return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
     }
   }
 
@@ -217,6 +216,7 @@ class BridgeTask {
       storemanGroupId: ccTaskData.smg.id,
       storemanGroupGpk: this._secp256k1Gpk,
       value: ccTaskData.amount,
+      fee: this._fee,
       wallet: this._wallet
     }; 
     // console.log("checkTaskSteps: %O", convertJson);
@@ -241,7 +241,7 @@ class BridgeTask {
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
-          this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, ""); // only update txHash, no result
+          this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, ""); // only update txHash, no result
           stepTxHash = taskStep.txHash;
         }
         if (executedStep != curStep) {
@@ -255,7 +255,7 @@ class BridgeTask {
         continue;
       }
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
-        this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+        this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
         this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
         break;
       }
@@ -264,7 +264,7 @@ class BridgeTask {
       } else if ((taskStep.jsonParams.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
-      this._updateTaskStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+      this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
       curStep++;
       stepTxHash = "";
     }
@@ -289,18 +289,18 @@ class BridgeTask {
       ota.rAddress = xrpAddr.rAddr;
       ota.tagId = xrpAddr.tagId;
     } else {
-      throw ("Invalid ota chain type " + chainType);
+      throw new Error("Invalid ota chain type " + chainType);
     }
     this._bridge.emit("ota", ota);
     console.log("%s OTA: %O", chainType, ota);
   }
 
-  _updateTaskStepData(stepNo, txHash, stepResult, errInfo = "") {
+  _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") {
     let records = this._bridge.stores.crossChainTaskRecords;
     const ccTaskRecords = records.ccTaskRecords;
     let ccTask = ccTaskRecords.get(this.id);    
     if (ccTask) {
-      let isLockTx = records.updateTaskStepResult(this.id, stepNo, txHash, stepResult, errInfo);
+      let isLockTx = records.updateTaskByStepResult(this.id, stepIndex, txHash, stepResult, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId: this.id, txHash};
         console.debug("lockTxHash: %O", lockEvent);

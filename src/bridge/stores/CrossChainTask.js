@@ -44,12 +44,9 @@ class CrossChainTask {
     this.ccTaskData.smg = jsonTaskAssetPair.smg;
   }
 
-  setTaskAccountAddress(accountTags, addr) {
-    if('From' === accountTags){
-      this.ccTaskData.fromAccount = addr;
-    }else{
-      this.ccTaskData.toAccount = addr;
-    }
+  setTaskAccounts(fromAccount, toAccount) {
+    this.ccTaskData.fromAccount = fromAccount;
+    this.ccTaskData.toAccount = toAccount;
   }
 
   setFromAccountBalance(balance) {

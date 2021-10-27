@@ -62,4 +62,3 @@ let taskTypeConfigJson = {
 };
 
 module.exports = taskTypeConfigJson;
-

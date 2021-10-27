@@ -112,5 +112,3 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
     return obj;
   }
 };
-
-

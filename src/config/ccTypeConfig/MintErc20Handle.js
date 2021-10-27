@@ -31,23 +31,10 @@ module.exports = class MintErc20Handle {
     this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
     this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
 
-    // Erc20
-    let decimals = Number(tokenPairObj.fromDecimals);
-    let value = new BigNumber(convertJson.value);
-    let pows = new BigNumber(Math.pow(10, decimals));
-    value = value.multipliedBy(pows);
-    // check erc20 token
-    let tokenBalance = await this.m_iwanBCConnector.getTokenBalance(tokenPairObj.fromChainType, convertJson.fromAddr, tokenPairObj.fromAccount);
-    let balance = new BigNumber(tokenBalance);
-    if (balance.isLessThan(value)) {
-      console.log("MintErc20Handle 2 tokenBalance:", balance, " <= value:", value);
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE
-      };
-    }
+    let retAry = [];    
 
+    // Erc20
+    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.fromDecimals));
     let approveMaxValue = new BigNumber(tokenPairObj.fromScInfo.approveMaxValue);
     let erc20ApproveParaJson = {
       "ccTaskId": convertJson.ccTaskId,
@@ -62,14 +49,13 @@ module.exports = class MintErc20Handle {
       "taskType": "ProcessErc20Approve",
       "fee": new BigNumber(0)
     };
-
+    console.debug("MintErc20Handle erc20ApproveParaJson params: %O", erc20ApproveParaJson);
     let allowance = await this.checkErc20Allowance(tokenPairObj.fromChainType,
       tokenPairObj.fromAccount,
       convertJson.fromAddr,
       tokenPairObj.fromScInfo.crossScAddr,
       tokenPairObj.fromScInfo.erc20AbiJson);
     let bn_allowance = new BigNumber(allowance);
-    let retAry = [];
     if (bn_allowance.isGreaterThan(0)) {
       if (bn_allowance.isLessThan(value)) {
         // 1 approve 0
@@ -79,20 +65,16 @@ module.exports = class MintErc20Handle {
 
         // 2 approve
         retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
-      }
-      else {
+      } else {
         // 无需approve
       }
-    }
-    else {
+    } else {
       // 1 approve
       retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
     }
 
     //  Erc20UserFastMint
     //   function userFastMint(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
-    let crossChainFeesService = this.m_frameworkService.getService("CrossChainFeesService");
-    let fees = await crossChainFeesService.getServcieFees(tokenPairObj.id, "MINT");
     let userErc20FastMintParaJson = {
       "ccTaskId": convertJson.ccTaskId,
       "fromAddr": convertJson.fromAddr,
@@ -106,8 +88,9 @@ module.exports = class MintErc20Handle {
       "value": value,
       "userAccount": convertJson.toAddr,
       "taskType": "ProcessErc20UserFastMint",
-      "fee": fees.mintFeeBN
+      "fee": convertJson.fee.operateFee.rawValue
     };
+    console.debug("MintErc20Handle userErc20FastMintParaJson params: %O", userErc20FastMintParaJson);
     retAry.push({ "name": "Erc20UserFastMint", "stepIndex": retAry.length + 1, "title": this.m_strMintTitle, "desc": this.m_strMintDesc, "params": userErc20FastMintParaJson });
 
     let chainId = await convertJson.wallet.getChainId();
@@ -116,7 +99,7 @@ module.exports = class MintErc20Handle {
     }
     //console.log("MintErc20Handle retAry:", retAry);
     let utilService = this.m_frameworkService.getService("UtilService");
-    if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.fromChainType, convertJson.fromAddr, fees.mintFeeBN)) {
+    if (await utilService.checkBalanceGasFee(retAry, tokenPairObj.fromChainType, convertJson.fromAddr, convertJson.fee.operateFee.rawValue)) {
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, retAry);
       return {
         stepNum: retAry.length,
@@ -124,7 +107,7 @@ module.exports = class MintErc20Handle {
       };
     }
     else {
-      console.log("MintErc20Handle balance < gas");
+      console.error("MintErc20Handle insufficient gas");
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,

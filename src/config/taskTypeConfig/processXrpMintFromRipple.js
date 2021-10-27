@@ -9,17 +9,6 @@ module.exports = class ProcessXrpMintFromRipple {
     this.m_frameworkService = frameworkService;
   }
 
-  //let userFastMintParaJson = {
-  //    "ccTaskId": convertJson.ccTaskId,
-  //    "toChainType": tokenPairObj.toChainType,
-  //    "userAccount": convertJson.toAddr,
-  //    "storemanGroupId": convertJson.storemanGroupId,
-  //    "storemanGroupGpk": convertJson.storemanGroupGpk,
-  //    "tokenPairID": convertJson.tokenPairId,
-  //    "value": value,
-  //    "taskType": "ProcessMintBtcFromBitcoin",
-  //    "fee": fees.mintFeeBN
-  //};
   async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let params = paramsJson.params;
@@ -30,31 +19,24 @@ module.exports = class ProcessXrpMintFromRipple {
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
         return;
       } else {
-        let eventService = this.m_frameworkService.getService("EventService");
-        let obj = {
-          "ccTaskId": params.ccTaskId,
-          "apiServerNetworkFee": tagInfo.apiServerNetworkFee
-        };
-        await eventService.emitEvent("networkFee", obj);
+        // XRP apiServerNetworkFee includes service fee, and the fee is fixed, dot not emit event, otherwise it will cause an error
+        // let eventService = this.m_frameworkService.getService("EventService");
+        // let obj = {
+        //   "ccTaskId": params.ccTaskId,
+        //   "apiServerNetworkFee": tagInfo.apiServerNetworkFee
+        // };
+        // await eventService.emitEvent("NetworkFee", obj);
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", tagInfo.tagId);
       }
       return;
     } catch (err) {
-      console.error("ProcessXrpMintFromRipple process err: %O", err);
+      console.error("ProcessXrpMintFromRipple process error: %O", err);
       WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
     }
   }
 
   async getTagId(paramsJson, chainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
     let params = paramsJson.params;
-    let fee = params.fee;
-    fee = fee.plus(params.networkFee);
-
-    let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-    let tokenPairObj = await tokenPairService.getTokenPairObjById(params.tokenPairID);
-    let pows = new BigNumber(Math.pow(10, parseInt(tokenPairObj.ancestorDecimals)));
-    fee = fee.div(pows);
-
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
       let configService = this.m_frameworkService.getService("ConfigService");
@@ -63,14 +45,13 @@ module.exports = class ProcessXrpMintFromRipple {
       let url = apiServerConfig.url + "/api/xrp/addTagInfo";
       // save p2sh 和id 到apiServer
       let data = {
-        "chainType": chainType,
-        "chainAddr": chainAddr,
-        "smgPublicKey": storemanGroupPublicKey,
-        "smgId": storemanGroupId,
-        "tokenPairId": params.tokenPairID,
-        //"_networkFee": params.networkFee,
-        "networkFee": fee.toFixed(),
-        "value": params.value.toFixed()
+        chainType: chainType,
+        chainAddr: chainAddr,
+        smgPublicKey: storemanGroupPublicKey,
+        smgId: storemanGroupId,
+        tokenPairId: params.tokenPairID,
+        networkFee: new BigNumber(params.fee).plus(params.networkFee).toFixed(),
+        value: params.value
       };
       console.debug("ProcessXrpMintFromRipple data:", data);
       let ret = await axios.post(url, data);
