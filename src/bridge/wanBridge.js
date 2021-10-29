@@ -335,7 +335,6 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      // need to notify lockHash because page may be refreshed
       let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId, txHash};
