@@ -58,8 +58,7 @@ class WsInstance {
             this.events.emit("open");
         };
         this.wss.onmessage = (message) => {
-            // console.log('wss onmessage ' + message.data);
-
+            // console.log('wss onmessage: %O', message.data);
             var re = JSON.parse(message.data);
             this.getMessage(re);
         };
@@ -84,7 +83,6 @@ class WsInstance {
     clearRequests() {
         for (let key of Object.keys(this.functionDict)) {
             let fn = this.functionDict[key];
-
             delete this.functionDict[key];
             fn({ error: "websocket error"});
         }
@@ -125,11 +123,14 @@ class WsInstance {
     }
 
     getMessage(message) {
-        let idx = message.id.toString()
+        let idx = message.id.toString();
         let fn = this.functionDict[idx];
-
-        delete this.functionDict[idx];
-        fn(message);
+        if (fn) {
+            delete this.functionDict[idx];
+            fn(message);
+        } else {
+            console.log("req %s has been cleared", idx);
+        }
     }
 
     async addConnectNotify(callback) {
