@@ -125,7 +125,7 @@
       "chainType": "FTM",
       "chainName": "Fantom",
       "chainDecimals": 18,
-      "crossScAddr": "0x....................................",
+      "crossScAddr": "0xCcffE9d337f3c1b16bd271D109e691246fD69ee3",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
