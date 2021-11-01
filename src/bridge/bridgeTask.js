@@ -250,8 +250,9 @@ class BridgeTask {
           console.debug("bridgeTask _parseTaskStatus step %s at %s ms", curStep, tool.getCurTimestamp());
           await this._bridge.storemanService.processTxTask(jsonStepHandle, this._wallet);
           executedStep = curStep;
+        } else {
+          await tool.sleep(5000);
         }
-        await tool.sleep(2000);
         continue;
       }
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
