@@ -6,7 +6,7 @@
   "author": "wanchain <techsupport@wanchain.org>",
   "license": "MIT",
   "dependencies": {
-    "@polkadot/api": "^6.4.1",
+    "@polkadot/api": "^6.6.1",
     "@polkadot/extension-dapp": "^0.40.4",
     "@polkadot/util": "^7.7.1",
     "@polkadot/util-crypto": "^7.7.1",
