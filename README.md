@@ -115,7 +115,7 @@ let metaMaskWallet = window.ethereum;
 let wanMaskWallet = window.wanchain;
 
 // SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
-let polkadotWallet = "wss://nodes-testnet.wandevs.org/polkadot";
+let polkadotWallet = "wss://westend-rpc.polkadot.io";
 ```
 SDK for Node.js currently only supports Truffle HDWallet.
 ```javascript
