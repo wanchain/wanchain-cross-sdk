@@ -5,8 +5,8 @@ const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
 const BigNumber = require('bignumber.js');
 
 class Polkadot {
-  // mainnet: "wss://nodes.wandevs.org/polkadot"
-  // testnet: "wss://nodes-testnet.wandevs.org/polkadot"
+  // mainnet: "wss://rpc.polkadot.io"
+  // testnet: "wss://westend-rpc.polkadot.io"
   constructor(type, provider) {
     this.type = type;
     if (typeof provider === "string") {
