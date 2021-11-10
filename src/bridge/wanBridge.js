@@ -54,7 +54,8 @@ class WanBridge extends EventEmitter {
     let smg = smgs[this.smgIndex % smgs.length];
     let curTime = tool.getCurTimestamp(true);
     if (curTime >= smg.endTime) {
-      await this.storageService.updateSmgs();
+      console.log("smg %s timeout and update smgs", smg.id);
+      await this.storemanService.updateSmgs();
       smgs = this.stores.assetPairs.smgList;
       smg = smgs[this.smgIndex % smgs.length];
       changed = true; // optimize for mainnet getQuota performance issue
