@@ -114,6 +114,11 @@ class StoremanService {
         let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
         return tokenPairObj;
     }
+
+    async updateSmgs() {
+        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+        return tokenPairService.updateSmgs();
+    }
 };
 
 module.exports = StoremanService;

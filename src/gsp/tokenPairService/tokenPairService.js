@@ -37,21 +37,30 @@ class TokenPairService {
         }
     }
 
+    async getSmgs() {
+        let smgList = await this.iwanBCConnector.getStoremanGroupList();
+        let workingList = [];
+        for (let i = 0; i < smgList.length; i++) {
+            let group = smgList[i];
+            let curTime = new Date().getTime();
+            let startTime = group.startTime * 1000;
+            let endTime = group.endTime * 1000;
+            if ((group.status == 5) && (curTime > startTime) && (curTime < endTime)) {
+                workingList.push(group);
+            }
+        }
+        if (workingList.length > 0) {
+            workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
+            return workingList;
+        } else {
+            throw new Error("Smg unavailable");
+        }
+    }
+
     async readAssetPair() {
         let t_start = new Date().getTime();
         try {
-            let smgList = await this.iwanBCConnector.getStoremanGroupList();
-            let workingList = [];
-            for (let i = 0; i < smgList.length; i++) {
-                let group = smgList[i];
-                let curTime = new Date().getTime();
-                let startTime = group.startTime * 1000;
-                let endTime = group.endTime * 1000;
-                if ((group.status == 5) && (curTime > startTime) && (curTime < endTime)) {
-                    workingList.push(group);
-                }
-            }
-            workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
+            let smgList = await this.getSmgs();
             let network = this.configService.getNetwork();
             let options = ((network === "mainnet") && !this.isTestMode)? {tags: ["bridge"]} : {isAllTokenPairs: true};
             let tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
@@ -60,18 +69,17 @@ class TokenPairService {
                 if (pair.ancestorSymbol !== "EOS") { // hide legacy tokens
                     let valid = await this.updateTokenPairInfo(pair);
                     if (valid) { // ignore unsupported token pair
-                        pair.storemangroupList = workingList;
                         tokenPairMap.set(pair.id, pair);
                     }
                 }
             }));
-            this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), workingList);
+            this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList);
             this.m_mapTokenPairIdObj = tokenPairMap;
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
             // console.log("tokenPairs: %O", tokenPairs);
         } catch (err) {
             this.eventService.emitEvent("StoremanServiceInitComplete", false);
-            console.log("readAssetPair err: %O", err);
+            console.error("readAssetPair error: %O", err);
         }
         let t_end = new Date().getTime();
         console.log("readAssetPair consume %s ms", t_end - t_start);
@@ -181,6 +189,11 @@ class TokenPairService {
                 tokenPair.ccType["BURN"] = "BurnOtherCoinBetweenEthWanHandle";
             }
         }
+    }
+
+    async updateSmgs() {
+        let smgList = await this.getSmgs();
+        this.webStores.assetPairs.setAssetPairs(undefined, smgList);
     }
 };
 

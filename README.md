@@ -41,7 +41,6 @@ bridge.on("ready", assetPairs => {
         fromChainName: "Avalanche C-Chain",
         fromChainType: "AVAX",
         fromSymbol: "AVAX",
-        smgs: [], // available storeman groups
         toChainName: "Wanchain",
         toChainType: "WAN",
         toSymbol: "wanAVAX"
@@ -187,7 +186,7 @@ try {
     "Missing wallet"
     "Invalid wallet"
     "Amount is too small to pay the fee"
-    "Smg timeout"
+    "Smg unavailable"
     "Less than minQuota"
     "Exceed maxQuota"
     "Amount is too small to activate smg"

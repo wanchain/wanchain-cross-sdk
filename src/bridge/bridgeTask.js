@@ -20,8 +20,6 @@ class BridgeTask {
     this._toAccount = toAccount;
     this._amount = new BigNumber(amount).toFixed();
     this._wallet = wallet;
-    this._smg = assetPair.smgs[this._bridge.smgIndex % assetPair.smgs.length];
-    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
       chainType: assetPair.fromChainType,
@@ -50,6 +48,9 @@ class BridgeTask {
 
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
+
+    this._smg = await this._bridge.getSmgInfo();
+    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
 
     let [validWallet, feeErr, smgErr] = await Promise.all([
       this._bridge.checkWallet(this._assetPair, this._direction, this._wallet),
@@ -130,21 +131,18 @@ class BridgeTask {
   }
 
   async _checkSmg() {
-    // check timeout
-    let curTime = tool.getCurTimestamp(true);
-    if (curTime >= this._smg.endTime) {
-      return "Smg timeout";
-    }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    // this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-    // console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
-    // let amount = new BigNumber(this._amount);
-    // if (amount.lt(this._quota.minQuota)) {
-    //   return "Less than minQuota";
-    // } else if (amount.gt(this._quota.maxQuota)) {
-    //   return "Exceed maxQuota";
-    // }
+    if (this._smg.changed) { // optimize for mainnet getQuota performance issue
+      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
+      console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
+      let amount = new BigNumber(this._amount);
+      if (amount.lt(this._quota.minQuota)) {
+        return "Less than minQuota";
+      } else if (amount.gt(this._quota.maxQuota)) {
+        return "Exceed maxQuota";
+      }      
+    }
     // check activating balance
     let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(fromChainType);
     if (chainInfo.minReserved) {
