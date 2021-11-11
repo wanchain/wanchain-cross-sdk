@@ -37,6 +37,9 @@ class BridgeTask {
       this._fromChainInfo = toChainInfo;
       this._toChainInfo = fromChainInfo;
     }
+    // smg info
+    this._smg = null;
+    this._secp256k1Gpk = '';
     // server side para
     this._quota = null;
     this._fee = null;
@@ -48,10 +51,6 @@ class BridgeTask {
 
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
-
-    this._smg = await this._bridge.getSmgInfo();
-    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
-
     let [validWallet, feeErr, smgErr] = await Promise.all([
       this._bridge.checkWallet(this._assetPair, this._direction, this._wallet),
       this._checkFee(),
@@ -131,6 +130,9 @@ class BridgeTask {
   }
 
   async _checkSmg() {
+    // get active smg
+    this._smg = await this._bridge.getSmgInfo();
+    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
     if (this._smg.changed) { // optimize for mainnet getQuota performance issue
