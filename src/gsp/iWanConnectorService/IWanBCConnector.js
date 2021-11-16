@@ -5,7 +5,6 @@ let iWanClient = require('../libs/iWan-js-sdk/apis/apiInstance.js');
 class IWanBCConnector {
     constructor(option) {
         this.m_iWanOption = option;
-
         this.apiClient = null;
         this.m_biWanConnected = false;
     }
@@ -13,6 +12,7 @@ class IWanBCConnector {
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
         this.m_eventService = frameworkService.getService("EventService");
+        this.configService = this.m_frameworkService.getService("ConfigService");
 
         let iwanInstAry = [];
         for (let idx = 0; idx < this.m_iWanOption.options.length; ++idx) {
@@ -158,11 +158,12 @@ class IWanBCConnector {
     }
 
     async getErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
+        let abi = this.configService.getAbi(scAbi);
         let ret = await this.apiClient.callScFunc(chain,
             scAddr,
             "allowance",
             [ownerAddr, spenderAddr],
-            scAbi);
+            abi);
         return ret;
     }
 

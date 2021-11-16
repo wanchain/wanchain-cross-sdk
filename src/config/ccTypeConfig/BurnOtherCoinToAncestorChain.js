@@ -60,15 +60,17 @@ module.exports = class BurnOtherCoinToAncestorChain {
     this.m_WebStores = frameworkService.getService("WebStores");
     this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+    this.configService = this.m_frameworkService.getService("ConfigService");
   }
 
   async checkErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chain);
+    let abi = this.configService.getAbi(scAbi);
     let ret = await this.m_iwanBCConnector.callScFunc(chain,
       scAddr,
       "allowance",
       [ownerAddr, spenderAddr],
-      scAbi);
+      abi);
     console.log("checkErc20Allowance chain:", chain, "blockNumber:", blockNumber, "allowance:", ret);
     return ret;
   }
