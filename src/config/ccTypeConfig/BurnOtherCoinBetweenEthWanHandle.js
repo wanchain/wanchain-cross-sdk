@@ -28,16 +28,6 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
     this.configService = this.m_frameworkService.getService("ConfigService");
   }
 
-  async checkErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
-    let abi = this.configService.getAbi(scAbi);
-    let ret = await this.m_iwanBCConnector.callScFunc(chain,
-      scAddr,
-      "allowance",
-      [ownerAddr, spenderAddr],
-      abi);
-    return ret;
-  }
-
   async process(tokenPairObj, convertJson) {
     let globalConstant = this.m_frameworkService.getService("GlobalConstant");
 
@@ -71,7 +61,7 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle {
       "fee": new BigNumber(0)
     };
     console.debug("BurnOtherCoinBetweenEthWanHandle erc20ApproveParaJson params: %O", erc20ApproveParaJson);
-    let allowance = await this.checkErc20Allowance(tokenPairObj.toChainType,
+    let allowance = await this.m_iwanBCConnector.getErc20Allowance(tokenPairObj.toChainType,
       tokenPairObj.toAccount,
       convertJson.fromAddr,
       tokenPairObj.toScInfo.crossScAddr,
