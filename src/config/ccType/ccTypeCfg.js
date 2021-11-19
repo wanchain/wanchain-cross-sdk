@@ -16,7 +16,4 @@ const CCTypeConfigRegistry = {
   ccType_coins: CCTypeConfig_Y,
 };
 
-
-
-
 export default CCTypeConfigRegistry;

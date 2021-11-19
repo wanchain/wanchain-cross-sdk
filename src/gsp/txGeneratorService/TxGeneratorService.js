@@ -22,9 +22,20 @@ module.exports = class TxGeneratorService{
             let erc20Inst = new web3.eth.Contract(abi, ecr20Address.toLowerCase());
             let txData = erc20Inst.methods.approve(spenderAddress.toLowerCase(), value).encodeABI();
             return txData;
+        } catch (err) {
+            console.log("generatorErc20ApproveData error: %O", err);
         }
-        catch (err) {
-            console.log("generatorErc20ApproveData err:", err);
+    }
+
+    // erc721 approve
+    async generatorErc721ApproveData(tokenAddress, tokenAbiName, operator, tokenId) {
+        try {
+            let abi = this.configService.getAbi(tokenAbiName);
+            let sc = new web3.eth.Contract(abi, tokenAddress.toLowerCase());
+            let txData = sc.methods.setApprovalForAll(operator.toLowerCase(), true).encodeABI();
+            return txData;
+        } catch (err) {
+            console.error("generatorErc721ApproveData error: %O", err);
         }
     }
 

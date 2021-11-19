@@ -10,7 +10,8 @@ const config = {
 
 const abis = {
   "crossSc": require("../../config/abi/crossDelegate.json"),
-  "erc20": require("../../config/abi/erc20.json")
+  "erc20": require("../../config/abi/erc20.json"),
+  "erc721": require("../../config/abi/erc721.json")
 }
 
 module.exports = class ConfigService extends ConfigServiceInterface {

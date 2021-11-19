@@ -232,7 +232,6 @@ class BridgeTask {
 
   async _parseTaskStatus(ccTaskStepsArray) {
     console.debug("bridgeTask _parseTaskStatus at %s ms", tool.getCurTimestamp());
-
     console.log("task %s steps: %d", this.id, ccTaskStepsArray.length);
     let curStep = 0, executedStep = -1, stepTxHash = "";
     for (; curStep < ccTaskStepsArray.length; ) {

@@ -30,6 +30,7 @@ class AssetPairs {
           toChainName: pair.toChainName,     // to Chain Name
           fromAccount: pair.fromAccount,     // from Chain token account
           toAccount: pair.toAccount,         // to Chain token account
+          protocol: pair.protocol
         }
       });
       this.assetPairList = pairList.sort(this.sortBy);

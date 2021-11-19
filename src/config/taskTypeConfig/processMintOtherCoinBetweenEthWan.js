@@ -66,10 +66,9 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr, txValue, scData, params.fromAddr);
             await this.sendTransactionData(paramsJson, txData, wallet);
             return;
-        }
-        catch (err) {
-            console.error("ProcessErc20UserFastMint process err: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
+        } catch (err) {
+            console.error("ProcessErc20UserFastMint error: %O", err);
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");
         }
     }
 

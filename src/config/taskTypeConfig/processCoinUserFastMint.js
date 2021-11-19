@@ -34,8 +34,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             await this.sendTransactionData(paramsJson, txData, wallet);
             return;
         } catch (err) {
-            console.error("ProcessCoinUserFastMint process err: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
+            console.error("ProcessCoinUserFastMint error: %O", err);
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");
         }
     }
 

@@ -57,10 +57,9 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
       await this.sendTransactionData(paramsJson, txData, wallet);
       return;
-    }
-    catch (err) {
-      console.log("ProcessBurnErc20ProxyToken process err: %O", err);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
+    } catch (err) {
+      console.error("ProcessBurnErc20ProxyToken error: %O", err);
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");
     }
   }
 
