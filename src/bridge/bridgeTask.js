@@ -122,7 +122,7 @@ class BridgeTask {
 
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    if (new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
+    if ((this._fee.networkFee.isRatio === false) && new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
       console.error("Amount is too small to pay the fee: %s %s", this._fee.networkFee.value, this._fromChainInfo.symbol);
       return "Amount is too small to pay the fee";
     }

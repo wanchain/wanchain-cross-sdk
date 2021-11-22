@@ -143,14 +143,14 @@ class WanBridge extends EventEmitter {
     let operateFeeUnit = '', networkFeeUnit = '';
     if (direction == 'MINT') {
       operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
       operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     }
     let fee = {
-      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee},
-      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee}
+      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
+      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
     };
     console.debug("estimateFee: %O", fee);
     return fee;

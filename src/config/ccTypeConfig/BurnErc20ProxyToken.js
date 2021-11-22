@@ -74,7 +74,9 @@ module.exports = class BurnErc20ProxyToken {
       retAry.push({ "name": "erc20Approve", "stepIndex": retAry.length + 1, "title": this.m_strApproveValueTitle, "desc": this.m_strApproveValueDesc, "params": erc20ApproveParaJson });
     }
 
-    //   function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
+    // function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
+    let networkFeeInfo = convertJson.fee.networkFee;
+    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed() : networkFeeInfo.rawValue;
     let userFastBurnParaJson = {
       "ccTaskId": convertJson.ccTaskId,
       "fromAddr": convertJson.fromAddr,
@@ -90,7 +92,7 @@ module.exports = class BurnErc20ProxyToken {
       "taskType": "ProcessBurnErc20ProxyToken",
       "fee": convertJson.fee.operateFee.rawValue,
       "tokenAccount": poolToken,
-      "userBurnFee": convertJson.fee.networkFee.rawValue
+      "userBurnFee": networkFeeValue
     };
     console.debug("BurnErc20ProxyToken userFastBurnParaJson params: %O", userFastBurnParaJson);
     retAry.push({ "name": "userFastBurnParaJson", "stepIndex": retAry.length + 1, "title": this.m_strBurnTitle, "desc": this.m_strBurnDesc, "params": userFastBurnParaJson });
