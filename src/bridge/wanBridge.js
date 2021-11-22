@@ -84,7 +84,7 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("wanBridge createTask at %s ms", tool.getCurTimestamp());
+    console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());
     
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
