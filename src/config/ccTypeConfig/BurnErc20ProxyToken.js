@@ -76,7 +76,7 @@ module.exports = class BurnErc20ProxyToken {
 
     // function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
     let networkFeeInfo = convertJson.fee.networkFee;
-    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed() : networkFeeInfo.rawValue;
+    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed(0) : networkFeeInfo.rawValue;
     let userFastBurnParaJson = {
       "ccTaskId": convertJson.ccTaskId,
       "fromAddr": convertJson.fromAddr,
