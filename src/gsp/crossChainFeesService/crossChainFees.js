@@ -41,10 +41,11 @@ module.exports = class crossChainFees {
         let originFeeBN = new BigNumber(mintFees.lockFee);
         let feeBN = originFeeBN.div(Math.pow(10, tokenPairObj.fromScInfo.chainDecimals));
         let ret = {
-            "fee": feeBN.toFixed(),
-            "feeBN": feeBN,
-            "originFee": originFeeBN.toFixed(),
-            "originFeeBN": originFeeBN
+            fee: feeBN.toFixed(),
+            feeBN: feeBN,
+            originFee: originFeeBN.toFixed(),
+            originFeeBN: originFeeBN,
+            isRatio: false
         };
         //console.log("getMintServcieFees ret:", ret);
         return ret;
@@ -64,10 +65,11 @@ module.exports = class crossChainFees {
         let originFeeBN = new BigNumber(burnFees.lockFee);
         let feeBN = originFeeBN.div(Math.pow(10, tokenPairObj.toScInfo.chainDecimals));
         let ret = {
-            "fee": feeBN.toFixed(),
-            "feeBN": feeBN,
-            "originFee": originFeeBN.toFixed(),
-            "originFeeBN": originFeeBN
+            fee: feeBN.toFixed(),
+            feeBN: feeBN,
+            originFee: originFeeBN.toFixed(),
+            originFeeBN: originFeeBN,
+            isRatio: false
         };
         //console.log("getBurnServiceFees ret:", ret);
         return ret;
@@ -100,10 +102,11 @@ module.exports = class crossChainFees {
         }
         else {
             return {
-                "fee": 0,
-                "feeBN": new BigNumber(0),
-                "originFee": 0,
-                "originFeeBN": new BigNumber(0)
+                fee: 0,
+                feeBN: new BigNumber(0),
+                originFee: 0,
+                originFeeBN: new BigNumber(0),
+                isRatio: false
             };
         }
     }
@@ -120,28 +123,33 @@ module.exports = class crossChainFees {
         }
         else {
             return {
-                "fee": 0,
-                "feeBN": new BigNumber(0),
-                "originFee": 0,
-                "originFeeBN": new BigNumber(0)
+                fee: 0,
+                feeBN: new BigNumber(0),
+                originFee: 0,
+                originFeeBN: new BigNumber(0),
+                isRatio: false
             };
         }
-
     }
 
     async getBurnNetworkFee(tokenPairObj) {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let fee = await iwanBCConnector.estimateNetworkFee(tokenPairObj.fromChainType, "release", tokenPairObj.toChainType);
         let feeBN = new BigNumber(fee);
+        console.log("getBurnNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
         let originFee = fee;
         let originFeeBN = feeBN;
-        feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.toDecimals)));
+        let isRatio = (tokenPairObj.id == 66)? true : false;
+        if (!isRatio) {
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.toDecimals)));
+        }
         fee = feeBN.toFixed();
         return {
-            "fee": fee,
-            "feeBN": feeBN,
-            "originFee": originFee,
-            "originFeeBN": originFeeBN
+            fee: fee,
+            feeBN: feeBN,
+            originFee: originFee,
+            originFeeBN: originFeeBN,
+            isRatio
         };
     }
 
@@ -149,15 +157,20 @@ module.exports = class crossChainFees {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let fee = await iwanBCConnector.estimateNetworkFee(tokenPairObj.fromChainType, "lock", tokenPairObj.toChainType);
         let feeBN = new BigNumber(fee);
+        console.log("getMintNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
         let originFee = fee;
         let originFeeBN = feeBN;
-        feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.fromDecimals)));
+        let isRatio = (tokenPairObj.id == 66)? true : false;
+        if (!isRatio) {
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.fromDecimals)));
+        }
         fee = feeBN.toFixed();
         return {
-            "fee": fee,
-            "feeBN": feeBN,
-            "originFee": originFee,
-            "originFeeBN": originFeeBN
+            fee: fee,
+            feeBN: feeBN,
+            originFee: originFee,
+            originFeeBN: originFeeBN,
+            isRatio
         };
     }
 };
