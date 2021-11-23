@@ -205,6 +205,7 @@ class WanBridge extends EventEmitter {
           fromChain: task.fromChainName,
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
+          decimals: task.decimals,
           receivedAmount: task.receivedAmount,
           fee: task.fee,
           fromAccount: task.fromAccount,
@@ -320,6 +321,11 @@ class WanBridge extends EventEmitter {
       }
       if (ccTask.fee.operateFee.unit === ccTask.assetType) {
         receivedAmount = receivedAmount.minus(ccTask.fee.operateFee.value);
+      }
+    } else {
+      if (ccTask.fee.networkFee.isRatio) { // layer 2 network fee
+        let fee = receivedAmount.times(ccTask.fee.networkFee.value).toFixed(ccTask.decimals);
+        receivedAmount = receivedAmount.minus(fee);
       }
     }
     records.modifyTradeTaskStatus(taskId, status, errInfo);

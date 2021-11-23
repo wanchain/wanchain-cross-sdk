@@ -99,7 +99,7 @@ class BridgeTask {
     this._task.setFee(this._fee);
     this._task.setOtaTx(!this._wallet);
     this._task.setTaskAccounts(this._fromAccount, this._toAccount);
-    this._task.setTaskAmount(this._amount);
+    this._task.setTaskAmount(this._amount, assetPair.decimals);
 
     // build steps
     console.debug("bridgeTask _checkTaskSteps at %s ms", tool.getCurTimestamp());
