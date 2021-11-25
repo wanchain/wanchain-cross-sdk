@@ -10,7 +10,6 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     async process(paramsJson, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
-
         let params = paramsJson.params;
         try {
             if (!(await this.checkChainId(paramsJson, wallet))) {

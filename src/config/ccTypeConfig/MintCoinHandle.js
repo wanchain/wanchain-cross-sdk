@@ -37,7 +37,6 @@ module.exports = class MintCoinHandle {
       { "name": "userFastMint", "stepIndex": 1, "title": this.m_strMintTitle, "desc": this.m_strMintDesc, "params": userFastMintParaJson }
     ];
     this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, ret);
-    //console.log("MintCoinHandle ret:", ret);
     return {
       stepNum: ret.length,
       errCode: null

@@ -7,7 +7,7 @@ module.exports = class CCTypeHandleInterface {
     }
   }
 
-  async process(tokenPairObj, convertJson) {
+  async process(tokenPair, convert) {
     throw new Error("Abstract method!");
   }
 };

@@ -1,6 +1,7 @@
 'use strict';
-let BigNumber = require("bignumber.js");
-let ProcessBase = require("./processBase.js");
+
+const BigNumber = require("bignumber.js");
+const ProcessBase = require("./processBase.js");
 
 module.exports = class ProcessCoinUserFastMint extends ProcessBase {
     constructor(frameworkService) {
@@ -10,17 +11,11 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
     async process(paramsJson, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
-
         let params = paramsJson.params;
         try {
             if (!(await this.checkChainId(paramsJson, wallet))) {
                 return;
             }
-
-            if (typeof params.value === "string") {
-                params.value = new BigNumber(params.value);
-            }
-            // 校验balance
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
                 params.crossScAbi,
@@ -28,11 +23,9 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 params.tokenPairID,
                 params.value,
                 params.userAccount);
-
             let txValue = params.value.plus(params.fee);
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr);
             await this.sendTransactionData(paramsJson, txData, wallet);
-            return;
         } catch (err) {
             console.error("ProcessCoinUserFastMint error: %O", err);
             this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");

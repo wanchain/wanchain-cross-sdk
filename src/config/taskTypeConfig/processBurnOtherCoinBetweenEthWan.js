@@ -1,7 +1,6 @@
 'use strict';
 
-let BigNumber = require("bignumber.js");
-let ProcessBase = require("./processBase.js");
+const ProcessBase = require("./processBase.js");
 
 module.exports = class ProcessBurnOtherCoinBetweenEthWan extends ProcessBase {
     constructor(frameworkService) {
@@ -11,30 +10,11 @@ module.exports = class ProcessBurnOtherCoinBetweenEthWan extends ProcessBase {
     async process(paramsJson, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
-
         let params = paramsJson.params;
         try {
             if (!(await this.checkChainId(paramsJson, wallet))) {
                 return;
             }
-
-            if (typeof params.value === "string") {
-                params.value = new BigNumber(params.value);
-            }
-            let stroemanService = this.m_frameworkService.getService("StoremanService");
-            let tokenPair = await stroemanService.getTokenPairObjById(params.tokenPairID);
-            let allowance = await this.m_iwanBCConnector.getErc20Allowance(
-                params.scChainType,
-                tokenPair.toAccount,
-                params.fromAddr,
-                params.crossScAddr,
-                tokenPair.toScInfo.erc20AbiJson);
-            let bn_allowance = new BigNumber(allowance);
-            if (bn_allowance.isLessThan(params.value)) {
-                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
-                return;
-            }
-
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
                 params.crossScAbi,
@@ -44,11 +24,9 @@ module.exports = class ProcessBurnOtherCoinBetweenEthWan extends ProcessBase {
                 params.userBurnFee,
                 params.tokenAccount,
                 params.userAccount);
-
             let txValue = params.fee;
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
             await this.sendTransactionData(paramsJson, txData, wallet);
-            return;
         } catch (err) {
             console.error("ProcessBurnOtherCoinBetweenEthWan error: %O", err);
             this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");

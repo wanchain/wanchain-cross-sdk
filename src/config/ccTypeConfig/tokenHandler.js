@@ -1,8 +1,11 @@
 'use strict';
 
 const BigNumber = require("bignumber.js");
+const Web3 = require("web3");
 
-module.exports = class TokenBaseHandle { // ERC20 & ERC721
+const web3 = new Web3();
+
+module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & ERC721
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = frameworkService.getService("WebStores");
@@ -46,7 +49,7 @@ module.exports = class TokenBaseHandle { // ERC20 & ERC721
       taskType: "ProcessErc20Approve",
       fee: new BigNumber(0)
     };
-    console.debug("TokenBaseHandle buildErc20Approve %s params: %O", convert.convertType, approveParams);
+    console.debug("TokenHandler buildErc20Approve %s params: %O", convert.convertType, approveParams);
     let allowance = await this.iWanConnectorService.getErc20Allowance(chainInfo.chainType,
       tokenSc,
       convert.fromAddr,
@@ -97,14 +100,14 @@ module.exports = class TokenBaseHandle { // ERC20 & ERC721
         taskType: "ProcessErc721Approve",
         fee: new BigNumber(0)
       };
-      console.debug("TokenBaseHandle buildErc721Approve params: %O", params);
+      console.debug("TokenHandler buildErc721Approve params: %O", params);
       let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
       let approveValueDesc = this.uiStrService.getStrByName("approveValueDesc");
       steps.push({name: "erc721Approve", stepIndex: steps.length + 1, title: approveValueTitle, desc: approveValueDesc, params});
     }
   }
 
-  async buildUserFastMint(steps, tokenPair, convert) {
+  async buildUserFastMint(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.fromScInfo;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
     let params = {
@@ -119,8 +122,10 @@ module.exports = class TokenBaseHandle { // ERC20 & ERC721
       tokenPairID: convert.tokenPairId,
       value,
       userAccount: convert.toAddr,
-      taskType: "ProcessErc20UserFastMint",
-      fee: convert.fee.operateFee.rawValue
+      taskType,
+      fee: convert.fee.operateFee.rawValue,
+      tokenAccount: tokenPair.fromAccount,
+      userBurnFee: convert.fee.networkFee.rawValue
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
     let mintTitle = this.uiStrService.getStrByName("MintTitle");
@@ -128,7 +133,7 @@ module.exports = class TokenBaseHandle { // ERC20 & ERC721
     steps.push({name: "userFastMint", stepIndex: steps.length + 1, title: mintTitle, desc: mintDesc, params});
   }
 
-  async buildUserFastBurn(steps, tokenPair, convert) {
+  async buildUserFastBurn(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.toScInfo;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals));
     let params = {
@@ -143,11 +148,18 @@ module.exports = class TokenBaseHandle { // ERC20 & ERC721
       tokenPairID: convert.tokenPairId,
       value,
       userAccount: convert.toAddr,
-      taskType: "ProcessErc20UserFastBurn",
+      taskType,
       fee: convert.fee.operateFee.rawValue,
       tokenAccount: tokenPair.toAccount,
       userBurnFee: convert.fee.networkFee.rawValue
     };
+    let isEvmAddr = /^0x[0-9a-fA-F]{40}$/.test(convert.toAddr);
+    if (isEvmAddr) {
+      params.userAccount = convert.toAddr;
+    } else {
+      params.toAddr = convert.toAddr;
+      params.userAccount = web3.utils.asciiToHex(convertJson.toAddr);
+    }
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");
     let burnDesc = this.uiStrService.getStrByName("BurnDesc");
@@ -172,7 +184,7 @@ module.exports = class TokenBaseHandle { // ERC20 & ERC721
         errCode: null
       };
     } else {
-      console.error("TokenBaseHandle task %d insufficient gas", convert.ccTaskId);
+      console.error("TokenHandler task %d insufficient gas", convert.ccTaskId);
       this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {
         stepNum: 0,
