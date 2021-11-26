@@ -2,12 +2,15 @@
 
 const _ = require('lodash');
 const ConfigServiceInterface = require("./configServiceInterface");
-const crossScAbiJson = require("../../config/abi/abi.CrossDelegate.json");
-const erc20AbiJson = require("../../config/abi/erc20.abi.json");
 
 const config = {
   "mainnet": require("../../config/config_mainnet.json"),
   "testnet": require("../../config/config_testnet.json")
+}
+
+const abis = {
+  "crossSc": require("../../config/abi/crossDelegate.json"),
+  "erc20": require("../../config/abi/erc20.json")
 }
 
 module.exports = class ConfigService extends ConfigServiceInterface {
@@ -19,14 +22,18 @@ module.exports = class ConfigService extends ConfigServiceInterface {
         this.network = network;
         this.m_confgJson = config[network];
         this.m_confgJson.StoremanService.forEach(chainInfo => {
-            chainInfo.crossScAbiJson = crossScAbiJson;
-            chainInfo.erc20AbiJson = erc20AbiJson; 
+            chainInfo.crossScAbiJson = "crossSc";
+            chainInfo.erc20AbiJson = "erc20"; 
         })
         // console.log(this.m_confgJson);
     }
 
     getNetwork() {
         return this.network;
+    }
+
+    getAbi(contractName) {
+        return abis[contractName];
     }
 
     async getConfig(serviceName, propertyPath) {

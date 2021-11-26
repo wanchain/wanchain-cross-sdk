@@ -20,8 +20,6 @@ class BridgeTask {
     this._toAccount = toAccount;
     this._amount = new BigNumber(amount).toFixed();
     this._wallet = wallet;
-    this._smg = assetPair.smgs[this._bridge.smgIndex % assetPair.smgs.length];
-    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
       chainType: assetPair.fromChainType,
@@ -39,6 +37,9 @@ class BridgeTask {
       this._fromChainInfo = toChainInfo;
       this._toChainInfo = fromChainInfo;
     }
+    // smg info
+    this._smg = null;
+    this._secp256k1Gpk = '';
     // server side para
     this._quota = null;
     this._fee = null;
@@ -50,7 +51,6 @@ class BridgeTask {
 
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
-
     let [validWallet, feeErr, smgErr] = await Promise.all([
       this._bridge.checkWallet(this._assetPair, this._direction, this._wallet),
       this._checkFee(),
@@ -99,7 +99,7 @@ class BridgeTask {
     this._task.setFee(this._fee);
     this._task.setOtaTx(!this._wallet);
     this._task.setTaskAccounts(this._fromAccount, this._toAccount);
-    this._task.setTaskAmount(this._amount);
+    this._task.setTaskAmount(this._amount, assetPair.decimals);
 
     // build steps
     console.debug("bridgeTask _checkTaskSteps at %s ms", tool.getCurTimestamp());
@@ -122,7 +122,7 @@ class BridgeTask {
 
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    if (new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
+    if ((this._fee.networkFee.isRatio === false) && new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
       console.error("Amount is too small to pay the fee: %s %s", this._fee.networkFee.value, this._fromChainInfo.symbol);
       return "Amount is too small to pay the fee";
     }
@@ -130,21 +130,21 @@ class BridgeTask {
   }
 
   async _checkSmg() {
-    // check timeout
-    let curTime = tool.getCurTimestamp(true);
-    if (curTime >= this._smg.endTime) {
-      return "Smg timeout";
-    }
+    // get active smg
+    this._smg = await this._bridge.getSmgInfo();
+    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    // this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-    // console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
-    // let amount = new BigNumber(this._amount);
-    // if (amount.lt(this._quota.minQuota)) {
-    //   return "Less than minQuota";
-    // } else if (amount.gt(this._quota.maxQuota)) {
-    //   return "Exceed maxQuota";
-    // }
+    if (this._smg.changed) { // optimize for mainnet getQuota performance issue
+      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
+      console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
+      let amount = new BigNumber(this._amount);
+      if (amount.lt(this._quota.minQuota)) {
+        return "Less than minQuota";
+      } else if (amount.gt(this._quota.maxQuota)) {
+        return "Exceed maxQuota";
+      }      
+    }
     // check activating balance
     let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(fromChainType);
     if (chainInfo.minReserved) {

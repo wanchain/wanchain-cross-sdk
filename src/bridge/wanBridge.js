@@ -48,6 +48,21 @@ class WanBridge extends EventEmitter {
     return this.stores.assetPairs.isReady();
   }
 
+  async getSmgInfo() {
+    let changed = false;
+    let smgs = this.stores.assetPairs.smgList;
+    let smg = smgs[this.smgIndex % smgs.length];
+    let curTime = tool.getCurTimestamp(true);
+    if (curTime >= smg.endTime) {
+      console.log("smg %s timeout and update smgs", smg.id);
+      await this.storemanService.updateSmgs();
+      smgs = this.stores.assetPairs.smgList;
+      smg = smgs[this.smgIndex % smgs.length];
+      changed = true; // optimize for mainnet getQuota performance issue
+    }
+    return Object.assign({}, smg, {changed});
+  }
+
   async checkWallet(assetPair, direction, wallet) {
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
@@ -69,7 +84,7 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("wanBridge createTask at %s ms", tool.getCurTimestamp());
+    console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());
     
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
@@ -128,14 +143,14 @@ class WanBridge extends EventEmitter {
     let operateFeeUnit = '', networkFeeUnit = '';
     if (direction == 'MINT') {
       operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
       operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     }
     let fee = {
-      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee},
-      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee}
+      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
+      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
     };
     console.debug("estimateFee: %O", fee);
     return fee;
@@ -144,8 +159,9 @@ class WanBridge extends EventEmitter {
   async getQuota(assetPair, direction) {
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, assetPair.smgs[this.smgIndex % assetPair.smgs.length].id);
-    console.debug("getQuota: %O", quota);
+    let smg = await this.getSmgInfo();
+    let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
+    console.debug("getQuota(smg %s): %O", smg.id, quota);
     return quota;
   }
 
@@ -189,6 +205,7 @@ class WanBridge extends EventEmitter {
           fromChain: task.fromChainName,
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
+          decimals: task.decimals,
           receivedAmount: task.receivedAmount,
           fee: task.fee,
           fromAccount: task.fromAccount,
@@ -225,7 +242,7 @@ class WanBridge extends EventEmitter {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
       this.emit("ready", assetPairList);
-      console.debug("WanBridge is ready for %d assetPairs", assetPairList.length);
+      console.debug("WanBridge is ready for %d assetPairs and %d smgs", assetPairList.length, this.stores.assetPairs.smgList.length);
     } else {
       this.emit("error", {reason: "Failed to initialize storeman"});
       console.error("WanBridge has error");
@@ -304,6 +321,11 @@ class WanBridge extends EventEmitter {
       }
       if (ccTask.fee.operateFee.unit === ccTask.assetType) {
         receivedAmount = receivedAmount.minus(ccTask.fee.operateFee.value);
+      }
+    } else {
+      if (ccTask.fee.networkFee.isRatio) { // layer 2 network fee
+        let fee = receivedAmount.times(ccTask.fee.networkFee.value).toFixed(ccTask.decimals);
+        receivedAmount = receivedAmount.minus(fee);
       }
     }
     records.modifyTradeTaskStatus(taskId, status, errInfo);

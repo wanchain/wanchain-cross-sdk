@@ -7,15 +7,7 @@ module.exports = class MintErc20Handle {
     this.m_WebStores = frameworkService.getService("WebStores");
     this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-  }
-
-  async checkErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
-    let ret = await this.m_iwanBCConnector.callScFunc(chain,
-      scAddr,
-      "allowance",
-      [ownerAddr, spenderAddr],
-      scAbi);
-    return ret;
+    this.configService = this.m_frameworkService.getService("ConfigService");
   }
 
   async process(tokenPairObj, convertJson) {
@@ -50,7 +42,7 @@ module.exports = class MintErc20Handle {
       "fee": new BigNumber(0)
     };
     console.debug("MintErc20Handle erc20ApproveParaJson params: %O", erc20ApproveParaJson);
-    let allowance = await this.checkErc20Allowance(tokenPairObj.fromChainType,
+    let allowance = await this.m_iwanBCConnector.getErc20Allowance(tokenPairObj.fromChainType,
       tokenPairObj.fromAccount,
       convertJson.fromAddr,
       tokenPairObj.fromScInfo.crossScAddr,

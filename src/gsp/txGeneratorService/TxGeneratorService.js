@@ -11,13 +11,15 @@ module.exports = class TxGeneratorService{
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
         this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+        this.configService = this.m_frameworkService.getService("ConfigService");
     }
 
     // erc20 approve
     async generatorErc20ApproveData(ecr20Address, erc20AbiJson, spenderAddress, value) {
         try {
             value = "0x" + new BigNumber(value).toString(16);
-            let erc20Inst = new web3.eth.Contract(erc20AbiJson, ecr20Address.toLowerCase());
+            let abi = this.configService.getAbi(erc20AbiJson);
+            let erc20Inst = new web3.eth.Contract(abi, ecr20Address.toLowerCase());
             let txData = erc20Inst.methods.approve(spenderAddress.toLowerCase(), value).encodeABI();
             return txData;
         }
@@ -56,7 +58,8 @@ module.exports = class TxGeneratorService{
 
     async generateUserLockData(crossScAddr, crossScAbiJson, smgID, tokenPairID, value, userAccount) {
         value = "0x" + new BigNumber(value).toString(16);
-        let crossScInst = new web3.eth.Contract(crossScAbiJson, crossScAddr.toLowerCase());
+        let abi = this.configService.getAbi(crossScAbiJson);
+        let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
         let txData = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
         return txData;
     }
@@ -64,7 +67,8 @@ module.exports = class TxGeneratorService{
     async generateUserBurnData(crossScAddr, crossScAbiJson, smgID, tokenPairID, value, fee, tokenAccount, userAccount) {
         value = "0x" + new BigNumber(value).toString(16);
         fee = "0x" + new BigNumber(fee).toString(16);
-        let crossScInst = new web3.eth.Contract(crossScAbiJson, crossScAddr.toLowerCase());
+        let abi = this.configService.getAbi(crossScAbiJson);
+        let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
         let txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
         return txData;
     }

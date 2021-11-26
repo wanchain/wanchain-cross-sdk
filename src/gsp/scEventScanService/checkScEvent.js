@@ -22,6 +22,8 @@ module.exports = class CheckScEvent {
         this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
         this.m_eventService = this.m_frameworkService.getService("EventService");
         this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
+        let configService = this.m_frameworkService.getService("ConfigService");
+        this.crossScAbi = configService.getAbi(this.m_chainInfo.crossScAbiJson);
     }
 
     async onDeleteTask(ccTaskId) {
@@ -110,67 +112,65 @@ module.exports = class CheckScEvent {
         }
     }
 
-    parseLogs(logs, abi) {
-        if (logs === null || !Array.isArray(logs)) {
-            return logs;
-        }
-        return logs.map(function (log) {
-            let abiJson = abi.find(function (json) {
-                return (json.type === 'event' && web3.eth.abi.encodeEventSignature(json) === log.topics[0]);
-            });
-
-            if (abiJson) {
-                try {
-                    //topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
-                    log.topics.splice(0, 1);
-                    let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, log.topics);
-                    for (var index = 0; index < abiJson.inputs.length; index++) {
-                        if (args.hasOwnProperty(index)) {
-                            delete args[index];
-                        }
-                    }
-                    log.eventName = abiJson.name;
-                    log.args = args;
-                    return log;
-                } catch (err) {
-                    console.log(err);
-                    return log;
-                }
-            } else {
-                return log;
-            }
-        });
-    }
-
-    getSmgMintLoggerTopics() {
-        let eventHash = this.getEventHash("SmgMintLogger", this.m_chainInfo.crossScAbiJson);
-        return eventHash;
-    }
-
-    getSmgReleaseLoggerTopics() {
-        let eventHash = this.getEventHash("SmgReleaseLogger", this.m_chainInfo.crossScAbiJson);
-        return eventHash;
-    }
-
-    getEventHash(eventName, contractAbi) {
-        return '0x' + wanUtil.sha3(this.getcommandString(eventName, contractAbi)).toString('hex');
-    }
-
-    getcommandString(funcName, contractAbi) {
-        for (var i = 0; i < contractAbi.length; ++i) {
-            let item = contractAbi[i];
-            if (item.name == funcName) {
-                let command = funcName + '(';
-                for (var j = 0; j < item.inputs.length; ++j) {
-                    if (j != 0) {
-                        command = command + ',';
-                    }
-                    command = command + item.inputs[j].type;
-                }
-        command = command + ')';
-        return command;
+  parseLogs(logs, abi) {
+      if (logs === null || !Array.isArray(logs)) {
+          return logs;
       }
-    }
+      return logs.map(function (log) {
+          let abiJson = abi.find(function (json) {
+              return (json.type === 'event' && web3.eth.abi.encodeEventSignature(json) === log.topics[0]);
+          });
+
+          if (abiJson) {
+              try {
+                  //topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
+                  log.topics.splice(0, 1);
+                  let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, log.topics);
+                  for (var index = 0; index < abiJson.inputs.length; index++) {
+                      if (args.hasOwnProperty(index)) {
+                          delete args[index];
+                      }
+                  }
+                  log.eventName = abiJson.name;
+                  log.args = args;
+                  return log;
+              } catch (err) {
+                  console.log(err);
+                  return log;
+              }
+          } else {
+              return log;
+          }
+      });
+  }
+
+  getSmgMintLoggerTopics() {
+      let eventHash = this.getEventHash("SmgMintLogger");
+      return eventHash;
+  }
+
+  getSmgReleaseLoggerTopics() {
+      let eventHash = this.getEventHash("SmgReleaseLogger");
+      return eventHash;
+  }
+
+  getEventHash(eventName) {
+      let prototype = "";
+      for (let i = 0; i < this.crossScAbi.length; ++i) {
+          let item = this.crossScAbi[i];
+          if (item.name == eventName) {
+              prototype = eventName + '(';
+              for (let j = 0; j < item.inputs.length; ++j) {
+                  if (j != 0) {
+                    prototype = prototype + ',';
+                  }
+                  prototype = prototype + item.inputs[j].type;
+              }
+              prototype = prototype + ')';
+              break;
+          }
+      }
+      return '0x' + wanUtil.sha3(prototype).toString('hex');
   }
 
   async processScLogger(type, eventHash) {
@@ -216,7 +216,7 @@ module.exports = class CheckScEvent {
         "toBlock": toBlockNumber
       }
     );
-    let decodedEvts = this.parseLogs(events, this.m_chainInfo.crossScAbiJson);
+    let decodedEvts = this.parseLogs(events, this.crossScAbi);
     for (let i = 0; i < decodedEvts.length; ++i) {
       let args = decodedEvts[i].args;
       if (args.uniqueID.toLowerCase() === uniqueID.toLowerCase()) {

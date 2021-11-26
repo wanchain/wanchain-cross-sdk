@@ -16,6 +16,7 @@ class CrossChainTask {
       fromAccount: '', // the from account
       toAccount: '', // the to account
       amount: '',  // convert amount
+      decimals: 0,
       sentAmount: '', // actually sent amount
       receivedAmount: '', // final received amount
       status: '',
@@ -61,8 +62,9 @@ class CrossChainTask {
     this.ccTaskData.isOtaTx = isOtaTx;
   }
 
-  setTaskAmount(amount) {
+  setTaskAmount(amount, decimals) {
     this.ccTaskData.amount = amount;
+    this.ccTaskData.decimals = Number(decimals);
   }
 
   setTaskStepNums(stepNums) {
