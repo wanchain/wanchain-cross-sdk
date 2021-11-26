@@ -1,12 +1,14 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const Web3 = require("web3");
+const BigNumber = require("bignumber.js");
+const CCTypeHandleInterface = require("./CCTypeHandleInterface.js");
 
 const web3 = new Web3();
 
 module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & ERC721
   constructor(frameworkService) {
+    super();
     this.frameworkService = frameworkService;
     this.webStores = frameworkService.getService("WebStores");
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
@@ -158,7 +160,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       params.userAccount = convert.toAddr;
     } else {
       params.toAddr = convert.toAddr;
-      params.userAccount = web3.utils.asciiToHex(convertJson.toAddr);
+      params.userAccount = web3.utils.asciiToHex(convert.toAddr);
     }
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

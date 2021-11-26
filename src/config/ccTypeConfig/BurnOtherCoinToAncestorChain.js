@@ -1,6 +1,8 @@
 'use strict';
 
-module.exports = class BurnOtherCoinToAncestorChain {
+const TokenHandler = require("./tokenHandler.js");
+
+module.exports = class BurnOtherCoinToAncestorChain extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -13,4 +15,5 @@ module.exports = class BurnOtherCoinToAncestorChain {
     //console.log("BurnErc20Handle steps: %O", steps);
     let result = await this.checkGasFee(steps, tokenPair, convert);
     return result;
+  }
 }

@@ -17,4 +17,5 @@ module.exports = class BurnOtherCoinBetweenEthWanHandle extends TokenHandler {
     //console.log("BurnOtherCoinBetweenEthWanHandle steps: %O", steps);
     let result = await this.checkGasFee(steps, tokenPair, convert);
     return result;
+  }
 }

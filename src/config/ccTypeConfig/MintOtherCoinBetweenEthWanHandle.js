@@ -1,9 +1,8 @@
 'use strict';
 
-let BigNumber = require("bignumber.js");
+const TokenHandler = require("./tokenHandler.js");
 
-
-module.exports = class MintOtherCoinBetweenEthWanHandle {
+module.exports = class MintOtherCoinBetweenEthWanHandle extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -16,4 +15,5 @@ module.exports = class MintOtherCoinBetweenEthWanHandle {
     //console.log("MintErc20Handle steps: %O", steps);
     let result = await this.checkGasFee(steps, tokenPair, convert);
     return result;
+  }
 };
