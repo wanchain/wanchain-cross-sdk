@@ -261,13 +261,13 @@
   "tokenPairCfg": [
     {
       "id": "6",
-      "comment": "eos token between WAN<->ETH",
+      "comment": "EOS token between WAN<->ETH",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20"
     },
     {
       "id": "66",
-      "comment": "native token between Arbitrum<->Polygon",
+      "comment": "native USDT between Arbitrum<->Polygon",
       "mintHandle": "BurnErc20ProxyToken",
       "burnHandle": "BurnErc20ProxyToken",
       "fromNativeToken": "0xd4b5f10d61916bd6e0860144a91ac658de8a1437",
@@ -275,7 +275,7 @@
     },
     {
       "id": "74",
-      "comment": "Ethereum <-> Avalanche native token",
+      "comment": "Ethereum <-> Avalanche native VEE",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20ProxyToken",
       "toNativeToken": "0x4be13Aee4D6ce3CA7A20f411f0B9ba41D23b4835"
