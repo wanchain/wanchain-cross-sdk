@@ -21,6 +21,7 @@ class AssetPairs {
         return {
           assetPairId: pair.id,
           assetType: pair.ancestorSymbol,    // the ancestory symbol for this token
+          protocol: pair.protocol,           // token protocol, erc20 or erc721
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain
           toSymbol: pair.toSymbol,           // token symbol for toChain
           decimals: pair.decimals,           // the token decimals
@@ -30,7 +31,6 @@ class AssetPairs {
           toChainName: pair.toChainName,     // to Chain Name
           fromAccount: pair.fromAccount,     // from Chain token account
           toAccount: pair.toAccount,         // to Chain token account
-          protocol: pair.protocol
         }
       });
       this.assetPairList = pairList.sort(this.sortBy);

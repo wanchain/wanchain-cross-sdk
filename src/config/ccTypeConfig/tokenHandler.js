@@ -82,25 +82,21 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let value = convert.value; // tokenId
-    let approved = await this.iWanConnectorService.getErc721Approved(chainInfo.chainType,
-      tokenSc,
-      value,
-      convert.fromAddr,
-      chainInfo.crossScAddr,
-      chainInfo.erc721AbiName);
+    let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, chainInfo.crossScAddr);
     if (approved === false) {
+      let isOwner = await this.iWanConnectorService.checkErc721Ownership(chainInfo.chainType, tokenSc, value, convert.fromAddr, true);
       let params = {
         ccTaskId: convert.ccTaskId,
         fromAddr: convert.fromAddr,
         scChainType: chainInfo.chainType,
         tokenAddr: tokenSc,
-        tokenAbiName: chainInfo.erc721AbiName,
         gasPrice: chainInfo.gasPrice,
         gasLimit: chainInfo.erc20ApproveGasLimit,
         value,
         operator: chainInfo.crossScAddr,
         taskType: "ProcessErc721Approve",
-        fee: new BigNumber(0)
+        fee: new BigNumber(0),
+        isOwner
       };
       console.debug("TokenHandler buildErc721Approve params: %O", params);
       let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");

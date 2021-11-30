@@ -46,8 +46,7 @@ class StoremanService {
         await txTaskHandleService.processTxTask(taskParas, wallet);
     }
 
-    // assetPairId,Mint/Burn,addr
-    async getAccountBalance(assetPairId, type, addr, isCoin, toKeepAlive = false) { //WYH: TODO：这个调用频率如何？ ==》 好像不会呈 线性增长，还行，可以不优化
+    async getAccountBalance(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
@@ -55,7 +54,7 @@ class StoremanService {
                 return new BigNumber(0);
             }
             let balance, decimals, kaChainInfo = null;
-            if (isCoin) {
+            if (options.isCoin) {
                 if (type === "MINT") {
                     if (assetPair.fromChainType === "DOT") {
                         let polkadotService = this.m_frameworkService.getService("PolkadotService");
@@ -94,7 +93,7 @@ class StoremanService {
                 decimals = assetPair.ancestorDecimals;
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
-            if (kaChainInfo && toKeepAlive) {
+            if (kaChainInfo && options.toKeepAlive) {
                 if (kaChainInfo.minReserved) {
                     balance = balance.minus(kaChainInfo.minReserved);
                     if (balance.lt(0)) {
@@ -106,6 +105,23 @@ class StoremanService {
         } catch (err) {
             console.error("get assetPair %s type %s address %s balance error: %O", assetPairId, type, addr, err);
             return new BigNumber(0);
+        }
+    }
+
+    async checkAccountOwnership(assetPairId, type, addr, tokenId) {
+        try {
+            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+            let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
+            if (!assetPair) {
+                return false;
+            }
+            let chain = (type === "MINT")? assetPair.fromChainType : assetPair.toChainType;
+            let token = (type === "MINT")? assetPair.fromAccount : assetPair.toAccount;
+            let isOwnable = await this.m_iwanBCConnector.checkErc721Ownership(chain, token, tokenId, addr);
+            return isOwnable;
+        } catch (err) {
+            console.error("check assetPair %s type %s address %s ownership error: %O", assetPairId, type, addr, err);
+            return false;
         }
     }
 

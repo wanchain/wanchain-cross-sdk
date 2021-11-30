@@ -133,40 +133,42 @@ class BridgeTask {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
-    // check quota
-    let fromChainType = this._fromChainInfo.chainType;
-    if (this._smg.changed) { // optimize for mainnet getQuota performance issue
-      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-      console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
-      let amount = new BigNumber(this._amount);
-      if (amount.lt(this._quota.minQuota)) {
-        return "Less than minQuota";
-      } else if (amount.gt(this._quota.maxQuota)) {
-        return "Exceed maxQuota";
-      }      
-    }
-    // check activating balance
-    let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    if (chainInfo.minReserved) {
-      let smgAddr = ("XRP" === fromChainType)? this._getSmgXrpClassicAddress() : this._getSmgPolkaAddress();
-      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true, false);
-      console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
-      let estimateBalance = smgBalance.plus(this._amount);
-      if (estimateBalance.lt(chainInfo.minReserved)) {
-        let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
-        console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
-        return "Amount is too small to activate smg";
+    if (this._assetPair.protocol === "erc20") {
+      // check quota
+      let fromChainType = this._fromChainInfo.chainType;
+      if (this._smg.changed) { // optimize for mainnet getQuota performance issue
+        this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
+        console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
+        let amount = new BigNumber(this._amount);
+        if (amount.lt(this._quota.minQuota)) {
+          return "Less than minQuota";
+        } else if (amount.gt(this._quota.maxQuota)) {
+          return "Exceed maxQuota";
+        }
+      }
+      // check activating balance
+      let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(fromChainType);
+      if (chainInfo.minReserved) {
+        let smgAddr = ("XRP" === fromChainType)? this._getSmgXrpClassicAddress() : this._getSmgPolkaAddress();
+        let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {isCoin: true, toKeepAlive: false});
+        console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
+        let estimateBalance = smgBalance.plus(this._amount);
+        if (estimateBalance.lt(chainInfo.minReserved)) {
+          let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
+          console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+          return "Amount is too small to activate smg";
+        }
       }
     }
     return "";
   }
 
   async _checkFromAccount() {
-    if (!this._fromAccount) {
+    if (!this._fromAccount) { // third party wallet
       return "";
     }
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, true);
-    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {isCoin: true});
+    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {isCoin: false});
     let requiredCoin = new BigNumber(this._fee.operateFee.value);
     let requiredAsset = this._amount;
     if (tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName) === this._fromChainInfo.symbol) { // asset is coin
@@ -180,9 +182,17 @@ class BridgeTask {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
       return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
-    if (assetBalance.lt(requiredAsset)) {
-      console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
-      return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
+    if (this._assetPair.protocol === "erc20") {
+      if (assetBalance.lt(requiredAsset)) {
+        console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
+        return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
+      }
+    } else { // erc721
+      let isOwnable = await this._bridge.storemanService.checkAccountOwnership(this._assetPair.assetPairId, this._direction, this._fromAccount, this._amount);
+      if (!isOwnable) {
+        console.debug("%s not owne token %d", this._fromAccount, this._amount);
+        return this._bridge.globalConstant.ERR_PERMISSION_DENIED;
+      }
     }
   }
 
@@ -190,7 +200,7 @@ class BridgeTask {
     // check activating balance
     let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, true);
+      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {isCoin: true});
       console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance.plus(this._amount);
       if (estimateBalance.lt(chainInfo.minReserved)) {

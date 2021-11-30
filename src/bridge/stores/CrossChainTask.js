@@ -5,6 +5,7 @@ class CrossChainTask {
       ccTaskId: taskId, // the unique id for convert task
       assetPairId: '', // the token pair id of this convert task
       assetType: '', // the token ancestorySymbol
+      protocol: '', // token protocol, erc20 or erc721
       convertType: '', // the value is "MINT" or "BURN", used by web server 
       fromSymbol: '', // fromChain token symbol
       toSymbol: '', // toChain token symbol
@@ -35,6 +36,7 @@ class CrossChainTask {
   setTaskAssetPair(jsonTaskAssetPair) {
     this.ccTaskData.assetPairId = jsonTaskAssetPair.assetPairId;
     this.ccTaskData.assetType = jsonTaskAssetPair.assetType;
+    this.ccTaskData.protocol = jsonTaskAssetPair.protocol;
     this.ccTaskData.convertType = jsonTaskAssetPair.direction;
     this.ccTaskData.fromSymbol = jsonTaskAssetPair.fromSymbol;
     this.ccTaskData.toSymbol = jsonTaskAssetPair.toSymbol;

@@ -37,13 +37,16 @@ bridge.on("ready", assetPairs => {
       {
         assetPairId: "39",
         assetType: "AVAX",
-        decimals: "18",
-        fromChainName: "Avalanche C-Chain",
-        fromChainType: "AVAX",
+        protocol: "erc20",
         fromSymbol: "AVAX",
-        toChainName: "Wanchain",
+        toSymbol: "wanAVAX",
+        decimals: "18",
+        fromChainType: "AVAX",
         toChainType: "WAN",
-        toSymbol: "wanAVAX"
+        fromChainName: "Avalanche C-Chain",
+        toChainName: "Wanchain",
+        fromAccount: "0x0000000000000000000000000000000000000000",
+        toAccount: "0xc8f5b26589392fde84ee0482e2b5a77dfbe943fc"
       },
       ......
     ]
@@ -192,6 +195,7 @@ try {
     "Amount is too small to activate toAccount"
     "Insufficient gas"
     "Insufficient asset"
+    "Permission denied"
     "Unknown error"
   */
 }

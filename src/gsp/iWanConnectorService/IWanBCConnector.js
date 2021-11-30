@@ -195,14 +195,26 @@ class IWanBCConnector {
         return await this.apiClient.getStoremanGroupConfig(storemanGroupId);
     }
 
-    async getErc721Approved(chain, token, id, owner, operator, abiName) {
-        let abi = this.configService.getAbi(abiName);
+    async checkErc721Approved(chain, token, id, owner, operator) {
+        let abi = this.configService.getAbi("erc721");
         let [isApprovedForAll, getApproved] = await Promise.all([
             this.apiClient.callScFunc(chain, token, "isApprovedForAll", [owner, operator], abi),
             this.apiClient.callScFunc(chain, token, "getApproved", [id], abi)
         ]);
         return (isApprovedForAll || (getApproved.toLowerCase() === operator.toLowerCase()));
-    }    
+    }
+
+    async checkErc721Ownership(chain, token, id, address, mustOwner = false) {
+        let abi = this.configService.getAbi("erc721");
+        let owner = await this.apiClient.callScFunc(chain, token, "ownerOf", [id], abi);
+        if (owner.toLowerCase() === address.toLowerCase()) {
+            return true;
+        } else if (mustOwner) {
+            return false;
+        }
+        let isApprovedForAll = await this.apiClient.callScFunc(chain, token, "isApprovedForAll", [owner, address], abi);
+        return isApprovedForAll;
+    }
 };
 
 module.exports = IWanBCConnector;

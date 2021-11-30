@@ -69,6 +69,7 @@ class TokenPairService {
                 if (pair.ancestorSymbol !== "EOS") { // hide legacy tokens
                     let valid = await this.updateTokenPairInfo(pair);
                     if (valid) { // ignore unsupported token pair
+                        pair.protocol = "erc20"; // TODO: replaced by rpc
                         tokenPairMap.set(pair.id, pair);
                     }
                 }
