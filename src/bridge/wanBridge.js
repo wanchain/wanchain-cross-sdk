@@ -35,6 +35,7 @@ class WanBridge extends EventEmitter {
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
+    this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
@@ -84,8 +85,7 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());
-    
+    console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());    
     direction = this._unifyDirection(direction);
     let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
@@ -187,6 +187,14 @@ class WanBridge extends EventEmitter {
       console.error("unsupported chain %s", chainType);
       return false;
     }
+  }
+
+  async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
+    direction = this._unifyDirection(direction);
+    let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    let token = (direction == "MINT")? assetPair.fromAccount : assetPair.toAccount;
+    let infos = await iWanConnectorService.getNftInfoMulticall(chainType, token, account, startIndex, endIndex);
+    return infos;
   }
 
   getHistory(taskId = undefined) {

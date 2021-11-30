@@ -209,6 +209,34 @@ class IWanBCConnector {
         let owner = await this.apiClient.callScFunc(chain, token, "ownerOf", [id], abi);
         return (owner.toLowerCase() === address.toLowerCase());
     }
+
+    async getNftInfoMulticall(chain, token, owner, startIndex, endIndex) {
+        let idCalls = [];
+        for (let i = startIndex; i <= endIndex; i++) {
+            let call = {
+              target: token,
+              call: ['tokenOfOwnerByIndex(address,uint256)(uint256)', owner, i],
+              returns: [[i]]
+            }
+            idCalls.push(call);
+        }
+        let ids = await multiCall(chain, idCalls);
+        let uriCalls = [];
+        for (let i = startIndex; i <= endIndex; i++) {
+            let call = {
+              target: token,
+              call: ['tokenURI(uint256)(string)', ids[i]],
+              returns: [[i]]
+            }
+            uriCalls.push(call);
+        }
+        let uris = await multiCall(chain, uriCalls);
+        let result = {};
+        for (let i = startIndex; i <= endIndex; i++) {
+            result[i] = {tokenId: ids[i], uri: uris[i]};
+        }
+        return result;
+    }
 };
 
 module.exports = IWanBCConnector;
