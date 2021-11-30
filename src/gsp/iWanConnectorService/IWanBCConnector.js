@@ -204,16 +204,10 @@ class IWanBCConnector {
         return (isApprovedForAll || (getApproved.toLowerCase() === operator.toLowerCase()));
     }
 
-    async checkErc721Ownership(chain, token, id, address, mustOwner = false) {
+    async checkErc721Ownership(chain, token, id, address) {
         let abi = this.configService.getAbi("erc721");
         let owner = await this.apiClient.callScFunc(chain, token, "ownerOf", [id], abi);
-        if (owner.toLowerCase() === address.toLowerCase()) {
-            return true;
-        } else if (mustOwner) {
-            return false;
-        }
-        let isApprovedForAll = await this.apiClient.callScFunc(chain, token, "isApprovedForAll", [owner, address], abi);
-        return isApprovedForAll;
+        return (owner.toLowerCase() === address.toLowerCase());
     }
 };
 

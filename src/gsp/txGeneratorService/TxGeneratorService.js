@@ -28,16 +28,11 @@ module.exports = class TxGeneratorService{
     }
 
     // erc721 approve
-    async generatorErc721ApproveData(tokenAddress, operator, tokenId, isOwner) {
+    async generatorErc721ApproveData(tokenAddress, operator, tokenId) {
         try {
             let abi = this.configService.getAbi("erc721");
             let sc = new web3.eth.Contract(abi, tokenAddress.toLowerCase());
-            let txData = "";
-            if (isOwner) {
-                txData = sc.methods.setApprovalForAll(operator.toLowerCase(), true).encodeABI();
-            } else {
-                txData = sc.methods.approve(operator.toLowerCase(), tokenId).encodeABI();
-            }
+            let txData = sc.methods.setApprovalForAll(operator.toLowerCase(), true).encodeABI();
             return txData;
         } catch (err) {
             console.error("generatorErc721ApproveData error: %O", err);
