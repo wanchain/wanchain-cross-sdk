@@ -195,7 +195,7 @@ try {
     "Amount is too small to activate toAccount"
     "Insufficient gas"
     "Insufficient asset"
-    "Permission denied"
+    "Not owner"
     "Unknown error"
   */
 }

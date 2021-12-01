@@ -191,7 +191,7 @@ class BridgeTask {
       let isOwnable = await this._bridge.storemanService.checkAccountOwnership(this._assetPair.assetPairId, this._direction, this._fromAccount, this._amount);
       if (!isOwnable) {
         console.debug("%s not owne token %d", this._fromAccount, this._amount);
-        return this._bridge.globalConstant.ERR_PERMISSION_DENIED;
+        return this._bridge.globalConstant.ERR_NOT_OWNER;
       }
     }
   }
