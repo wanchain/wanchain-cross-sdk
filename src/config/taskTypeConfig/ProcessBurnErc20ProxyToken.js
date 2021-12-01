@@ -30,7 +30,6 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
       }
       let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
       let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
-        params.crossScAbi,
         params.storemanGroupId,
         params.tokenPairID,
         params.value,

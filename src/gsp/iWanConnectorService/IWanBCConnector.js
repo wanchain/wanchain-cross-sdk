@@ -157,8 +157,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
-        let abi = this.configService.getAbi(scAbi);
+    async getErc20Allowance(chain, scAddr, ownerAddr, spenderAddr) {
+        let abi = this.configService.getAbi("erc20");
         let ret = await this.apiClient.callScFunc(chain,
             scAddr,
             "allowance",

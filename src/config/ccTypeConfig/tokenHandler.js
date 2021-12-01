@@ -43,7 +43,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       erc20Addr: tokenSc,
-      erc20Abi: chainInfo.erc20AbiJson,
       gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.erc20ApproveGasLimit,
       value: approveMaxValue,
@@ -55,8 +54,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let allowance = await this.iWanConnectorService.getErc20Allowance(chainInfo.chainType,
       tokenSc,
       convert.fromAddr,
-      chainInfo.crossScAddr,
-      chainInfo.erc20AbiJson);
+      chainInfo.crossScAddr);
     allowance = new BigNumber(allowance);
     let approve0Title = this.uiStrService.getStrByName("approve0Title");
     let approve0Desc = this.uiStrService.getStrByName("approve0Desc");
@@ -111,7 +109,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      crossScAbi: chainInfo.crossScAbiJson,
       gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.erc20FastMintGasLimit,
       storemanGroupId: convert.storemanGroupId,
@@ -137,7 +134,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      crossScAbi: chainInfo.crossScAbiJson,
       gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.erc20FastBurnGasLimit,
       storemanGroupId: convert.storemanGroupId,

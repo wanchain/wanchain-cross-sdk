@@ -16,7 +16,7 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
                 return;
             }
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.erc20Abi, params.spenderAddr, params.value);
+            let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value);
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.erc20Addr, 0, scData, params.fromAddr);
             await this.sendTransactionData(paramsJson, txData, wallet);
         } catch (err) {

@@ -23,7 +23,7 @@ module.exports = class CheckScEvent {
         this.m_eventService = this.m_frameworkService.getService("EventService");
         this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
         let configService = this.m_frameworkService.getService("ConfigService");
-        this.crossScAbi = configService.getAbi(this.m_chainInfo.crossScAbiJson);
+        this.crossScAbi = configService.getAbi("crossSc");
     }
 
     async onDeleteTask(ccTaskId) {

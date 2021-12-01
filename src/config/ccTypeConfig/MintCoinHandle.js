@@ -21,7 +21,6 @@ module.exports = class MintCoinHandle {
       "fromAddr": convertJson.fromAddr,
       "scChainType": tokenPairObj.fromChainType,
       "crossScAddr": tokenPairObj.fromScInfo.crossScAddr,
-      "crossScAbi": tokenPairObj.fromScInfo.crossScAbiJson,
       "gasPrice": tokenPairObj.fromScInfo.gasPrice, // undefined, get from chain dynamiclly
       "gasLimit": tokenPairObj.fromScInfo.coinFastMintGasLimit,
       "storemanGroupId": convertJson.storemanGroupId,

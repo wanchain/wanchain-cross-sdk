@@ -43,7 +43,6 @@ module.exports = class BurnErc20ProxyToken {
       "fromAddr": convertJson.fromAddr,
       "scChainType": chainInfo.chainType,
       "erc20Addr": nativeToken,// token Addr
-      "erc20Abi": chainInfo.erc20AbiJson,
       "gasPrice": chainInfo.gasPrice,
       "gasLimit": chainInfo.erc20ApproveGasLimit,
       "value": approveMaxValue,
@@ -55,8 +54,7 @@ module.exports = class BurnErc20ProxyToken {
     let allowance = await this.m_iwanBCConnector.getErc20Allowance(chainInfo.chainType,
       nativeToken,// tokenAddr
       convertJson.fromAddr, // account
-      poolToken,// spender poolAddr
-      chainInfo.erc20AbiJson);
+      poolToken); // spender poolAddr
     allowance = new BigNumber(allowance);
     if (allowance.isGreaterThan(0)) {
       if (allowance.isLessThan(value)) {
@@ -82,7 +80,6 @@ module.exports = class BurnErc20ProxyToken {
       "fromAddr": convertJson.fromAddr,
       "scChainType": chainInfo.chainType,
       "crossScAddr": chainInfo.crossScAddr,
-      "crossScAbi": chainInfo.crossScAbiJson,
       "gasPrice": chainInfo.gasPrice,
       "gasLimit": chainInfo.erc20FastBurnGasLimit,
       "storemanGroupId": convertJson.storemanGroupId,

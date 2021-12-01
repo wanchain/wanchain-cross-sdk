@@ -18,7 +18,6 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             }
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
-                params.crossScAbi,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
