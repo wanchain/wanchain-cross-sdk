@@ -220,20 +220,20 @@ class IWanBCConnector {
             }
             idCalls.push(call);
         }
-        let ids = await multiCall(chain, idCalls);
+        let ids = await this.apiClient.multiCall(chain, idCalls);
         let uriCalls = [];
         for (let i = startIndex; i <= endIndex; i++) {
             let call = {
               target: token,
-              call: ['tokenURI(uint256)(string)', ids[i]],
+              call: ['tokenURI(uint256)(string)', ids.results.transformed[i]._hex],
               returns: [[i]]
             }
             uriCalls.push(call);
         }
-        let uris = await multiCall(chain, uriCalls);
+        let uris = await this.apiClient.multiCall(chain, uriCalls);
         let result = {};
         for (let i = startIndex; i <= endIndex; i++) {
-            result[i] = {tokenId: ids[i], uri: uris[i]};
+            result[i] = {id: ids.results.transformed[i]._hex, uri: uris.results.transformed[i]};
         }
         return result;
     }
