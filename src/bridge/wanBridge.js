@@ -146,7 +146,13 @@ class WanBridge extends EventEmitter {
       networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
       operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      if (networkFee.isRatio) {
+        networkFeeUnit = assetPair.assetType;
+      } else if (NOT_SMART_CONTRACT_ASSETS.includes(assetPair.fromChainType)) {
+        networkFeeUnit = assetPair.assetType;
+      } else {
+        networkFeeUnit = operateFeeUnit;
+      }
     }
     let fee = {
       operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
