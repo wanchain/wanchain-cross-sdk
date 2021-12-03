@@ -118,7 +118,7 @@
       "erc20FastBurnGasLimit": 3500000,
       "erc20FastMintGasLimit": 3500000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-      "MaskChainId": 0,
+      "MaskChainId": 42161,
       "ScScanInfo": {
         "taskInterval": 10000
       }
