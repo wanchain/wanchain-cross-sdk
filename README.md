@@ -37,7 +37,7 @@ bridge.on("ready", assetPairs => {
       {
         assetPairId: "39",
         assetType: "AVAX",
-        protocol: "erc20",
+        protocol: "Erc20",
         fromSymbol: "AVAX",
         toSymbol: "wanAVAX",
         decimals: "18",

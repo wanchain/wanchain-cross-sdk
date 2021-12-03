@@ -133,7 +133,7 @@ class BridgeTask {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
-    if (this._assetPair.protocol === "erc20") {
+    if (this._assetPair.protocol === "Erc20") {
       // check quota
       let fromChainType = this._fromChainInfo.chainType;
       if (this._smg.changed) { // optimize for mainnet getQuota performance issue
@@ -182,7 +182,7 @@ class BridgeTask {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
       return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
-    if (this._assetPair.protocol === "erc20") {
+    if (this._assetPair.protocol === "Erc20") {
       if (assetBalance.lt(requiredAsset)) {
         console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
         return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
