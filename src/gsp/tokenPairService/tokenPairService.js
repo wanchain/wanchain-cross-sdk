@@ -118,9 +118,9 @@ class TokenPairService {
             tokenPair.fromSymbol = tokenPair.ancestorSymbol;
             tokenPair.fromDecimals = tokenPair.ancestorDecimals;
         } else {
-            let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.fromChainType, tokenPair.fromAccount);
+            let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.fromChainType, tokenPair.fromAccount, tokenPair.fromAccountType);
             tokenPair.fromSymbol = tokenInfo.symbol;
-            tokenPair.fromDecimals = tokenInfo.decimals;
+            tokenPair.fromDecimals = (tokenPair.fromAccountType === "Erc721")? 0 : tokenInfo.decimals;
         }
     }
 
@@ -128,7 +128,7 @@ class TokenPairService {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         tokenPair.toSymbol = tokenPair.symbol;
-        tokenPair.toDecimals = tokenPair.decimals;
+        tokenPair.toDecimals = (tokenPair.toAccountType === "Erc721")? 0 : tokenPair.decimals;
     }
 
     async updateTokenPairCcHandle(tokenPair) {

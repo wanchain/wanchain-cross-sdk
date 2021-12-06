@@ -26,7 +26,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   }
 
   async buildApproveSteps(steps, tokenPair, convert) {
-    let protocol = tokenPair.protocol;
+    let protocol = tokenPair.toAccountType;
     if (protocol === "Erc20") {
       return this.buildErc20Approve(steps, tokenPair, convert);
     } else if (protocol === "Erc721") {
