@@ -138,24 +138,25 @@ class WanBridge extends EventEmitter {
 
   async estimateFee(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let crossfee = await this.feesService.getCrossChainFees(assetPair.assetPairId, direction);
+    let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
+    let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
     let operateFeeUnit = '', networkFeeUnit = '';
     if (direction == 'MINT') {
-      operateFeeUnit = crossfee.agentFeeIsRatio.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
-      networkFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      if (crossfee.agentFeeIsRatio.isRatio) {
-        operateFeeUnit = assetPair.assetType;
+      operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
+      if (networkFee.isRatio) {
+        networkFeeUnit = assetPair.assetType;
       } else if (NOT_SMART_CONTRACT_ASSETS.includes(assetPair.fromChainType)) {
-        operateFeeUnit = assetPair.assetType;
+        networkFeeUnit = assetPair.assetType;
       } else {
-        operateFeeUnit = networkFeeUnit;
+        networkFeeUnit = operateFeeUnit;
       }
     }
     let fee = {
-      operateFee: {value: crossfee.agentFee, unit: operateFeeUnit, rawValue: crossfee.agentFee, isRatio: crossfee.agentFeeIsRatio},
-      networkFee: {value: crossfee.contractFee, unit: networkFeeUnit, rawValue: crossfee.contractFeeRaw}
+      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
+      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
     };
     console.debug("estimateFee: %O", fee);
     return fee;

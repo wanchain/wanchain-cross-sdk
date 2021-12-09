@@ -140,31 +140,6 @@ module.exports = class crossChainFees {
             isRatio
         };
     }
-
-    async getCrossChainFees(tokenPairId, direction) {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPairObjById(tokenPairId);
-        let chain, from, to;
-        if (direction === "MINT") {
-            chain = tokenPair.fromChainType;
-            from = tokenPair.fromChainID;
-            to = tokenPair.toChainID;
-        } else {
-            chain = tokenPair.toChainType;
-            from = tokenPair.toChainID;
-            to = tokenPair.fromChainID;
-        }
-        let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-        let crossFee = await iwanBCConnector.getCrossChainFees(chain, [from, to], {version: "v2"});
-        console.log({crossFee});
-        let fee = {
-            agentFee: crossFee.agentFee,
-            agentFeeIsRatio: true, // TODO: temp for compatibility
-            contractFee: new BigNumber(crossFee.contractFee).div(Math.pow(10, parseInt(tokenPair.fromDecimals))).toFixed(),
-            contractFeeRaw: crossFee.contractFee
-        }
-        return fee;
-    }
 };
 
 
