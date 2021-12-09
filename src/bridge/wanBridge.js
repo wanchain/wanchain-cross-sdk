@@ -202,11 +202,16 @@ class WanBridge extends EventEmitter {
     return infos;
   }
 
-  getHistory(taskId = undefined) {
+  getHistory(options) {
+    let taskId = undefined, protocol = undefined;
+    if (options) {
+      taskId = options.taskId;
+      protocol = options.protocol;
+    }
     let history = [];
     let records = this.stores.crossChainTaskRecords;
     for (let [id, task] of records.ccTaskRecords) {
-      if ((taskId === undefined) || (taskId == id)) {
+      if (((taskId === undefined) || (taskId == id)) && ((protocol === undefined) || (protocol === task.protocol))) {
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
@@ -229,7 +234,7 @@ class WanBridge extends EventEmitter {
           redeemHash: task.redeemHash,
           status: task.status,
           errInfo: task.errInfo
-        }
+        };
         history.push(item);
         if (taskId !== undefined) { // only get one
           break;
