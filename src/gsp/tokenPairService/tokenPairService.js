@@ -93,6 +93,7 @@ class TokenPairService {
     async updateTokenPairInfo(tokenPair) {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
+        tokenPair.decimals = tokenPair.decimals || 0;
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
             try {
                 await Promise.all([
@@ -116,11 +117,9 @@ class TokenPairService {
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
             tokenPair.fromSymbol = tokenPair.ancestorSymbol;
-            tokenPair.fromDecimals = tokenPair.ancestorDecimals;
         } else {
             let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.fromChainType, tokenPair.fromAccount, tokenPair.fromAccountType);
             tokenPair.fromSymbol = tokenInfo.symbol;
-            tokenPair.fromDecimals = (tokenPair.fromAccountType === "Erc721")? 0 : tokenInfo.decimals;
         }
     }
 
@@ -128,7 +127,6 @@ class TokenPairService {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         tokenPair.toSymbol = tokenPair.symbol;
-        tokenPair.toDecimals = (tokenPair.toAccountType === "Erc721")? 0 : tokenPair.decimals;
     }
 
     async updateTokenPairCcHandle(tokenPair) {

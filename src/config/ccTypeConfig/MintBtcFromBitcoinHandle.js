@@ -20,7 +20,7 @@ module.exports = class MintBtcFromBitcoinHandle {
     try {
       // console.debug("%s tokenPair: %O", handleName, tokenPair);
       // console.debug("%s convertJson: %O", handleName, convertJson);
-      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPair.decimals));
       let params = {
         ccTaskId: convertJson.ccTaskId,
         fromChainType: tokenPair.fromChainType,

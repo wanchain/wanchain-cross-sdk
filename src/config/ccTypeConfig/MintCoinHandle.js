@@ -15,7 +15,7 @@ module.exports = class MintCoinHandle {
     this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
     this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
 
-    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.fromDecimals));
+    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.decimals));
     let userFastMintParaJson = {
       "ccTaskId": convertJson.ccTaskId,
       "fromAddr": convertJson.fromAddr,

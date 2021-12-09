@@ -10,7 +10,7 @@ module.exports = class MintDotFromPolkaHandle {
   async process(tokenPairObj, convertJson) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.fromDecimals)).toFixed();
+      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.decimals)).toFixed();
       let params = {
         ccTaskId: convertJson.ccTaskId,
         toChainType: tokenPairObj.toChainType,

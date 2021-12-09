@@ -61,8 +61,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
     let approveValueDesc = this.uiStrService.getStrByName("approveValueDesc");
     if (allowance.isGreaterThan(0)) {
-      let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
       if (allowance.isLessThan(value)) {
         // approve 0
         let approve0Params = Object.assign({}, approveParams);
@@ -103,7 +102,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
 
   async buildUserFastMint(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.fromScInfo;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -128,7 +127,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
 
   async buildUserFastBurn(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.toScInfo;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals));
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,

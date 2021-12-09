@@ -108,7 +108,7 @@ module.exports = class crossChainFees {
         let originFeeBN = feeBN;
         let isRatio = (tokenPairObj.id == 66)? true : false;
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.toDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.decimals)));
         }
         fee = feeBN.toFixed();
         return {
@@ -129,7 +129,7 @@ module.exports = class crossChainFees {
         let originFeeBN = feeBN;
         let isRatio = (tokenPairObj.id == 66)? true : false;
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.fromDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.decimals)));
         }
         fee = feeBN.toFixed();
         return {

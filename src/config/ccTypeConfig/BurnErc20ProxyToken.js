@@ -25,7 +25,7 @@ module.exports = class BurnErc20ProxyToken {
     let retAry = [];
 
     // Erc20
-    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.toDecimals));
+    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.decimals));
     // check erc20 token
     let nativeToken, poolToken, chainInfo;
     if (convertJson.convertType === "MINT") {

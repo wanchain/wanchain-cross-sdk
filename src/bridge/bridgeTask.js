@@ -84,6 +84,7 @@ class BridgeTask {
     let jsonTaskAssetPair = {
       assetPairId: assetPair.assetPairId,
       assetType: assetPair.assetType,
+      protocol: assetPair.protocol,
       direction: this._direction,
       fromSymbol: this._fromChainInfo.symbol,
       toSymbol: this._toChainInfo.symbol,
