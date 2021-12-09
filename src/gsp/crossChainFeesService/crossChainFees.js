@@ -2,6 +2,8 @@
 
 const BigNumber = require("bignumber.js");
 
+const NOT_SMART_CONTRACT_CHAINS = ['BTC', 'LTC', 'XRP', 'DOT', 'DOGE'];
+
 module.exports = class crossChainFees {
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
@@ -106,7 +108,7 @@ module.exports = class crossChainFees {
         console.log("getBurnNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
         let originFee = fee;
         let originFeeBN = feeBN;
-        let isRatio = (tokenPairObj.id == 66)? true : false;
+        let isRatio = !(NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.fromChainType) || NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.toChainType));
         if (!isRatio) {
             feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.decimals)));
         }
@@ -127,7 +129,7 @@ module.exports = class crossChainFees {
         console.log("getMintNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
         let originFee = fee;
         let originFeeBN = feeBN;
-        let isRatio = (tokenPairObj.id == 66)? true : false;
+        let isRatio = !(NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.fromChainType) || NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.toChainType));
         if (!isRatio) {
             feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.decimals)));
         }
