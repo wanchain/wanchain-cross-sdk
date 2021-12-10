@@ -26,7 +26,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   }
 
   async buildApproveSteps(steps, tokenPair, convert) {
-    let protocol = tokenPair.protocol;
+    let protocol = tokenPair.toAccountType;
     if (protocol === "Erc20") {
       return this.buildErc20Approve(steps, tokenPair, convert);
     } else if (protocol === "Erc721") {
@@ -61,8 +61,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
     let approveValueDesc = this.uiStrService.getStrByName("approveValueDesc");
     if (allowance.isGreaterThan(0)) {
-      let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
       if (allowance.isLessThan(value)) {
         // approve 0
         let approve0Params = Object.assign({}, approveParams);
@@ -103,7 +102,9 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
 
   async buildUserFastMint(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.fromScInfo;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
+    let networkFeeInfo = convert.fee.networkFee;
+    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed(0) : networkFeeInfo.rawValue;
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -118,7 +119,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       taskType,
       fee: convert.fee.operateFee.rawValue,
       tokenAccount: tokenPair.fromAccount,
-      userBurnFee: convert.fee.networkFee.rawValue
+      userBurnFee: networkFeeValue
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
     let mintTitle = this.uiStrService.getStrByName("MintTitle");
@@ -128,7 +129,9 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
 
   async buildUserFastBurn(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.toScInfo;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals));
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
+    let networkFeeInfo = convert.fee.networkFee;
+    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed(0) : networkFeeInfo.rawValue;
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -143,7 +146,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       taskType,
       fee: convert.fee.operateFee.rawValue,
       tokenAccount: tokenPair.toAccount,
-      userBurnFee: convert.fee.networkFee.rawValue
+      userBurnFee: networkFeeValue
     };
     let isEvmAddr = /^0x[0-9a-fA-F]{40}$/.test(convert.toAddr);
     if (isEvmAddr) {

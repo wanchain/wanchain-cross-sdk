@@ -57,6 +57,11 @@ let taskTypeConfigJson = {
       "number": 11,
       "name": "ProcessBurnErc20ProxyToken",
       "handle": require("./ProcessBurnErc20ProxyToken")
+    },
+    {
+      "number": 12,
+      "name": "ProcessErc721Approve",
+      "handle": require("./processErc721Approve")
     }
   ]
 };

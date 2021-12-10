@@ -106,6 +106,9 @@ class CrossChainTaskRecords {
     for (let i = 0; i < ccTaskObjList.length; i++) {
       let ccTask = ccTaskObjList[i];
       if (ccTask.ota !== undefined) {
+        if (!ccTask.protocol) {
+          ccTask.protocol = "Erc20"; // for compatibility
+        }
         this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
       } else {
         console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);

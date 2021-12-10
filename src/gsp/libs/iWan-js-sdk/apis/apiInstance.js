@@ -2371,12 +2371,19 @@ class ApiInstance extends WsInstance {
   *    "decimals": "18"
   *  }
   */
-  getTokenInfo(chainType, tokenScAddr, callback) {
+  getTokenInfo(chainType, tokenScAddr, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getTokenInfo';
-    let params = { chainType: chainType, tokenScAddr: tokenScAddr };
+    let params = { chainType: chainType, tokenScAddr: tokenScAddr, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -2435,12 +2442,19 @@ class ApiInstance extends WsInstance {
    }
   *
   */
-  getMultiTokenInfo(chainType, tokenScAddrArray, callback) {
-    if (callback) {
+  getMultiTokenInfo(chainType, tokenScAddrArray, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
+      if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getMultiTokenInfo';
-    let params = { chainType: chainType, tokenScAddrArray: tokenScAddrArray };
+    let params = { chainType: chainType, tokenScAddrArray: tokenScAddrArray, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {

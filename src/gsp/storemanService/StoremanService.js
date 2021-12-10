@@ -120,7 +120,7 @@ class StoremanService {
             let isOwnable = await this.m_iwanBCConnector.checkErc721Ownership(chain, token, tokenId, addr);
             return isOwnable;
         } catch (err) {
-            console.error("check assetPair %s type %s address %s ownership error: %O", assetPairId, type, addr, err);
+            console.error("check assetPair %s type %s address %s token %s ownership error: %O", assetPairId, type, addr, tokenId, err);
             return false;
         }
     }

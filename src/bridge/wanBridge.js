@@ -203,11 +203,16 @@ class WanBridge extends EventEmitter {
     return infos;
   }
 
-  getHistory(taskId = undefined) {
+  getHistory(options) {
+    let taskId = undefined, protocol = undefined;
+    if (options) {
+      taskId = options.taskId;
+      protocol = options.protocol;
+    }
     let history = [];
     let records = this.stores.crossChainTaskRecords;
     for (let [id, task] of records.ccTaskRecords) {
-      if ((taskId === undefined) || (taskId == id)) {
+      if (((taskId === undefined) || (taskId == id)) && ((protocol === undefined) || (protocol === task.protocol))) {
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
@@ -230,7 +235,7 @@ class WanBridge extends EventEmitter {
           redeemHash: task.redeemHash,
           status: task.status,
           errInfo: task.errInfo
-        }
+        };
         history.push(item);
         if (taskId !== undefined) { // only get one
           break;
@@ -240,10 +245,18 @@ class WanBridge extends EventEmitter {
     return history;
   }
 
-  async deleteHistory(taskId = undefined) {
+  async deleteHistory(options) {
+    let taskId = undefined, protocol = undefined;
+    if (options) {
+      taskId = options.taskId;
+      protocol = options.protocol;
+    }
     let count = 0;
     let records = this.stores.crossChainTaskRecords;
-    let ids = Array.from(records.ccTaskRecords.keys()).filter(id => ((taskId === undefined) || (taskId == id)));
+    let ids = Array.from(records.ccTaskRecords.values())
+      .filter(v => (((taskId === undefined) || (taskId == v.ccTaskId)) && ((protocol === undefined) || (protocol === v.protocol))))
+      .map(v => v.ccTaskId);
+    console.log({ids});
     for (let i = 0; i < ids.length; i++) {
       let id = ids[i];
       records.removeTradeTask(id);

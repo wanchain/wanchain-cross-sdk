@@ -1,15 +1,12 @@
 'use strict';
-let BigNumber = require("bignumber.js");
+
+const BigNumber = require("bignumber.js");
+
+const NOT_SMART_CONTRACT_CHAINS = ['BTC', 'LTC', 'XRP', 'DOT', 'DOGE'];
 
 module.exports = class crossChainFees {
-    constructor() {
-        this.m_mapProcessFeeHandle = new Map();
-    }
-
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
-        this.m_mapProcessFeeHandle.set("mintNetworkFee", this.getMintNetworkFee.bind(this));
-        this.m_mapProcessFeeHandle.set("burnNetworkFee", this.getBurnNetworkFee.bind(this));
     }
 
     // 费用，随tx的value字段发送的费用,serviceFee
@@ -93,43 +90,15 @@ module.exports = class crossChainFees {
     async estimateMintNetworkFee(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
-
-        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
-        if (chainInfo.mintNetworkFee) {
-            let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.mintNetworkFee);
-            return await feeHandle(tokenPairObj);
-        }
-        else {
-            return {
-                fee: 0,
-                feeBN: new BigNumber(0),
-                originFee: 0,
-                originFeeBN: new BigNumber(0),
-                isRatio: false
-            };
-        }
+        let fee = await this.getMintNetworkFee(tokenPairObj);
+        return fee;
     }
 
     async estimateBurnNetworkFee(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
-
-        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
-        if (chainInfo.burnNetworkFee) {
-            let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.burnNetworkFee);
-            return await feeHandle(tokenPairObj);
-        }
-        else {
-            return {
-                fee: 0,
-                feeBN: new BigNumber(0),
-                originFee: 0,
-                originFeeBN: new BigNumber(0),
-                isRatio: false
-            };
-        }
+        let fee = await this.getBurnNetworkFee(tokenPairObj);
+        return fee;
     }
 
     async getBurnNetworkFee(tokenPairObj) {
@@ -139,9 +108,9 @@ module.exports = class crossChainFees {
         console.log("getBurnNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
         let originFee = fee;
         let originFeeBN = feeBN;
-        let isRatio = (tokenPairObj.id == 66)? true : false;
+        let isRatio = !(NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.fromChainType) || NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.toChainType));
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.toDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.decimals)));
         }
         fee = feeBN.toFixed();
         return {
@@ -160,9 +129,9 @@ module.exports = class crossChainFees {
         console.log("getMintNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
         let originFee = fee;
         let originFeeBN = feeBN;
-        let isRatio = (tokenPairObj.id == 66)? true : false;
+        let isRatio = !(NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.fromChainType) || NOT_SMART_CONTRACT_CHAINS.includes(tokenPairObj.toChainType));
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.fromDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.decimals)));
         }
         fee = feeBN.toFixed();
         return {

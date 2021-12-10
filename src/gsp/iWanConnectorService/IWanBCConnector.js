@@ -147,8 +147,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getTokenInfo(chain, tokenAddr) {
-        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr);
+    async getTokenInfo(chain, tokenAddr, tokenType) {
+        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, {tokenType});
         return ret;
     }
 
@@ -187,8 +187,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getCrossChainFees(chainType, chainIds) {
-        return await this.apiClient.getCrossChainFees(chainType, chainIds);
+    async getCrossChainFees(chainType, chainIds, options) {
+        return await this.apiClient.getCrossChainFees(chainType, chainIds, options);
     }
 
     async getStoremanGroupConfig(storemanGroupId) {
