@@ -210,7 +210,7 @@ class IWanBCConnector {
         return (owner.toLowerCase() === address.toLowerCase());
     }
 
-    async getNftInfoMulticall(chain, token, owner, startIndex, endIndex) {
+    async getNftInfoMulticall(ancestorChainType, ancestorChainToken, chain, token, owner, startIndex, endIndex) {
         let idCalls = [];
         for (let i = startIndex; i <= endIndex; i++) {
             let call = {
@@ -224,13 +224,13 @@ class IWanBCConnector {
         let uriCalls = [];
         for (let i = startIndex; i <= endIndex; i++) {
             let call = {
-              target: token,
+              target: ancestorChainToken,
               call: ['tokenURI(uint256)(string)', ids.results.transformed[i]._hex],
               returns: [[i]]
             }
             uriCalls.push(call);
         }
-        let uris = await this.apiClient.multiCall(chain, uriCalls);
+        let uris = await this.apiClient.multiCall(ancestorChainType, uriCalls);
         let result = {};
         for (let i = startIndex; i <= endIndex; i++) {
             result[i] = {id: ids.results.transformed[i]._hex, uri: uris.results.transformed[i]};
