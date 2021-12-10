@@ -245,10 +245,18 @@ class WanBridge extends EventEmitter {
     return history;
   }
 
-  async deleteHistory(taskId = undefined) {
+  async deleteHistory(options) {
+    let taskId = undefined, protocol = undefined;
+    if (options) {
+      taskId = options.taskId;
+      protocol = options.protocol;
+    }
     let count = 0;
     let records = this.stores.crossChainTaskRecords;
-    let ids = Array.from(records.ccTaskRecords.keys()).filter(id => ((taskId === undefined) || (taskId == id)));
+    let ids = Array.from(records.ccTaskRecords.values())
+      .filter(v => (((taskId === undefined) || (taskId == v.ccTaskId)) && ((protocol === undefined) || (protocol === v.protocol))))
+      .map(v => v.ccTaskId);
+    console.log({ids});
     for (let i = 0; i < ids.length; i++) {
       let id = ids[i];
       records.removeTradeTask(id);
