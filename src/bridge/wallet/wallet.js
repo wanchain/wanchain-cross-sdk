@@ -2,14 +2,16 @@ const Web3Wallet = require("./web3Wallet");
 
 let runInBrowser = false;
 let Polkadot = undefined;
+let Nami = undefined;
 if (typeof(window) !== "undefined") {
-  Polkadot = require("./polkadot/polkadotJs");
   runInBrowser = true;
+  Polkadot = require("./polkadot/polkadotJs");
+  Nami = require("./cardano/nami");
 }
 
 class Wallet {
   constructor(type, provider) {
-    if (!provider) {
+    if ((!["Nami"].includes(type)) && (!provider)) {
       throw new Error("Invalid provider");
     }
     this.type = type;
@@ -26,6 +28,10 @@ class Wallet {
     } else if (type === "polkadot{.js}") {
       if (runInBrowser) { // only browser
         return new Polkadot(type, provider);
+      }
+    } else if (type === "Nami") {
+      if (runInBrowser) { // only browser
+        return new Nami(type, provider);
       }
     }
     throw new Error("Unsupported wallet type");
