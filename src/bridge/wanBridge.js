@@ -198,10 +198,10 @@ class WanBridge extends EventEmitter {
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId);
-    let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
+    // let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId); // do not get info from ancestorChain
+    // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
     let token = (direction == "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.iWanConnectorService.getNftInfoMulticall(ancestorChain.chainType, tokenPair.ancestorAccount, chainType, token, account, startIndex, endIndex);
+    let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
     return infos;
   }
 
