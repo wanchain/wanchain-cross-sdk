@@ -51,15 +51,15 @@ class BridgeTask {
 
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
-    let [validWallet, feeErr, smgErr] = await Promise.all([
-      this._bridge.checkWallet(this._assetPair, this._direction, this._wallet),
-      this._checkFee(),
-      this._checkSmg()
-    ]);
+    let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
-    let err = feeErr || smgErr;
+    let err = await this._checkFee();
+    if (err) {
+      throw new Error(err);
+    }
+    err = await this._checkSmg(); // depends on fee
     if (err) {
       throw new Error(err);
     }
@@ -141,10 +141,20 @@ class BridgeTask {
         this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
         console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
         let amount = new BigNumber(this._amount);
-        if (amount.lt(this._quota.minQuota)) {
-          return "Less than minQuota";
-        } else if (amount.gt(this._quota.maxQuota)) {
+        if (amount.gt(this._quota.maxQuota)) {
           return "Exceed maxQuota";
+        }
+        let networkFee = 0;
+        if ((this._assetPair.protocol === "Erc20") && (this._fee.networkFee.unit === this._assetPair.assetType)) {
+          networkFee = this._fee.networkFee.isRatio? amount.times(this._fee.networkFee.value) : this._fee.networkFee.value;
+        }
+        let expectedReceivedValue = amount.minus(networkFee);
+        if (this._quota.minQuota > 0) {
+          if (expectedReceivedValue.lt(this._quota.minQuota)) {
+            return "Less than minValue";
+          }
+        } else if (expectedReceivedValue.lte(0)) {
+          return "Amount is too small";
         }
       }
       // check activating balance

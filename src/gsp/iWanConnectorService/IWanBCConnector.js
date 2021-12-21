@@ -177,6 +177,11 @@ class IWanBCConnector {
         return ret;
     }
 
+    async getMinCrossChainAmount(targetChainType, symbol) {
+        let ret = await this.apiClient.getMinCrossChainAmount(targetChainType, [symbol]);
+        return ret;
+    }
+
     async estimateNetworkFee(chainType, feeType, toChainType) {
         let ret = await this.apiClient.estimateNetworkFee(chainType, feeType, toChainType);
         return ret;

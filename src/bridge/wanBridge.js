@@ -154,6 +154,11 @@ class WanBridge extends EventEmitter {
         networkFeeUnit = operateFeeUnit;
       }
     }
+    // TODO: delete after rpc support elaborate fee, now fee is config for chains instead of token pairs, not applicable to erc721 tokens
+    if ((assetPair.protocol === "Erc721") && (networkFeeUnit === assetPair.assetType)) {
+      networkFee.fee = "0";
+      networkFee.originFee = "0";
+    }
     let fee = {
       operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
       networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
@@ -202,6 +207,7 @@ class WanBridge extends EventEmitter {
     // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
     let token = (direction == "MINT")? assetPair.fromAccount : assetPair.toAccount;
     let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
+    console.debug("%s nft token %s %d-%d info: %O", chainType, assetPair.assetType, startIndex, endIndex, infos);
     return infos;
   }
 
