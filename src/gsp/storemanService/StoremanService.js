@@ -24,14 +24,17 @@ class StoremanService {
                     // wanEOS特殊处理wan -> eth mint storeman采用旧的处理方式
                     fromChainType = "EOS";
                 }
-                let ret = await this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType);
+                let [quota, min] = await Promise.all([
+                    this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType),
+                    this.m_iwanBCConnector.getMinCrossChainAmount(toChainType, tokenPair.ancestorSymbol)
+                ]);
                 // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, ret);
-                let maxQuota = new BigNumber(ret[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
-                let minQuota = new BigNumber(ret[0].minQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
+                let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
+                let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
             }            
         } catch (err) {
-            console.log("getStroremanGroupQuotaInfo error: %O", err);
+            console.error("getStroremanGroupQuotaInfo error: %O", err);
         }
         return {maxQuota: "0", minQuota: "0"};
     }

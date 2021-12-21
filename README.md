@@ -168,7 +168,7 @@ try {
   // check storeman group quota
   let quota = await bridge.getQuota(assetPair, "mint");
   if (amount.lt(quota.minQuota)) {
-    throw "Less than minQuota";
+    throw "Less than minValue";
   } else if (amount.gt(quota.maxQuota)) {
     throw "Exceed maxQuota";
   }
@@ -188,7 +188,7 @@ try {
     "Invalid wallet"
     "Amount is too small to pay the fee"
     "Smg unavailable"
-    "Less than minQuota"
+    "Less than minValue"
     "Exceed maxQuota"
     "Amount is too small to activate smg"
     "Insufficient balance"

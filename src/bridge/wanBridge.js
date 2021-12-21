@@ -154,6 +154,11 @@ class WanBridge extends EventEmitter {
         networkFeeUnit = operateFeeUnit;
       }
     }
+    // TODO: delete after rpc support elaborate fee, now fee is config for chains instead of token pairs, not applicable to erc721 tokens
+    if ((assetPair.protocol === "Erc721") && (networkFeeUnit === assetPair.assetType)) {
+      networkFee.fee = "0";
+      networkFee.originFee = "0";
+    }
     let fee = {
       operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
       networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
@@ -198,10 +203,11 @@ class WanBridge extends EventEmitter {
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId);
-    let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
+    // let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId); // do not get info from ancestorChain
+    // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
     let token = (direction == "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.iWanConnectorService.getNftInfoMulticall(ancestorChain.chainType, tokenPair.ancestorAccount, chainType, token, account, startIndex, endIndex);
+    let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
+    console.debug("%s nft token %s %d-%d info: %O", chainType, assetPair.assetType, startIndex, endIndex, infos);
     return infos;
   }
 

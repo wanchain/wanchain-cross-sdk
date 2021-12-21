@@ -8662,6 +8662,27 @@ class ApiInstance extends WsInstance {
         });
       });
     }
+
+    getMinCrossChainAmount(crossChain, symbol, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'getMinCrossChainAmount';
+      let params = { crossChain: crossChain, symbol: symbol, ...options };
+
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+    }
 }
 
 module.exports = ApiInstance;
