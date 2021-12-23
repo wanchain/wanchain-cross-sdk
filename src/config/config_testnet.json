@@ -242,6 +242,17 @@
       "TxScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "chainId": "2147485463",
+      "chainType": "ADA",
+      "chainName": "Cardano",
+      "mintFromChainHandle": "MintAdaFromCardano",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 6,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
     }
   ],
   "tokenPairCfg": [

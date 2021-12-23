@@ -57,11 +57,14 @@ class StoremanService {
                 return new BigNumber(0);
             }
             let balance, decimals, kaChainInfo = null;
+            let wallet = options.wallet; // third party wallet is required
             if (options.isCoin) {
                 if (type === "MINT") {
                     if (assetPair.fromChainType === "DOT") {
                         let polkadotService = this.m_frameworkService.getService("PolkadotService");
                         balance = await polkadotService.getBalance(addr);
+                    } else if (assetPair.fromChainType === "ADA") {
+                        balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                     }
@@ -71,6 +74,8 @@ class StoremanService {
                     if (assetPair.toChainType === "DOT") {
                         let polkadotService = this.m_frameworkService.getService("PolkadotService");
                         balance = await polkadotService.getBalance(addr);
+                    } else if (assetPair.fromChainType === "ADA") {
+                        balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
                     }
@@ -83,6 +88,8 @@ class StoremanService {
                         if (assetPair.fromChainType === "DOT") {
                             let polkadotService = this.m_frameworkService.getService("PolkadotService");
                             balance = await polkadotService.getBalance(addr);
+                        } else if (assetPair.fromChainType === "ADA") {
+                            balance = await wallet.getBalance(addr);
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                         }

@@ -1,7 +1,7 @@
 'use strict';
 let BigNumber = require("bignumber.js");
 
-module.exports = class ProcessDotMintFromPolka {
+module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
@@ -9,14 +9,12 @@ module.exports = class ProcessDotMintFromPolka {
   async process(paramsJson, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let polkadotService = this.m_frameworkService.getService("PolkadotService");
-    //console.debug("ProcessDotMintFromPolka paramsJson:", paramsJson);
+    //console.debug("ProcessAdaMintFromCardano paramsJson:", paramsJson);
     let params = paramsJson.params;
     try {
       let tokenPairId = parseInt(params.tokenPairID);
       let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee);
-      console.debug("ProcessDotMintFromPolka memo:", memo);
-
-      let api = await polkadotService.getApi();
+      console.debug("ProcessAdaMintFromCardano memo:", memo);
 
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
       let storemanGroupAddr = await polkadotService.longPubKeyToAddress(params.storemanGroupGpk);
@@ -32,19 +30,12 @@ module.exports = class ProcessDotMintFromPolka {
       // 3 计算交易费用
       let estimateFee = await polkadotService.estimateFee(params.fromAddr, txs);
 
-      // 4 校验:balance >= (value + estimateFee + minReserved)
-      let balance = await polkadotService.getBalance(params.fromAddr);
+      // 4 校验:balance >= (value + estimateFee)
+      let balance = await wallet.getBalance(params.fromAddr);
       balance = new BigNumber(balance);
-
-      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType("DOT");
-      let minReserved = new BigNumber(chainInfo.minReserved);
-      minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
-
-      let totalNeed = new BigNumber(params.value).plus(estimateFee).plus(minReserved);
-
+      let totalNeed = new BigNumber(params.value).plus(estimateFee);
       if (balance.isLessThan(totalNeed)) {
-        console.error("ProcessDotMintFromPolka insufficient balance");
+        console.error("ProcessAdaMintFromCardano insufficient balance");
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
@@ -81,7 +72,7 @@ module.exports = class ProcessDotMintFromPolka {
       let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
-      console.error("ProcessDotMintFromPolka error: %O", err);
+      console.error("ProcessAdaMintFromCardano error: %O", err);
       WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
     }
   }

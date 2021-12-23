@@ -3,6 +3,7 @@ const ethUtil = require('ethereumjs-util');
 const litecore = require('litecore-lib');
 const { bech32 } = require('bech32');
 const { PolkadotSS58Format, deriveAddress } = require('@substrate/txwrapper-core');
+const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 
 function getCurTimestamp(toSecond = false) {
@@ -26,6 +27,13 @@ async function sleep(time) {
       resolve();
     }, time);
   });
+}
+
+function hexStrip0x(hexStr) {
+  if (0 == hexStr.indexOf('0x')) {
+      return hexStr.slice(2);
+  }
+  return hexStr;
 }
 
 function isValidEthAddress(address) {
@@ -109,6 +117,32 @@ function isValidDotAddress(account, network) {
   }
 }
 
+function bytesAddressToBinary(bytes) {
+  return bytes.reduce((str, byte) => str + byte.toString(2).padStart(8, '0'), '');
+}
+
+// WAValidator can not valid testnet address
+function isValidAdaAddress(address, network) {
+  const networkId = (network === "testnet")? 0 : 1;
+  try {
+    let addr = wasm.Address.from_bech32(address);
+    let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
+    if (['0111', '0011', '0001', '0101'].includes(prefix)) {
+      return false;
+    }
+    return (addr.network_id() === networkId);
+  } catch (e) {
+    console.debug("% is not ADA bech32 address", address);
+  }
+  try {
+    let addr = wasm.ByronAddress.from_base58(address);
+    return (addr.network_id() === networkId);
+  } catch (e) {
+    console.debug("%s is not ADA base58 address", address);
+  }
+  return false;
+}
+
 function getCoinSymbol(chainType, chainName) {
   if ((chainType === "DOT") && (chainName === "PolkaTestnet")) {
     return "WND";
@@ -123,6 +157,7 @@ module.exports = {
   getCurTimestamp,
   checkTimeout,
   sleep,
+  hexStrip0x,
   isValidEthAddress,
   isValidWanAddress,
   isValidBtcAddress,
@@ -130,5 +165,6 @@ module.exports = {
   isValidDogeAddress,
   isValidXrpAddress,
   isValidDotAddress,
+  isValidAdaAddress,
   getCoinSymbol
 }

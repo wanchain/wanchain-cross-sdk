@@ -62,6 +62,11 @@ let taskTypeConfigJson = {
       "number": 12,
       "name": "ProcessErc721Approve",
       "handle": require("./processErc721Approve")
+    },
+    {
+      "number": 13,
+      "name": "ProcessAdaMintFromCardano",
+      "handle": require("./processAdaMintFromCardano")
     }
   ]
 };

@@ -36,6 +36,7 @@ if (typeof(window) !== "undefined") {
 }
 
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
+let CheckAdaTxService = require("../checkAdaTxService/checkAdaTxService");
 
 class StartService {
     constructor(isTestMode) {
@@ -114,6 +115,10 @@ class StartService {
             await checkDotTxService.init(frameworkService);
             frameworkService.registerService("CheckDotTxService", checkDotTxService);
 
+            let checkAdaTxService = new CheckAdaTxService();
+            await checkAdaTxService.init(frameworkService);
+            frameworkService.registerService("CheckAdaTxService", checkAdaTxService);            
+
             let storemanService = new StoremanService();
             await storemanService.init(frameworkService);
             frameworkService.registerService("StoremanService", storemanService);
@@ -187,9 +192,11 @@ class StartService {
 
             let checkDotTxService = frameworkService.getService("CheckDotTxService");
             await checkDotTxService.start();
-        }
-        catch (err) {
-            console.log("startService start err:", err);
+
+            let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
+            await checkAdaTxService.start();            
+        } catch (err) {
+            console.error("startService start err:", err);
         }
     }
 

@@ -2,7 +2,7 @@
 
 const axios = require("axios");
 
-module.exports = class CheckDotTx {
+module.exports = class CheckAdaTx {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
     this.m_CheckAry = [];
@@ -44,11 +44,11 @@ module.exports = class CheckDotTx {
 
   async add(obj) {
     try {
-      console.log("checkDotTx add obj:", obj);
+      console.log("checkAdaTx add obj:", obj);
       this.m_CheckAry.unshift(obj);
     }
     catch (err) {
-      console.log("checkDotTx add err:", err);
+      console.log("checkAdaTx add err:", err);
     }
   }
 
@@ -61,18 +61,18 @@ module.exports = class CheckDotTx {
       if (this.m_CheckAry.length <= 0) {
         return;
       }
-      let url = this.m_apiServerConfig.url + "/api/dot/queryTxInfoByChainHash/";
+      let url = this.m_apiServerConfig.url + "/api/ada/queryTxInfoByChainHash/";
       let count = this.m_CheckAry.length;
       for (let idx = 0; idx < count; ++idx) {
         let index = count - idx - 1;
         let obj = this.m_CheckAry[index];
         let txUrl = url + obj.fromChain + "/" + obj.uniqueID;
         let ret = await axios.get(txUrl);
-        console.debug("CheckDotTx %s ret.data: %O", txUrl, ret.data);
+        console.debug("CheckAdaTx %s ret.data: %O", txUrl, ret.data);
         if (ret.data.success === true) {
           if (ret.data.data) {
             // found
-            console.log("checkDotTx ret.data.data.txHash:", ret.data.data.txHash);
+            console.log("checkAdaTx ret.data.data.txHash:", ret.data.data.txHash);
             await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
             let storageService = this.m_frameworkService.getService("StorageService");
             storageService.delete("ScEventScanService", obj.uniqueID);
@@ -81,7 +81,7 @@ module.exports = class CheckDotTx {
         }
       }
     } catch (err) {
-      console.error("CheckDotTx runTask err: %O", err);
+      console.error("CheckAdaTx runTask err: %O", err);
     }
   }
 };

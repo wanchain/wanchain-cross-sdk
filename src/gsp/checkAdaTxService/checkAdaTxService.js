@@ -2,7 +2,7 @@
 
 const axios = require("axios");
 
-module.exports = class CheckDotTxService {
+module.exports = class CheckAdaTxService {
     constructor() {
         this.checkArray = [];
     }
@@ -24,13 +24,13 @@ module.exports = class CheckDotTxService {
         let apiServerConfig = await configService.getGlobalConfig("apiServer");
         this.apiServerUrl = apiServerConfig.url;
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoByType("DOT");
+        let chainInfo = await chainInfoService.getChainInfoByType("ADA");
         this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "");
     }
 
     async addTask(task) {
         let storageService = this.frameworkService.getService("StorageService");
-        await storageService.save("CheckDotTxService", task.ccTaskId, task);
+        await storageService.save("CheckAdaTxService", task.ccTaskId, task);
         this.checkArray.unshift(task);
         //console.log("addTask:", task, "checkArray:", this.checkArray);
     }
@@ -40,15 +40,15 @@ module.exports = class CheckDotTxService {
             // console.log("this.checkArray:", this.checkArray);
             let storageService = this.frameworkService.getService("StorageService");
             let count = this.checkArray.length;
-            let url = this.apiServerUrl + "/api/dot/queryTxInfoBySmgPbkHash/";
+            let url = this.apiServerUrl + "/api/ada/queryTxInfoBySmgPbkHash/";
             for (let idx = 0; idx < count; ++idx) {
                 let index = count - idx - 1;
                 let task = this.checkArray[index];
                 try {
                     let queryUrl = url + task.smgPublicKey + "/" + task.txHash;
-                    // console.log("CheckDotTxService queryUrl:", queryUrl);
+                    // console.log("CheckAdaTxService queryUrl:", queryUrl);
                     let ret = await axios.get(queryUrl);
-                    //console.log("CheckDotTxService ret:", ret.data);
+                    //console.log("CheckAdaTxService ret:", ret.data);
                     if (ret.data.success === true && ret.data.data !== null) {
                       // console.log("ret.data:", ret.data);
                       task.uniqueID = ret.data.data.hashX;
@@ -60,15 +60,15 @@ module.exports = class CheckDotTxService {
                       });
                       let scEventScanService = this.frameworkService.getService("ScEventScanService");
                       await scEventScanService.add(task);
-                      await storageService.delete("CheckDotTxService", task.ccTaskId);
+                      await storageService.delete("CheckAdaTxService", task.ccTaskId);
                       this.checkArray.splice(index, 1);
                     }
                 } catch (err) {
-                    console.error("CheckDotTxService runTask error: %O", err);
+                    console.error("CheckAdaTxService runTask error: %O", err);
                 }
             }
         } catch (err) {
-            console.error("CheckDotTxService error: %O", err);
+            console.error("CheckAdaTxService error: %O", err);
         }
     }
 
@@ -79,12 +79,12 @@ module.exports = class CheckDotTxService {
                 if (task.ccTaskId === ccTaskId) {
                     this.checkArray.splice(idx, 1);
                     let storageService = this.frameworkService.getService("StorageService");
-                    await storageService.delete("CheckDotTxService", task.ccTaskId);
+                    await storageService.delete("CheckAdaTxService", task.ccTaskId);
                     break;
                 }
             }
         } catch (err) {
-            console.error("CheckDotTxService onDeleteTask error: %O", err);
+            console.error("CheckAdaTxService onDeleteTask error: %O", err);
         }
     }
 }
