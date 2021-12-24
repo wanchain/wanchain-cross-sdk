@@ -64,20 +64,6 @@ module.exports = class CheckDotTxService {
                     if (ret.data.success === true && ret.data.data !== null) {
                       // console.log("ret.data:", ret.data);
                       obj.uniqueID = ret.data.data.hashX;
-                      // let eventService = this.m_frameworkService.getService("EventService");
-
-                      // let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-                      // let chainInfo = await chainInfoService.getChainInfoByType("DOT");
-                      // let pows = new BigNumber(Math.pow(10, chainInfo.chainDecimals));
-                      // let sentAmount = new BigNumber(ret.data.data.value);
-                      // sentAmount = sentAmount.div(pows);
-                      // let tmpObj = {
-                      //   "ccTaskId": obj.ccTaskId,
-                      //   "txhash": ret.data.data.txHash,
-                      //   "sentAmount": sentAmount.toFixed()
-                      // };
-                      // console.log("dot tmpObj:", tmpObj);
-                      // await eventService.emitEvent("LockTxHash", tmpObj);
                       await this.m_eventService.emitEvent("TaskStepResult", {
                         ccTaskId: obj.ccTaskId,
                         stepIndex: obj.stepIndex,

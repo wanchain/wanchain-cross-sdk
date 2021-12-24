@@ -19,13 +19,6 @@ module.exports = class ProcessXrpMintFromRipple {
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
         return;
       } else {
-        // XRP apiServerNetworkFee includes service fee, and the fee is fixed, dot not emit event, otherwise it will cause an error
-        // let eventService = this.m_frameworkService.getService("EventService");
-        // let obj = {
-        //   "ccTaskId": params.ccTaskId,
-        //   "apiServerNetworkFee": tagInfo.apiServerNetworkFee
-        // };
-        // await eventService.emitEvent("NetworkFee", obj);
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", tagInfo.tagId);
       }
       return;
@@ -50,7 +43,7 @@ module.exports = class ProcessXrpMintFromRipple {
         smgPublicKey: storemanGroupPublicKey,
         smgId: storemanGroupId,
         tokenPairId: params.tokenPairID,
-        networkFee: new BigNumber(params.fee).plus(params.networkFee).toFixed(),
+        networkFee: new BigNumber(params.networkFee).toFixed(),
         value: params.value
       };
       console.debug("ProcessXrpMintFromRipple data:", data);

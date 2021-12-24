@@ -1,6 +1,7 @@
 'use strict';
 
-let BigNumber = require("bignumber.js");
+const BigNumber = require("bignumber.js");
+const tool = require('../../utils/tool.js');
 
 const handleNames = {
   BTC: "MintBtcFromBitcoinHandle",
@@ -13,39 +14,36 @@ module.exports = class MintBtcFromBitcoinHandle {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(tokenPair, convertJson) {
+  async process(tokenPair, convert) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let handleName = handleNames[tokenPair.fromChainType];
-
     try {
-      // console.debug("%s tokenPair: %O", handleName, tokenPair);
-      // console.debug("%s convertJson: %O", handleName, convertJson);
-      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPair.decimals));
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
+      let networkFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
       let params = {
-        ccTaskId: convertJson.ccTaskId,
+        ccTaskId: convert.ccTaskId,
         fromChainType: tokenPair.fromChainType,
         toChainType: tokenPair.toChainType,
-        userAccount: convertJson.toAddr,
-        storemanGroupId: convertJson.storemanGroupId,
-        storemanGroupGpk: convertJson.storemanGroupGpk,
-        tokenPairID: convertJson.tokenPairId,
-        value: value,
+        userAccount: convert.toAddr,
+        storemanGroupId: convert.storemanGroupId,
+        storemanGroupGpk: convert.storemanGroupGpk,
+        tokenPairID: convert.tokenPairId,
+        value,
         taskType: "ProcessMintBtcFromBitcoin",
-        fee: convertJson.fee.operateFee.value, // not used
-        networkFee: convertJson.fee.networkFee.value
+        networkFee
       };
       console.debug("%s params: %O", handleName, params);
       let ret = [
         {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
-      WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, ret);
+      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
       return {
         stepNum: ret.length,
         errCode: null
       };
     } catch (err) {
       console.error("%s error: %O", handleName, err);
-      WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
+      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {
         stepNum: 0,
         errCode: err

@@ -8,7 +8,6 @@ const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
-const NOT_SMART_CONTRACT_ASSETS = ['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'];
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
@@ -138,30 +137,11 @@ class WanBridge extends EventEmitter {
 
   async estimateFee(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
+    let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
-    let operateFeeUnit = '', networkFeeUnit = '';
-    if (direction == 'MINT') {
-      operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-    } else {
-      operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      if (networkFee.isRatio) {
-        networkFeeUnit = assetPair.assetType;
-      } else if (NOT_SMART_CONTRACT_ASSETS.includes(assetPair.fromChainType)) {
-        networkFeeUnit = assetPair.assetType;
-      } else {
-        networkFeeUnit = operateFeeUnit;
-      }
-    }
-    // TODO: delete after rpc support elaborate fee, now fee is config for chains instead of token pairs, not applicable to erc721 tokens
-    if ((assetPair.protocol === "Erc721") && (networkFeeUnit === assetPair.assetType)) {
-      networkFee.fee = "0";
-      networkFee.originFee = "0";
-    }
     let fee = {
-      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
-      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
     };
     console.debug("estimateFee: %O", fee);
     return fee;
@@ -295,15 +275,7 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    let fee = new BigNumber(0);
-    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
-      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
-        fee = fee.plus(ccTask.fee.networkFee.value);
-      }
-      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
-        fee = fee.plus(ccTask.fee.operateFee.value);
-      }
-    }
+    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType, ccTask.decimals));
     if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the fee";
       console.error({taskId, errInfo});
@@ -351,21 +323,10 @@ class WanBridge extends EventEmitter {
     }
     // received amount, TODO: get actual value from chain
     let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
-      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
-        receivedAmount = receivedAmount.minus(ccTask.fee.networkFee.value);
-      }
-      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
-        receivedAmount = receivedAmount.minus(ccTask.fee.operateFee.value);
-      }
-    } else {
-      if (ccTask.fee.networkFee.isRatio) { // layer 2 network fee
-        let fee = receivedAmount.times(ccTask.fee.networkFee.value).toFixed(ccTask.decimals);
-        receivedAmount = receivedAmount.minus(fee);
-      }
-    }
+    let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
+    receivedAmount = receivedAmount.minus(fee).toFixed();
     records.modifyTradeTaskStatus(taskId, status, errInfo);
-    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount.toFixed());
+    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
   }

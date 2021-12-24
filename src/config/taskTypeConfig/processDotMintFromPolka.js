@@ -13,7 +13,7 @@ module.exports = class ProcessDotMintFromPolka {
     let params = paramsJson.params;
     try {
       let tokenPairId = parseInt(params.tokenPairID);
-      let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee);
+      let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.networkFee);
       console.debug("ProcessDotMintFromPolka memo:", memo);
 
       let api = await polkadotService.getApi();

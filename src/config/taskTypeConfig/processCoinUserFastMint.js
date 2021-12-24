@@ -1,6 +1,5 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const ProcessBase = require("./processBase.js");
 
 module.exports = class ProcessCoinUserFastMint extends ProcessBase {
