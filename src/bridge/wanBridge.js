@@ -65,7 +65,7 @@ class WanBridge extends EventEmitter {
 
   async checkWallet(assetPair, direction, wallet) {
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     if (this._isThirdPartyWallet(chainType)) {
       return true;
     } else {
@@ -86,12 +86,12 @@ class WanBridge extends EventEmitter {
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
     console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
       fromAccount = "";
     } else if (fromAccount) {
-      let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
+      let tmpDirection = (direction === "MINT")? "BURN" : "MINT";
       if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
         throw new Error("Invalid fromAccount");
       }
@@ -149,7 +149,7 @@ class WanBridge extends EventEmitter {
 
   async getQuota(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let smg = await this.getSmgInfo();
     let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
     console.debug("getQuota(smg %s): %O", smg.id, quota);
@@ -158,20 +158,20 @@ class WanBridge extends EventEmitter {
 
   validateToAccount(assetPair, direction, account) {
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH", "FTM"].includes(chainType)) {
       return tool.isValidEthAddress(account);
-    } else if ("WAN" == chainType) {
+    } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
-    } else if ("BTC" == chainType) {
+    } else if ("BTC" === chainType) {
       return tool.isValidBtcAddress(account, this.network);
-    } else if ("LTC" == chainType) {
+    } else if ("LTC" === chainType) {
       return tool.isValidLtcAddress(account, this.network);
-    } else if ("DOGE" == chainType) {
+    } else if ("DOGE" === chainType) {
       return tool.isValidDogeAddress(account, this.network);
-    } else if ("XRP" == chainType) {
+    } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
-    } else if ("DOT" == chainType) {
+    } else if ("DOT" === chainType) {
       // PLAN: adapted to polka app
       return tool.isValidDotAddress(account, this.network);
     } else {
@@ -182,10 +182,10 @@ class WanBridge extends EventEmitter {
 
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId); // do not get info from ancestorChain
     // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
-    let token = (direction == "MINT")? assetPair.fromAccount : assetPair.toAccount;
+    let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
     let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
     console.debug("%s nft token %s %d-%d info: %O", chainType, assetPair.assetType, startIndex, endIndex, infos);
     return infos;
@@ -323,8 +323,11 @@ class WanBridge extends EventEmitter {
     }
     // received amount, TODO: get actual value from chain
     let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
-    receivedAmount = receivedAmount.minus(fee).toFixed();
+    let chainType = (ccTask.convertType === "MINT")? ccTask.fromChainType : ccTask.toChainType;
+    if (this._isThirdPartyWallet(chainType)) {
+      let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
+      receivedAmount = receivedAmount.minus(fee).toFixed();
+    }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
