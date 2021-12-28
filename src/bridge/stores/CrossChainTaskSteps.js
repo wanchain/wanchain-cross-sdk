@@ -7,15 +7,10 @@ class CrossChainTaskSteps {
   setTaskSteps(taskId, taskSteps) {
     let steps = [];
     for (let i = 0; i < taskSteps.length; i++) {
-      let step = {
-        stepNo: taskSteps[i].stepIndex,
-        stepTitle: taskSteps[i].title, //approve
-        stepDesc: taskSteps[i].desc, // 
-        stepResult: taskSteps[i].stepResult,
-        txHash: taskSteps[i].txHash,
-        jsonParams: taskSteps[i],
-        errInfo: "",
-      }
+      let step = taskSteps[i];
+      step.txHash = "",
+      step.stepResult = "",
+      step.errInfo = "",
       steps.push(step);
     };
     this.mapCCTaskStepsArray.set(taskId, steps);
@@ -26,7 +21,7 @@ class CrossChainTaskSteps {
     let steps = this.mapCCTaskStepsArray.get(taskId);
     if (steps) { // steps do not exist after page refreshed
       for (let i = 0; i < steps.length; i++) {
-        if (stepIndex == steps[i].stepNo) {
+        if (stepIndex == steps[i].stepIndex) {
           if (txHash) {
             steps[i].txHash = txHash;
           }

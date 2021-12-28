@@ -12,7 +12,7 @@ module.exports = class MintXrpFromRipple {
     let WebStores = this.m_frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals)).toFixed();
-      let networkFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
@@ -22,7 +22,7 @@ module.exports = class MintXrpFromRipple {
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessXrpMintFromRipple",
-        networkFee
+        fee
       };
       console.debug("MintXrpFromRipple params: %O", params);
       let ret = [

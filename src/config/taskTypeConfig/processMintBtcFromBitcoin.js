@@ -66,15 +66,15 @@ module.exports = class ProcessMintBtcFromBitcoin {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(paramsJson, wallet) {
+  async process(stepData, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
-    let params = paramsJson.params;
+    let params = stepData.params;
     let processorName = names[params.fromChainType];
     try {
-      let p2sh = await this.generateOnetimeAddress(paramsJson, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
-      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, paramsJson.stepIndex, p2sh.address);
+      let p2sh = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
+      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, p2sh.address);
       if (p2sh.address === "") {
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       } else {
         // networkfee
         let eventService = this.m_frameworkService.getService("EventService");
@@ -83,16 +83,16 @@ module.exports = class ProcessMintBtcFromBitcoin {
           "apiServerNetworkFee": p2sh.apiServerNetworkFee
         };
         await eventService.emitEvent("NetworkFee", obj);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", p2sh.address); // networkfee
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", p2sh.address); // networkfee
       }
     } catch (err) {
       console.error("%s err: %O", processorName, err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
+      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
     }
   }
 
-  async generateOnetimeAddress(paramsJson, fromChainType, toChainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
-    let params = paramsJson.params;
+  async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
+    let params = stepData.params;
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
       let configService = this.m_frameworkService.getService("ConfigService");
@@ -127,7 +127,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
         smgPublicKey: storemanGroupPublicKey,
         smgId: storemanGroupId,
         tokenPairId: params.tokenPairID,
-        networkFee: params.networkFee,
+        networkFee: params.fee,
         value: params.value.toFixed()
       };
 

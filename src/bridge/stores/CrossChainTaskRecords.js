@@ -48,7 +48,7 @@ class CrossChainTaskRecords {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
-        if (ccTask.stepData[i].stepNo === stepIndex) {
+        if (ccTask.stepData[i].stepIndex === stepIndex) {
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
             if (errInfo) {

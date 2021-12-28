@@ -123,13 +123,11 @@ class BridgeTask {
 
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    if (!this._wallet) { // only thirdparty wallet check fee, integrated wallet checkFromAccount
-      let unit = this._assetPair.assetType;
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
-      if (new BigNumber(fee).gte(this._amount)) {
-        console.error("Amount is too small to pay the fee: %s %s", fee, unit);
-        return "Amount is too small to pay the fee";
-      }
+    let unit = this._assetPair.assetType;
+    let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+    if (new BigNumber(fee).gte(this._amount)) {
+      console.error("Amount is too small to pay the fee: %s %s", fee, unit);
+      return "Amount is too small to pay the fee";
     }
     return "";
   }
@@ -182,14 +180,16 @@ class BridgeTask {
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {isCoin: true});
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {isCoin: false});
     let unit = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
-    let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
-    let requiredCoin = new BigNumber(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
-    let requiredAsset = this._amount;
+    let requiredCoin = new BigNumber(0);
+    let requiredAsset = 0;
     if (this._assetPair.assetType === unit) { // asset is coin
-      requiredCoin = requiredCoin.plus(requiredAsset);
+      requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
       this._task.setFromAccountBalance(coinBalance.toFixed());
     } else {
+      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
+      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
+      requiredAsset = this._amount;
       this._task.setFromAccountBalance(assetBalance.toFixed());
     }
     if (coinBalance.lt(requiredCoin)) {
@@ -217,7 +217,9 @@ class BridgeTask {
     if (chainInfo.minReserved) {
       let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {isCoin: true});
       console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
-      let estimateBalance = balance.plus(this._amount);
+      let unit = this._assetPair.assetType;
+      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let estimateBalance = balance.plus(this._amount).minus(fee);
       if (estimateBalance.lt(chainInfo.minReserved)) {
         let diff = new BigNumber(chainInfo.minReserved).minus(balance);
         console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
@@ -230,7 +232,7 @@ class BridgeTask {
   async _checkTaskSteps() {
     let ccTaskData = this._task.ccTaskData;
     // to get the stepsFunc from server api
-    let convertJson = {
+    let convert = {
       ccTaskId: ccTaskData.ccTaskId,
       tokenPairId: ccTaskData.assetPairId,
       convertType: ccTaskData.convertType,
@@ -244,8 +246,8 @@ class BridgeTask {
       fee: this._fee,
       wallet: this._wallet
     }; 
-    // console.log("checkTaskSteps: %O", convertJson);
-    let stepInfo = await this._bridge.storemanService.getConvertInfo(convertJson);
+    // console.log("checkTaskSteps: %O", convert);
+    let stepInfo = await this._bridge.storemanService.getConvertInfo(convert);
     // console.log("getConvertInfo: %O", stepInfo);
     if (stepInfo.stepNum > 0) {
       this._task.setTaskStepNums(stepInfo.stepNum);
@@ -265,14 +267,12 @@ class BridgeTask {
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
-          this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, ""); // only update txHash, no result
+          this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, ""); // only update txHash, no result
           stepTxHash = taskStep.txHash;
         }
         if (executedStep != curStep) {
-          let jsonStepHandle = taskStep.jsonParams;
-          // to call server to execute the api
           console.debug("bridgeTask _parseTaskStatus step %s at %s ms", curStep, tool.getCurTimestamp());
-          await this._bridge.storemanService.processTxTask(jsonStepHandle, this._wallet);
+          await this._bridge.storemanService.processTxTask(taskStep, this._wallet);
           executedStep = curStep;
         } else {
           await tool.sleep(5000);
@@ -280,16 +280,16 @@ class BridgeTask {
         continue;
       }
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
-        this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+        this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
         this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
         break;
       }
       if (!this._wallet) {
         this._procOtaAddr(taskStep);
-      } else if ((taskStep.jsonParams.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
+      } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
-      this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+      this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
       curStep++;
       stepTxHash = "";
     }

@@ -18,7 +18,7 @@ module.exports = class MintCoinHandle {
 
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
     let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
-    let userFastMintParaJson = {
+    let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: tokenPair.fromChainType,
@@ -32,10 +32,10 @@ module.exports = class MintCoinHandle {
       taskType: "ProcessCoinUserFastMint",
       fee
     };
-    console.debug("MintCoinHandle userFastMintParaJson params: %O", userFastMintParaJson);
-    userFastMintParaJson.chainId = await convert.wallet.getChainId();
+    console.debug("MintCoinHandle params: %O", params);
+    params.chainId = await convert.wallet.getChainId();
     let ret = [
-      { "name": "userFastMint", "stepIndex": 1, "title": this.m_strMintTitle, "desc": this.m_strMintDesc, "params": userFastMintParaJson }
+      {name: "userFastMint", stepIndex: 1, title: this.m_strMintTitle, desc: this.m_strMintDesc, params}
     ];
     this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
     return {

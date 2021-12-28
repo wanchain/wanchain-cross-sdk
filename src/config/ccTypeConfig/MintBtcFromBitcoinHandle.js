@@ -19,7 +19,7 @@ module.exports = class MintBtcFromBitcoinHandle {
     let handleName = handleNames[tokenPair.fromChainType];
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
-      let networkFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType: tokenPair.fromChainType,
@@ -30,7 +30,7 @@ module.exports = class MintBtcFromBitcoinHandle {
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessMintBtcFromBitcoin",
-        networkFee
+        fee
       };
       console.debug("%s params: %O", handleName, params);
       let ret = [

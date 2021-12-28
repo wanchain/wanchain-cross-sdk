@@ -73,7 +73,7 @@ module.exports = class CheckDotTx {
           if (ret.data.data) {
             // found
             console.log("checkDotTx ret.data.data.txHash:", ret.data.data.txHash);
-            await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
+            await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
             let storageService = this.m_frameworkService.getService("StorageService");
             storageService.delete("ScEventScanService", obj.uniqueID);
             this.m_CheckAry.splice(index, 1);

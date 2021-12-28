@@ -1,6 +1,7 @@
 'use strict';
 
 const BigNumber = require("bignumber.js");
+const tool = require("../../utils/tool.js");
 
 module.exports = class MintDotFromPolkaHandle {
   constructor(frameworkService) {
@@ -11,7 +12,7 @@ module.exports = class MintDotFromPolkaHandle {
     let webStores = this.m_frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals)).toFixed();
-      let networkFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
@@ -21,7 +22,7 @@ module.exports = class MintDotFromPolkaHandle {
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessDotMintFromPolka",
-        networkFee,
+        fee,
         fromAddr: convert.fromAddr
       };
       console.debug("MintDotFromPolkaHandle params: %O", params);

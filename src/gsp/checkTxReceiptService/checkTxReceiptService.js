@@ -52,7 +52,7 @@ module.exports = class CheckTxReceiptService {
             let index = length - idx - 1;
             let obj = this.m_tradeTaskAry[index];
             try {
-                let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txhash);
+                let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txHash);
                 if (txReceipt) {
                     let result = "Failed";
                     let errInfo = "Transaction failed";
@@ -64,14 +64,14 @@ module.exports = class CheckTxReceiptService {
                     await this.m_eventService.emitEvent("TaskStepResult", {
                         ccTaskId: obj.ccTaskId,
                         stepIndex: obj.stepIndex,
-                        txHash: obj.txhash,
+                        txHash: obj.txHash,
                         result,
                         errInfo
                     });
                     await storageService.delete("CheckTxReceiptService", obj.ccTaskId);
                     this.m_tradeTaskAry.splice(index, 1);
                 } else {
-                    //let tx = await this.m_iwanBCConnector.getTxInfo(obj.chain, obj.txhash);
+                    //let tx = await this.m_iwanBCConnector.getTxInfo(obj.chain, obj.txHash);
                     //if (tx) {
                     //    continue;// 仍在队列中
                     //}
@@ -102,7 +102,7 @@ module.exports = class CheckTxReceiptService {
         //    "chain": params.scChainType,
         //    "ccTaskId": params.ccTaskId,
         //    "stepIndex": paramsJson.stepIndex,
-        //    "txhash": ret.txhash,
+        //    "txHash": ret.txHash,
         //    "convertCheckInfo": convertCheckInfo
         //};
         obj.sendTime = new Date().getTime();

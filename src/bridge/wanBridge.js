@@ -36,7 +36,7 @@ class WanBridge extends EventEmitter {
     this.globalConstant = this._service.getService("GlobalConstant");
     this.iWanConnectorService = this._service.getService("iWanConnectorService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
-    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash
+    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("NetworkFee", this._onNetworkFee.bind(this)); // for BTC/LTC/DOGE to update network fee got from api server
@@ -269,7 +269,7 @@ class WanBridge extends EventEmitter {
     console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
-    let txHash = taskLockHash.txhash;
+    let txHash = taskLockHash.txHash;
     let value = taskLockHash.sentAmount;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (!ccTask) {
@@ -306,7 +306,7 @@ class WanBridge extends EventEmitter {
     console.debug("_onRedeemTxHash: %O", taskRedeemHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskRedeemHash.ccTaskId;
-    let txHash = taskRedeemHash.txhash;
+    let txHash = taskRedeemHash.txHash;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (!ccTask) {
       return;
@@ -323,11 +323,8 @@ class WanBridge extends EventEmitter {
     }
     // received amount, TODO: get actual value from chain
     let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    let chainType = (ccTask.convertType === "MINT")? ccTask.fromChainType : ccTask.toChainType;
-    if (this._isThirdPartyWallet(chainType)) {
-      let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
-      receivedAmount = receivedAmount.minus(fee).toFixed();
-    }
+    let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
+    receivedAmount = receivedAmount.minus(fee).toFixed();
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
