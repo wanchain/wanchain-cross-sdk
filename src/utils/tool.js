@@ -5,6 +5,7 @@ const { bech32 } = require('bech32');
 const { PolkadotSS58Format, deriveAddress } = require('@substrate/txwrapper-core');
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
+const BigNumber = require('bignumber.js');
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -153,6 +154,29 @@ function getCoinSymbol(chainType, chainName) {
   }
 }
 
+function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
+  let result = new BigNumber(0), tmp;
+  decimals = Number(decimals);
+  if (fee.operateFee.unit === unit) {
+    tmp = new BigNumber(fee.operateFee.value);
+    if (fee.operateFee.isRatio) {
+      tmp = tmp.times(amount).toFixed(decimals);
+    }
+    result = result.plus(tmp);
+  }
+  if (fee.networkFee.unit === unit) {
+    tmp = new BigNumber(fee.networkFee.value);
+    if (fee.networkFee.isRatio) {
+      tmp = tmp.times(amount).toFixed(decimals);
+    }
+    result = result.plus(tmp);
+  }
+  if (!formatWithDecimals) {
+    result = result.multipliedBy(Math.pow(10, decimals));
+  }
+  return result.toFixed();
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -166,5 +190,6 @@ module.exports = {
   isValidXrpAddress,
   isValidDotAddress,
   isValidAdaAddress,
-  getCoinSymbol
+  getCoinSymbol,
+  parseFee
 }

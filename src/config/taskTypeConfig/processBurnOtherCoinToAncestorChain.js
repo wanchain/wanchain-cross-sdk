@@ -7,13 +7,12 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
     super(frameworkService);
   }
 
-  async process(paramsJson, wallet) {
+  async process(stepData, wallet) {
     let uiStrService = this.m_frameworkService.getService("UIStrService");
     let strFailed = uiStrService.getStrByName("Failed");
-
-    let params = paramsJson.params;
+    let params = stepData.params;
     try {
-      if (!(await this.checkChainId(paramsJson, wallet))) {
+      if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
       let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
@@ -27,17 +26,18 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
 
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
-      await this.sendTransactionData(paramsJson, txData, wallet);
+      await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessUserFastBurn error: %O", err);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
     }
   }
 
   // virtual function
-  async getConvertInfoForCheck(paramsJson) {
+  async getConvertInfoForCheck(stepData) {
+    let params = stepData.params;
     let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPairObj = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
+    let tokenPairObj = await storemanService.getTokenPairObjById(params.tokenPairID);
     let blockNumber;
     if (tokenPairObj.fromChainType === "XRP") {
       blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPairObj.fromChainType);
@@ -50,19 +50,19 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
     let obj = {
       needCheck: true,
       checkInfo: {
-        "ccTaskId": paramsJson.params.ccTaskId,
-        "uniqueID": paramsJson.txhash,
-        "userAccount": paramsJson.params.userAccount,
-        "smgID": paramsJson.params.storemanGroupId,
-        "tokenPairID": paramsJson.params.tokenPairID,
-        "value": paramsJson.params.value,
-        "chain": tokenPairObj.fromChainType,
-        "fromBlockNumber": blockNumber,
-        "taskType": "BURN",
-        "fromChain": tokenPairObj.toChainType,
-        "fromAddr": paramsJson.params.fromAddr,
-        "chainHash": paramsJson.txhash,
-        "toAddr": paramsJson.params.toAddr
+        ccTaskId: params.ccTaskId,
+        uniqueID: stepData.txHash,
+        userAccount: params.userAccount,
+        smgID: params.storemanGroupId,
+        tokenPairID: params.tokenPairID,
+        value: params.value,
+        chain: tokenPairObj.fromChainType,
+        fromBlockNumber: blockNumber,
+        taskType: "BURN",
+        fromChain: tokenPairObj.toChainType,
+        fromAddr: params.fromAddr,
+        chainHash: stepData.txHash,
+        toAddr: params.toAddr
       }
     };
     return obj;

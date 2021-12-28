@@ -59,15 +59,15 @@ module.exports = class CheckBtcTxService {
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
                     let txHashField = this.chainType.toLowerCase() + "Hash";
-                    let txhash = ret.data.data[txHashField];
-                    let sender = await this.m_utilService.getBtcTxSender(this.chainType, txhash);
+                    let txHash = ret.data.data[txHashField];
+                    let sender = await this.m_utilService.getBtcTxSender(this.chainType, txHash);
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,
-                        txhash,
+                        txHash,
                         sentAmount: ret.data.data.value,
                         sender
                     });
-                    obj.uniqueID = "0x" + txhash;
+                    obj.uniqueID = "0x" + txHash;
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
                     await storageService.delete(this.serviceName, obj.ccTaskId);

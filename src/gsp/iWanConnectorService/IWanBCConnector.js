@@ -182,18 +182,9 @@ class IWanBCConnector {
         return ret;
     }
 
-    async estimateNetworkFee(chainType, feeType, toChainType) {
-        let ret = await this.apiClient.estimateNetworkFee(chainType, feeType, toChainType);
-        return ret;
-    }
-
     async getTxInfo(chain, txHash, options) {
         let ret = await this.apiClient.getTxInfo(chain, txHash, options);
         return ret;
-    }
-
-    async getCrossChainFees(chainType, chainIds, options) {
-        return await this.apiClient.getCrossChainFees(chainType, chainIds, options);
     }
 
     async getStoremanGroupConfig(storemanGroupId) {
@@ -241,6 +232,14 @@ class IWanBCConnector {
             result[i] = {id: ids.results.transformed[i]._hex, uri: uris.results.transformed[i]};
         }
         return result;
+    }
+
+    async estimateCrossChainOperationFee(chainType, targetChainType, options) {
+        return this.apiClient.estimateCrossChainOperationFee(chainType, targetChainType, options);
+    }
+
+    async estimateCrossChainNetworkFee(chainType, targetChainType, options) {
+        return this.apiClient.estimateCrossChainNetworkFee(chainType, targetChainType, options);
     }
 };
 

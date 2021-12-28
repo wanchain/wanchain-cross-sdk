@@ -1,40 +1,41 @@
 'use strict';
 
-let BigNumber = require("bignumber.js");
+const BigNumber = require("bignumber.js");
+const tool = require('../../utils/tool.js');
 
 module.exports = class MintXrpFromRipple {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(tokenPairObj, convertJson) {
+  async process(tokenPair, convert) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.decimals)).toFixed();
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals)).toFixed();
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
       let params = {
-        ccTaskId: convertJson.ccTaskId,
-        toChainType: tokenPairObj.toChainType,
-        userAccount: convertJson.toAddr,
-        storemanGroupId: convertJson.storemanGroupId,
-        storemanGroupGpk: convertJson.storemanGroupGpk,
-        tokenPairID: convertJson.tokenPairId,
+        ccTaskId: convert.ccTaskId,
+        toChainType: tokenPair.toChainType,
+        userAccount: convert.toAddr,
+        storemanGroupId: convert.storemanGroupId,
+        storemanGroupGpk: convert.storemanGroupGpk,
+        tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessXrpMintFromRipple",
-        fee: convertJson.fee.operateFee.value,
-        networkFee: convertJson.fee.networkFee.value // not used
+        fee
       };
       console.debug("MintXrpFromRipple params: %O", params);
       let ret = [
         {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
-      WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, ret);
+      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
       return {
         stepNum: ret.length,
         errCode: null
       };
     } catch (err) {
       console.error("MintXrpFromRipple error: %O", err);
-      WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
+      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {
         stepNum: 0,
         errCode: err

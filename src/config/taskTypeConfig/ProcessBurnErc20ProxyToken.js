@@ -1,6 +1,5 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const ProcessBase = require("./processBase.js");
 
 module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
@@ -8,12 +7,12 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
     super(frameworkService);
   }
 
-  async process(paramsJson, wallet) {
+  async process(stepData, wallet) {
     let uiStrService = this.m_frameworkService.getService("UIStrService");
     let strFailed = uiStrService.getStrByName("Failed");
-    let params = paramsJson.params;
+    let params = stepData.params;
     try {
-      if (!(await this.checkChainId(paramsJson, wallet))) {
+      if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
       let stroemanService = this.m_frameworkService.getService("StoremanService");
@@ -39,33 +38,34 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
 
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
-      await this.sendTransactionData(paramsJson, txData, wallet);
+      await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to send transaction");
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
     }
   }
 
   // virtual function
-  async getConvertInfoForCheck(paramsJson) {
+  async getConvertInfoForCheck(stepData) {
+    let params = stepData.params;
     let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPair = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
-    let chainType = (paramsJson.params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
+    let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
+    let chainType = (params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
-    let nativeToken = (paramsJson.params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;
+    let nativeToken = (params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;
     let taskType = nativeToken? "MINT" : "BURN"; // adapt to CheckScEvent task to scan SmgMintLogger or SmgReleaseLogger
     let obj = {
       needCheck: true,
       checkInfo: {
-        "ccTaskId": paramsJson.params.ccTaskId,
-        "uniqueID": paramsJson.txhash,
-        "userAccount": paramsJson.params.userAccount,
-        "smgID": paramsJson.params.storemanGroupId,
-        "tokenPairID": paramsJson.params.tokenPairID,
-        "value": paramsJson.params.value,
-        "chain": chainType,
-        "fromBlockNumber": blockNumber,
-        "taskType": taskType
+        ccTaskId: params.ccTaskId,
+        uniqueID: stepData.txHash,
+        userAccount: params.userAccount,
+        smgID: params.storemanGroupId,
+        tokenPairID: params.tokenPairID,
+        value: params.value,
+        chain: chainType,
+        fromBlockNumber: blockNumber,
+        taskType: taskType
       }
     };
     return obj;

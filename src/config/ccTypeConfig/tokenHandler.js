@@ -2,6 +2,7 @@
 
 const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
+const tool = require('../../utils/tool.js');
 const CCTypeHandleInterface = require("./CCTypeHandleInterface.js");
 
 const web3 = new Web3();
@@ -47,8 +48,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       gasLimit: chainInfo.erc20ApproveGasLimit,
       value: approveMaxValue,
       spenderAddr: chainInfo.crossScAddr,
-      taskType: "ProcessErc20Approve",
-      fee: new BigNumber(0)
+      taskType: "ProcessErc20Approve"
     };
     console.debug("TokenHandler buildErc20Approve %s params: %O", convert.convertType, approveParams);
     let allowance = await this.iWanConnectorService.getErc20Allowance(chainInfo.chainType,
@@ -90,8 +90,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         gasLimit: chainInfo.erc20ApproveGasLimit,
         value,
         operator: chainInfo.crossScAddr,
-        taskType: "ProcessErc721Approve",
-        fee: new BigNumber(0),
+        taskType: "ProcessErc721Approve"
       }
       console.debug("TokenHandler buildErc721Approve params: %O", params);
       let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
@@ -103,8 +102,9 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   async buildUserFastMint(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.fromScInfo;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
-    let networkFeeInfo = convert.fee.networkFee;
-    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed(0) : networkFeeInfo.rawValue;
+    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -117,9 +117,9 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       value,
       userAccount: convert.toAddr,
       taskType,
-      fee: convert.fee.operateFee.rawValue,
+      fee: networkFee,
       tokenAccount: tokenPair.fromAccount,
-      userBurnFee: networkFeeValue
+      userBurnFee: operateFee
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
     let mintTitle = this.uiStrService.getStrByName("MintTitle");
@@ -130,8 +130,9 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   async buildUserFastBurn(steps, tokenPair, convert, taskType) {
     let chainInfo = tokenPair.toScInfo;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
-    let networkFeeInfo = convert.fee.networkFee;
-    let networkFeeValue = networkFeeInfo.isRatio? value.times(networkFeeInfo.value).toFixed(0) : networkFeeInfo.rawValue;
+    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -144,9 +145,9 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       value,
       userAccount: convert.toAddr,
       taskType,
-      fee: convert.fee.operateFee.rawValue,
+      fee: networkFee,
       tokenAccount: tokenPair.toAccount,
-      userBurnFee: networkFeeValue
+      userBurnFee: operateFee
     };
     let isEvmAddr = /^0x[0-9a-fA-F]{40}$/.test(convert.toAddr);
     if (isEvmAddr) {
@@ -170,8 +171,10 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
 
   async checkGasFee(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    console.log("checkGasFee: %O", {steps, chainType: chainInfo.chainType, fromAddr: convert.fromAddr, fee: convert.fee.operateFee.rawValue})
-    let result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, convert.fee.operateFee.rawValue);
+    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let fee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
+    console.log("checkGasFee: %O", {steps, chainType: chainInfo.chainType, fromAddr: convert.fromAddr, fee});
+    let result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
     if (result) {
       this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);
       return {

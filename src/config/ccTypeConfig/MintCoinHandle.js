@@ -1,6 +1,7 @@
 'use strict';
 
-let BigNumber = require("bignumber.js");
+const BigNumber = require("bignumber.js");
+const tool = require('../../utils/tool.js');
 
 module.exports = class MintCoinHandle {
   constructor(frameworkService) {
@@ -10,32 +11,33 @@ module.exports = class MintCoinHandle {
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
   }
 
-  async process(tokenPairObj, convertJson) {
+  async process(tokenPair, convert) {
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
     this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
     this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
 
-    let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.decimals));
-    let userFastMintParaJson = {
-      "ccTaskId": convertJson.ccTaskId,
-      "fromAddr": convertJson.fromAddr,
-      "scChainType": tokenPairObj.fromChainType,
-      "crossScAddr": tokenPairObj.fromScInfo.crossScAddr,
-      "gasPrice": tokenPairObj.fromScInfo.gasPrice, // undefined, get from chain dynamiclly
-      "gasLimit": tokenPairObj.fromScInfo.coinFastMintGasLimit,
-      "storemanGroupId": convertJson.storemanGroupId,
-      "tokenPairID": convertJson.tokenPairId,
-      "value": value,
-      "userAccount": convertJson.toAddr,
-      "taskType": "ProcessCoinUserFastMint",
-      "fee": convertJson.fee.operateFee.rawValue
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
+    let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
+    let params = {
+      ccTaskId: convert.ccTaskId,
+      fromAddr: convert.fromAddr,
+      scChainType: tokenPair.fromChainType,
+      crossScAddr: tokenPair.fromScInfo.crossScAddr,
+      gasPrice: tokenPair.fromScInfo.gasPrice, // undefined, get from chain dynamiclly
+      gasLimit: tokenPair.fromScInfo.coinFastMintGasLimit,
+      storemanGroupId: convert.storemanGroupId,
+      tokenPairID: convert.tokenPairId,
+      value,
+      userAccount: convert.toAddr,
+      taskType: "ProcessCoinUserFastMint",
+      fee
     };
-    console.debug("MintCoinHandle userFastMintParaJson params: %O", userFastMintParaJson);
-    userFastMintParaJson.chainId = await convertJson.wallet.getChainId();
+    console.debug("MintCoinHandle params: %O", params);
+    params.chainId = await convert.wallet.getChainId();
     let ret = [
-      { "name": "userFastMint", "stepIndex": 1, "title": this.m_strMintTitle, "desc": this.m_strMintDesc, "params": userFastMintParaJson }
+      {name: "userFastMint", stepIndex: 1, title: this.m_strMintTitle, desc: this.m_strMintDesc, params}
     ];
-    this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, ret);
+    this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
     return {
       stepNum: ret.length,
       errCode: null

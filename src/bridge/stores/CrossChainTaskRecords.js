@@ -48,7 +48,7 @@ class CrossChainTaskRecords {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
-        if (ccTask.stepData[i].stepNo === stepIndex) {
+        if (ccTask.stepData[i].stepIndex === stepIndex) {
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
             if (errInfo) {
@@ -71,10 +71,9 @@ class CrossChainTaskRecords {
   }
 
   setTaskNetworkFee(ccTaskId, fee) {
-    console.log({ccTaskId, fee})
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
-      console.log("setTaskNetworkFee %s -> %s", ccTask.fee.networkFee.value, fee);
+      console.debug("task %d update networkFee %s -> %s", ccTaskId, ccTask.fee.networkFee.value, fee);
       ccTask.fee.networkFee.value = fee;
     }
   }

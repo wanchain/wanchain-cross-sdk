@@ -9,34 +9,27 @@ module.exports = class ProcessXrpMintFromRipple {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(paramsJson, wallet) {
+  async process(stepData, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
-    let params = paramsJson.params;
+    let params = stepData.params;
     try {
-      let tagInfo = await this.getTagId(paramsJson, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
-      //console.log("ProcessXrpMintFromRipple finishStep:", params.ccTaskId, paramsJson.stepIndex, tagInfo);
+      let tagInfo = await this.getTagId(stepData, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
+      //console.log("ProcessXrpMintFromRipple finishStep:", params.ccTaskId, stepData.stepIndex, tagInfo);
       if (tagInfo.tagId === 0) {
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
         return;
       } else {
-        // XRP apiServerNetworkFee includes service fee, and the fee is fixed, dot not emit event, otherwise it will cause an error
-        // let eventService = this.m_frameworkService.getService("EventService");
-        // let obj = {
-        //   "ccTaskId": params.ccTaskId,
-        //   "apiServerNetworkFee": tagInfo.apiServerNetworkFee
-        // };
-        // await eventService.emitEvent("NetworkFee", obj);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", tagInfo.tagId);
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", tagInfo.tagId);
       }
       return;
     } catch (err) {
       console.error("ProcessXrpMintFromRipple process error: %O", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Failed to generate ota address");
+      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
     }
   }
 
-  async getTagId(paramsJson, chainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
-    let params = paramsJson.params;
+  async getTagId(stepData, chainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
+    let params = stepData.params;
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
       let configService = this.m_frameworkService.getService("ConfigService");
@@ -50,12 +43,11 @@ module.exports = class ProcessXrpMintFromRipple {
         smgPublicKey: storemanGroupPublicKey,
         smgId: storemanGroupId,
         tokenPairId: params.tokenPairID,
-        networkFee: new BigNumber(params.fee).plus(params.networkFee).toFixed(),
+        networkFee: new BigNumber(params.fee).toFixed(),
         value: params.value
       };
-      console.debug("ProcessXrpMintFromRipple data:", data);
+      console.debug("ProcessXrpMintFromRipple %s data: %O", url, data);
       let ret = await axios.post(url, data);
-      console.debug("ProcessXrpMintFromRipple url:", url);
       if (ret.data.success === true) {
         data.tagId = ret.data.tagId;
         data.ccTaskId = params.ccTaskId;

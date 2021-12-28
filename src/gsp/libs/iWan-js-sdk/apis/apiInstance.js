@@ -8588,41 +8588,6 @@ class ApiInstance extends WsInstance {
         return this.open;
     }
 
-    estimateNetworkFee(chainType, feeType, toChainType, callback) {
-        let method = 'estimateNetworkFee';
-        let params = {
-            "chainType": chainType,
-            "feeType": feeType,
-            "toChainType": toChainType
-        };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
-
-    getCrossChainFees(chainType, chainIds, callback) {
-        let method = 'getCrossChainFees';
-        let params = {
-            "chainType": chainType,
-            "chainIds": chainIds
-        };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
-
     getStoremanGroupConfig(storemanGroupId, callback) {
       let method = 'getStoremanGroupConfig';
       let params = {
@@ -8683,6 +8648,48 @@ class ApiInstance extends WsInstance {
         });
       });
     }
+
+    estimateCrossChainOperationFee(chainType, targetChainType, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'estimateCrossChainOperationFee';
+      let params = { chainType: chainType, targetChainType: targetChainType, ...options };
+    
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+    }
+
+    estimateCrossChainNetworkFee(chainType, targetChainType, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'estimateCrossChainNetworkFee';
+      let params = { chainType: chainType, targetChainType: targetChainType, ...options };
+    
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+   }    
 }
 
 module.exports = ApiInstance;

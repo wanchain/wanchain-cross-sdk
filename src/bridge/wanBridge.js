@@ -8,7 +8,6 @@ const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
-const NOT_SMART_CONTRACT_ASSETS = ['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'];
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
@@ -37,7 +36,7 @@ class WanBridge extends EventEmitter {
     this.globalConstant = this._service.getService("GlobalConstant");
     this.iWanConnectorService = this._service.getService("iWanConnectorService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
-    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash
+    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("NetworkFee", this._onNetworkFee.bind(this)); // for BTC/LTC/DOGE to update network fee got from api server
@@ -66,7 +65,7 @@ class WanBridge extends EventEmitter {
 
   async checkWallet(assetPair, direction, wallet) {
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     if (this._isThirdPartyWallet(chainType)) {
       return true;
     } else {
@@ -87,12 +86,12 @@ class WanBridge extends EventEmitter {
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
     console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
       fromAccount = "";
     } else if (fromAccount) {
-      let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
+      let tmpDirection = (direction === "MINT")? "BURN" : "MINT";
       if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
         throw new Error("Invalid fromAccount");
       }
@@ -138,30 +137,11 @@ class WanBridge extends EventEmitter {
 
   async estimateFee(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
+    let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
-    let operateFeeUnit = '', networkFeeUnit = '';
-    if (direction == 'MINT') {
-      operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
-    } else {
-      operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
-      if (networkFee.isRatio) {
-        networkFeeUnit = assetPair.assetType;
-      } else if (NOT_SMART_CONTRACT_ASSETS.includes(assetPair.fromChainType)) {
-        networkFeeUnit = assetPair.assetType;
-      } else {
-        networkFeeUnit = operateFeeUnit;
-      }
-    }
-    // TODO: delete after rpc support elaborate fee, now fee is config for chains instead of token pairs, not applicable to erc721 tokens
-    if ((assetPair.protocol === "Erc721") && (networkFeeUnit === assetPair.assetType)) {
-      networkFee.fee = "0";
-      networkFee.originFee = "0";
-    }
     let fee = {
-      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
-      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
     };
     console.debug("estimateFee: %O", fee);
     return fee;
@@ -169,7 +149,7 @@ class WanBridge extends EventEmitter {
 
   async getQuota(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let smg = await this.getSmgInfo();
     let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
     console.debug("getQuota(smg %s): %O", smg.id, quota);
@@ -178,22 +158,22 @@ class WanBridge extends EventEmitter {
 
   validateToAccount(assetPair, direction, account) {
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH", "FTM"].includes(chainType)) {
       return tool.isValidEthAddress(account);
-    } else if ("WAN" == chainType) {
+    } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
-    } else if ("BTC" == chainType) {
+    } else if ("BTC" === chainType) {
       return tool.isValidBtcAddress(account, this.network);
-    } else if ("LTC" == chainType) {
+    } else if ("LTC" === chainType) {
       return tool.isValidLtcAddress(account, this.network);
-    } else if ("DOGE" == chainType) {
+    } else if ("DOGE" === chainType) {
       return tool.isValidDogeAddress(account, this.network);
-    } else if ("XRP" == chainType) {
+    } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
-    } else if ("DOT" == chainType) {
+    } else if ("DOT" === chainType) {
       return tool.isValidDotAddress(account, this.network);
-    } else if ("ADA" == chainType) {
+    } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
     } else {
       console.error("unsupported chain %s", chainType);
@@ -203,10 +183,10 @@ class WanBridge extends EventEmitter {
 
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId); // do not get info from ancestorChain
     // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
-    let token = (direction == "MINT")? assetPair.fromAccount : assetPair.toAccount;
+    let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
     let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
     console.debug("%s nft token %s %d-%d info: %O", chainType, assetPair.assetType, startIndex, endIndex, infos);
     return infos;
@@ -290,21 +270,13 @@ class WanBridge extends EventEmitter {
     console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
-    let txHash = taskLockHash.txhash;
+    let txHash = taskLockHash.txHash;
     let value = taskLockHash.sentAmount;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (!ccTask) {
       return;
     }
-    let fee = new BigNumber(0);
-    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
-      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
-        fee = fee.plus(ccTask.fee.networkFee.value);
-      }
-      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
-        fee = fee.plus(ccTask.fee.operateFee.value);
-      }
-    }
+    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType, ccTask.decimals));
     if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the fee";
       console.error({taskId, errInfo});
@@ -335,7 +307,7 @@ class WanBridge extends EventEmitter {
     console.debug("_onRedeemTxHash: %O", taskRedeemHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskRedeemHash.ccTaskId;
-    let txHash = taskRedeemHash.txhash;
+    let txHash = taskRedeemHash.txHash;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (!ccTask) {
       return;
@@ -352,21 +324,10 @@ class WanBridge extends EventEmitter {
     }
     // received amount, TODO: get actual value from chain
     let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
-      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
-        receivedAmount = receivedAmount.minus(ccTask.fee.networkFee.value);
-      }
-      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
-        receivedAmount = receivedAmount.minus(ccTask.fee.operateFee.value);
-      }
-    } else {
-      if (ccTask.fee.networkFee.isRatio) { // layer 2 network fee
-        let fee = receivedAmount.times(ccTask.fee.networkFee.value).toFixed(ccTask.decimals);
-        receivedAmount = receivedAmount.minus(fee);
-      }
-    }
+    let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
+    receivedAmount = receivedAmount.minus(fee).toFixed();
     records.modifyTradeTaskStatus(taskId, status, errInfo);
-    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount.toFixed());
+    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
   }
