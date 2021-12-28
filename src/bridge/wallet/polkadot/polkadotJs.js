@@ -53,14 +53,14 @@ class Polkadot {
     }
   }  
 
-  buildUserLockMemo(tokenPair, userAccount, fee) {
+  buildUserLockData(tokenPair, userAccount, fee) {
     let memo = "";
     tokenPair = Number(tokenPair);
     userAccount = tool.hexStrip0x(userAccount);
     fee = new BigNumber(fee).toString(16);
     if ((tokenPair !== NaN) && (userAccount.length === WanAccountLen)) {
       let type = TX_TYPE.UserLock.toString(16).padStart(MemoTypeLen, 0);
-      let tokenPair = parseInt(tokenPair).toString(16).padStart(TokenPairIDLen, 0);
+      tokenPair = parseInt(tokenPair).toString(16).padStart(TokenPairIDLen, 0);
       memo = type + tokenPair + userAccount + fee;
     } else {
       console.error("buildUserlockMemo parameter invalid");

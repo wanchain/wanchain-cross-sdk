@@ -51,7 +51,7 @@ class Nami {
     }
   }  
 
-  buildUserLockMetaData(tokenPair, userAccount, fee) {
+  buildUserLockData(tokenPair, userAccount, fee) {
     tokenPair = Number(tokenPair);
     userAccount = tool.hexStrip0x(userAccount);
     fee = new BigNumber(fee).toString(16);

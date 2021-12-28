@@ -6,14 +6,13 @@ module.exports = class ProcessAdaMintFromCardano {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(paramsJson, wallet) {
+  async process(stepData, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let polkadotService = this.m_frameworkService.getService("PolkadotService");
-    //console.debug("ProcessAdaMintFromCardano paramsJson:", paramsJson);
-    let params = paramsJson.params;
+    //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
+    let params = stepData.params;
     try {
-      let tokenPairId = parseInt(params.tokenPairID);
-      let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee);
+      let memo = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       console.debug("ProcessAdaMintFromCardano memo:", memo);
 
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
@@ -36,7 +35,7 @@ module.exports = class ProcessAdaMintFromCardano {
       let totalNeed = new BigNumber(params.value).plus(estimateFee);
       if (balance.isLessThan(totalNeed)) {
         console.error("ProcessAdaMintFromCardano insufficient balance");
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Insufficient balance");
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
@@ -44,24 +43,23 @@ module.exports = class ProcessAdaMintFromCardano {
       let txHash;
       try {
         txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txHash, ""); // only update txHash, no result
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.message === "Cancelled") {
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Rejected");
+          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
         return;
       }
-      paramsJson.txhash = txHash;
 
       // 查询目的链当前blockNumber
       let iwan = this.m_frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
-        stepIndex: paramsJson.stepIndex,
+        stepIndex: stepData.stepIndex,
         fromBlockNumber: blockNumber,
         txHash: txHash,
         chain: params.toChainType,
@@ -73,7 +71,7 @@ module.exports = class ProcessAdaMintFromCardano {
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessAdaMintFromCardano error: %O", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
     }
   }
 };

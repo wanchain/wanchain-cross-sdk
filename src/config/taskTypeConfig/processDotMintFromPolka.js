@@ -9,11 +9,10 @@ module.exports = class ProcessDotMintFromPolka {
   async process(stepData, wallet) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let polkadotService = this.m_frameworkService.getService("PolkadotService");
-    //console.debug("ProcessDotMintFromPolka stepData:", stepData);
+    // console.debug("ProcessDotMintFromPolka stepData:", stepData);
     let params = stepData.params;
     try {
-      let tokenPairId = parseInt(params.tokenPairID);
-      let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee);
+      let memo = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       console.debug("ProcessDotMintFromPolka memo:", memo);
 
       let api = await polkadotService.getApi();
