@@ -1,5 +1,6 @@
 'use strict';
-let BigNumber = require("bignumber.js");
+
+const BigNumber = require("bignumber.js");
 
 module.exports = class ProcessDotMintFromPolka {
   constructor(frameworkService) {
@@ -28,22 +29,17 @@ module.exports = class ProcessDotMintFromPolka {
         api.tx.balances.transferKeepAlive(storemanGroupAddr, totalTransferValue)
       ];
       // console.debug("txs:", txs);
-      // 3 计算交易费用
-      let estimateFee = await polkadotService.estimateFee(params.fromAddr, txs);
 
-      // 4 校验:balance >= (value + estimateFee + minReserved)
+      // 3 check balance >= (value + gasFee + minReserved)
       let balance = await polkadotService.getBalance(params.fromAddr);
-      balance = new BigNumber(balance);
-
+      let gasFee = await polkadotService.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType("DOT");
       let minReserved = new BigNumber(chainInfo.minReserved);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
-
-      let totalNeed = new BigNumber(params.value).plus(estimateFee).plus(minReserved);
-
-      if (balance.isLessThan(totalNeed)) {
-        console.error("ProcessDotMintFromPolka insufficient balance");
+      let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
+      if (new BigNumber(balance).lte(totalNeed)) {
+        console.error("ProcessDotMintFromPolka insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
         WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }

@@ -22,7 +22,7 @@ module.exports = class MintAdaFromCardano {
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessAdaMintFromCardano",
-        fee
+        fee,
         fromAddr: convert.fromAddr
       };
       console.debug("MintAdaFromCardano params: %O", params);
