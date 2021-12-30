@@ -1,4 +1,5 @@
 "use strict";
+
 const BigNumber = require("bignumber.js");
 
 class StoremanService {
@@ -103,7 +104,7 @@ class StoremanService {
                 decimals = assetPair.ancestorDecimals;
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
-            if (kaChainInfo && options.toKeepAlive) {
+            if (kaChainInfo && options.keepAlive) {
                 if (kaChainInfo.minReserved) {
                     balance = balance.minus(kaChainInfo.minReserved);
                     if (balance.lt(0)) {

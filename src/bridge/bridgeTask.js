@@ -161,7 +161,7 @@ class BridgeTask {
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
     if (chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin need to check smg balance
       let smgAddr = this._getSmgAddress(fromChainType);
-      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {isCoin: true, toKeepAlive: false});
+      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance.plus(this._amount);
       if (estimateBalance.lt(chainInfo.minReserved)) {
@@ -177,8 +177,8 @@ class BridgeTask {
     if (!this._fromAccount) { // third party wallet
       return "";
     }
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {isCoin: true});
-    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {isCoin: false});
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
+    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet});
     let unit = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
     let requiredCoin = new BigNumber(0);
     let requiredAsset = 0;
@@ -215,7 +215,7 @@ class BridgeTask {
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {isCoin: true});
+      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._wallet, isCoin: true});
       console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let unit = this._assetPair.assetType;
       let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);

@@ -1,5 +1,7 @@
 'use strict';
-let BigNumber = require("bignumber.js");
+
+const BigNumber = require("bignumber.js");
+const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 
 module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
@@ -7,35 +9,37 @@ module.exports = class ProcessAdaMintFromCardano {
   }
 
   async process(stepData, wallet) {
-    let WebStores = this.m_frameworkService.getService("WebStores");
-    let polkadotService = this.m_frameworkService.getService("PolkadotService");
+    let webStores = this.m_frameworkService.getService("WebStores");
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
       let memo = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
-      console.debug("ProcessAdaMintFromCardano memo:", memo);
-
-      // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
-      let storemanGroupAddr = await polkadotService.longPubKeyToAddress(params.storemanGroupGpk);
-      //console.log("storemanGroupAddr:", storemanGroupAddr);
+      let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // await wallet.longPubKeyToAddress(params.storemanGroupGpk);
+      console.debug("storemanGroupAddr:", storemanGroupAddr);
 
       // 2 生成交易串
-      let totalTransferValue = '0x' + new BigNumber(params.value).toString(16);
-      let txs = [
-        api.tx.system.remark(memo),
-        api.tx.balances.transferKeepAlive(storemanGroupAddr, totalTransferValue)
-      ];
-      // console.debug("txs:", txs);
-      // 3 计算交易费用
-      let estimateFee = await polkadotService.estimateFee(params.fromAddr, txs);
+      console.log("process ada wallet: %O", wallet)
+      let utxos = await wallet.cardano.getUtxos();
+      console.log({utxos});
+  
+      let receiver = wasm.Address.from_bech32(storemanGroupAddr);
+      let txValue = wasm.Value.new(CardanoWasm.BigNum.from_str(params.value.toFixed()));
 
-      // 4 校验:balance >= (value + estimateFee)
+      let output1 = wasm.TransactionOutput.new(receiver, txValue);
+      this.txBuilder.add_output(outputNo1);
+      this.txBuilder.add_output(CardanoWasm.TransactionOutput.new(outputAddress4X, outputValueX));
+
+      // 3 check balance >= (value + gasFee + minReserved)
       let balance = await wallet.getBalance(params.fromAddr);
-      balance = new BigNumber(balance);
-      let totalNeed = new BigNumber(params.value).plus(estimateFee);
-      if (balance.isLessThan(totalNeed)) {
-        console.error("ProcessAdaMintFromCardano insufficient balance");
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
+      let gasFee = await wallet.estimateFee(params.fromAddr, txs);
+      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+      let chainInfo = await chainInfoService.getChainInfoByType("DOT");
+      let minReserved = new BigNumber(chainInfo.minReserved);
+      minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
+      let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
+      if (new BigNumber(balance).lte(totalNeed)) {
+        console.error("ProcessAdaMintFromCardano insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
@@ -43,13 +47,13 @@ module.exports = class ProcessAdaMintFromCardano {
       let txHash;
       try {
         txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.message === "Cancelled") {
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
         return;
       }
@@ -71,7 +75,7 @@ module.exports = class ProcessAdaMintFromCardano {
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessAdaMintFromCardano error: %O", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
     }
   }
 };

@@ -8,13 +8,13 @@ module.exports = class ProcessDotMintFromPolka {
   }
 
   async process(stepData, wallet) {
-    let WebStores = this.m_frameworkService.getService("WebStores");
+    let webStores = this.m_frameworkService.getService("WebStores");
     let polkadotService = this.m_frameworkService.getService("PolkadotService");
     // console.debug("ProcessDotMintFromPolka stepData:", stepData);
     let params = stepData.params;
     try {
       let memo = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
-      console.debug("ProcessDotMintFromPolka memo:", memo);
+      console.debug("ProcessDotMintFromPolka memo: %s", memo);
 
       let api = await polkadotService.getApi();
 
@@ -23,10 +23,10 @@ module.exports = class ProcessDotMintFromPolka {
       //console.log("storemanGroupAddr:", storemanGroupAddr);
 
       // 2 生成交易串
-      let totalTransferValue = '0x' + new BigNumber(params.value).toString(16);
+      let txValue = '0x' + new BigNumber(params.value).toString(16);
       let txs = [
         api.tx.system.remark(memo),
-        api.tx.balances.transferKeepAlive(storemanGroupAddr, totalTransferValue)
+        api.tx.balances.transferKeepAlive(storemanGroupAddr, txValue)
       ];
       // console.debug("txs:", txs);
 
@@ -40,7 +40,7 @@ module.exports = class ProcessDotMintFromPolka {
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
       if (new BigNumber(balance).lte(totalNeed)) {
         console.error("ProcessDotMintFromPolka insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
@@ -48,13 +48,13 @@ module.exports = class ProcessDotMintFromPolka {
       let txHash;
       try {
         txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.message === "Cancelled") {
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
         return;
       }
@@ -76,7 +76,7 @@ module.exports = class ProcessDotMintFromPolka {
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessDotMintFromPolka error: %O", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
     }
   }
 };

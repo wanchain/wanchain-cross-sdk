@@ -53,6 +53,20 @@ class Polkadot {
     }
   }  
 
+  async sendTransaction(txs, sender) {
+    await this.getApi();
+    const fromInjector = await web3FromAddress(sender);
+    const blockInfo = await this.api.rpc.chain.getBlock();
+    const blockNumber = blockInfo.block.header.number;
+    const blockHash = await this.api.rpc.chain.getBlockHash(blockNumber.unwrap());
+    let options = {};
+    options.signer = fromInjector.signer;
+    options.blockHash = blockHash.toHex();
+    options.era = 64;
+    const txHash = await this.api.tx.utility.batchAll(txs).signAndSend(sender, options);
+    return txHash.toHex();
+  }
+
   buildUserLockData(tokenPair, userAccount, fee) {
     let memo = "";
     tokenPair = Number(tokenPair);
@@ -66,20 +80,6 @@ class Polkadot {
       console.error("buildUserlockMemo parameter invalid");
     }
     return memo;
-  }
-
-  async sendTransaction(txs, sender) {
-    await this.getApi();
-    const fromInjector = await web3FromAddress(sender);
-    const blockInfo = await this.api.rpc.chain.getBlock();
-    const blockNumber = blockInfo.block.header.number;
-    const blockHash = await this.api.rpc.chain.getBlockHash(blockNumber.unwrap());
-    let options = {};
-    options.signer = fromInjector.signer;
-    options.blockHash = blockHash.toHex();
-    options.era = 64;
-    const txHash = await this.api.tx.utility.batchAll(txs).signAndSend(sender, options);
-    return txHash.toHex();
   }
 }
 
