@@ -2,7 +2,6 @@ const tool = require("../../../utils/tool.js");
 const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
-const BlockFrostAPI = require('@blockfrost/blockfrost-js').BlockFrostAPI;
 
 // memo should like follows
 // memo_Type + memo_Data, Divided Symbols should be '0x'
@@ -27,7 +26,6 @@ class Nami {
     }
     this.type = type;
     this.cardano = window.cardano;
-    this.blockfrost = new BlockFrostAPI({isTestNet:provider === "testnet", projectId: 'testnetuBFkbLWQvS43rZCQSrYkFFL1gnHaxt3Z'});
   }
 
   async getChainId() {
@@ -67,7 +65,7 @@ class Nami {
     toAccount = tool.hexStrip0x(toAccount);
     if ((tokenPairID !== NaN) && (toAccount.length === WanAccountLen)) {
       let data = {
-        1: {
+        0: {
           type: TX_TYPE.UserLock,
           tokenPairID,
           toAccount,
@@ -84,32 +82,66 @@ class Nami {
   }
 
   async initTx() {
-    const latest_block = await blockfrostRequest('/blocks/latest');
-    const p = await blockfrostRequest(`/epochs/${latest_block.epoch}/parameters`);
+    // let latest_block = await this.blockfrost.blocksLatest();
+    // let p = await this.blockfrost.epochsParameters(latest_block.height);
+    // console.log({latest_block, p});
   
-    return {
+    // let result = {
+    //   linearFee: {
+    //     minFeeA: p.min_fee_a.toString(),
+    //     minFeeB: p.min_fee_b.toString(),
+    //   },
+    //   minUtxo: p.min_utxo, //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+    //   poolDeposit: p.pool_deposit,
+    //   keyDeposit: p.key_deposit,
+    //   coinsPerUtxoWord: p.coins_per_utxo_word,
+    //   maxValSize: p.max_val_size,
+    //   priceMem: p.price_mem,
+    //   priceStep: p.price_step,
+    //   maxTxSize: parseInt(p.max_tx_size),
+    //   slot: parseInt(latest_block.slot),
+    // };
+
+    let result = {
       linearFee: {
-        minFeeA: p.min_fee_a.toString(),
-        minFeeB: p.min_fee_b.toString(),
+        minFeeA: '44',
+        minFeeB: '155381',
       },
       minUtxo: '1000000', //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
-      poolDeposit: p.pool_deposit,
-      keyDeposit: p.key_deposit,
-      coinsPerUtxoWord: p.coins_per_utxo_word,
-      maxValSize: p.max_val_size,
-      priceMem: p.price_mem,
-      priceStep: p.price_step,
-      maxTxSize: parseInt(p.max_tx_size),
-      slot: parseInt(latest_block.slot),
+      poolDeposit: '500000000',
+      keyDeposit: '2000000',
+      coinsPerUtxoWord: '34482',
+      maxValSize: 1000,
+      // priceMem: p.price_mem,
+      // priceStep: p.price_step,
+      maxTxSize: 10000,
+      // slot: parseInt(latest_block.slot),
     };
+
+    console.log("initTx: %O", result);
+    return result;
+  };
+
+  async multiAssetCount(multiAsset) {
+    if (!multiAsset) return 0;
+    let count = 0;
+    const policies = multiAsset.keys();
+    for (let j = 0; j < multiAsset.len(); j++) {
+      const policy = policies.get(j);
+      const policyAssets = multiAsset.get(policy);
+      const assetNames = policyAssets.keys();
+      for (let k = 0; k < assetNames.len(); k++) {
+        count++;
+      }
+    }
+    return count;
   };
   
-  async buildTx(account, utxos, outputs, protocolParameters, auxiliaryData) {
-    await Loader.load();
-  
-    const totalAssets = await multiAssetCount(
+  async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData) {
+    const totalAssets = await this.multiAssetCount(
       outputs.get(0).amount().multiasset()
     );
+    console.log({CoinSelection, protocolParameters})
     CoinSelection.setProtocolParameters(
       protocolParameters.coinsPerUtxoWord,
       protocolParameters.linearFee.minFeeA,
@@ -123,26 +155,17 @@ class Nami {
     );
     const inputs = selection.input;
   
-    const txBuilderConfig = Loader.Cardano.TransactionBuilderConfigBuilder.new()
-      .coins_per_utxo_word(
-        Loader.Cardano.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
-      )
-      .fee_algo(
-        Loader.Cardano.LinearFee.new(
-          Loader.Cardano.BigNum.from_str(protocolParameters.linearFee.minFeeA),
-          Loader.Cardano.BigNum.from_str(protocolParameters.linearFee.minFeeB)
-        )
-      )
-      .key_deposit(Loader.Cardano.BigNum.from_str(protocolParameters.keyDeposit))
-      .pool_deposit(
-        Loader.Cardano.BigNum.from_str(protocolParameters.poolDeposit)
-      )
-      .max_tx_size(protocolParameters.maxTxSize)
-      .max_value_size(protocolParameters.maxValSize)
-      .prefer_pure_change(true)
-      .build();
-  
-    const txBuilder = Loader.Cardano.TransactionBuilder.new(txBuilderConfig);
+    let txBuilder = wasm.TransactionBuilder.new(
+      wasm.LinearFee.new(
+        wasm.BigNum.from_str(protocolParameters.linearFee.minFeeA),
+        wasm.BigNum.from_str(protocolParameters.linearFee.minFeeB)
+      ),
+      wasm.BigNum.from_str(protocolParameters.minUtxo),// minimum utxo value
+      wasm.BigNum.from_str(protocolParameters.poolDeposit),  // pool deposit
+      wasm.BigNum.from_str(protocolParameters.keyDeposit),// key deposit
+      protocolParameters.maxValSize,
+      protocolParameters.maxTxSize
+    );
   
     for (let i = 0; i < inputs.length; i++) {
       const utxo = inputs[i];
@@ -157,15 +180,15 @@ class Nami {
   
     if (auxiliaryData) txBuilder.set_auxiliary_data(auxiliaryData);
   
-    txBuilder.set_ttl(protocolParameters.slot + TX.invalid_hereafter);
+    // txBuilder.set_ttl(protocolParameters.slot + TX.invalid_hereafter);
     txBuilder.add_change_if_needed(
-      Loader.Cardano.Address.from_bech32(account.paymentAddr)
+      wasm.Address.from_bech32(paymentAddr)
     );
   
-    const transaction = Loader.Cardano.Transaction.new(
+    const transaction = wasm.Transaction.new(
       txBuilder.build(),
-      Loader.Cardano.TransactionWitnessSet.new(),
-      txBuilder.get_auxiliary_data()
+      wasm.TransactionWitnessSet.new(),
+      auxiliaryData
     );
   
     return transaction;

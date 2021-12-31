@@ -13,43 +13,48 @@ module.exports = class ProcessAdaMintFromCardano {
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
-      let memo = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // await wallet.longPubKeyToAddress(params.storemanGroupGpk);
       console.debug("storemanGroupAddr:", storemanGroupAddr);
 
-      // 2 生成交易串
-      console.log("process ada wallet: %O", wallet)
+      let protocolParameters = await wallet.initTx();
       let utxos = await wallet.cardano.getUtxos();
+      utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
       console.log({utxos});
-  
-      let receiver = wasm.Address.from_bech32(storemanGroupAddr);
-      let txValue = wasm.Value.new(CardanoWasm.BigNum.from_str(params.value.toFixed()));
-
-      let output1 = wasm.TransactionOutput.new(receiver, txValue);
-      this.txBuilder.add_output(outputNo1);
-      this.txBuilder.add_output(CardanoWasm.TransactionOutput.new(outputAddress4X, outputValueX));
-
-      // 3 check balance >= (value + gasFee + minReserved)
+      let outputs = wasm.TransactionOutputs.new();
+      outputs.add(
+        wasm.TransactionOutput.new(
+          wasm.Address.from_bech32(storemanGroupAddr),
+          wasm.Value.new(
+            wasm.BigNum.from_str(new BigNumber(params.value).toFixed())
+          )
+        )
+      );
+      let metaData = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
+      let auxiliaryData = wasm.AuxiliaryData.new();
+      auxiliaryData.set_metadata(metaData);      
+      let tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData);
+      
+      // check balance >= (value + gasFee)
       let balance = await wallet.getBalance(params.fromAddr);
-      let gasFee = await wallet.estimateFee(params.fromAddr, txs);
+      let gasFee = tx.body().fee().to_str();
+      console.log({gasFee});
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType("DOT");
-      let minReserved = new BigNumber(chainInfo.minReserved);
-      minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
-      let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
-      if (new BigNumber(balance).lte(totalNeed)) {
-        console.error("ProcessAdaMintFromCardano insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
+      let chainInfo = await chainInfoService.getChainInfoByType("ADA");
+      if (new BigNumber(params.value).plus(gasFee).gt(balance)) {
+        console.error("ProcessAdaMintFromCardano insufficient balance, gasFee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
-      // 5 签名并发送
-      let txHash;
+      // sign and send
       try {
-        txHash = await wallet.sendTransaction(txs, params.fromAddr);
+        let witnessSet = await wallet.cardano.signTx(Buffer.from(tx.to_bytes(), 'hex').toString('hex'));
+        witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet,"hex"));
+        let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
+        let txHash = await wallet.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
-        if (err.message === "Cancelled") {
+        if (err.code === 2) { // info: "User declined to sign the transaction."
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
@@ -58,21 +63,21 @@ module.exports = class ProcessAdaMintFromCardano {
         return;
       }
 
-      // 查询目的链当前blockNumber
-      let iwan = this.m_frameworkService.getService("iWanConnectorService");
-      let blockNumber = await iwan.getBlockNumber(params.toChainType);
-      let checkPara = {
-        ccTaskId: params.ccTaskId,
-        stepIndex: stepData.stepIndex,
-        fromBlockNumber: blockNumber,
-        txHash: txHash,
-        chain: params.toChainType,
-        smgPublicKey: params.storemanGroupGpk,
-        taskType: "MINT"
-      };
+      // check receipt
+      // let iwan = this.m_frameworkService.getService("iWanConnectorService");
+      // let blockNumber = await iwan.getBlockNumber(params.toChainType);
+      // let checkPara = {
+      //   ccTaskId: params.ccTaskId,
+      //   stepIndex: stepData.stepIndex,
+      //   fromBlockNumber: blockNumber,
+      //   txHash: txHash,
+      //   chain: params.toChainType,
+      //   smgPublicKey: params.storemanGroupGpk,
+      //   taskType: "MINT"
+      // };
 
-      let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
-      await checkDotTxService.addTask(checkPara);
+      // let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
+      // await checkDotTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessAdaMintFromCardano error: %O", err);
       webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");

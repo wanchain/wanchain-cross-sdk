@@ -25,8 +25,7 @@
     "ws": "^5.2.2",
     "@truffle/hdwallet-provider": "^1.5.0",
     "lowdb": "^1.0.0",
-    "@emurgo/cardano-serialization-lib-asmjs": "^9.1.2",
-    "@blockfrost/blockfrost-js": "3.0.2"
+    "@emurgo/cardano-serialization-lib-asmjs": "^9.1.2"
   },
   "main": "index.js",
   "scripts": {
