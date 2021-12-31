@@ -44,7 +44,7 @@ module.exports = class crossChainFees {
         }
         let src = (direction === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
         let target = (direction === "MINT")? tokenPair.toScInfo : tokenPair.fromScInfo;
-        let fee = await iwanBCConnector.estimateCrossChainNetworkFee(src.chainType, target.chainType);
+        let fee = await iwanBCConnector.estimateCrossChainNetworkFee(src.chainType, target.chainType, {tokenPairID: tokenPairId});
         // console.debug("estimateNetworkFee %s->%s raw: %O", src.chainType, target.chainType, fee);
         let feeBN = new BigNumber(fee.value);
         return {
