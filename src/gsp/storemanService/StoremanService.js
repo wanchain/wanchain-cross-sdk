@@ -62,8 +62,7 @@ class StoremanService {
             if (options.isCoin) {
                 if (type === "MINT") {
                     if (assetPair.fromChainType === "DOT") {
-                        let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                        balance = await polkadotService.getBalance(addr);
+                        balance = await wallet.getBalance(addr);
                     } else if (assetPair.fromChainType === "ADA") {
                         balance = await wallet.getBalance(addr);
                     } else {
@@ -73,8 +72,7 @@ class StoremanService {
                     decimals = assetPair.fromScInfo.chainDecimals;
                 } else if (type === "BURN") {
                     if (assetPair.toChainType === "DOT") {
-                        let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                        balance = await polkadotService.getBalance(addr);
+                        balance = await wallet.getBalance(addr);
                     } else if (assetPair.fromChainType === "ADA") {
                         balance = await wallet.getBalance(addr);
                     } else {
@@ -87,8 +85,7 @@ class StoremanService {
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
                         if (assetPair.fromChainType === "DOT") {
-                            let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                            balance = await polkadotService.getBalance(addr);
+                            balance = await wallet.getBalance(addr);
                         } else if (assetPair.fromChainType === "ADA") {
                             balance = await wallet.getBalance(addr);
                         } else {

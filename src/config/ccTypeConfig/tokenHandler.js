@@ -173,7 +173,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let fee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    console.log("checkGasFee: %O", {steps, chainType: chainInfo.chainType, fromAddr: convert.fromAddr, fee});
     let result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
     if (result) {
       this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);

@@ -9,6 +9,7 @@ const polkaUtilCrypto = require("@polkadot/util-crypto");
 const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
 const BigNumber = require("bignumber.js");
+const Wallet = require("./wallet/wallet.js");
 
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
@@ -55,6 +56,7 @@ class BridgeTask {
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
+    this._initToWallet();
     let err = await this._checkFee();
     if (err) {
       throw new Error(err);
@@ -119,6 +121,13 @@ class BridgeTask {
 
     // background process
     this._parseTaskStatus(taskSteps);
+  }
+
+  async _initToWallet() {
+    if (this._toChainInfo.chainType === "DOT") {
+      let provider = this._bridge.network;
+      this._toWallet = new Wallet("polkadot{.js}", provider);
+    }
   }
 
   async _checkFee() {
@@ -215,7 +224,7 @@ class BridgeTask {
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._wallet, isCoin: true});
+      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._toWallet, isCoin: true});
       console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let unit = this._assetPair.assetType;
       let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);

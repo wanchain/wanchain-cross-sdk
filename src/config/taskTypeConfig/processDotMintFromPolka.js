@@ -9,17 +9,16 @@ module.exports = class ProcessDotMintFromPolka {
 
   async process(stepData, wallet) {
     let webStores = this.m_frameworkService.getService("WebStores");
-    let polkadotService = this.m_frameworkService.getService("PolkadotService");
     // console.debug("ProcessDotMintFromPolka stepData:", stepData);
     let params = stepData.params;
     try {
       let memo = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       console.debug("ProcessDotMintFromPolka memo: %s", memo);
 
-      let api = await polkadotService.getApi();
+      let api = await wallet.getApi();
 
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
-      let storemanGroupAddr = await polkadotService.longPubKeyToAddress(params.storemanGroupGpk);
+      let storemanGroupAddr = await wallet.longPubKeyToAddress(params.storemanGroupGpk);
       //console.log("storemanGroupAddr:", storemanGroupAddr);
 
       // 2 生成交易串
@@ -31,8 +30,8 @@ module.exports = class ProcessDotMintFromPolka {
       // console.debug("txs:", txs);
 
       // 3 check balance >= (value + gasFee + minReserved)
-      let balance = await polkadotService.getBalance(params.fromAddr);
-      let gasFee = await polkadotService.estimateFee(params.fromAddr, txs);
+      let balance = await wallet.getBalance(params.fromAddr);
+      let gasFee = await wallet.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType("DOT");
       let minReserved = new BigNumber(chainInfo.minReserved);

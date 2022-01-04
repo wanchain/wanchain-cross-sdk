@@ -28,6 +28,8 @@ class Nami {
     this.cardano = window.cardano;
   }
 
+  // standard function
+
   async getChainId() {
     return this.cardano.getNetworkId();
   }

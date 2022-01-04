@@ -1,8 +1,10 @@
-const { ApiPromise, WsProvider } = require('@polkadot/api');
+const { ApiPromise, WsProvider, Keyring } = require('@polkadot/api');
 const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
 const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
 const tool = require("../../../utils/tool.js");
 const BigNumber = require("bignumber.js");
+const util = require("@polkadot/util");
+const utilCrypto = require("@polkadot/util-crypto");
 
 // memo should like follows
 // memo_Type + memo_Data, Divided Symbols should be '0x'
@@ -23,19 +25,20 @@ const TokenPairIDLen = 4;
 const WanAccountLen = 40; // This should be peer chain( Wan Or Eth) address length. Exclude leadind '0x'
 
 class Polkadot {
-  // mainnet: "wss://rpc.polkadot.io"
-  // testnet: "wss://westend-rpc.polkadot.io"
   constructor(type, provider) {
     this.type = type;
-    if (typeof provider === "string") {
+    if (typeof(provider) === "string") {
+      if (provider === "mainnet") {
+        provider = "wss://rpc.polkadot.io";
+      } else  if (provider === "testnet") {
+        provider = "wss://westend-rpc.polkadot.io";
+      }
       provider = new WsProvider(provider);
     }
     this.api = new ApiPromise({provider});
   }
 
-  async getApi() {
-    return this.api.isReady;
-  }
+  // standard function
 
   async getChainId() {
     return 0;
@@ -51,7 +54,13 @@ class Polkadot {
       console.error("polkadot{.js} not installed or not allowed");
       throw new Error("Not installed or not allowed");
     }
-  }  
+  }
+
+  async getBalance(addr) {
+    await this.getApi();
+    let { data: balance } = await this.api.query.system.account(addr);
+    return balance.free;
+  }
 
   async sendTransaction(txs, sender) {
     await this.getApi();
@@ -67,6 +76,12 @@ class Polkadot {
     return txHash.toHex();
   }
 
+  // customized function
+
+  async getApi() {
+    return this.api.isReady;
+  }
+
   buildUserLockData(tokenPair, userAccount, fee) {
     let memo = "";
     tokenPair = Number(tokenPair);
@@ -80,6 +95,24 @@ class Polkadot {
       console.error("buildUserlockMemo parameter invalid");
     }
     return memo;
+  }
+
+  async longPubKeyToAddress(longPubKey, ss58Format = 42) {
+      longPubKey = '0x04' + longPubKey.slice(2);
+      const tmp = util.hexToU8a(longPubKey);
+      const pubKeyCompress = utilCrypto.secp256k1Compress(tmp);
+      const hash = utilCrypto.blake2AsU8a(pubKeyCompress);
+      const keyring = new Keyring({type: 'ecdsa', ss58Format: ss58Format});
+      const address = keyring.encodeAddress(hash);
+      return address;
+  }
+
+  async estimateFee(sender, txs) {
+      await this.getApi();
+      const fromInjector = await web3FromAddress(sender);
+      const info = await this.api.tx.utility.batch(txs).paymentInfo(sender, {signer: fromInjector.signer});
+      let fee = new BigNumber(info.partialFee.toHex());
+      return fee;
   }
 }
 
