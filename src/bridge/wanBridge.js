@@ -172,6 +172,10 @@ class WanBridge extends EventEmitter {
   }
 
   validateToAccount(assetPair, direction, account) {
+    if (this.stores.assetPairs.isTokenAccount(account)) {
+      console.error("%s is token account", account);
+      return false;
+    }
     direction = this._unifyDirection(direction);
     let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH", "FTM"].includes(chainType)) {
