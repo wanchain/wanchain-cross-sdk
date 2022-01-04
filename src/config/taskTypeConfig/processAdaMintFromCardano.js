@@ -49,10 +49,7 @@ module.exports = class ProcessAdaMintFromCardano {
       // sign and send
       let txHash;
       try {
-        let witnessSet = await wallet.cardano.signTx(Buffer.from(tx.to_bytes(), 'hex').toString('hex'));
-        witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet,"hex"));
-        let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
-        txHash = await wallet.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
+        txHash = await wallet.sendTransaction(tx, params.fromAddr);
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.code === 2) { // info: "User declined to sign the transaction."
