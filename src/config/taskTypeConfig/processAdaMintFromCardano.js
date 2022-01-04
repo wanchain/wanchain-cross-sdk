@@ -47,37 +47,38 @@ module.exports = class ProcessAdaMintFromCardano {
       }
 
       // sign and send
+      let txHash;
       try {
         let witnessSet = await wallet.cardano.signTx(Buffer.from(tx.to_bytes(), 'hex').toString('hex'));
         witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet,"hex"));
         let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
-        let txHash = await wallet.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
+        txHash = await wallet.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.code === 2) { // info: "User declined to sign the transaction."
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
-          console.error("polkadot sendTransaction error: %O", err);
+          console.error("cardano sendTransaction error: %O", err);
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
         return;
       }
 
       // check receipt
-      // let iwan = this.m_frameworkService.getService("iWanConnectorService");
-      // let blockNumber = await iwan.getBlockNumber(params.toChainType);
-      // let checkPara = {
-      //   ccTaskId: params.ccTaskId,
-      //   stepIndex: stepData.stepIndex,
-      //   fromBlockNumber: blockNumber,
-      //   txHash: txHash,
-      //   chain: params.toChainType,
-      //   smgPublicKey: params.storemanGroupGpk,
-      //   taskType: "MINT"
-      // };
+      let iwan = this.m_frameworkService.getService("iWanConnectorService");
+      let blockNumber = await iwan.getBlockNumber(params.toChainType);
+      let checkPara = {
+        ccTaskId: params.ccTaskId,
+        stepIndex: stepData.stepIndex,
+        fromBlockNumber: blockNumber,
+        txHash,
+        chain: params.toChainType,
+        smgPublicKey: params.storemanGroupGpk,
+        taskType: "MINT"
+      };
 
-      // let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
-      // await checkDotTxService.addTask(checkPara);
+      let checkAdaTxService = this.m_frameworkService.getService("CheckAdaTxService");
+      await checkAdaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessAdaMintFromCardano error: %O", err);
       webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");

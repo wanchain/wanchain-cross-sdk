@@ -66,7 +66,7 @@ module.exports = class ProcessDotMintFromPolka {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         fromBlockNumber: blockNumber,
-        txHash: txHash,
+        txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
         taskType: "MINT"
