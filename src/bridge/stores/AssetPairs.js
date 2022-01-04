@@ -3,6 +3,7 @@ class AssetPairs {
   constructor() {
     this.assetPairList = [];
     this.smgList = [];
+    this.tokens = new Set(); // not need to be classified by chain
   }
 
   setAssetPairs(assetPairs, smgs) {
@@ -18,6 +19,8 @@ class AssetPairs {
     });
     if (assetPairs) { // maybe only update smgs
       let pairList = assetPairs.map(pair => {
+        this.tokens.add(pair.fromAccount.toLowerCase());
+        this.tokens.add(pair.toAccount.toLowerCase());
         return {
           assetPairId: pair.id,
           assetType: pair.ancestorSymbol,    // the ancestory symbol for this token
@@ -58,6 +61,10 @@ class AssetPairs {
 
   isReady() {
     return ((this.assetPairList.length > 0) && (this.smgList.length > 0));
+  }
+
+  isTokenAccount(account) {
+    return this.tokens.has(account.toLowerCase());
   }
 }
 
