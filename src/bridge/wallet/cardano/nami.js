@@ -72,7 +72,7 @@ class Nami {
     toAccount = tool.hexStrip0x(toAccount);
     if ((tokenPairID !== NaN) && (toAccount.length === WanAccountLen)) {
       let data = {
-        0: {
+        5718350: {
           type: TX_TYPE.UserLock,
           tokenPairID,
           toAccount,
