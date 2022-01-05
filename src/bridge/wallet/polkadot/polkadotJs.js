@@ -22,7 +22,7 @@ const TX_TYPE = {
 
 const MemoTypeLen = 2;
 const TokenPairIDLen = 4;
-const WanAccountLen = 40; // This should be peer chain( Wan Or Eth) address length. Exclude leadind '0x'
+const ToAccountLen = 40; // without '0x'
 
 class Polkadot {
   constructor(type, provider) {
@@ -87,7 +87,7 @@ class Polkadot {
     tokenPair = Number(tokenPair);
     userAccount = tool.hexStrip0x(userAccount);
     fee = new BigNumber(fee).toString(16);
-    if ((tokenPair !== NaN) && (userAccount.length === WanAccountLen)) {
+    if ((tokenPair !== NaN) && (userAccount.length === ToAccountLen)) {
       let type = TX_TYPE.UserLock.toString(16).padStart(MemoTypeLen, 0);
       tokenPair = parseInt(tokenPair).toString(16).padStart(TokenPairIDLen, 0);
       memo = type + tokenPair + userAccount + fee;

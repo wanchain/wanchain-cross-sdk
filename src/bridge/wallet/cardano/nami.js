@@ -17,7 +17,7 @@ const TX_TYPE = {
   Invalid:    -1
 }
 
-const WanAccountLen = 40; // This should be peer chain( Wan Or Eth) address length. Exclude leadind '0x'
+const ToAccountLen = 42; // with '0x'
 
 class Nami {
   constructor(type, provider) {
@@ -69,8 +69,7 @@ class Nami {
 
   buildUserLockData(tokenPairID, toAccount, fee) {
     tokenPairID = Number(tokenPairID);
-    toAccount = tool.hexStrip0x(toAccount);
-    if ((tokenPairID !== NaN) && (toAccount.length === WanAccountLen)) {
+    if ((tokenPairID !== NaN) && (toAccount.length === ToAccountLen)) {
       let data = {
         5718350: {
           type: TX_TYPE.UserLock,
