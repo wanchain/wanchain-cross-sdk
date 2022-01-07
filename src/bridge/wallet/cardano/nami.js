@@ -1,21 +1,33 @@
-const tool = require("../../../utils/tool.js");
 const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
 
-// memo should like follows
-// memo_Type + memo_Data, Divided Symbols should be '0x'
-// Type: 1, normal userLock; Data: tokenPairID + toAccount + fee
-// Type: 2, normal smg release; Data: tokenPairId + uniqueId/hashX
-// Type: 3, abnormal smg transfer for memo_userLock; Data: uniqueId
-// Type: 4, abnomral smg transfer for tag_userLock; Data: tag
-// Type: 5, smg debt transfer; Data: srcSmg
+/* metadata format:
+  userLock：
+  {
+    type: 1,             // number
+    tokenPairID: 1,      // number
+    toAccount: 0x...,    // string
+    fee: 10              // number
+  }
+  smgRelease:
+  {
+    type: 2,             // number
+    tokenPairID: 1,      // number
+    uniqueId: 0x...      // string
+  }
+*/
+
 const TX_TYPE = {
   UserLock:   1,
   SmgRelease: 2,
   smgDebt:    5,
   Invalid:    -1
-}
+};
+
+const TX = {
+  invalid_hereafter: 3600 * 2, // 2h from current slot
+};
 
 const ToAccountLen = 42; // with '0x'
 
