@@ -3,7 +3,7 @@ const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
 
 /* metadata format:
-  userLock：
+  userLock:
   {
     type: 1,             // number
     tokenPairID: 1,      // number
