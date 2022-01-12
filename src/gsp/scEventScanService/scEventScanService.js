@@ -46,7 +46,7 @@ module.exports = class ScEventScanService {
     this.m_mapCheckHandle.set("DOT", checkDotTx);
 
     let checkAdaTx = new CheckAdaTx(this.m_frameworkService);
-    await checkDotTx.init("ADA");
+    await checkAdaTx.init("ADA");
     this.m_mapCheckHandle.set("ADA", checkAdaTx);
   }
 
