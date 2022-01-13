@@ -16,7 +16,9 @@ npm install --save wanchain-cross-sdk
 <li>Install wallets extension for your browser, such as:
 
 [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn),
-[WanMask](https://github.com/wanchain/wanmask) and [polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd).
+[WanMask](https://github.com/wanchain/wanmask),
+[polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd),
+[Nami](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo?hl=zh-CN).
 
 <li>Install BTC, LTC and XRP wallets if you need to convert asset from Bitcoin, Litecoin or XRP Ledger.
 
@@ -108,14 +110,15 @@ bridge.init(iwanAuth);
 
 Step 3: Connect a wallet.
 
-SDK for browser supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
+SDK for browser supports polkadot{.js}, Nami, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
 ```javascript
 // connect to the wallet in your own way and get the provider, such as:
 let metaMaskWallet = window.ethereum;
 let wanMaskWallet = window.wanchain;
 
-// SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
-let polkadotWallet = "wss://westend-rpc.polkadot.io";
+// SDK provides an easy way to use polkadot{.js} and Nami wallet, you can just provide network name instead of provider
+let polkadotWallet = "testnet"; // or mainnet
+let cardanoWallet = "testnet";  // or mainnet
 ```
 SDK for Node.js currently only supports Truffle HDWallet.
 ```javascript

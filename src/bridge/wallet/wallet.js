@@ -11,7 +11,7 @@ if (typeof(window) !== "undefined") {
 
 class Wallet {
   constructor(type, provider) {
-    if ((!["Nami"].includes(type)) && (!provider)) {
+    if (!provider) {
       throw new Error("Invalid provider");
     }
     this.type = type;

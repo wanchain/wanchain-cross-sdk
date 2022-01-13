@@ -4,6 +4,7 @@ let CheckScEvent = require("./checkScEvent");
 let CheckBtcTx = require("./checkBtcTx");
 let CheckXrpTx = require("./checkXrpTx");
 let CheckDotTx = require("./checkDotTx");
+let CheckAdaTx = require("./checkAdaTx");
 
 module.exports = class ScEventScanService {
   constructor() {
@@ -43,6 +44,10 @@ module.exports = class ScEventScanService {
     let checkDotTx = new CheckDotTx(this.m_frameworkService);
     await checkDotTx.init("DOT");
     this.m_mapCheckHandle.set("DOT", checkDotTx);
+
+    let checkAdaTx = new CheckAdaTx(this.m_frameworkService);
+    await checkAdaTx.init("ADA");
+    this.m_mapCheckHandle.set("ADA", checkAdaTx);
   }
 
   async loadTradeTask(dataAry) {

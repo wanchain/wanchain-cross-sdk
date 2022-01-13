@@ -237,8 +237,18 @@
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 10,
-      "RpcUrl": "wss://rpc.polkadot.io",
       "minReserved": 1,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
+      "chainId": "2147485463",
+      "chainType": "ADA",
+      "chainName": "Cardano",
+      "mintFromChainHandle": "MintAdaFromCardano",
+      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
+      "chainDecimals": 6,
       "TxScanInfo": {
         "taskInterval": 10000
       }

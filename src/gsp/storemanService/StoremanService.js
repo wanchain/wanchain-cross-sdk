@@ -1,4 +1,5 @@
 "use strict";
+
 const BigNumber = require("bignumber.js");
 
 class StoremanService {
@@ -57,20 +58,19 @@ class StoremanService {
                 return new BigNumber(0);
             }
             let balance, decimals, kaChainInfo = null;
+            let wallet = options.wallet; // third party wallet is required
             if (options.isCoin) {
                 if (type === "MINT") {
-                    if (assetPair.fromChainType === "DOT") {
-                        let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                        balance = await polkadotService.getBalance(addr);
+                    if (["DOT", "ADA"].includes(assetPair.fromChainType)) {
+                        balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                     }
                     kaChainInfo = assetPair.fromScInfo;
                     decimals = assetPair.fromScInfo.chainDecimals;
                 } else if (type === "BURN") {
-                    if (assetPair.toChainType === "DOT") {
-                        let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                        balance = await polkadotService.getBalance(addr);
+                    if (["DOT", "ADA"].includes(assetPair.toChainType)) {
+                        balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
                     }
@@ -80,9 +80,8 @@ class StoremanService {
                 if (type === "MINT") {
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
-                        if (assetPair.fromChainType === "DOT") {
-                            let polkadotService = this.m_frameworkService.getService("PolkadotService");
-                            balance = await polkadotService.getBalance(addr);
+                        if (["DOT", "ADA"].includes(assetPair.fromChainType)) {
+                            balance = await wallet.getBalance(addr);
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
                         }
@@ -96,7 +95,7 @@ class StoremanService {
                 decimals = assetPair.ancestorDecimals;
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
-            if (kaChainInfo && options.toKeepAlive) {
+            if (kaChainInfo && options.keepAlive) {
                 if (kaChainInfo.minReserved) {
                     balance = balance.minus(kaChainInfo.minReserved);
                     if (balance.lt(0)) {

@@ -176,8 +176,9 @@ class WanBridge extends EventEmitter {
     } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
     } else if ("DOT" === chainType) {
-      // PLAN: adapted to polka app
       return tool.isValidDotAddress(account, this.network);
+    } else if ("ADA" === chainType) {
+      return tool.isValidAdaAddress(account, this.network);
     } else {
       console.error("unsupported chain %s", chainType);
       return false;

@@ -52,6 +52,11 @@ let ccTypeConfigJson = {
       "number": 10,
       "name": "BurnErc20ProxyToken",
       "handle": require("./BurnErc20ProxyToken")
+    },
+    {
+      "number": 11,
+      "name": "MintAdaFromCardano",
+      "handle": require("./MintAdaFromCardano")
     }
   ]
 };
