@@ -80,7 +80,7 @@ class BridgeTask {
 
     let bridge = this._bridge;
     let assetPair = this._assetPair;
-    let ccTaskData = this._task.ccTaskData;    
+    let ccTaskData = this._task.ccTaskData;
 
     // task
     let jsonTaskAssetPair = {
