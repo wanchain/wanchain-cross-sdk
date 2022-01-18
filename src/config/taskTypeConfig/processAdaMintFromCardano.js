@@ -15,12 +15,12 @@ module.exports = class ProcessAdaMintFromCardano {
     let params = stepData.params;
     try {
       let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // await wallet.longPubKeyToAddress(params.storemanGroupGpk);
-      console.debug("storemanGroupAddr:", storemanGroupAddr);
+      console.debug("ProcessAdaMintFromCardano storemanGroupAddr: %s", storemanGroupAddr);
 
       let protocolParameters = await this.initTx();
       let utxos = await wallet.cardano.getUtxos();
       utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
-      console.log({utxos});
+      // console.debug({utxos});
       let outputs = wasm.TransactionOutputs.new();
       outputs.add(
         wasm.TransactionOutput.new(
@@ -37,8 +37,7 @@ module.exports = class ProcessAdaMintFromCardano {
       
       // check balance >= (value + gasFee)
       let balance = await wallet.getBalance(params.fromAddr);
-      let gasFee = wallet.estimateFee(params.fromAddr, tx);
-      console.log({gasFee: gasFee.toFixed()});
+      let gasFee = await wallet.estimateFee(params.fromAddr, tx);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType("ADA");
       if (new BigNumber(params.value).plus(gasFee).gt(balance)) {
@@ -86,7 +85,6 @@ module.exports = class ProcessAdaMintFromCardano {
   async initTx() {
     let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
     let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
-    console.log({latestBlock, p});  
     let result = {
       linearFee: {
         minFeeA: p.min_fee_a.toString(),
@@ -102,7 +100,7 @@ module.exports = class ProcessAdaMintFromCardano {
       maxTxSize: parseInt(p.max_tx_size),
       slot: parseInt(latestBlock.slot),
     };
-    console.log("initTx: %O", result);
+    console.debug("ProcessAdaMintFromCardano initTx: %O", result);
     return result;
   }
 };

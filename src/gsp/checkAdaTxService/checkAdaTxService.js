@@ -32,7 +32,7 @@ module.exports = class CheckAdaTxService {
         let storageService = this.frameworkService.getService("StorageService");
         await storageService.save("CheckAdaTxService", task.ccTaskId, task);
         this.checkArray.unshift(task);
-        //console.log("addTask:", task, "checkArray:", this.checkArray);
+        //console.debug("addTask:", task, "checkArray:", this.checkArray);
     }
 
     async runTask(taskPara) {
@@ -46,11 +46,9 @@ module.exports = class CheckAdaTxService {
                 let task = this.checkArray[index];
                 try {
                     let queryUrl = url + task.smgPublicKey + "/" + task.txHash;
-                    // console.log("CheckAdaTxService queryUrl:", queryUrl);
                     let ret = await axios.get(queryUrl);
-                    //console.log("CheckAdaTxService ret:", ret.data);
-                    if (ret.data.success === true && ret.data.data !== null) {
-                      // console.log("ret.data:", ret.data);
+                    console.debug("CheckAdaTxService %s: %O", queryUrl, ret.data);
+                    if (ret.data.success && ret.data.data) {
                       task.uniqueID = ret.data.data.hashX;
                       await this.eventService.emitEvent("TaskStepResult", {
                         ccTaskId: task.ccTaskId,

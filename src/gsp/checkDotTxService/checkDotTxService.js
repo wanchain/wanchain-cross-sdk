@@ -32,7 +32,7 @@ module.exports = class CheckDotTxService {
         let storageService = this.frameworkService.getService("StorageService");
         await storageService.save("CheckDotTxService", task.ccTaskId, task);
         this.checkArray.unshift(task);
-        //console.log("addTask:", task, "checkArray:", this.checkArray);
+        //console.debug("addTask:", task, "checkArray:", this.checkArray);
     }
 
     async runTask(taskPara) {
@@ -46,11 +46,9 @@ module.exports = class CheckDotTxService {
                 let task = this.checkArray[index];
                 try {
                     let queryUrl = url + task.smgPublicKey + "/" + task.txHash;
-                    // console.log("CheckDotTxService queryUrl:", queryUrl);
                     let ret = await axios.get(queryUrl);
-                    //console.log("CheckDotTxService ret:", ret.data);
-                    if (ret.data.success === true && ret.data.data !== null) {
-                      // console.log("ret.data:", ret.data);
+                    console.debug("CheckDotTxService %s: %O", queryUrl, ret.data);
+                    if (ret.data.success && ret.data.data) {
                       task.uniqueID = ret.data.data.hashX;
                       await this.eventService.emitEvent("TaskStepResult", {
                         ccTaskId: task.ccTaskId,

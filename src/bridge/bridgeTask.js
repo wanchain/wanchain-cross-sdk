@@ -96,7 +96,7 @@ class BridgeTask {
       toChainName: this._toChainInfo.chainName,
       smg: this._smg,
     };
-    console.debug("jsonTaskAssetPair: %O", jsonTaskAssetPair);
+    // console.debug("jsonTaskAssetPair: %O", jsonTaskAssetPair);
 
     this._task.setTaskAssetPair(jsonTaskAssetPair);
     this._task.setFee(this._fee);
@@ -115,7 +115,7 @@ class BridgeTask {
     ccTaskData.status = "Performing";
     let taskSteps = bridge.stores.crossChainTaskSteps.mapCCTaskStepsArray.get(this.id);
     ccTaskData.stepData = taskSteps;
-    // console.log("ccTaskData: %O", ccTaskData);
+    // console.debug("ccTaskData: %O", ccTaskData);
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
     bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
 
@@ -151,7 +151,7 @@ class BridgeTask {
     let unit = this._assetPair.assetType;
     if (this._smg.changed) { // optimize for mainnet getQuota performance issue
       this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-      console.log("%s %s %s quota: %O", this._direction, this._amount, this._assetPair.assetType, this._quota);
+      console.debug("%s %s %s quota: %O", this._direction, this._amount, this._assetPair.assetType, this._quota);
       let amount = new BigNumber(this._amount);
       if (amount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
@@ -225,7 +225,7 @@ class BridgeTask {
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
       let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._toWallet, isCoin: true});
-      console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
+      console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let unit = this._assetPair.assetType;
       let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
       let estimateBalance = balance.plus(this._amount).minus(fee);
@@ -255,9 +255,9 @@ class BridgeTask {
       fee: this._fee,
       wallet: this._wallet
     }; 
-    // console.log("checkTaskSteps: %O", convert);
+    // console.debug("checkTaskSteps: %O", convert);
     let stepInfo = await this._bridge.storemanService.getConvertInfo(convert);
-    // console.log("getConvertInfo: %O", stepInfo);
+    // console.debug("getConvertInfo: %O", stepInfo);
     if (stepInfo.stepNum > 0) {
       this._task.setTaskStepNums(stepInfo.stepNum);
       return "";
@@ -268,11 +268,10 @@ class BridgeTask {
 
   async _parseTaskStatus(ccTaskStepsArray) {
     console.debug("bridgeTask _parseTaskStatus at %s ms", tool.getCurTimestamp());
-    console.log("task %s steps: %d", this.id, ccTaskStepsArray.length);
+    console.debug("task %s steps: %d", this.id, ccTaskStepsArray.length);
     let curStep = 0, executedStep = -1, stepTxHash = "";
     for (; curStep < ccTaskStepsArray.length; ) {
       let taskStep = ccTaskStepsArray[curStep];
-      console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
@@ -288,6 +287,7 @@ class BridgeTask {
         }
         continue;
       }
+      console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
         this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
         this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
@@ -326,7 +326,7 @@ class BridgeTask {
       throw new Error("Invalid ota chain type " + chainType);
     }
     this._bridge.emit("ota", ota);
-    console.log("%s OTA: %O", chainType, ota);
+    console.debug("%s OTA: %O", chainType, ota);
   }
 
   _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") {

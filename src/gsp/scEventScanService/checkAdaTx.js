@@ -35,20 +35,18 @@ module.exports = class CheckAdaTx {
         }
       }
       return false;
-    }
-    catch (err) {
-      console.log("deleteTaskById err:", err);
+    } catch (err) {
+      console.error("deleteTaskById error: %O", err);
       return false;
     }
   }
 
   async add(obj) {
     try {
-      console.log("checkAdaTx add obj:", obj);
+      // console.debug("checkAdaTx add obj: %O", obj);
       this.m_CheckAry.unshift(obj);
-    }
-    catch (err) {
-      console.log("checkAdaTx add err:", err);
+    } catch (err) {
+      console.error("checkAdaTx add error: %O", err);
     }
   }
 
@@ -68,16 +66,12 @@ module.exports = class CheckAdaTx {
         let obj = this.m_CheckAry[index];
         let txUrl = url + obj.fromChain + "/" + obj.uniqueID;
         let ret = await axios.get(txUrl);
-        console.debug("CheckAdaTx %s ret.data: %O", txUrl, ret.data);
-        if (ret.data.success === true) {
-          if (ret.data.data) {
-            // found
-            console.log("checkAdaTx ret.data.data.txHash:", ret.data.data.txHash);
-            await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
-            let storageService = this.m_frameworkService.getService("StorageService");
-            storageService.delete("ScEventScanService", obj.uniqueID);
-            this.m_CheckAry.splice(index, 1);
-          }
+        console.debug("CheckAdaTx %s: %O", txUrl, ret.data);
+        if (ret.data.success && ret.data.data) {
+          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
+          let storageService = this.m_frameworkService.getService("StorageService");
+          storageService.delete("ScEventScanService", obj.uniqueID);
+          this.m_CheckAry.splice(index, 1);
         }
       }
     } catch (err) {

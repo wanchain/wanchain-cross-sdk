@@ -90,7 +90,7 @@ class Nami {
           fee: Number(new BigNumber(fee).toFixed())
         }
       };
-      console.debug("nami buildUserLockData: %O", data);
+      // console.debug("nami buildUserLockData: %O", data);
       data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
       return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
     } else {

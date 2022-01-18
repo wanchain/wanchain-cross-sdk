@@ -35,20 +35,18 @@ module.exports = class CheckDotTx {
         }
       }
       return false;
-    }
-    catch (err) {
-      console.log("deleteTaskById err:", err);
+    } catch (err) {
+      console.error("deleteTaskById error: %O", err);
       return false;
     }
   }
 
   async add(obj) {
     try {
-      console.log("checkDotTx add obj:", obj);
+      console.debug("checkDotTx add obj:", obj);
       this.m_CheckAry.unshift(obj);
-    }
-    catch (err) {
-      console.log("checkDotTx add err:", err);
+    } catch (err) {
+      console.error("checkDotTx add error: %O", err);
     }
   }
 
@@ -69,15 +67,12 @@ module.exports = class CheckDotTx {
         let txUrl = url + obj.fromChain + "/" + obj.uniqueID;
         let ret = await axios.get(txUrl);
         console.debug("CheckDotTx %s ret.data: %O", txUrl, ret.data);
-        if (ret.data.success === true) {
-          if (ret.data.data) {
-            // found
-            console.log("checkDotTx ret.data.data.txHash:", ret.data.data.txHash);
-            await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
-            let storageService = this.m_frameworkService.getService("StorageService");
-            storageService.delete("ScEventScanService", obj.uniqueID);
-            this.m_CheckAry.splice(index, 1);
-          }
+        if (ret.data.success && ret.data.data) {
+          // found
+          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
+          let storageService = this.m_frameworkService.getService("StorageService");
+          storageService.delete("ScEventScanService", obj.uniqueID);
+          this.m_CheckAry.splice(index, 1);
         }
       }
     } catch (err) {
