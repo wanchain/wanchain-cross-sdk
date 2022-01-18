@@ -8689,7 +8689,45 @@ class ApiInstance extends WsInstance {
           return cb(null, result);
         });
       });
-   }    
+   }
+
+   getBlockNumber(chainType, callback) {
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getBlockNumber';
+    let params = { chainType: chainType };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getEpochParameters(chainType, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+   if (callback) {
+     callback = utils.wrapCallback(callback);
+   }
+   let method = 'getEpochParameters';
+   let params = { chainType: chainType, ...options };
+
+   return utils.promiseOrCallback(callback, cb => {
+     this._request(method, params, (err, result) => {
+       if (err) {
+         return cb(err);
+       }
+       return cb(null, result);
+     });
+   });
+ }
 }
 
 module.exports = ApiInstance;

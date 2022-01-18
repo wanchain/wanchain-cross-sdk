@@ -99,47 +99,6 @@ class Nami {
     }
   }
 
-  async initTx() {
-    // let latest_block = await this.blockfrost.blocksLatest();
-    // let p = await this.blockfrost.epochsParameters(latest_block.height);
-    // console.log({latest_block, p});
-  
-    // let result = {
-    //   linearFee: {
-    //     minFeeA: p.min_fee_a.toString(),
-    //     minFeeB: p.min_fee_b.toString(),
-    //   },
-    //   minUtxo: p.min_utxo, //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
-    //   poolDeposit: p.pool_deposit,
-    //   keyDeposit: p.key_deposit,
-    //   coinsPerUtxoWord: p.coins_per_utxo_word,
-    //   maxValSize: p.max_val_size,
-    //   priceMem: p.price_mem,
-    //   priceStep: p.price_step,
-    //   maxTxSize: parseInt(p.max_tx_size),
-    //   slot: parseInt(latest_block.slot),
-    // };
-
-    let result = {
-      linearFee: {
-        minFeeA: '44',
-        minFeeB: '155381',
-      },
-      minUtxo: '1000000', //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
-      poolDeposit: '500000000',
-      keyDeposit: '2000000',
-      coinsPerUtxoWord: '34482',
-      maxValSize: 1000,
-      // priceMem: p.price_mem,
-      // priceStep: p.price_step,
-      maxTxSize: 10000,
-      // slot: parseInt(latest_block.slot),
-    };
-
-    console.log("initTx: %O", result);
-    return result;
-  };
-
   async multiAssetCount(multiAsset) {
     if (!multiAsset) return 0;
     let count = 0;
@@ -153,7 +112,7 @@ class Nami {
       }
     }
     return count;
-  };
+  }
   
   async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData) {
     const totalAssets = await this.multiAssetCount(
@@ -198,7 +157,7 @@ class Nami {
   
     if (auxiliaryData) txBuilder.set_auxiliary_data(auxiliaryData);
   
-    // txBuilder.set_ttl(protocolParameters.slot + TX.invalid_hereafter);
+    txBuilder.set_ttl(protocolParameters.slot + TX.invalid_hereafter);
     txBuilder.add_change_if_needed(
       wasm.Address.from_bech32(paymentAddr)
     );
@@ -210,7 +169,12 @@ class Nami {
     );
   
     return transaction;
-  };  
+  }
+
+  async estimateFee(sender, tx) {
+    let fee = new BigNumber(tx.body().fee().to_str());
+    return fee;
+  }
 }
 
 module.exports = Nami;

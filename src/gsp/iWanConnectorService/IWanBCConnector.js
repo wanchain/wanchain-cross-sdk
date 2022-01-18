@@ -241,6 +241,14 @@ class IWanBCConnector {
     async estimateCrossChainNetworkFee(chainType, targetChainType, options) {
         return this.apiClient.estimateCrossChainNetworkFee(chainType, targetChainType, options);
     }
+
+    async getBlockNumber(chainType) {
+        return this.apiClient.getBlockNumber(chainType);
+    }
+
+    async getEpochParameters(chainType, options) {
+        return this.apiClient.getEpochParameters(chainType, options);
+    }    
 };
 
 module.exports = IWanBCConnector;
