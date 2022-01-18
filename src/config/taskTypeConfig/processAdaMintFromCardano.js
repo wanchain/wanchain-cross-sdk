@@ -84,7 +84,7 @@ module.exports = class ProcessAdaMintFromCardano {
   }
 
   async initTx() {
-    let latestBlock = await this.m_iwanBCConnector.getBlockNumber("ADA");
+    let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
     let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
     console.log({latestBlock, p});  
     let result = {
