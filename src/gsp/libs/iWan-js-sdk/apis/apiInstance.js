@@ -8691,12 +8691,16 @@ class ApiInstance extends WsInstance {
       });
    }
 
-   getBlockNumber(chainType, callback) {
+   getLatestBlock(chainType, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
-    let method = 'getBlockNumber';
-    let params = { chainType: chainType };
+    let method = 'getLatestBlock';
+    let params = { chainType: chainType, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -8713,21 +8717,21 @@ class ApiInstance extends WsInstance {
       callback = options;
       options = {};
     }
-   if (callback) {
-     callback = utils.wrapCallback(callback);
-   }
-   let method = 'getEpochParameters';
-   let params = { chainType: chainType, ...options };
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getEpochParameters';
+    let params = { chainType: chainType, ...options };
 
-   return utils.promiseOrCallback(callback, cb => {
-     this._request(method, params, (err, result) => {
-       if (err) {
-         return cb(err);
-       }
-       return cb(null, result);
-     });
-   });
- }
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
 }
 
 module.exports = ApiInstance;
