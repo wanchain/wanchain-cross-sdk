@@ -170,11 +170,6 @@ class Nami {
   
     return transaction;
   }
-
-  async estimateFee(sender, tx) {
-    let fee = new BigNumber(tx.body().fee().to_str());
-    return fee;
-  }
 }
 
 module.exports = Nami;

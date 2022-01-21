@@ -32,17 +32,19 @@ module.exports = class ProcessAdaMintFromCardano {
       );
       let metaData = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       let auxiliaryData = wasm.AuxiliaryData.new();
-      auxiliaryData.set_metadata(metaData);      
-      let tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData);
-      
-      // check balance >= (value + gasFee)
-      let balance = await wallet.getBalance(params.fromAddr);
-      let gasFee = await wallet.estimateFee(params.fromAddr, tx);
-      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType("ADA");
-      if (new BigNumber(params.value).plus(gasFee).gt(balance)) {
-        console.error("ProcessAdaMintFromCardano insufficient balance, gasFee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
+      auxiliaryData.set_metadata(metaData);
+
+      let tx;
+      try {
+        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData);
+      } catch (err) {
+        console.error("ProcessAdaMintFromCardano buildTx error: %O", err);
+        if (err === "Insufficient input in transaction") {
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
+        } else {
+          err = (typeof(err) === "string")? err : undefined;
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err || "Failed to send transaction");
+        }
         return;
       }
 
@@ -52,10 +54,10 @@ module.exports = class ProcessAdaMintFromCardano {
         txHash = await wallet.sendTransaction(tx, params.fromAddr);
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
+        console.error("ProcessAdaMintFromCardano sendTransaction error: %O", err);
         if (err.code === 2) { // info: "User declined to sign the transaction."
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
-          console.error("cardano sendTransaction error: %O", err);
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
         return;
