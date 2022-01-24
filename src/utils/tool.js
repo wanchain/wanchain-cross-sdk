@@ -133,13 +133,13 @@ function isValidAdaAddress(address, network) {
     }
     return (addr.network_id() === networkId);
   } catch (e) {
-    console.debug("% is not ADA bech32 address", address);
+    console.debug("%s is not ADA bech32 address: %O", address, e);
   }
   try {
     let addr = wasm.ByronAddress.from_base58(address);
     return (addr.network_id() === networkId);
   } catch (e) {
-    console.debug("%s is not ADA base58 address", address);
+    console.debug("%s is not ADA base58 address: %O", address, e);
   }
   return false;
 }

@@ -144,12 +144,13 @@ module.exports = class ProcessMintBtcFromBitcoin {
           apiServerNetworkFee: ret.data.apiServerNetworkFee
         };
       } else {
+        console.error("%s ProcessMintBtcFromBitcoin generateOnetimeAddress, url: %s, data: %O, ret: %O", names[fromChainType], url, data, ret);
         return {
           address: ""
         };
       }
     } catch (error) {
-      console.log('%s generateOnetimeAddress error: %O', names[fromChainType], error);
+      console.error('%s generateOnetimeAddress error: %O', names[fromChainType], error);
       return {
         address: ""
       }

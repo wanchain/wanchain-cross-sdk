@@ -146,8 +146,8 @@
     },
     {
       "chainId": "2147484262",
-      "chainType": "OPT",
-      "chainName": "Optimistic",
+      "chainType": "OETH",
+      "chainName": "Optimism",
       "crossScAddr": "0x....................................",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,

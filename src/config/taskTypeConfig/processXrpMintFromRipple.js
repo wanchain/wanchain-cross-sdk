@@ -46,7 +46,6 @@ module.exports = class ProcessXrpMintFromRipple {
         networkFee: new BigNumber(params.fee).toFixed(),
         value: params.value
       };
-      console.debug("ProcessXrpMintFromRipple %s data: %O", url, data);
       let ret = await axios.post(url, data);
       if (ret.data.success === true) {
         data.tagId = ret.data.tagId;
@@ -60,8 +59,8 @@ module.exports = class ProcessXrpMintFromRipple {
           tagId: ret.data.tagId,
           apiServerNetworkFee: ret.data.apiServerNetworkFee
         };
-      }
-      else {
+      } else {
+        console.error("ProcessXrpMintFromRipple getTagId, url: %s data: %O, result: %O", url, data, ret);
         return {
           "tagId": 0
         };
