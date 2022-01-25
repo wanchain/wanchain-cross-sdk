@@ -128,7 +128,7 @@ function isValidAdaAddress(address, network) {
   try {
     let addr = wasm.Address.from_bech32(address);
     let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-    if (['0111', '0011', '0001', '0101'].includes(prefix)) {
+    if (parseInt(prefix, 2) > 7) {
       return false;
     }
     return (addr.network_id() === networkId);
