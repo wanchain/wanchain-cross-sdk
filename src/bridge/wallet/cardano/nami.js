@@ -58,11 +58,11 @@ class Nami {
     }
   }
 
-  async getBalance(addr) {
+  async getBalance(addr) { // TODO: support token
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       let balance = await this.cardano.getBalance();
-      return wasm.BigNum.from_bytes(Buffer.from(balance, 'hex')).to_str();
+      return wasm.Value.from_bytes(Buffer.from(balance, 'hex')).coin().to_str(); // TODO: sub token locked coin
     } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
