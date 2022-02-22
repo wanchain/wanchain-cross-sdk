@@ -37,6 +37,12 @@ function hexStrip0x(hexStr) {
   return hexStr;
 }
 
+function bytes2Hex(bytes) {
+  return Array.from(bytes, function(byte) {
+    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+  }).join('');
+}
+
 function isValidEthAddress(address) {
   let valid = WAValidator.validate(address, 'ETH');
   return valid;
@@ -192,6 +198,7 @@ module.exports = {
   checkTimeout,
   sleep,
   hexStrip0x,
+  bytes2Hex,
   isValidEthAddress,
   isValidWanAddress,
   isValidBtcAddress,

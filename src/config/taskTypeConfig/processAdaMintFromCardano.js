@@ -1,7 +1,7 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
+const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
@@ -20,16 +20,44 @@ module.exports = class ProcessAdaMintFromCardano {
       let protocolParameters = await this.initTx();
       let utxos = await wallet.cardano.getUtxos();
       utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
-      // console.debug({utxos});
+      // this.showUtxos(utxos);
+
+      let storemanService = this.m_frameworkService.getService("StoremanService");
+      let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
+      let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
+      let output = {
+        address: wasm.Address.from_bech32(storemanGroupAddr),
+        amount: [
+          {
+            unit: 'lovelace',
+            quantity: isCoin? params.value : '10000000' // actual or probable locked quantity,
+          },
+        ],
+      };
+      if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
+        output.amount.push({
+          unit: tool.hexStrip0x().slice(0, 56), // TEST: '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7',
+          quantity: params.value
+        });
+        let outputValue = await this.assetsToValue(output.amount);
+        let minAda = this.minAdaRequired(
+          outputValue,
+          wasm.BigNum.from_str(
+            protocolParameters.minUtxo
+          )
+        );
+        // console.debug({minAda});
+        output.amount[0].quantity = minAda;
+      }
+      console.log("output.amount: %O", output.amount);
       let outputs = wasm.TransactionOutputs.new();
       outputs.add(
         wasm.TransactionOutput.new(
           wasm.Address.from_bech32(storemanGroupAddr),
-          wasm.Value.new(
-            wasm.BigNum.from_str(new BigNumber(params.value).toFixed())
-          )
+          this.assetsToValue(output.amount)
         )
       );
+
       let metaData = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       let auxiliaryData = wasm.AuxiliaryData.new();
       auxiliaryData.set_metadata(metaData);
@@ -92,7 +120,7 @@ module.exports = class ProcessAdaMintFromCardano {
         minFeeA: p.min_fee_a.toString(),
         minFeeB: p.min_fee_b.toString(),
       },
-      minUtxo: p.min_utxo, //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+      minUtxo: '1000000', //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
       poolDeposit: p.pool_deposit,
       keyDeposit: p.key_deposit,
       coinsPerUtxoWord: p.coins_per_utxo_word,
@@ -104,5 +132,68 @@ module.exports = class ProcessAdaMintFromCardano {
     };
     console.debug("ProcessAdaMintFromCardano initTx: %O", result);
     return result;
+  }
+
+  assetsToValue(assets) {
+    let multiAsset = wasm.MultiAsset.new();
+    let lovelace = assets.find((asset) => asset.unit === 'lovelace');
+    let policies = [
+      ...new Set(
+        assets
+          .filter((asset) => asset.unit !== 'lovelace')
+          .map((asset) => asset.unit.slice(0, 56))
+      ),
+    ];
+    policies.forEach((policy) => {
+      let policyAssets = assets.filter(
+        (asset) => asset.unit.slice(0, 56) === policy
+      );
+      let assetsValue = wasm.Assets.new();
+      policyAssets.forEach((asset) => {
+        assetsValue.insert(
+          wasm.AssetName.new(Buffer.from(asset.unit.slice(56), 'hex')),
+          wasm.BigNum.from_str(asset.quantity)
+        );
+      });
+      multiAsset.insert(
+        wasm.ScriptHash.from_bytes(Buffer.from(policy, 'hex')),
+        assetsValue
+      );
+    });
+    let value = wasm.Value.new(
+      wasm.BigNum.from_str(lovelace ? lovelace.quantity : '0')
+    );
+    if (assets.length > 1 || !lovelace) value.set_multiasset(multiAsset);
+    return value;
+  }
+
+  minAdaRequired(value, minUtxo) {
+    return wasm.min_ada_required(
+      value,
+      minUtxo
+    ).to_str();
+  }
+
+  showUtxos(utxos) {
+    let outs = [];
+    utxos.map(utxo => {
+      let o = utxo.output();
+      let tokens = [];
+      let ma = o.amount().multiasset();
+      if (ma) {
+        let scripts = ma.keys();
+        for (let i = 0; i < scripts.len(); i++) {
+          let script = scripts.get(i);
+          let assets = ma.get(script);
+          let names = assets.keys();
+          for (let j = 0; j < names.len(); j++) {
+            let name = names.get(j);
+            tokens.push({script: tool.bytes2Hex(script.to_bytes()), name: name.name().toString(), value: assets.get(name).to_str()})
+          }
+        }
+      }
+      outs.push({to: o.address().to_bech32(), coin: o.amount().coin().to_str(), tokens});
+    });
+    console.debug("utxos output: %O", outs);
   }
 };
