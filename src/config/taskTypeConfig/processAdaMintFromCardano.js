@@ -1,7 +1,33 @@
 'use strict';
 
+const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const tool = require("../../utils/tool.js");
+
+/* metadata format:
+  userLock:
+  {
+    type: 1,             // number
+    tokenPairID: 1,      // number
+    toAccount: 0x...,    // string
+    fee: 10              // number
+  }
+  smgRelease:
+  {
+    type: 2,             // number
+    tokenPairID: 1,      // number
+    uniqueId: 0x...      // string
+  }
+*/
+
+const TX_TYPE = {
+  UserLock:   1,
+  SmgRelease: 2,
+  smgDebt:    5,
+  Invalid:    -1
+};
+
+const ToAccountLen = 42; // with '0x'
 
 module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
@@ -14,7 +40,7 @@ module.exports = class ProcessAdaMintFromCardano {
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
-      let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // await wallet.longPubKeyToAddress(params.storemanGroupGpk);
+      let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // smg address is manual specified
       console.debug("ProcessAdaMintFromCardano storemanGroupAddr: %s", storemanGroupAddr);
 
       let protocolParameters = await this.initTx();
@@ -58,7 +84,7 @@ module.exports = class ProcessAdaMintFromCardano {
         )
       );
 
-      let metaData = await wallet.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
+      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
       let auxiliaryData = wasm.AuxiliaryData.new();
       auxiliaryData.set_metadata(metaData);
 
@@ -172,6 +198,26 @@ module.exports = class ProcessAdaMintFromCardano {
       value,
       minUtxo
     ).to_str();
+  }
+
+  buildUserLockData(tokenPairID, toAccount, fee) {
+    tokenPairID = Number(tokenPairID);
+    if ((tokenPairID !== NaN) && (toAccount.length === ToAccountLen)) {
+      let data = {
+        5718350: { // define a special label, which is SLIP-0044 Wanchain Coin type
+          type: TX_TYPE.UserLock,
+          tokenPairID,
+          toAccount,
+          fee: Number(new BigNumber(fee).toFixed())
+        }
+      };
+      // console.debug("nami buildUserLockData: %O", data);
+      data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
+      return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
+    } else {
+      console.error("buildUserLockMetaData parameter invalid");
+      return null;
+    }
   }
 
   showUtxos(utxos) {

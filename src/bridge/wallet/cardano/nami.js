@@ -1,35 +1,9 @@
-const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
-
-/* metadata format:
-  userLock:
-  {
-    type: 1,             // number
-    tokenPairID: 1,      // number
-    toAccount: 0x...,    // string
-    fee: 10              // number
-  }
-  smgRelease:
-  {
-    type: 2,             // number
-    tokenPairID: 1,      // number
-    uniqueId: 0x...      // string
-  }
-*/
-
-const TX_TYPE = {
-  UserLock:   1,
-  SmgRelease: 2,
-  smgDebt:    5,
-  Invalid:    -1
-};
 
 const TX = {
   invalid_hereafter: 3600 * 2, // 2h from current slot
 };
-
-const ToAccountLen = 42; // with '0x'
 
 class Nami {
   constructor(type, provider) {
@@ -78,26 +52,6 @@ class Nami {
   }
 
   // customized function
-
-  buildUserLockData(tokenPairID, toAccount, fee) {
-    tokenPairID = Number(tokenPairID);
-    if ((tokenPairID !== NaN) && (toAccount.length === ToAccountLen)) {
-      let data = {
-        5718350: {
-          type: TX_TYPE.UserLock,
-          tokenPairID,
-          toAccount,
-          fee: Number(new BigNumber(fee).toFixed())
-        }
-      };
-      // console.debug("nami buildUserLockData: %O", data);
-      data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
-      return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
-    } else {
-      console.error("buildUserLockMetaData parameter invalid");
-      return null;
-    }
-  }
 
   async multiAssetCount(multiAsset) {
     if (!multiAsset) return 0;
