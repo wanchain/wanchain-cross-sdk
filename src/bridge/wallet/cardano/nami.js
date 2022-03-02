@@ -71,7 +71,7 @@ class Nami {
 
   async sendTransaction(tx, sender) {
     let witnessSet = await this.cardano.signTx(Buffer.from(tx.to_bytes(), 'hex').toString('hex'));
-    witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet,"hex"));
+    witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet, "hex"));
     let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
     let txHash = await this.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
     return txHash;
@@ -137,9 +137,9 @@ class Nami {
         wasm.BigNum.from_str(protocolParameters.linearFee.minFeeA),
         wasm.BigNum.from_str(protocolParameters.linearFee.minFeeB)
       ),
-      wasm.BigNum.from_str(protocolParameters.minUtxo),// minimum utxo value
-      wasm.BigNum.from_str(protocolParameters.poolDeposit),  // pool deposit
-      wasm.BigNum.from_str(protocolParameters.keyDeposit),// key deposit
+      wasm.BigNum.from_str(protocolParameters.minUtxo),
+      wasm.BigNum.from_str(protocolParameters.poolDeposit),
+      wasm.BigNum.from_str(protocolParameters.keyDeposit),
       protocolParameters.maxValSize,
       protocolParameters.maxTxSize
     );

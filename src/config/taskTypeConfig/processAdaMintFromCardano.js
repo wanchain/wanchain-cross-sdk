@@ -36,7 +36,7 @@ module.exports = class ProcessAdaMintFromCardano {
       };
       if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
         output.amount.push({
-          unit: tool.hexStrip0x().slice(0, 56), // TEST: '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7',
+          unit: tool.hexStrip0x().slice(0, 56), // Testcoin: '6b8d07d69639e9413dd637a1a815a7323c69c86abbafb66dbfdb1aa7',
           quantity: params.value
         });
         let outputValue = await this.assetsToValue(output.amount);
@@ -120,7 +120,7 @@ module.exports = class ProcessAdaMintFromCardano {
         minFeeA: p.min_fee_a.toString(),
         minFeeB: p.min_fee_b.toString(),
       },
-      minUtxo: '1000000', //p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+      minUtxo: '1000000', // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
       poolDeposit: p.pool_deposit,
       keyDeposit: p.key_deposit,
       coinsPerUtxoWord: p.coins_per_utxo_word,
