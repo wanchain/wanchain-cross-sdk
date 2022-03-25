@@ -1,6 +1,7 @@
 'use strict';
 
-let iWanClient = require('../libs/iWan-js-sdk/apis/apiInstance.js');
+const iWanClient = require('../libs/iWan-js-sdk/apis/apiInstance.js');
+const tool = require('../../utils/tool.js');
 
 class IWanBCConnector {
     constructor(option) {
@@ -72,6 +73,9 @@ class IWanBCConnector {
     }
 
     async getBalance(chain, addr) {
+        if (chain === "XDC") {
+          addr = tool.getXdcAddressInfo(addr).eth;
+        }
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;
     }

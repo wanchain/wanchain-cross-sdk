@@ -169,7 +169,7 @@ class WanBridge extends EventEmitter {
     }
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "XDC"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -185,6 +185,8 @@ class WanBridge extends EventEmitter {
       return tool.isValidDotAddress(account, this.network);
     } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
+    } else if ("XDC" === chainType) {
+      return tool.isValidXdcAddress(account, this.network);
     } else {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;
@@ -327,7 +329,11 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+      let toAccount = ccTask.toAccount;
+      if (ccTask.toChainType === "XDC"){
+        toAccount = tool.getXdcAddressInfo(toAccount).eth;
+      }
+      if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";

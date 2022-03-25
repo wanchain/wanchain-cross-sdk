@@ -1,6 +1,7 @@
 'use strict';
 
 const ProcessBase = require("./processBase.js");
+const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
   constructor(frameworkService) {
@@ -15,6 +16,12 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
       if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
+      let storemanService = this.m_frameworkService.getService("StoremanService");
+      let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
+      let userAccount = params.userAccount;
+      if (tokenPair.fromChainType === "XDC") {
+        userAccount = tool.getXdcAddressInfo(userAccount).eth;
+      }
       let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
       let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
         params.storemanGroupId,
@@ -22,7 +29,7 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
         params.value,
         params.userBurnFee,
         params.tokenAccount,
-        params.userAccount);
+        userAccount);
 
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
@@ -37,29 +44,33 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPairObj = await storemanService.getTokenPairObjById(params.tokenPairID);
+    let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
     let blockNumber;
-    if (tokenPairObj.fromChainType === "XRP") {
-      blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPairObj.fromChainType);
-    } else if (["DOT", "ADA"].includes(tokenPairObj.fromChainType)) {
+    if (tokenPair.fromChainType === "XRP") {
+      blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPair.fromChainType);
+    } else if (["DOT", "ADA"].includes(tokenPair.fromChainType)) {
       blockNumber = 0;
       // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
     } else {
-      blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.fromChainType);
+      blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
+    }
+    let userAccount = params.userAccount;
+    if (tokenPair.fromChainType === "XDC") {
+      userAccount = tool.getXdcAddressInfo(userAccount).eth;
     }
     let obj = {
       needCheck: true,
       checkInfo: {
         ccTaskId: params.ccTaskId,
         uniqueID: stepData.txHash,
-        userAccount: params.userAccount,
+        userAccount,
         smgID: params.storemanGroupId,
         tokenPairID: params.tokenPairID,
         value: params.value,
-        chain: tokenPairObj.fromChainType,
+        chain: tokenPair.fromChainType,
         fromBlockNumber: blockNumber,
         taskType: "BURN",
-        fromChain: tokenPairObj.toChainType,
+        fromChain: tokenPair.toChainType,
         fromAddr: params.fromAddr,
         chainHash: stepData.txHash,
         toAddr: params.toAddr
