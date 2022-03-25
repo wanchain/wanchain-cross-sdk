@@ -149,7 +149,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       userBurnFee: operateFee
     };
     let isEvmAddr = /^0x[0-9a-fA-F]{40}$/.test(convert.toAddr);
-    if (isEvmAddr) {
+    if (isEvmAddr || tool.isValidXdcAddress(convert.toAddr)) {
       params.userAccount = convert.toAddr;
     } else {
       params.toAddr = convert.toAddr; // for readability

@@ -176,7 +176,7 @@ function getXdcAddressInfo(address) {
     xdc = address;
     eth = "0x" + address.substr(3);
   }
-  return null;
+  return {xdc, eth};
 }
 
 function getCoinSymbol(chainType, chainName) {
