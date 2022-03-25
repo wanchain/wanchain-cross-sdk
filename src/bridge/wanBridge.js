@@ -331,7 +331,7 @@ class WanBridge extends EventEmitter {
     if (taskRedeemHash.toAccount !== undefined) {
       let toAccount = ccTask.toAccount;
       if (ccTask.toChainType === "XDC"){
-        toAccount = tool.getXdcAddressInfo(toAccount).eth;
+        toAccount = tool.getXdcAddressInfo(toAccount).evm;
       }
       if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);

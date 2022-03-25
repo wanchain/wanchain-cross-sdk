@@ -20,7 +20,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
             let userAccount = params.userAccount;
             if (tokenPair.fromChainType === "XDC") {
-              userAccount = tool.getXdcAddressInfo(userAccount).eth;
+              userAccount = tool.getXdcAddressInfo(userAccount).evm;
             }
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
@@ -47,7 +47,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
         let userAccount = params.userAccount;
         if (tokenPair.fromChainType === "XDC") {
-          userAccount = tool.getXdcAddressInfo(userAccount).eth;
+          userAccount = tool.getXdcAddressInfo(userAccount).evm;
         }
         let obj = {
             needCheck: true,

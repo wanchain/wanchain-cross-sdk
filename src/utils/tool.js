@@ -168,15 +168,15 @@ function isValidXdcAddress(address) {
 }
 
 function getXdcAddressInfo(address) {
-  let xdc, eth;
+  let xdc, evm;
   if (isValidEthAddress(address)) {
-    eth = address;
+    evm = address;
     xdc = "xdc" + address.substr(2);
   } else if (isValidXdcAddress(address)) {
     xdc = address;
-    eth = "0x" + address.substr(3);
+    evm = "0x" + address.substr(3);
   }
-  return {xdc, eth};
+  return {xdc, evm};
 }
 
 function getCoinSymbol(chainType, chainName) {
