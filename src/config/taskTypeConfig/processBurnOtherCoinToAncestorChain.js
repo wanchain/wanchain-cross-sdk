@@ -1,7 +1,6 @@
 'use strict';
 
 const ProcessBase = require("./processBase.js");
-const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
   constructor(frameworkService) {
@@ -16,12 +15,6 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
       if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
-      let storemanService = this.m_frameworkService.getService("StoremanService");
-      let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
-      let userAccount = params.userAccount;
-      if (tokenPair.fromChainType === "XDC") {
-        userAccount = tool.getXdcAddressInfo(userAccount).eth;
-      }
       let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
       let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
         params.storemanGroupId,
@@ -29,7 +22,7 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
         params.value,
         params.userBurnFee,
         params.tokenAccount,
-        userAccount);
+        params.userAccount);
 
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
@@ -54,16 +47,12 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
     } else {
       blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
     }
-    let userAccount = params.userAccount;
-    if (tokenPair.fromChainType === "XDC") {
-      userAccount = tool.getXdcAddressInfo(userAccount).eth;
-    }
     let obj = {
       needCheck: true,
       checkInfo: {
         ccTaskId: params.ccTaskId,
         uniqueID: stepData.txHash,
-        userAccount,
+        userAccount: params.userAccount,
         smgID: params.storemanGroupId,
         tokenPairID: params.tokenPairID,
         value: params.value,
