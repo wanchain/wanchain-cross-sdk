@@ -143,6 +143,11 @@ class StoremanService {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         return tokenPairService.updateSmgs();
     }
+
+    async getAssetLogo(name) {
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      return tokenPairService.getAssetLogo(name);
+    }
 };
 
 module.exports = StoremanService;

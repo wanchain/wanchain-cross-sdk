@@ -269,6 +269,10 @@ class WanBridge extends EventEmitter {
     return count;
   }
 
+  async getAssetLogo(name) {
+    return this.storemanService.getAssetLogo(name);
+  }
+
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;

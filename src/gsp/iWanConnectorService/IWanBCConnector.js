@@ -252,7 +252,11 @@ class IWanBCConnector {
 
     async getEpochParameters(chainType, options) {
         return this.apiClient.getEpochParameters(chainType, options);
-    }    
+    }
+
+    async getRegisteredOrigToken(chainType, options) {
+      return this.apiClient.getRegisteredOrigToken(chainType, options);
+    }
 };
 
 module.exports = IWanBCConnector;
