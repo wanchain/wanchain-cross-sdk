@@ -38,7 +38,6 @@ class TokenPairService {
         if (this.m_iwanConnected === false) {
             this.m_iwanConnected = true;
             await this.readAssetPair();
-            await this.readAssetLogo();
         }
     }
 
@@ -80,6 +79,7 @@ class TokenPairService {
             }));
             this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList);
             this.m_mapTokenPairIdObj = tokenPairMap;
+            await this.readAssetLogo();
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
             // console.log("tokenPairs: %O", tokenPairs);
         } catch (err) {
