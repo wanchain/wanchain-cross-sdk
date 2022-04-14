@@ -73,7 +73,7 @@ class IWanBCConnector {
     }
 
     async getBalance(chain, addr) {
-        addr = tool.getStandardAddressInfo(addr).standard;
+        addr = tool.getStandardAddressInfo(chain, addr).standard;
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;
     }
