@@ -177,22 +177,24 @@ class WanBridge extends EventEmitter {
       return false;
     }
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "MOVR", "MATIC", "ARETH", "FTM"].includes(chainType)) {
       return tool.isValidEthAddress(account);
-    } else if ("WAN" == chainType) {
+    } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
-    } else if ("BTC" == chainType) {
+    } else if ("BTC" === chainType) {
       return tool.isValidBtcAddress(account, this.network);
-    } else if ("LTC" == chainType) {
+    } else if ("LTC" === chainType) {
       return tool.isValidLtcAddress(account, this.network);
-    } else if ("DOGE" == chainType) {
+    } else if ("DOGE" === chainType) {
       return tool.isValidDogeAddress(account, this.network);
-    } else if ("XRP" == chainType) {
+    } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
-    } else if ("DOT" == chainType) {
+    } else if ("DOT" === chainType) {
       // PLAN: adapted to polka app
       return tool.isValidDotAddress(account, this.network);
+    } else if ("XDC" === chainType) {
+      return tool.isValidXdcAddress(account, this.network);
     } else {
       console.error("unsupported chain %s", chainType);
       return false;
@@ -316,7 +318,8 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).standard;
+      if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";

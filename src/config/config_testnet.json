@@ -139,6 +139,23 @@
       "ScScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "name": "XinFin",
+      "chainId": "2147484198",
+      "chainType": "XDC",
+      "chainName": "XinFin",
+      "chainDecimals": 18,
+      "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "MaskChainId": 51,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
     }
   ],
   "UIStrService": {

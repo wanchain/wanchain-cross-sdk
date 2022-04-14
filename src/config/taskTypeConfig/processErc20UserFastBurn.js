@@ -1,7 +1,8 @@
 'use strict';
 
-let BigNumber = require("bignumber.js");
-let ProcessBase = require("./processBase.js");
+const BigNumber = require("bignumber.js");
+const ProcessBase = require("./processBase.js");
+const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     constructor(frameworkService) {
@@ -34,7 +35,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
                 this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
                 return;
             }
-
+            let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
                 params.crossScAbi,
@@ -43,7 +44,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
                 params.value,
                 params.userBurnFee,
                 params.tokenAccount,
-                params.userAccount);
+                userAccount);
 
             let txValue = params.fee;
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
@@ -59,20 +60,21 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     // virtual function
     async getConvertInfoForCheck(paramsJson) {
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPairObj = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.fromChainType);
+        let tokenPair = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
+        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
+        let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
         let obj = {
             needCheck: true,
             checkInfo: {
-                "ccTaskId": paramsJson.params.ccTaskId,
-                "uniqueID": paramsJson.txhash,
-                "userAccount": paramsJson.params.userAccount,
-                "smgID": paramsJson.params.storemanGroupId,
-                "tokenPairID": paramsJson.params.tokenPairID,
-                "value": paramsJson.params.value,
-                "chain": tokenPairObj.fromChainType,
-                "fromBlockNumber": blockNumber,
-                "taskType": "BURN"
+                ccTaskId: paramsJson.params.ccTaskId,
+                uniqueID: paramsJson.txhash,
+                userAccount,
+                smgID: paramsJson.params.storemanGroupId,
+                tokenPairID: paramsJson.params.tokenPairID,
+                value: paramsJson.params.value,
+                chain: tokenPair.fromChainType,
+                fromBlockNumber: blockNumber,
+                taskType: "BURN"
             }
         };
         return obj;

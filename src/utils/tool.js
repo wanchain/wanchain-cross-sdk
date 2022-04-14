@@ -109,6 +109,33 @@ function isValidDotAddress(account, network) {
   }
 }
 
+function isValidXdcAddress(address) {
+  if (isValidEthAddress(address)) {
+    return true;
+  }
+  return ((address.substr(0, 3) === "xdc") && isValidEthAddress("0x" + address.substr(3)));
+}
+
+function getXdcAddressInfo(address) {
+  let native, standard;
+  if (isValidEthAddress(address)) {
+    standard = address;
+    native = "xdc" + address.substr(2);
+  } else if (isValidXdcAddress(address)) {
+    native = address;
+    standard = "0x" + address.substr(3);
+  }
+  return {native, standard};
+}
+
+function getStandardAddressInfo(chainType, address) {
+  if (chainType === "XDC") {
+    return getXdcAddressInfo(address);
+  } else {
+    return {native: address, standard: address};
+  }
+}
+
 function getCoinSymbol(chainType, chainName) {
   if ((chainType === "DOT") && (chainName === "PolkaTestnet")) {
     return "WND";
@@ -130,5 +157,7 @@ module.exports = {
   isValidDogeAddress,
   isValidXrpAddress,
   isValidDotAddress,
+  isValidXdcAddress,
+  getStandardAddressInfo,
   getCoinSymbol
 }
