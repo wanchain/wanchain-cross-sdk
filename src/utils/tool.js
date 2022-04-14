@@ -168,15 +168,23 @@ function isValidXdcAddress(address) {
 }
 
 function getXdcAddressInfo(address) {
-  let xdc, evm;
+  let native, standard;
   if (isValidEthAddress(address)) {
-    evm = address;
-    xdc = "xdc" + address.substr(2);
+    standard = address;
+    native = "xdc" + address.substr(2);
   } else if (isValidXdcAddress(address)) {
-    xdc = address;
-    evm = "0x" + address.substr(3);
+    native = address;
+    standard = "0x" + address.substr(3);
   }
-  return {xdc, evm};
+  return {native, standard};
+}
+
+function getStandardAddressInfo(chainType, address) {
+  if (chainType === "XDC") {
+    return getXdcAddressInfo(address);
+  } else {
+    return {native: address, standard: address};
+  }
 }
 
 function getCoinSymbol(chainType, chainName) {
@@ -227,7 +235,7 @@ module.exports = {
   isValidDotAddress,
   isValidAdaAddress,
   isValidXdcAddress,
-  getXdcAddressInfo,
+  getStandardAddressInfo,
   getCoinSymbol,
   parseFee
 }

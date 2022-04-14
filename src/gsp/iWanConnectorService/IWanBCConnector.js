@@ -73,9 +73,7 @@ class IWanBCConnector {
     }
 
     async getBalance(chain, addr) {
-        if (chain === "XDC") {
-          addr = tool.getXdcAddressInfo(addr).evm;
-        }
+        addr = tool.getStandardAddressInfo(addr).standard;
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;
     }

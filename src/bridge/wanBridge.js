@@ -333,10 +333,7 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      let toAccount = ccTask.toAccount;
-      if (ccTask.toChainType === "XDC"){
-        toAccount = tool.getXdcAddressInfo(toAccount).evm;
-      }
+      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).standard;
       if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
