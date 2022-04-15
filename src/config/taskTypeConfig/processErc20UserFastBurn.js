@@ -62,7 +62,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let tokenPair = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
         let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
-        let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
+        let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, paramsJson.params.userAccount).standard;
         let obj = {
             needCheck: true,
             checkInfo: {
