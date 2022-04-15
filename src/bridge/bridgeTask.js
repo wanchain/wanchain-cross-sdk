@@ -78,7 +78,7 @@ class BridgeTask {
 
     let bridge = this._bridge;
     let assetPair = this._assetPair;
-    let ccTaskData = this._task.ccTaskData;    
+    let ccTaskData = this._task.ccTaskData;
 
     // task
     let jsonTaskAssetPair = {
@@ -93,7 +93,7 @@ class BridgeTask {
       toChainName: this._toChainInfo.chainName,
       smg: this._smg,
     };
-    console.debug("jsonTaskAssetPair: %O", jsonTaskAssetPair);
+    // console.debug("jsonTaskAssetPair: %O", jsonTaskAssetPair);
 
     this._task.setTaskAssetPair(jsonTaskAssetPair);
     this._task.setFee(this._fee);
@@ -112,7 +112,7 @@ class BridgeTask {
     ccTaskData.status = "Performing";
     let taskSteps = bridge.stores.crossChainTaskSteps.mapCCTaskStepsArray.get(this.id);
     ccTaskData.stepData = taskSteps;
-    // console.log("ccTaskData: %O", ccTaskData);
+    // console.debug("ccTaskData: %O", ccTaskData);
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
     bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
 
@@ -150,7 +150,7 @@ class BridgeTask {
     if (chainInfo.minReserved) {
       let smgAddr = ("XRP" === fromChainType)? this._getSmgXrpClassicAddress() : this._getSmgPolkaAddress();
       let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true, false);
-      console.log("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
+      console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance.plus(this._amount);
       if (estimateBalance.lt(chainInfo.minReserved)) {
         let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
@@ -162,7 +162,7 @@ class BridgeTask {
   }
 
   async _checkFromAccount() {
-    if (!this._fromAccount) {
+    if (!this._fromAccount) { // third party wallet
       return "";
     }
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, true);
@@ -205,7 +205,7 @@ class BridgeTask {
   async _checkTaskSteps() {
     let ccTaskData = this._task.ccTaskData;
     // to get the stepsFunc from server api
-    let convertJson = {
+    let convert = {
       ccTaskId: ccTaskData.ccTaskId,
       tokenPairId: ccTaskData.assetPairId,
       convertType: ccTaskData.convertType,
@@ -219,9 +219,9 @@ class BridgeTask {
       fee: this._fee,
       wallet: this._wallet
     }; 
-    // console.log("checkTaskSteps: %O", convertJson);
-    let stepInfo = await this._bridge.storemanService.getConvertInfo(convertJson);
-    // console.log("getConvertInfo: %O", stepInfo);
+    // console.debug("checkTaskSteps: %O", convert);
+    let stepInfo = await this._bridge.storemanService.getConvertInfo(convert);
+    // console.debug("getConvertInfo: %O", stepInfo);
     if (stepInfo.stepNum > 0) {
       this._task.setTaskStepNums(stepInfo.stepNum);
       return "";
@@ -233,11 +233,10 @@ class BridgeTask {
   async _parseTaskStatus(ccTaskStepsArray) {
     console.debug("bridgeTask _parseTaskStatus at %s ms", tool.getCurTimestamp());
 
-    console.log("task %s steps: %d", this.id, ccTaskStepsArray.length);
+    console.debug("task %s steps: %d", this.id, ccTaskStepsArray.length);
     let curStep = 0, executedStep = -1, stepTxHash = "";
     for (; curStep < ccTaskStepsArray.length; ) {
       let taskStep = ccTaskStepsArray[curStep];
-      console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
@@ -293,7 +292,7 @@ class BridgeTask {
       throw new Error("Invalid ota chain type " + chainType);
     }
     this._bridge.emit("ota", ota);
-    console.log("%s OTA: %O", chainType, ota);
+    console.debug("%s OTA: %O", chainType, ota);
   }
 
   _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") {

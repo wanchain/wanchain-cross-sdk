@@ -25,8 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.log("init %s WanBridge SDK", this.network);
-    console.debug("isTestMode: %s, smgIndex: %s", this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -36,7 +35,7 @@ class WanBridge extends EventEmitter {
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
-    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash
+    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("NetworkFee", this._onNetworkFee.bind(this)); // for BTC/LTC/DOGE to update network fee got from api server
@@ -54,7 +53,7 @@ class WanBridge extends EventEmitter {
     let smg = smgs[this.smgIndex % smgs.length];
     let curTime = tool.getCurTimestamp(true);
     if (curTime >= smg.endTime) {
-      console.log("smg %s timeout and update smgs", smg.id);
+      console.log("SDK: getSmgInfo, smg %s timeout", smg.id);
       await this.storemanService.updateSmgs();
       smgs = this.stores.assetPairs.smgList;
       smg = smgs[this.smgIndex % smgs.length];
@@ -64,8 +63,9 @@ class WanBridge extends EventEmitter {
   }
 
   async checkWallet(assetPair, direction, wallet) {
+    console.debug("SDK: checkWallet, pair: %s, direction: %s, wallet: %s", assetPair.assetPairId, direction, wallet? wallet.type : undefined);
     direction = this._unifyDirection(direction);
-    let chainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     if (this._isThirdPartyWallet(chainType)) {
       return true;
     } else {
@@ -84,15 +84,15 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("wanBridge createTask pair %s direction %s amount %s at %s ms", assetPair.assetPairId, direction, amount, tool.getCurTimestamp());
-    
+    console.debug("SDK: createTask, pair: %s, direction: %s, amount: %s, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
+                  assetPair.assetPairId, direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp());
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
       fromAccount = "";
     } else if (fromAccount) {
-      let tmpDirection = (direction == "MINT")? "BURN" : "MINT";
+      let tmpDirection = (direction === "MINT")? "BURN" : "MINT";
       if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
         throw new Error("Invalid fromAccount");
       }
@@ -119,6 +119,7 @@ class WanBridge extends EventEmitter {
   }
 
   cancelTask(taskId) {
+    console.debug("SDK: cancelTask, taskId: %s", taskId);
     // only set the status, do not really stop the task
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
@@ -130,10 +131,12 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, isCoin = false, toKeepAlive = false) {
+  async getAccountAsset(assetPair, direction, account, isCoin = false, keepAlive = false) {
     direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin, toKeepAlive);
-    return balance.toFixed();
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin, keepAlive);
+    balance = balance.toFixed();
+    console.debug("SDK: getAccountAsset, pair: %s, direction: %s, account: %s, options: %O, result: %s", assetPair.assetPairId, direction, account, {isCoin, keepAlive}, balance);
+    return balance;
   }
 
   async estimateFee(assetPair, direction) {
@@ -158,22 +161,22 @@ class WanBridge extends EventEmitter {
       operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
       networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
     };
-    console.debug("estimateFee: %O", fee);
+    console.debug("SDK: estimateFee, pair: %s, direction: %s, result: %O", assetPair.assetPairId, direction, fee);
     return fee;
   }
 
   async getQuota(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction == "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let smg = await this.getSmgInfo();
     let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
-    console.debug("getQuota(smg %s): %O", smg.id, quota);
+    console.debug("SDK: getQuota, pair: %s, direction: %s, smg: %s, result: %O", assetPair.assetPairId, direction, smg.id, quota);
     return quota;
   }
 
   validateToAccount(assetPair, direction, account) {
     if (this.stores.assetPairs.isTokenAccount(account)) {
-      console.error("%s is token account", account);
+      console.error("SDK: validateToAccount, pair: %s, direction: %s, account: %s, result: is token account", assetPair.assetPairId, direction, account);
       return false;
     }
     direction = this._unifyDirection(direction);
@@ -196,7 +199,7 @@ class WanBridge extends EventEmitter {
     } else if ("XDC" === chainType) {
       return tool.isValidXdcAddress(account, this.network);
     } else {
-      console.error("unsupported chain %s", chainType);
+      console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;
     }
   }
@@ -227,13 +230,14 @@ class WanBridge extends EventEmitter {
           redeemHash: task.redeemHash,
           status: task.status,
           errInfo: task.errInfo
-        }
+        };
         history.push(item);
         if (taskId !== undefined) { // only get one
           break;
         }
       }
     }
+    console.debug("SDK: getHistory, taskId: %s, count: %d", taskId, history.length);
     return history;
   }
 
@@ -247,6 +251,7 @@ class WanBridge extends EventEmitter {
       await this.storageService.delete("crossChainTaskRecords", id);
       count++;
     }
+    console.debug("SDK: deleteHistory, taskId: %s, count: %d", taskId, count);
     return count;
   }
 
@@ -373,7 +378,7 @@ class WanBridge extends EventEmitter {
       let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId, txHash};
-        console.debug("lockTxHash: %O", lockEvent);
+        console.debug("lockEvent: %O", lockEvent);
         this.emit("lock", lockEvent);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
