@@ -1,5 +1,8 @@
 'use strict';
 
+let WalletRejects = [
+  "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDC
+]
 
 module.exports = class ProcessBase {
   constructor(frameworkService) {
@@ -39,11 +42,11 @@ module.exports = class ProcessBase {
 
       let txHash = "";
       try {
-        txHash = await wallet.sendTransaction(txData); 
+        txHash = await wallet.sendTransaction(txData);
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         let result, errInfo = "";
-        if (err.code === 4001) {
+        if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
           result = "Rejected";
         } else {
           result = "Failed";
