@@ -1,5 +1,9 @@
 'use strict';
 
+let WalletRejects = [
+  "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay
+  "Confirmation declined by user", // TronLink
+]
 
 module.exports = class ProcessBase {
   constructor(frameworkService) {
@@ -42,7 +46,7 @@ module.exports = class ProcessBase {
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txhash, ""); // only update txHash, no result
       } catch (err) {
         let result, errInfo = "";
-        if (err.code === 4001) {
+        if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
           result = "Rejected";
         } else {
           result = "Failed";
