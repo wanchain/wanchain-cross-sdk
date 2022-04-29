@@ -143,18 +143,17 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: convert.toAddr,
       taskType,
       fee: networkFee,
       tokenAccount: tokenPair.toAccount,
       userBurnFee: operateFee
     };
     let isEvmAddr = /^0x[0-9a-fA-F]{40}$/.test(convert.toAddr);
-    if (isEvmAddr) {
+    if (isEvmAddr || tool.isValidXdcAddress(convert.toAddr)) {
       params.userAccount = convert.toAddr;
     } else {
-      params.toAddr = convert.toAddr;
-      params.userAccount = web3.utils.asciiToHex(convert.toAddr);
+      params.toAddr = convert.toAddr; // for readability
+      params.userAccount = web3.utils.asciiToHex(convert.toAddr); // for transaction
     }
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

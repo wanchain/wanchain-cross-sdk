@@ -37,15 +37,15 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPairObj = await storemanService.getTokenPairObjById(params.tokenPairID);
+    let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
     let blockNumber;
-    if (tokenPairObj.fromChainType === "XRP") {
-      blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPairObj.fromChainType);
-    } else if (["DOT", "ADA"].includes(tokenPairObj.fromChainType)) {
+    if (tokenPair.fromChainType === "XRP") {
+      blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPair.fromChainType);
+    } else if (["DOT", "ADA"].includes(tokenPair.fromChainType)) {
       blockNumber = 0;
       // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
     } else {
-      blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.fromChainType);
+      blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
     }
     let obj = {
       needCheck: true,
@@ -56,10 +56,10 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
         smgID: params.storemanGroupId,
         tokenPairID: params.tokenPairID,
         value: params.value,
-        chain: tokenPairObj.fromChainType,
+        chain: tokenPair.fromChainType,
         fromBlockNumber: blockNumber,
         taskType: "BURN",
-        fromChain: tokenPairObj.toChainType,
+        fromChain: tokenPair.toChainType,
         fromAddr: params.fromAddr,
         chainHash: stepData.txHash,
         toAddr: params.toAddr

@@ -197,6 +197,22 @@ class StorageService {
         }
         return ary;
     }
+
+    getAssetLogo() {
+      if (typeof(window) !== "undefined") {
+        let data = window.localStorage.getItem("AssetLogo");
+        if (data) {
+          return JSON.parse(data);
+        }
+      }
+      return null;
+    }
+
+    setAssetLogo(data) {
+      if (typeof(window) !== "undefined") {
+        window.localStorage.setItem("AssetLogo", JSON.stringify(data));
+      }
+    }
 };
 
 module.exports = StorageService;

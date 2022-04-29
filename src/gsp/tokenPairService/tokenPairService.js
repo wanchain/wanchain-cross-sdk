@@ -1,11 +1,15 @@
 "use strict";
 
+const crypto = require('crypto');
+const Identicon = require('identicon.js');
+
 class TokenPairService {
     constructor(isTestMode) {
         this.isTestMode = isTestMode;
         this.m_iwanConnected = false;
         this.m_mapTokenPairIdObj = new Map(); // tokenPairId => tokenPairObj
         this.m_mapTokenPairIdCfg = new Map(); // tokenPairId => tokenPairConfig
+        this.assetLogo = new Map(); // name => logInfo
     }
 
     async init(frameworkService) {
@@ -75,6 +79,9 @@ class TokenPairService {
             }));
             this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList);
             this.m_mapTokenPairIdObj = tokenPairMap;
+            if (typeof(window) !== "undefined") {
+              await this.readAssetLogo();
+            }
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
             // console.log("tokenPairs: %O", tokenPairs);
         } catch (err) {
@@ -85,9 +92,72 @@ class TokenPairService {
         console.log("readAssetPair consume %s ms", t_end - t_start);
     }
 
+    async readAssetLogo() {
+      let t_start = new Date().getTime();
+      let chainSet = new Set();
+      let assetMap = new Map();
+      let logoMap = new Map();
+      this.m_mapTokenPairIdObj.forEach(tp => {
+        if (tp.fromChainID === tp.ancestorChainID) {
+          chainSet.add(tp.fromChainType);
+          assetMap.set(tp.ancestorSymbol, {chain: tp.fromChainType, address: tp.fromAccount});
+        }
+      });
+      // get from cache
+      let storageService = this.frameworkService.getService("StorageService");
+      let cacheLogoMap = new Map(storageService.getAssetLogo() || []);
+      // console.log({cacheLogoMap});
+      let allCached = true;
+      for (let k of assetMap.keys()) {
+        let logo = cacheLogoMap.get(k);
+        if (logo) {
+          logoMap.set(k, logo);
+        } else {
+          console.log("miss %s logo", k);
+          allCached = false;
+          break;
+        }
+      }
+      if (allCached) {
+        console.log("all asset logo cached");
+      } else { // get from iwan
+        let chainLogoMap = new Map();
+        await Promise.all(Array.from(chainSet).map(async (chain) => {
+          let chainMap = new Map();
+          try {
+            let logos = await this.iwanBCConnector.getRegisteredOrigToken(chain, {after: 0});
+            // console.log("chain %s logos: %O", chain, logos);
+            logos.forEach(v => chainMap.set(v.tokenScAddr, {data: v.iconData, type: v.iconType}));
+          } catch (e) {
+            console.error("%s getRegisteredOrigToken error: %O", chain, e);
+          }
+          chainLogoMap.set(chain, chainMap);
+        }));
+        assetMap.forEach((v, k) => {
+          let logo = chainLogoMap.get(v.chain).get(v.address);
+          if (logo) {
+            logoMap.set(k, logo);
+          }
+        });
+      }
+      this.assetLogo = logoMap;
+      storageService.setAssetLogo(Array.from(logoMap));
+      // console.log("logoMap: %O", logoMap);
+      let t_end = new Date().getTime();
+      console.log("readAssetLogo consume %s ms", t_end - t_start);
+    }
+
     async getTokenPairObjById(tokenPairId) {
         let tokenPairObj = this.m_mapTokenPairIdObj.get(tokenPairId);
         return tokenPairObj;
+    }
+
+    async getAssetLogo(name) {
+      let logo = this.assetLogo.get(name);
+      if (!logo) {
+        logo = {data: new Identicon(crypto.createHash('md5').update(name).digest('hex')).toString(), type: "png"};
+      }
+      return logo;
     }
 
     async updateTokenPairInfo(tokenPair) {

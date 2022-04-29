@@ -185,6 +185,8 @@ class WanBridge extends EventEmitter {
       return tool.isValidDotAddress(account, this.network);
     } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
+    } else if ("XDC" === chainType) {
+      return tool.isValidXdcAddress(account, this.network);
     } else {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;
@@ -267,6 +269,10 @@ class WanBridge extends EventEmitter {
     return count;
   }
 
+  async getAssetLogo(name) {
+    return this.storemanService.getAssetLogo(name);
+  }
+
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
@@ -327,7 +333,8 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      if (ccTask.toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).standard;
+      if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
