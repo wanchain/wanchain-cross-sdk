@@ -2,6 +2,8 @@
 
 const BigNumber = require("bignumber.js");
 
+const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"];
+
 class StoremanService {
     constructor() {
     }
@@ -67,7 +69,7 @@ class StoremanService {
             let wallet = options.wallet; // third party wallet is required
             if (options.isCoin) {
                 if (type === "MINT") {
-                    if (["DOT", "ADA"].includes(assetPair.fromChainType)) {
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.fromChainType)) {
                         balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
@@ -75,7 +77,7 @@ class StoremanService {
                     kaChainInfo = assetPair.fromScInfo;
                     decimals = assetPair.fromScInfo.chainDecimals;
                 } else if (type === "BURN") {
-                    if (["DOT", "ADA"].includes(assetPair.toChainType)) {
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.toChainType)) {
                         balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
@@ -86,7 +88,7 @@ class StoremanService {
                 if (type === "MINT") {
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
-                        if (["DOT", "ADA"].includes(assetPair.fromChainType)) {
+                        if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.fromChainType)) {
                             balance = await wallet.getBalance(addr);
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);

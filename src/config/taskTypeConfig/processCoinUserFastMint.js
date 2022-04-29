@@ -16,13 +16,23 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+            let txData, netValue = new BigNumber(params.value).minus(params.fee);
+            if (wallet.generateUserLockTx) { // wallet custumized
+              txData = await wallet.generateUserLockTx(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
-                new BigNumber(params.value).minus(params.fee), // net value
-                params.userAccount);
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
+                netValue,
+                params.userAccount,
+                params.fee)
+            } else { // common evm
+              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+              let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+                  params.storemanGroupId,
+                  params.tokenPairID,
+                  netValue,
+                  params.userAccount);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
+            }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCoinUserFastMint error: %O", err);

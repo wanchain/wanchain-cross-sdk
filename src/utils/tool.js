@@ -167,6 +167,11 @@ function isValidXdcAddress(address) {
   return ((address.substr(0, 3) === "xdc") && isValidEthAddress("0x" + address.substr(3)));
 }
 
+function isValidTrxAddress(address) {
+  let valid = WAValidator.validate(address, 'TRX');
+  return valid;
+}
+
 function getXdcAddressInfo(address) {
   let native, standard;
   if (isValidEthAddress(address)) {
@@ -235,6 +240,7 @@ module.exports = {
   isValidDotAddress,
   isValidAdaAddress,
   isValidXdcAddress,
+  isValidTrxAddress,
   getStandardAddressInfo,
   getCoinSymbol,
   parseFee

@@ -124,8 +124,8 @@ class IWanBCConnector {
         }
     }
 
-    async getTokenPairs(chainIds) {
-        let ret = await this.apiClient.getTokenPairs(chainIds);
+    async getTokenPairs(options) {
+        let ret = await this.apiClient.getTokenPairs(options);
         return ret;
     }
 

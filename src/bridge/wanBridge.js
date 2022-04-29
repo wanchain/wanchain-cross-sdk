@@ -186,7 +186,9 @@ class WanBridge extends EventEmitter {
     } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
     } else if ("XDC" === chainType) {
-      return tool.isValidXdcAddress(account, this.network);
+      return tool.isValidXdcAddress(account);
+    } else if ("TRX" === chainType) {
+      return tool.isValidTrxAddress(account);
     } else {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;

@@ -179,6 +179,7 @@ class ApiInstance extends WsInstance {
       } else {
         params.fromBlock = option.fromBlock ? option.fromBlock : 0;
         params.toBlock = option.toBlock ? option.toBlock : 'latest';
+        params = {...option, ...params};
       }
     }
 
@@ -1790,12 +1791,19 @@ class ApiInstance extends WsInstance {
     }]
   *
   */
-  getTransByAddressBetweenBlocks(chainType, address, startBlockNo, endBlockNo, callback) {
+  getTransByAddressBetweenBlocks(chainType, address, startBlockNo, endBlockNo, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getTransByAddressBetweenBlocks';
-    let params = { chainType: chainType, address: address, startBlockNo: startBlockNo, endBlockNo: endBlockNo };
+    let params = { chainType: chainType, address: address, startBlockNo: startBlockNo, endBlockNo: endBlockNo, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
