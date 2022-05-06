@@ -71,13 +71,14 @@ module.exports = class CheckBtcTxService {
                     let txHashField = this.chainType.toLowerCase() + "Hash";
                     let txHash = ret.data.data[txHashField];
                     let sender = await this.m_utilService.getBtcTxSender(this.chainType, txHash);
+                    obj.uniqueID = this.getOtaTxUniqueId(txHash, obj.oneTimeAddr);
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,
                         txHash,
                         sentAmount: ret.data.data.value,
-                        sender
+                        sender,
+                        uniqueId: obj.uniqueID
                     });
-                    obj.uniqueID = this.getOtaTxUniqueId(txHash, obj.oneTimeAddr);
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
                     await storageService.delete(this.serviceName, obj.ccTaskId);
