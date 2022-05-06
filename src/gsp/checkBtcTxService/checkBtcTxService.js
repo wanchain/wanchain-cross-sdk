@@ -2,6 +2,8 @@
 
 const axios = require("axios");
 const tool = require("../../utils/tool.js");
+const bitcoin = require('bitcoinjs-lib');
+
 module.exports = class CheckBtcTxService {
     constructor(chainType = "BTC") {
         this.chainType = chainType;
@@ -45,6 +47,14 @@ module.exports = class CheckBtcTxService {
         this.checkOtas.unshift(tmpObj);
     }
 
+    getOtaTxUniqueId(txHash, address) {
+      txHash = "0x" + tool.hexStrip0x(txHash);
+      let hash160 = "0x" + bitcoin.address.fromBase58Check(address).hash.toString('hex');
+      let uniqueId = tool.sha256(txHash + hash160);
+      // console.log({txHash, hash160, uniqueId});
+      return uniqueId;
+    }
+
     async runTask(taskPara) {
         let storageService = this.m_frameworkService.getService("StorageService");
         let url = this.m_apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/queryActionInfo/";
@@ -67,7 +77,7 @@ module.exports = class CheckBtcTxService {
                         sentAmount: ret.data.data.value,
                         sender
                     });
-                    obj.uniqueID = "0x" + txHash;
+                    obj.uniqueID = this.getOtaTxUniqueId(txHash, obj.oneTimeAddr);
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);
                     await storageService.delete(this.serviceName, obj.ccTaskId);

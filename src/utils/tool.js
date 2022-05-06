@@ -220,6 +220,11 @@ function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
   return result.toFixed();
 }
 
+function sha256(str) {
+  let hash = crypto.createHash('sha256').update(str).digest('hex');
+  return '0x' + hash;
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -237,5 +242,6 @@ module.exports = {
   isValidXdcAddress,
   getStandardAddressInfo,
   getCoinSymbol,
-  parseFee
+  parseFee,
+  sha256
 }
