@@ -23,6 +23,7 @@ class CrossChainTask {
       stepData: [],
       lockHash: '',
       redeemHash: '',
+      uniqueId: '',
       stepNums: 0, // convert steps num
       fromAccountBalance: '',
       fee: null, 

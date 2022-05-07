@@ -9,8 +9,6 @@ class CrossChainTaskRecords {
     if (ccTask) {
       return;
     }
-    ccTaskData.lockHash = null;
-    ccTaskData.redeemHash = null;
     this.ccTaskRecords.set(ccTaskData.ccTaskId, ccTaskData);
   }
 
@@ -79,10 +77,11 @@ class CrossChainTaskRecords {
     }
   }
 
-  setTaskLockTxHash(ccTaskId, txHash, sentAmount, sender) {
+  setTaskLockTxHash(ccTaskId, txHash, sentAmount, sender, uniqueId) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       ccTask.lockHash = txHash;
+      ccTask.uniqueId = uniqueId || "";
       ccTask.sentAmount = sentAmount;
       if (sender) {
         ccTask.fromAccount = sender;

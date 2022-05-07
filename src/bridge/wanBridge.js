@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 1058", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -228,6 +228,7 @@ class WanBridge extends EventEmitter {
           ota: task.ota,
           lockHash: task.lockHash,
           redeemHash: task.redeemHash,
+          uniqueId: task.uniqueId || "",
           status: task.status,
           errInfo: task.errInfo
         };
@@ -293,7 +294,7 @@ class WanBridge extends EventEmitter {
     } else {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
-    records.setTaskLockTxHash(taskId, txHash, value, taskLockHash.sender);
+    records.setTaskLockTxHash(taskId, txHash, value, taskLockHash.sender, taskLockHash.uniqueId);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("lock", {taskId, txHash});
   }

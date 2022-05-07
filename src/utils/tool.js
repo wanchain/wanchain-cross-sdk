@@ -4,6 +4,7 @@ const litecore = require('litecore-lib');
 const { bech32 } = require('bech32');
 const { PolkadotSS58Format, deriveAddress } = require('@substrate/txwrapper-core');
 const WAValidator = require('multicoin-address-validator');
+const crypto = require('crypto');
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -26,6 +27,13 @@ async function sleep(time) {
       resolve();
     }, time);
   });
+}
+
+function hexStrip0x(hexStr) {
+  if (0 == hexStr.indexOf('0x')) {
+      return hexStr.slice(2);
+  }
+  return hexStr;
 }
 
 function isValidEthAddress(address) {
@@ -146,10 +154,16 @@ function getCoinSymbol(chainType, chainName) {
   }
 }
 
+function sha256(str) {
+  let hash = crypto.createHash('sha256').update(str).digest('hex');
+  return '0x' + hash;
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
   sleep,
+  hexStrip0x,
   isValidEthAddress,
   isValidWanAddress,
   isValidBtcAddress,
@@ -159,5 +173,6 @@ module.exports = {
   isValidDotAddress,
   isValidXdcAddress,
   getStandardAddressInfo,
-  getCoinSymbol
+  getCoinSymbol,
+  sha256
 }
