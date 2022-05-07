@@ -72,8 +72,7 @@ module.exports = class CheckXrpTxService {
                         ccTaskId: obj.ccTaskId,
                         txHash: ret.data.data.xrpHash,
                         sentAmount: ret.data.data.sentValue,
-                        sender: ret.data.data.xrpAddr,
-                        uniqueId: obj.uniqueID
+                        sender: ret.data.data.xrpAddr
                     });
                     let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
                     await scEventScanService.add(obj);

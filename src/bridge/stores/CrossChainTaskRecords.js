@@ -41,7 +41,7 @@ class CrossChainTaskRecords {
   }
 
   // stepData has been assigned via CrossChainTaskSteps, only process additional logic
-  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo, uniqueId) {
+  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo) {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
@@ -56,7 +56,6 @@ class CrossChainTaskRecords {
             if (txHash && !ccTask.lockHash) {
               // update txHash and notify dapp, then wait receipt, do not change status
               ccTask.lockHash = txHash;
-              ccTask.uniqueId = uniqueId || "";
               isLockTx = true;
             }
             if (result) {

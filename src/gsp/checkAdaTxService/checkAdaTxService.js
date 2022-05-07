@@ -54,7 +54,6 @@ module.exports = class CheckAdaTxService {
                         ccTaskId: task.ccTaskId,
                         stepIndex: task.stepIndex,
                         txHash: task.txHash,
-                        uniqueId: task.uniqueID,
                         result: "Succeeded"
                       });
                       let scEventScanService = this.frameworkService.getService("ScEventScanService");

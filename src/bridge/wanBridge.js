@@ -235,7 +235,7 @@ class WanBridge extends EventEmitter {
           ota: task.ota,
           lockHash: task.lockHash,
           redeemHash: task.redeemHash,
-          uniqueId: task.uniqueId,
+          uniqueId: task.uniqueId || "",
           status: task.status,
           errInfo: task.errInfo
         };
@@ -375,7 +375,7 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo, taskStepResult.uniqueId);
+      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId, txHash};
         console.debug("lockEvent: %O", lockEvent);
