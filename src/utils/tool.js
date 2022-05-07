@@ -6,6 +6,7 @@ const { PolkadotSS58Format, deriveAddress } = require('@substrate/txwrapper-core
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
+const crypto = require('crypto');
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -225,6 +226,11 @@ function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
   return result.toFixed();
 }
 
+function sha256(str) {
+  let hash = crypto.createHash('sha256').update(str).digest('hex');
+  return '0x' + hash;
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -243,5 +249,6 @@ module.exports = {
   isValidTrxAddress,
   getStandardAddressInfo,
   getCoinSymbol,
-  parseFee
+  parseFee,
+  sha256
 }

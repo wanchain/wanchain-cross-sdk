@@ -55,6 +55,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       tokenSc,
       convert.fromAddr,
       chainInfo.crossScAddr);
+    console.log("getErc20Allowance chainType: %s,  tokenSc: %s, fromAddr: %s, crossScAddr: %s, allowance: %O",
+                chainInfo.chainType, tokenSc, convert.fromAddr, chainInfo.crossScAddr, allowance)
     allowance = new BigNumber(allowance);
     let approve0Title = this.uiStrService.getStrByName("approve0Title");
     let approve0Desc = this.uiStrService.getStrByName("approve0Desc");
@@ -170,9 +172,12 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
 
   async checkGasFee(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-    let fee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
+    let result = true;
+    if (chainInfo.chainType !== "TRX") {
+      let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+      let fee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
+      let result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
+    }
     if (result) {
       this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);
       return {

@@ -55,13 +55,7 @@ class TronLink {
     return tx.transaction;
   }
 
-  async estimateFee(sender, txs) {
-    await this.getApi();
-    let fromInjector = await web3FromAddress(sender);
-    let info = await this.api.tx.utility.batch(txs).paymentInfo(sender, {signer: fromInjector.signer});
-    let fee = new BigNumber(info.partialFee.toHex());
-    return fee;
-  }
+  
 }
 
 module.exports = TronLink;

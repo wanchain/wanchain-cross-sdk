@@ -80,7 +80,7 @@ class TokenPairService {
             this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList);
             this.m_mapTokenPairIdObj = tokenPairMap;
             if (typeof(window) !== "undefined") {
-              await this.readAssetLogo();
+              // await this.readAssetLogo();
             }
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
             // console.log("tokenPairs: %O", tokenPairs);
