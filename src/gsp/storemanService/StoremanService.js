@@ -20,7 +20,7 @@ class StoremanService {
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPair = await tokenPairService.getTokenPairObjById(tokenPairId);
+            let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
             if (tokenPair) {
                 let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
                 if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
@@ -61,7 +61,7 @@ class StoremanService {
     async getAccountBalance(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
+            let assetPair = await tokenPairService.getTokenPair(assetPairId);
             if (!assetPair) {
                 return new BigNumber(0);
             }
@@ -121,7 +121,7 @@ class StoremanService {
     async checkAccountOwnership(assetPairId, type, addr, tokenId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
+            let assetPair = await tokenPairService.getTokenPair(assetPairId);
             if (!assetPair) {
                 return false;
             }
@@ -135,10 +135,10 @@ class StoremanService {
         }
     }
 
-    async getTokenPairObjById(tokenPairId) {
+    async getTokenPair(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
-        return tokenPairObj;
+        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        return tokenPair;
     }
 
     async updateSmgs() {

@@ -150,7 +150,8 @@ class IWanBCConnector {
     }
 
     async getTokenInfo(chain, tokenAddr, tokenType) {
-        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, {tokenType});
+        let options = tokenType? {tokenType} : undefined;
+        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, options);
         return ret;
     }
 
@@ -254,6 +255,10 @@ class IWanBCConnector {
 
     async getRegisteredOrigToken(chainType, options) {
       return this.apiClient.getRegisteredOrigToken(chainType, options);
+    }
+
+    async getTokenPairsHash(options) {
+      return this.apiClient.getTokenPairsHash(options);
     }
 };
 

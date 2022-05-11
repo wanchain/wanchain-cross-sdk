@@ -24,17 +24,17 @@ module.exports = class CCTHandleService {
     async getConvertInfo(convertJson) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPairObj = await tokenPairService.getTokenPairObjById(convertJson.tokenPairId);
-            if (!tokenPairObj) {
+            let tokenPair = await tokenPairService.getTokenPair(convertJson.tokenPairId);
+            if (!tokenPair) {
                 return {
                     stepNum: 0,
                     // errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR
                 };
             }
-            let ccType = tokenPairObj.ccType[convertJson.convertType];
+            let ccType = tokenPair.ccType[convertJson.convertType];
             let CCTypeHandle = this.m_mapCCTypeToHandler.get(ccType);
             let handler = new CCTypeHandle(this.m_frameworkService);
-            let stepInfo = await handler.process(tokenPairObj, convertJson);
+            let stepInfo = await handler.process(tokenPair, convertJson);
             return stepInfo;
         }
         catch (err) {

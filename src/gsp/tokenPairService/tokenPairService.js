@@ -2,14 +2,18 @@
 
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
+const util = require('util');
 
 class TokenPairService {
     constructor(isTestMode) {
         this.isTestMode = isTestMode;
         this.m_iwanConnected = false;
-        this.m_mapTokenPairIdObj = new Map(); // tokenPairId => tokenPairObj
-        this.m_mapTokenPairIdCfg = new Map(); // tokenPairId => tokenPairConfig
-        this.assetLogo = new Map(); // name => logInfo
+        this.m_mapTokenPair = new Map(); // tokenPairId => tokenPair
+        this.m_mapTokenPairCfg = new Map(); // tokenPairId => tokenPairConfig
+        this.tokenSymbol = new Map(); // chain-address => symbol
+        this.assetLogo = new Map(); // name => logo
+        this.storageService = null; // init after token pair service
+        this.forceRefresh = false;
     }
 
     async init(frameworkService) {
@@ -20,16 +24,15 @@ class TokenPairService {
             this.configService = frameworkService.getService("ConfigService");
             this.chainInfoService = frameworkService.getService("ChainInfoService");
             this.webStores = frameworkService.getService("WebStores");
+            this.uiStrService = frameworkService.getService("UIStrService");
 
             this.eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
             let tokenPairCfg = await this.configService.getGlobalConfig("tokenPairCfg");
-            for (let idx = 0; idx < tokenPairCfg.length; ++idx) {
-                let obj = tokenPairCfg[idx];
-                this.m_mapTokenPairIdCfg.set(obj.id, obj);
-            }
-            // console.debug("tokenPairCfg: %O", this.m_mapTokenPairIdCfg);
-        }
-        catch (err) {
+            tokenPairCfg.map(tp => {
+              this.m_mapTokenPairCfg.set(tp.id, tp);
+            })
+            // console.debug("tokenPairCfg: %O", this.m_mapTokenPairCfg);
+        } catch (err) {
             console.log("StoremanService init err:", err);
         }
     }
@@ -62,94 +65,164 @@ class TokenPairService {
     }
 
     async readAssetPair() {
-        let t_start = new Date().getTime();
+        this.storageService = this.frameworkService.getService("StorageService");
         try {
-            let smgList = await this.getSmgs();
-            let network = this.configService.getNetwork();
-            let options = ((network === "mainnet") && !this.isTestMode)? {tags: ["bridge"]} : {isAllTokenPairs: true};
-            let tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
+            let ts0 = new Date().getTime();
+            let tokenPairs = await this.readTokenpairs();
+            tokenPairs = tokenPairs.filter(tp => tp.ancestorSymbol !== "EOS"); // hide deprecated tokens
+            let ts1 = new Date().getTime();
+            console.debug("readTokenpairs consume %s ms", ts1 - ts0);
+
+            let [smgList, [supportedTokenPairs, tokenSymbolCacheOld]] = await Promise.all([
+              this.getSmgs(),
+              this.readTokenSymbols(tokenPairs)
+            ]);
+            let ts2 = new Date().getTime();
+            console.debug("readTokenSymbols consume %s/%s ms", ts2 - ts1, ts2 - ts0);
+                
             let tokenPairMap = new Map();
-            await Promise.all(tokenPairs.map(async (pair) => {
-                if (pair.ancestorSymbol !== "EOS") { // hide legacy tokens
-                    let valid = await this.updateTokenPairInfo(pair);
-                    if (valid) { // ignore unsupported token pair
-                        tokenPairMap.set(pair.id, pair);
-                    }
+            let tokenSymbolCacheNew = new Map();
+            supportedTokenPairs.map(tp => { // update fromSymbol
+              if (tp.fromAccount === "0x0000000000000000000000000000000000000000") {
+                tp.fromSymbol = tp.ancestorSymbol;
+                tokenPairMap.set(tp.id, tp);
+              } else {
+                let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.fromAccountType);
+                let fromSymbol = tokenSymbolCacheOld.get(key);
+                if (fromSymbol) {
+                  tp.fromSymbol = fromSymbol;
+                  tokenPairMap.set(tp.id, tp);
+                  tokenSymbolCacheNew.set(key, fromSymbol);
+                } else {
+                  console.error("ignore unavailable token pair %s(%s, %s<->%s)", tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName);
                 }
-            }));
+              }
+            })
+            // console.debug("supportedTokenPairs: %O", supportedTokenPairs);
             this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList);
-            this.m_mapTokenPairIdObj = tokenPairMap;
+            this.m_mapTokenPair = tokenPairMap;
+            this.tokenSymbol = tokenSymbolCacheNew;
+            this.storageService.setCacheData("TokenSymbol", Array.from(tokenSymbolCacheNew));
             if (typeof(window) !== "undefined") {
-              // await this.readAssetLogo();
+              await this.readAssetLogos();
             }
+            let ts3 = new Date().getTime();
+            console.debug("readAssetLogos consume %s/%s ms", ts3 - ts2, ts3 - ts0);
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
-            // console.log("tokenPairs: %O", tokenPairs);
         } catch (err) {
             this.eventService.emitEvent("StoremanServiceInitComplete", false);
             console.error("readAssetPair error: %O", err);
         }
-        let t_end = new Date().getTime();
-        console.log("readAssetPair consume %s ms", t_end - t_start);
     }
 
-    async readAssetLogo() {
-      let t_start = new Date().getTime();
-      let chainSet = new Set();
+    async readTokenpairs() {
+      let uiVer = this.uiStrService.getStrByName("CacheVersion") || "0";
+      let iwanVer = await this.iwanBCConnector.getTokenPairsHash();
+      let verCache = this.storageService.getCacheData("Version") || {};
+      console.debug({uiVer, iwanVer, verCache});
+      this.forceRefresh = (verCache.ui !== uiVer);      
+      let tokenPairs = [];
+      if ((!this.forceRefresh) && (iwanVer === verCache.iwan)) {
+        tokenPairs = this.storageService.getCacheData("TokenPair") || [];
+        if (tokenPairs.length) { // maybe localstoreage TokenPair is cleared
+          console.debug("all tokenpair hit cache");
+          return tokenPairs;
+        }
+      }
+      let network = this.configService.getNetwork();
+      let options = ((network === "mainnet") && !this.isTestMode)? {tags: ["bridge"]} : {isAllTokenPairs: true};
+      tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
+      this.storageService.setCacheData("TokenPair", tokenPairs);
+      this.storageService.setCacheData("Version", {ui: uiVer, iwan: iwanVer});
+      return tokenPairs;
+    }
+
+    async readTokenSymbols(tokenPairs) {
+      let cache = this.forceRefresh? [] : (this.storageService.getCacheData("TokenSymbol") || []);
+      let tokenSymbolCacheOld = new Map(cache);
+      let missSymbols = 0;
+      tokenPairs = tokenPairs.filter(tp => {
+        if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair                
+          if (tp.fromAccount !== "0x0000000000000000000000000000000000000000") {
+            let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.fromAccountType);
+            if (!tokenSymbolCacheOld.get(key)) {
+              missSymbols++;
+              tokenSymbolCacheOld.set(key, "");
+              // console.debug("%s %s symbol miss cache", tp.fromChainType, tp.fromAccount);
+            }
+          }
+          return true;
+        } else {
+          return false;
+        }
+      });
+      let ps = []; // this.getSmgs()
+      if (missSymbols) {
+        let ps = [];
+        let iwan = this.iwanBCConnector;
+        Array.from(tokenSymbolCacheOld.keys()).map(async (tsk) => {
+          let [chain, account, type] = tsk.split("-");
+          if (!tokenSymbolCacheOld.get(tsk)) {
+            ps.push(async function(chain, account, type) {
+              try {
+                let ti = await iwan.getTokenInfo(chain, account, type);
+                tokenSymbolCacheOld.set(tsk, ti.symbol);
+                // console.debug("%s getTokenInfo: %s", tsk, ti.symbol);
+              } catch (err) {
+                console.error("%s getTokenInfo error: %O", tsk, err);
+              }
+            }(chain, account, type));
+          }
+        })
+        await Promise.all(ps);
+      } else {
+        console.debug("all symbol hit cache");
+      }
+      return [tokenPairs, tokenSymbolCacheOld];
+    }
+
+    async readAssetLogos() {
       let assetMap = new Map();
-      let logoMap = new Map();
-      this.m_mapTokenPairIdObj.forEach(tp => {
+      let tokenMap = new Map();
+      let accountSet = new Set();
+      this.m_mapTokenPair.forEach(tp => {
         if (tp.fromChainID === tp.ancestorChainID) {
-          chainSet.add(tp.fromChainType);
           assetMap.set(tp.ancestorSymbol, {chain: tp.fromChainType, address: tp.fromAccount});
         }
       });
-      // get from cache
-      let storageService = this.frameworkService.getService("StorageService");
-      let cacheLogoMap = new Map(storageService.getAssetLogo() || []);
-      // console.log({cacheLogoMap});
-      let allCached = true;
-      for (let k of assetMap.keys()) {
-        let logo = cacheLogoMap.get(k);
+      let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
+      let logoMapCacheOld = new Map(cache);
+      let logoMapCacheNew = new Map();
+      assetMap.forEach((v, k) => {
+        let logo = logoMapCacheOld.get(k);
         if (logo) {
-          logoMap.set(k, logo);
+          logoMapCacheNew.set(k, logo);
         } else {
-          console.log("miss %s logo", k);
-          allCached = false;
-          break;
+          tokenMap.set(v.chain + "-" + v.address, k);
+          accountSet.add(v.address);
+          // console.debug("%s %s(%s) logo miss cache", v.chain, k, v.address);
         }
-      }
-      if (allCached) {
-        console.log("all asset logo cached");
-      } else { // get from iwan
-        let chainLogoMap = new Map();
-        await Promise.all(Array.from(chainSet).map(async (chain) => {
-          let chainMap = new Map();
-          try {
-            let logos = await this.iwanBCConnector.getRegisteredOrigToken(chain, {after: 0});
-            // console.log("chain %s logos: %O", chain, logos);
-            logos.forEach(v => chainMap.set(v.tokenScAddr, {data: v.iconData, type: v.iconType}));
-          } catch (e) {
-            console.error("%s getRegisteredOrigToken error: %O", chain, e);
-          }
-          chainLogoMap.set(chain, chainMap);
-        }));
-        assetMap.forEach((v, k) => {
-          let logo = chainLogoMap.get(v.chain).get(v.address);
-          if (logo) {
-            logoMap.set(k, logo);
+      });
+      let tokenScAddr = Array.from(accountSet);
+      if (tokenScAddr.length) {
+        let logos = await this.iwanBCConnector.getRegisteredOrigToken({tokenScAddr, limit: tokenScAddr.length * 2});
+        // console.debug({logos});
+        logos.forEach(v => {
+          let asset = tokenMap.get(v.chainType + "-" + v.tokenScAddr);
+          if (asset) {
+            logoMapCacheNew.set(asset, {data: v.iconData, type: v.iconType});
           }
         });
+      } else {
+        console.debug("all logo hit cache");
       }
-      this.assetLogo = logoMap;
-      storageService.setAssetLogo(Array.from(logoMap));
-      // console.log("logoMap: %O", logoMap);
-      let t_end = new Date().getTime();
-      console.log("readAssetLogo consume %s ms", t_end - t_start);
+      this.assetLogo = logoMapCacheNew;
+      this.storageService.setCacheData("AssetLogo", Array.from(logoMapCacheNew));
     }
 
-    async getTokenPairObjById(tokenPairId) {
-        let tokenPairObj = this.m_mapTokenPairIdObj.get(tokenPairId);
-        return tokenPairObj;
+    async getTokenPair(id) {
+        let tokenPair = this.m_mapTokenPair.get(id);
+        return tokenPair;
     }
 
     async getAssetLogo(name) {
@@ -160,19 +233,17 @@ class TokenPairService {
       return logo;
     }
 
-    async updateTokenPairInfo(tokenPair) {
+    updateTokenPairInfo(tokenPair) {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         tokenPair.decimals = tokenPair.decimals || 0;
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
             try {
-                await Promise.all([
-                    this.updateTokenPairFromChainInfo(tokenPair),
-                    this.updateTokenPairToChainInfo(tokenPair),
-                    this.updateTokenPairCcHandle(tokenPair)
-                ]);
+                this.updateTokenPairFromChainInfo(tokenPair);
+                this.updateTokenPairToChainInfo(tokenPair);
+                this.updateTokenPairCcHandle(tokenPair);
                 return true;
-            } catch(err) {
+            } catch (err) {
                 console.error("ignore unavailable token pair %s(%s, %s<->%s): %O", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName, err);
                 return false; // can not get token info from chain
             }
@@ -182,31 +253,25 @@ class TokenPairService {
         }
     }
 
-    async updateTokenPairFromChainInfo(tokenPair) {
+    updateTokenPairFromChainInfo(tokenPair) {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
-        if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-            tokenPair.fromSymbol = tokenPair.ancestorSymbol;
-        } else {
-            let tokenInfo = await this.iwanBCConnector.getTokenInfo(tokenPair.fromChainType, tokenPair.fromAccount, tokenPair.fromAccountType);
-            tokenPair.fromSymbol = tokenInfo.symbol;
-        }
     }
 
-    async updateTokenPairToChainInfo(tokenPair) {
+    updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         tokenPair.toSymbol = tokenPair.symbol;
     }
 
-    async updateTokenPairCcHandle(tokenPair) {
+    updateTokenPairCcHandle(tokenPair) {
         let fromChainInfo = tokenPair.fromScInfo;
         tokenPair.ccType = {};
 
         // 1 1.1 最细粒度:tokenPair级别,根据tokenId配置处理特殊tokenPair的MINT/BURN
         //       目前只处理EOS跨到WAN后的token,token在WAN<->ETH之间互跨
         //   1.2 20210324 针对FNX和CFNX特殊处理
-        let tokenPairCfg = this.m_mapTokenPairIdCfg.get(tokenPair.id);
+        let tokenPairCfg = this.m_mapTokenPairCfg.get(tokenPair.id);
         if (tokenPairCfg) {
             tokenPair.ccType["MINT"] = tokenPairCfg.mintHandle;
             tokenPair.ccType["BURN"] = tokenPairCfg.burnHandle;
