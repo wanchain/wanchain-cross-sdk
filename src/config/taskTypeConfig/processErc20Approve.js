@@ -1,6 +1,7 @@
 'use strict';
 
 let ProcessBase = require("./processBase.js");
+const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessErc20Approve extends ProcessBase{
     constructor(frameworkService) {
@@ -15,8 +16,9 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
+            let spenderAddr = tool.getStandardAddressInfo(params.scChainType, params.spenderAddr).standard;
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value);
+            let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, spenderAddr, params.value);
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.erc20Addr, 0, scData, params.fromAddr);
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
