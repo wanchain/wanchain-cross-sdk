@@ -28,7 +28,7 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
-      console.error("ProcessUserFastBurn error: %O", err);
+      console.error("ProcessBurnOtherCoinToAncestorChain error: %O", err);
       this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
     }
   }

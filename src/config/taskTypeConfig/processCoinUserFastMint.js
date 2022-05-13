@@ -16,16 +16,13 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let storemanService = this.m_frameworkService.getService("StoremanService");
-            let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
-            let userAccount = tool.getStandardAddressInfo(tokenPair.toChainType, params.userAccount).standard;
             let txData, crossValue = new BigNumber(params.value).minus(params.fee);
             if (wallet.generateUserLockData) { // wallet custumized
               txData = await wallet.generateUserLockData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
                 crossValue,
-                userAccount,
+                params.userAccount,
                 params.value);
             } else { // common evm
               let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
@@ -33,7 +30,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                   params.storemanGroupId,
                   params.tokenPairID,
                   crossValue,
-                  userAccount);
+                  params.userAccount);
               txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
@@ -49,13 +46,12 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
         let params = stepData.params;
         let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
         let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
-        let userAccount = tool.getStandardAddressInfo(tokenPair.toChainType, params.userAccount).standard;
         let obj = {
             needCheck: true,
             checkInfo: {
                 ccTaskId: params.ccTaskId,
                 uniqueID: stepData.txHash,
-                userAccount,
+                userAccount: params.userAccount,
                 smgID: params.storemanGroupId,
                 tokenPairID: params.tokenPairID,
                 value: new BigNumber(params.value).minus(params.fee),

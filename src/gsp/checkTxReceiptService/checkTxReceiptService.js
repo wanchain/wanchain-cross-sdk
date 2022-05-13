@@ -88,7 +88,7 @@ module.exports = class CheckTxReceiptService {
                     continue;
                 }
             } catch (err) {
-                console.error("%s %s getTransactionReceipt error: %O", obj.chain, obj.txHash, err);
+                // console.error("%s %s getTransactionReceipt error: %O", obj.chain, obj.txHash, err);
                 continue;
             }
         }

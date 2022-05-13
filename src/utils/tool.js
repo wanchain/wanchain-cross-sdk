@@ -7,8 +7,10 @@ const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
 const crypto = require('crypto');
+const Web3 = require("web3");
 const TronWeb = require('tronweb');
 
+const web3 = new Web3();
 const tronweb = new TronWeb("https://api.nileex.io", "https://api.nileex.io", "https://api.nileex.io");
 
 function getCurTimestamp(toSecond = false) {
@@ -177,33 +179,33 @@ function isValidTrxAddress(address) {
 }
 
 function getXdcAddressInfo(address) {
-  let native, standard;
+  let native, evm;
   if (isValidEthAddress(address)) {
-    standard = address;
+    evm = address;
     native = "xdc" + address.substr(2);
   } else if (isValidXdcAddress(address)) {
     native = address;
-    standard = "0x" + address.substr(3);
+    evm = "0x" + address.substr(3);
   }
-  return {native, standard};
+  return {native, evm};
 }
 
 function getTrxAddressInfo(address) {
-  let native, standard;
+  let native, evm;
   if (/^0x[0-9a-fA-F]{40}$/.test(address)) { // standard evm address
-    standard = address;
+    evm = address;
     tronweb.setAddress("41" + address.substr(2));
     native = tronweb.defaultAddress.base58;
   } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
-    standard = "0x" + address;
+    evm = "0x" + address;
     tronweb.setAddress("41" + address);
     native = tronweb.defaultAddress.base58;
   } else if (tronweb.isAddress(address)) {
     tronweb.setAddress(address);
-    standard = "0x" + address.substr(2);
+    evm = "0x" + tronweb.defaultAddress.hex.substr(2);
     native = tronweb.defaultAddress.base58;
   }
-  return {native, standard};
+  return {native, evm};
 }
 
 function getStandardAddressInfo(chainType, address) {
@@ -211,8 +213,11 @@ function getStandardAddressInfo(chainType, address) {
     return getXdcAddressInfo(address);
   } else if (chainType === "TRX") {
     return getTrxAddressInfo(address);
+  } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    return {native: address, evm: address};
   } else {
-    return {native: address, standard: address};
+    let evmBytes = web3.utils.asciiToHex(address)
+    return {native: address, evm: evmBytes};
   }
 }
 

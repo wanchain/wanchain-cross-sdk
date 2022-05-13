@@ -1,4 +1,5 @@
 const BigNumber = require("bignumber.js");
+const tool = require("../../../utils/tool");
 
 class TronLink {
   constructor(type, provider) {
@@ -51,7 +52,10 @@ class TronLink {
       {type: 'uint256', value: new BigNumber(crossValue).toFixed()},
       {type: 'bytes', value: userAccount}
     ];
-    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(crossScAddr, fn, options, params);
+    let sc = tool.getStandardAddressInfo("TRX", crossScAddr).native;
+    console.log({crossScAddr, sc})
+    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
+    console.log({tx})
     return tx.transaction;
   }
 
@@ -65,7 +69,10 @@ class TronLink {
       {type: 'address', value: spenderAddr},
       {type: 'uint256', value: "0x" + new BigNumber(value).toString(16)},
     ];
-    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(erc20Addr, fn, options, params);
+    let sc = tool.getStandardAddressInfo("TRX", erc20Addr).native;
+    console.log({erc20Addr, sc})
+    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
+    console.log({tx})
     return tx.transaction;
   }
 
@@ -83,7 +90,8 @@ class TronLink {
       {type: 'address', value: tokenAccount},
       {type: 'bytes', value: userAccount}
     ];
-    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(crossScAddr, fn, options, params);
+    let sc = tool.getStandardAddressInfo("TRX", crossScAddr).native;
+    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
     return tx.transaction;
   }
 }
