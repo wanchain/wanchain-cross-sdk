@@ -70,9 +70,7 @@ class TronLink {
       {type: 'uint256', value: "0x" + new BigNumber(value).toString(16)},
     ];
     let sc = tool.getStandardAddressInfo("TRX", erc20Addr).native;
-    console.log({erc20Addr, sc})
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
-    console.log({tx})
     return tx.transaction;
   }
 

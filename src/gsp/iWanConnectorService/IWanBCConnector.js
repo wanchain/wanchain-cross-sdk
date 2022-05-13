@@ -166,7 +166,11 @@ class IWanBCConnector {
             "allowance",
             [ownerAddr, spenderAddr],
             abi);
-        return ret;
+        if ((chain === "TRX") && (typeof(ret) !== "string") && ret.hex) {
+          return ret.hex;
+        } else {
+          return ret;
+        }
     }
 
     async getScEvent(chainType, address, topics, option) {
