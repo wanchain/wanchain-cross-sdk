@@ -193,17 +193,21 @@ module.exports = class CheckScEvent {
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
-          let event;
-          if (this.m_chainInfo.chainType === "TRX") {
-            event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, obj.uniqueID);
-          } else {
-            event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
-          }
-          if (event) {
-            await this.updateUIAndStorage(obj, event.txHash, event.toAccount);
-            ary.splice(cur, 1);
-          } else { // wait next scan
-            obj.fromBlockNumber = toBlockNumber + 1;
+          try {
+            let event;
+            if (this.m_chainInfo.chainType === "TRX") {
+              event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, obj.uniqueID);
+            } else {
+              event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
+            }
+            if (event) {
+              await this.updateUIAndStorage(obj, event.txHash, event.toAccount);
+              ary.splice(cur, 1);
+            } else { // wait next scan
+              obj.fromBlockNumber = toBlockNumber + 1;
+            }
+          } catch (err) {
+            // console.error("processScLogger %s %O error: %O", type, obj, err);
           }
         }
       } catch (err) {
@@ -241,11 +245,14 @@ module.exports = class CheckScEvent {
     );
     for (let i = 0; i < events.length; i++) {
       let event = events[i];
-      let txInfo = await this.m_iwanBCConnector.getTxInfo(this.m_chainInfo.chainType, event.transaction, {withTopics: true})
+      let txInfo = await this.m_iwanBCConnector.getTxInfo(this.m_chainInfo.chainType, event.transaction, {withTopics: true});
+      if (!txInfo.log) {
+        throw new Error("log is not ready");
+      }
       let j = 0;
       for (; j < txInfo.log.length; j++) {
         let txLog = txInfo.log[j];
-        if (tool.cmpAddress(txLog.address, sc) && (("0x" + txLog.topics[0]) === eventHash)) {
+        if (tool.cmpAddress(txLog.address, this.m_chainInfo.crossScAddr) && (("0x" + txLog.topics[0]) === eventHash)) {
           Object.assign(event, txLog);
           event.transactionHash = "0x" + event.transaction;
           event.topics = event.topics.map(v => "0x" + v);
@@ -255,7 +262,7 @@ module.exports = class CheckScEvent {
       if (j === txInfo.log.length) {
         console.error("can't get %s log data: %O", this.m_chainInfo.chainType, event);
       }
-    }    
+    }
     let decodedEvts = this.parseLogs(events, this.crossScAbi);
     for (let i = 0; i < decodedEvts.length; ++i) {
       let args = decodedEvts[i].args;

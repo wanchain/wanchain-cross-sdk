@@ -80,7 +80,6 @@ module.exports = class TxGeneratorService{
         fee = "0x" + new BigNumber(fee).toString(16);
         let abi = this.configService.getAbi("crossSc");
         let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
-        console.log({abi, smgID, tokenPairID, value, fee, tokenAccount, userAccount})
         let txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
         return txData;
     }
