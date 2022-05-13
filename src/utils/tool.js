@@ -7,6 +7,9 @@ const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
 const crypto = require('crypto');
+const TronWeb = require('tronweb');
+
+const tronweb = new TronWeb("https://api.nileex.io", "https://api.nileex.io", "https://api.nileex.io");
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -185,9 +188,29 @@ function getXdcAddressInfo(address) {
   return {native, standard};
 }
 
+function getTrxAddressInfo(address) {
+  let native, standard;
+  if (/^0x[0-9a-fA-F]{40}$/.test(address)) { // standard evm address
+    standard = address;
+    tronweb.setAddress("41" + address.substr(2));
+    native = tronweb.defaultAddress.base58;
+  } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
+    standard = "0x" + address;
+    tronweb.setAddress("41" + address);
+    native = tronweb.defaultAddress.base58;
+  } else if (tronweb.isAddress(address)) {
+    tronweb.setAddress(address);
+    standard = "0x" + address.substr(2);
+    native = tronweb.defaultAddress.base58;
+  }
+  return {native, standard};
+}
+
 function getStandardAddressInfo(chainType, address) {
   if (chainType === "XDC") {
     return getXdcAddressInfo(address);
+  } else if (chainType === "TRX") {
+    return getTrxAddressInfo(address);
   } else {
     return {native: address, standard: address};
   }
@@ -231,6 +254,11 @@ function sha256(str) {
   return '0x' + hash;
 }
 
+function cmpAddress(address1, address2) {
+  // compatible with tron '41' or xdc 'xdc' prefix
+  return (address1.substr(-40).toLowerCase() == address2.substr(-40).toLowerCase());
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -250,5 +278,6 @@ module.exports = {
   getStandardAddressInfo,
   getCoinSymbol,
   parseFee,
-  sha256
+  sha256,
+  cmpAddress
 }

@@ -87,19 +87,17 @@ module.exports = class CheckTxReceiptService {
                     //}
                     continue;
                 }
-            }
-            catch (err) {
+            } catch (err) {
+                console.error("%s %s getTransactionReceipt error: %O", obj.chain, obj.txHash, err);
                 continue;
             }
         }
     }
 
     async addToScEventScan(obj) {
-        if (obj.convertCheckInfo) {
-            if (obj.convertCheckInfo.needCheck) {
-                let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
-                await scEventScanService.add(obj.convertCheckInfo.checkInfo);
-            }
+        if (obj.convertCheckInfo && obj.convertCheckInfo.needCheck) {
+            let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
+            await scEventScanService.add(obj.convertCheckInfo.checkInfo);
         }
     }
 

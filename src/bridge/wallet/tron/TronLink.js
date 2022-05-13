@@ -39,23 +39,53 @@ class TronLink {
 
   // customized function
 
-  async generateUserLockTx(crossScAddr, smgID, tokenPairID, netValue, userAccount, fee) {
+  async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, coinValue) {
     let options = {
       feeLimit: 100000000,
-      callValue: new BigNumber(netValue).plus(fee).toFixed(), // total value
+      callValue: new BigNumber(coinValue).toFixed(), // tx coin value
     };
     let fn = "userLock(bytes32,uint256,uint256,bytes)"; // userLock(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
     let params = [
       {type: 'bytes32', value: smgID},
       {type: 'uint256', value: tokenPairID},
-      {type: 'uint256', value: new BigNumber(netValue).toFixed()},
+      {type: 'uint256', value: new BigNumber(crossValue).toFixed()},
       {type: 'bytes', value: userAccount}
     ];
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(crossScAddr, fn, options, params);
     return tx.transaction;
   }
 
-  
+  async generatorErc20ApproveData(erc20Addr, spenderAddr, value) {
+    let options = {
+      feeLimit: 100000000,
+      callValue: 0, // total value
+    };
+    let fn = "approve(address,uint256)"; // approve(address _spender, uint256 _value)
+    let params = [
+      {type: 'address', value: spenderAddr},
+      {type: 'uint256', value: "0x" + new BigNumber(value).toString(16)},
+    ];
+    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(erc20Addr, fn, options, params);
+    return tx.transaction;
+  }
+
+  async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, coinValue) {
+    let options = {
+      feeLimit: 100000000,
+      callValue: new BigNumber(coinValue).toFixed(), // tx coin value
+    };
+    let fn = "userBurn(bytes32,uint256,uint256,uint256,address,bytes)"; // userBurn(bytes32 smgID, uint tokenPairID, uint value, uint fee, address tokenAccount, bytes userAccount)
+    let params = [
+      {type: 'bytes32', value: smgID},
+      {type: 'uint256', value: tokenPairID},
+      {type: 'uint256', value: "0x" + new BigNumber(crossValue).toString(16)},
+      {type: 'uint256', value: "0x" + new BigNumber(fee).toString(16)},
+      {type: 'address', value: tokenAccount},
+      {type: 'bytes', value: userAccount}
+    ];
+    let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(crossScAddr, fn, options, params);
+    return tx.transaction;
+  }
 }
 
 module.exports = TronLink;

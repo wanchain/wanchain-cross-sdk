@@ -19,16 +19,27 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             let storemanService = this.m_frameworkService.getService("StoremanService");
             let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
             let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
+            let txData;
+            if (wallet.generateUserBurnData) { // wallet custumized
+              txData = await wallet.generateUserBurnData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
                 params.userBurnFee,
                 params.tokenAccount,
-                userAccount);
-            let txValue = params.fee;
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
+                userAccount,
+                params.fee);
+            } else {
+              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+              let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
+                  params.storemanGroupId,
+                  params.tokenPairID,
+                  params.value,
+                  params.userBurnFee,
+                  params.tokenAccount,
+                  userAccount);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
+            }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessUserFastBurn error: %O", err);

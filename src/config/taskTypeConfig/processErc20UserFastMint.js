@@ -19,14 +19,23 @@ module.exports = class ProcessErc20UserFastMint extends ProcessBase {
             let storemanService = this.m_frameworkService.getService("StoremanService");
             let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
             let userAccount = tool.getStandardAddressInfo(tokenPair.toChainType, params.userAccount).standard;
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+            let txData;
+            if (wallet.generateUserLockData) { // wallet custumized
+              txData = await wallet.generateUserLockData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
-                userAccount);
-            let txValue = params.fee;
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr, txValue, scData, params.fromAddr);
+                userAccount,
+                params.fee);              
+            } else {
+              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+              let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+                  params.storemanGroupId,
+                  params.tokenPairID,
+                  params.value,
+                  userAccount);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr, params.fee, scData, params.fromAddr);
+            }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessErc20UserFastMint error: %O", err);

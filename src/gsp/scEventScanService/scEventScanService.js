@@ -1,10 +1,11 @@
 "use strict";
 
-let CheckScEvent = require("./checkScEvent");
-let CheckBtcTx = require("./checkBtcTx");
-let CheckXrpTx = require("./checkXrpTx");
-let CheckDotTx = require("./checkDotTx");
-let CheckAdaTx = require("./checkAdaTx");
+const CheckScEvent = require("./checkScEvent");
+const CheckBtcTx = require("./checkBtcTx");
+const CheckXrpTx = require("./checkXrpTx");
+const CheckDotTx = require("./checkDotTx");
+const CheckAdaTx = require("./checkAdaTx");
+const tool = require("../../utils/tool");
 
 module.exports = class ScEventScanService {
   constructor() {
@@ -66,6 +67,7 @@ module.exports = class ScEventScanService {
     //console.log("scEventScanService add obj:", obj);
     let storageService = this.m_frameworkService.getService("StorageService");
     obj.beginTime = new Date().getTime();
+    obj.uniqueID = "0x" + tool.hexStrip0x(obj.uniqueID);
     await storageService.save("ScEventScanService", obj.uniqueID, obj);
     let handle = this.m_mapCheckHandle.get(obj.chain);
     if (handle) {
