@@ -11,7 +11,7 @@ module.exports = class crossChainFees {
     // agent fee
     async estimateOperationFee(tokenPairId, direction) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        let tokenPair = tokenPairService.getTokenPair(tokenPairId);
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
@@ -36,7 +36,7 @@ module.exports = class crossChainFees {
     // contract fee
     async estimateNetworkFee(tokenPairId, direction) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        let tokenPair = tokenPairService.getTokenPair(tokenPairId);
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {

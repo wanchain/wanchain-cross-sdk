@@ -117,7 +117,7 @@ class BridgeTask {
     ccTaskData.stepData = taskSteps;
     // console.debug("ccTaskData: %O", ccTaskData);
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
-    bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
+    await bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
 
     // background process
     this._parseTaskStatus(taskSteps);

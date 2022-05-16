@@ -24,7 +24,7 @@ module.exports = class CCTHandleService {
     async getConvertInfo(convertJson) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPair = await tokenPairService.getTokenPair(convertJson.tokenPairId);
+            let tokenPair = tokenPairService.getTokenPair(convertJson.tokenPairId);
             if (!tokenPair) {
                 return {
                     stepNum: 0,
@@ -36,8 +36,7 @@ module.exports = class CCTHandleService {
             let handler = new CCTypeHandle(this.m_frameworkService);
             let stepInfo = await handler.process(tokenPair, convertJson);
             return stepInfo;
-        }
-        catch (err) {
+        } catch (err) {
             console.log("getConvertInfo err:", err);
             return {
                 stepNum: 0,

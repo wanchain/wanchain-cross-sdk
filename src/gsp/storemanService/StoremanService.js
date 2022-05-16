@@ -20,7 +20,7 @@ class StoremanService {
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+            let tokenPair = tokenPairService.getTokenPair(tokenPairId);
             if (tokenPair) {
                 let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
                 if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
@@ -50,18 +50,18 @@ class StoremanService {
 
     async getConvertInfo(convertJson) {
         let cctHandleService = this.m_frameworkService.getService("CCTHandleService");
-        return await cctHandleService.getConvertInfo(convertJson);
+        return cctHandleService.getConvertInfo(convertJson);
     }
 
     async processTxTask(taskParas, wallet) {
         let txTaskHandleService = this.m_frameworkService.getService("TxTaskHandleService");
-        await txTaskHandleService.processTxTask(taskParas, wallet);
+        return txTaskHandleService.processTxTask(taskParas, wallet);
     }
 
     async getAccountBalance(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = await tokenPairService.getTokenPair(assetPairId);
+            let assetPair = tokenPairService.getTokenPair(assetPairId);
             if (!assetPair) {
                 return new BigNumber(0);
             }
@@ -121,7 +121,7 @@ class StoremanService {
     async checkAccountOwnership(assetPairId, type, addr, tokenId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = await tokenPairService.getTokenPair(assetPairId);
+            let assetPair = tokenPairService.getTokenPair(assetPairId);
             if (!assetPair) {
                 return false;
             }
@@ -135,10 +135,9 @@ class StoremanService {
         }
     }
 
-    async getTokenPair(tokenPairId) {
+    getTokenPair(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
-        return tokenPair;
+        return tokenPairService.getTokenPair(tokenPairId);
     }
 
     async updateSmgs() {
@@ -146,7 +145,7 @@ class StoremanService {
         return tokenPairService.updateSmgs();
     }
 
-    async getAssetLogo(name) {
+    getAssetLogo(name) {
       let tokenPairService = this.m_frameworkService.getService("TokenPairService");
       return tokenPairService.getAssetLogo(name);
     }
