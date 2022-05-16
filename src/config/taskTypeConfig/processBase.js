@@ -1,7 +1,8 @@
 'use strict';
 
 let WalletRejects = [
-  "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDC
+  "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay
+  "Confirmation declined by user", // TronLink
 ]
 
 module.exports = class ProcessBase {

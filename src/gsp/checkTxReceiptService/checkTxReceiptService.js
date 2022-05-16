@@ -56,7 +56,13 @@ module.exports = class CheckTxReceiptService {
                 if (txReceipt) {
                     let result = "Failed";
                     let errInfo = "Transaction failed";
-                    if (txReceipt.status === "0x1" || txReceipt.status === true) {// 旧版0x0/0x1,1.2.6版true/false
+                    let isSuccess = false;
+                    if (obj.chain === "TRX") {
+                      isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
+                    } else {
+                      isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
+                    }
+                    if (isSuccess) {
                         result = "Succeeded";
                         errInfo = "";
                         await this.addToScEventScan(obj);
@@ -81,19 +87,17 @@ module.exports = class CheckTxReceiptService {
                     //}
                     continue;
                 }
-            }
-            catch (err) {
+            } catch (err) {
+                // console.error("%s %s getTransactionReceipt error: %O", obj.chain, obj.txHash, err);
                 continue;
             }
         }
     }
 
     async addToScEventScan(obj) {
-        if (obj.convertCheckInfo) {
-            if (obj.convertCheckInfo.needCheck) {
-                let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
-                await scEventScanService.add(obj.convertCheckInfo.checkInfo);
-            }
+        if (obj.convertCheckInfo && obj.convertCheckInfo.needCheck) {
+            let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
+            await scEventScanService.add(obj.convertCheckInfo.checkInfo);
         }
     }
 

@@ -24,7 +24,7 @@ class CheckiWanSpeed {
                         let blockNumber = await _inner_apiInst.getBlockNumber('WAN');
                         let secondTime = new Date().getTime();
                         if (blockNumber) {
-                            console.debug("checkiwanSpeed blockNumber: %s", blockNumber);
+                            console.debug("blockNumber %s checkiwanSpeed consume %d ms", blockNumber, secondTime - firstTime);
                             let ret = {
                                 cnn: true,
                                 inst: _inner_apiInst,

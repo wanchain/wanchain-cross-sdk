@@ -26,7 +26,8 @@
     "@truffle/hdwallet-provider": "^1.5.0",
     "lowdb": "^1.0.0",
     "@emurgo/cardano-serialization-lib-asmjs": "9.1.4",
-    "identicon.js": "^2.3.3"
+    "identicon.js": "^2.3.3",
+    "tronweb": "^4.1.0"
   },
   "main": "index.js",
   "scripts": {

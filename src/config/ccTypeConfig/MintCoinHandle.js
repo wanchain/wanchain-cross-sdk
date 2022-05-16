@@ -24,11 +24,12 @@ module.exports = class MintCoinHandle {
       scChainType: tokenPair.fromChainType,
       crossScAddr: tokenPair.fromScInfo.crossScAddr,
       gasPrice: tokenPair.fromScInfo.gasPrice, // undefined, get from chain dynamiclly
-      gasLimit: tokenPair.fromScInfo.coinFastMintGasLimit,
+      gasLimit: tokenPair.fromScInfo.coinFastMintGasLimit, // for tron is feeLimit
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: convert.toAddr,
+      userAccount: tool.getStandardAddressInfo(tokenPair.toScInfo.chainType, convert.toAddr).evm,
+      toAddr: convert.toAddr, // for readability
       taskType: "ProcessCoinUserFastMint",
       fee
     };

@@ -2,6 +2,8 @@
 
 const BigNumber = require("bignumber.js");
 
+const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"];
+
 class StoremanService {
     constructor() {
     }
@@ -18,7 +20,7 @@ class StoremanService {
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPair = await tokenPairService.getTokenPairObjById(tokenPairId);
+            let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
             if (tokenPair) {
                 let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
                 if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
@@ -59,7 +61,7 @@ class StoremanService {
     async getAccountBalance(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
+            let assetPair = await tokenPairService.getTokenPair(assetPairId);
             if (!assetPair) {
                 return new BigNumber(0);
             }
@@ -67,7 +69,7 @@ class StoremanService {
             let wallet = options.wallet; // third party wallet is required
             if (options.isCoin) {
                 if (type === "MINT") {
-                    if (["DOT", "ADA"].includes(assetPair.fromChainType)) {
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.fromChainType)) {
                         balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
@@ -75,7 +77,7 @@ class StoremanService {
                     kaChainInfo = assetPair.fromScInfo;
                     decimals = assetPair.fromScInfo.chainDecimals;
                 } else if (type === "BURN") {
-                    if (["DOT", "ADA"].includes(assetPair.toChainType)) {
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.toChainType)) {
                         balance = await wallet.getBalance(addr);
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
@@ -86,7 +88,7 @@ class StoremanService {
                 if (type === "MINT") {
                     if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
-                        if (["DOT", "ADA"].includes(assetPair.fromChainType)) {
+                        if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.fromChainType)) {
                             balance = await wallet.getBalance(addr);
                         } else {
                             balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
@@ -119,7 +121,7 @@ class StoremanService {
     async checkAccountOwnership(assetPairId, type, addr, tokenId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = await tokenPairService.getTokenPairObjById(assetPairId);
+            let assetPair = await tokenPairService.getTokenPair(assetPairId);
             if (!assetPair) {
                 return false;
             }
@@ -133,10 +135,10 @@ class StoremanService {
         }
     }
 
-    async getTokenPairObjById(tokenPairId) {
+    async getTokenPair(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
-        return tokenPairObj;
+        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        return tokenPair;
     }
 
     async updateSmgs() {

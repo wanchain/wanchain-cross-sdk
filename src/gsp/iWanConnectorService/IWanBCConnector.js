@@ -73,7 +73,6 @@ class IWanBCConnector {
     }
 
     async getBalance(chain, addr) {
-        addr = tool.getStandardAddressInfo(chain, addr).standard;
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;
     }
@@ -124,8 +123,8 @@ class IWanBCConnector {
         }
     }
 
-    async getTokenPairs(chainIds) {
-        let ret = await this.apiClient.getTokenPairs(chainIds);
+    async getTokenPairs(options) {
+        let ret = await this.apiClient.getTokenPairs(options);
         return ret;
     }
 
@@ -150,7 +149,8 @@ class IWanBCConnector {
     }
 
     async getTokenInfo(chain, tokenAddr, tokenType) {
-        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, {tokenType});
+        let options = tokenType? {tokenType} : undefined;
+        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, options);
         return ret;
     }
 
@@ -166,7 +166,11 @@ class IWanBCConnector {
             "allowance",
             [ownerAddr, spenderAddr],
             abi);
-        return ret;
+        if ((chain === "TRX") && (typeof(ret) !== "string") && ret.hex) {
+          return ret.hex;
+        } else {
+          return ret;
+        }
     }
 
     async getScEvent(chainType, address, topics, option) {
@@ -254,6 +258,10 @@ class IWanBCConnector {
 
     async getRegisteredOrigToken(chainType, options) {
       return this.apiClient.getRegisteredOrigToken(chainType, options);
+    }
+
+    async getTokenPairsHash(options) {
+      return this.apiClient.getTokenPairsHash(options);
     }
 };
 

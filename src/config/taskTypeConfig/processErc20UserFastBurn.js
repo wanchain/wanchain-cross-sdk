@@ -1,7 +1,6 @@
 'use strict';
 
 const ProcessBase = require("./processBase.js");
-const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     constructor(frameworkService) {
@@ -16,22 +15,30 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let storemanService = this.m_frameworkService.getService("StoremanService");
-            let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
-            let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
+            let txData;
+            if (wallet.generateUserBurnData) { // wallet custumized
+              txData = await wallet.generateUserBurnData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
                 params.userBurnFee,
                 params.tokenAccount,
-                userAccount);
-            let txValue = params.fee;
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
+                params.userAccount,
+                params.fee);
+            } else {
+              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+              let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
+                  params.storemanGroupId,
+                  params.tokenPairID,
+                  params.value,
+                  params.userBurnFee,
+                  params.tokenAccount,
+                  params.userAccount);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
+            }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
-            console.error("ProcessUserFastBurn error: %O", err);
+            console.error("ProcessErc20UserFastBurn error: %O", err);
             this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
         }
     }
@@ -40,15 +47,14 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     async getConvertInfoForCheck(stepData) {
         let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPair = await storemanService.getTokenPairObjById(params.tokenPairID);
+        let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
         let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
-        let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
         let obj = {
             needCheck: true,
             checkInfo: {
                 ccTaskId: params.ccTaskId,
                 uniqueID: stepData.txHash,
-                userAccount,
+                userAccount: params.userAccount,
                 smgID: params.storemanGroupId,
                 tokenPairID: params.tokenPairID,
                 value: params.value,

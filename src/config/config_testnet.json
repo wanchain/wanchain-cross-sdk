@@ -159,6 +159,19 @@
       "ScScanInfo": {
         "taskInterval": 30000
       }
+    },
+    {
+      "chainId": "2147483843",
+      "chainType": "TRX",
+      "chainName": "Tron",
+      "crossScAddr": "0xf1b7f2e5aaccce1e39ad9baa8ff6aa828a01ce19",
+      "crossScAddrNative": "TY1JDH5SJzKSmZvDMVX5ozWWyddqmqKWD9",
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 6,
+      "MaskChainId": 0,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
     }
   ],
   "UIStrService": {
@@ -172,7 +185,8 @@
     "MintTitle": "MintTitle",
     "MintDesc": "MintDesc",
     "BurnTitle": "BurnTitle",
-    "BurnDesc": "BurnDesc"
+    "BurnDesc": "BurnDesc",
+    "CacheVersion": "0"
   },
   "iWanConnectorService": {
     "iWanOption": {

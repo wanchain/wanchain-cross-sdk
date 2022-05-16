@@ -198,7 +198,29 @@ class StorageService {
         return ary;
     }
 
-    getAssetLogo() {
+    getCacheData(name, json2obj = true) {
+      if (typeof(window) !== "undefined") {
+        let data = window.localStorage.getItem(name);
+        if (data) {
+          if (json2obj) {
+            data = JSON.parse(data)
+          }
+          return data;
+        }
+      }
+      return null;
+    }
+
+    setCacheData(name, data) {
+      if (typeof(window) !== "undefined") {
+        if (typeof(data) !== "string") {
+          data = JSON.stringify(data);
+        }
+        window.localStorage.setItem(name, data);
+      }
+    }
+
+    getAssetLogos() {
       if (typeof(window) !== "undefined") {
         let data = window.localStorage.getItem("AssetLogo");
         if (data) {
@@ -208,7 +230,7 @@ class StorageService {
       return null;
     }
 
-    setAssetLogo(data) {
+    setAssetLogos(data) {
       if (typeof(window) !== "undefined") {
         window.localStorage.setItem("AssetLogo", JSON.stringify(data));
       }

@@ -186,7 +186,9 @@ class WanBridge extends EventEmitter {
     } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
     } else if ("XDC" === chainType) {
-      return tool.isValidXdcAddress(account, this.network);
+      return tool.isValidXdcAddress(account);
+    } else if ("TRX" === chainType) {
+      return tool.isValidTrxAddress(account);
     } else {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;
@@ -196,7 +198,7 @@ class WanBridge extends EventEmitter {
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    // let tokenPair = await this.storemanService.getTokenPairObjById(assetPair.assetPairId); // do not get info from ancestorChain
+    // let tokenPair = await this.storemanService.getTokenPair(assetPair.assetPairId); // do not get info from ancestorChain
     // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
     let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
     let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
@@ -334,8 +336,8 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).standard;
-      if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).evm;
+      if (!tool.cmpAddress(toAccount, taskRedeemHash.toAccount)) {
         console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";

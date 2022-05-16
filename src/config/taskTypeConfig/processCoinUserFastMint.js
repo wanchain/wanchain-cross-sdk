@@ -16,13 +16,23 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+            let txData, crossValue = new BigNumber(params.value).minus(params.fee);
+            if (wallet.generateUserLockData) { // wallet custumized
+              txData = await wallet.generateUserLockData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
-                new BigNumber(params.value).minus(params.fee), // net value
-                params.userAccount);
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
+                crossValue,
+                params.userAccount,
+                params.value);
+            } else { // common evm
+              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+              let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+                  params.storemanGroupId,
+                  params.tokenPairID,
+                  crossValue,
+                  params.userAccount);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
+            }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCoinUserFastMint error: %O", err);
@@ -34,8 +44,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
     async getConvertInfoForCheck(stepData) {
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let params = stepData.params;
-        let tokenPairObj = await storemanService.getTokenPairObjById(params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.toChainType);
+        let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
+        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
         let obj = {
             needCheck: true,
             checkInfo: {
@@ -45,7 +55,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 smgID: params.storemanGroupId,
                 tokenPairID: params.tokenPairID,
                 value: new BigNumber(params.value).minus(params.fee),
-                chain: tokenPairObj.toChainType,
+                chain: tokenPair.toChainType,
                 fromBlockNumber: blockNumber,
                 taskType: "MINT"
             }

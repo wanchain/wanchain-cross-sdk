@@ -7,6 +7,11 @@ const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
 const crypto = require('crypto');
+const Web3 = require("web3");
+const TronWeb = require('tronweb');
+
+const web3 = new Web3();
+const tronweb = new TronWeb("https://api.nileex.io", "https://api.nileex.io", "https://api.nileex.io");
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -168,23 +173,51 @@ function isValidXdcAddress(address) {
   return ((address.substr(0, 3) === "xdc") && isValidEthAddress("0x" + address.substr(3)));
 }
 
+function isValidTrxAddress(address) {
+  let valid = WAValidator.validate(address, 'TRX');
+  return valid;
+}
+
 function getXdcAddressInfo(address) {
-  let native, standard;
+  let native, evm;
   if (isValidEthAddress(address)) {
-    standard = address;
+    evm = address;
     native = "xdc" + address.substr(2);
   } else if (isValidXdcAddress(address)) {
     native = address;
-    standard = "0x" + address.substr(3);
+    evm = "0x" + address.substr(3);
   }
-  return {native, standard};
+  return {native, evm};
+}
+
+function getTrxAddressInfo(address) {
+  let native, evm;
+  if (/^0x[0-9a-fA-F]{40}$/.test(address)) { // standard evm address
+    evm = address;
+    tronweb.setAddress("41" + address.substr(2));
+    native = tronweb.defaultAddress.base58;
+  } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
+    evm = "0x" + address;
+    tronweb.setAddress("41" + address);
+    native = tronweb.defaultAddress.base58;
+  } else if (tronweb.isAddress(address)) {
+    tronweb.setAddress(address);
+    evm = "0x" + tronweb.defaultAddress.hex.substr(2);
+    native = tronweb.defaultAddress.base58;
+  }
+  return {native, evm};
 }
 
 function getStandardAddressInfo(chainType, address) {
   if (chainType === "XDC") {
     return getXdcAddressInfo(address);
+  } else if (chainType === "TRX") {
+    return getTrxAddressInfo(address);
+  } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
+    return {native: address, evm: address};
   } else {
-    return {native: address, standard: address};
+    let evmBytes = web3.utils.asciiToHex(address)
+    return {native: address, evm: evmBytes};
   }
 }
 
@@ -226,6 +259,11 @@ function sha256(str) {
   return '0x' + hash;
 }
 
+function cmpAddress(address1, address2) {
+  // compatible with tron '41' or xdc 'xdc' prefix
+  return (address1.substr(-40).toLowerCase() == address2.substr(-40).toLowerCase());
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -241,8 +279,10 @@ module.exports = {
   isValidDotAddress,
   isValidAdaAddress,
   isValidXdcAddress,
+  isValidTrxAddress,
   getStandardAddressInfo,
   getCoinSymbol,
   parseFee,
-  sha256
+  sha256,
+  cmpAddress
 }

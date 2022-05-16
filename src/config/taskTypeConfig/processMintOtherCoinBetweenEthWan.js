@@ -39,8 +39,8 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
     async getConvertInfoForCheck(stepData) {
         let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPairObj = await storemanService.getTokenPairObjById(params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.toChainType);
+        let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
+        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
         let obj = {
             needCheck: true,
             checkInfo: {
@@ -50,7 +50,7 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
                 smgID: params.storemanGroupId,
                 tokenPairID: params.tokenPairID,
                 value: params.value,
-                chain: tokenPairObj.toChainType,
+                chain: tokenPair.toChainType,
                 fromBlockNumber: blockNumber,
                 taskType: "MINT"
             }

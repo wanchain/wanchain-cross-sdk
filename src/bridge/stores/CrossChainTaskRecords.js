@@ -100,9 +100,9 @@ class CrossChainTaskRecords {
     this.ccTaskRecords.delete(ccTaskId);
   }
 
-  loadTradeTask(ccTaskObjList) {
-    for (let i = 0; i < ccTaskObjList.length; i++) {
-      let ccTask = ccTaskObjList[i];
+  loadTradeTask(ccTaskList) {
+    for (let i = 0; i < ccTaskList.length; i++) {
+      let ccTask = ccTaskList[i];
       if (ccTask.ota !== undefined) {
         if (!ccTask.protocol) {
           ccTask.protocol = "Erc20"; // for compatibility
