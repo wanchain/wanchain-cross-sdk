@@ -16,7 +16,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         return;
       }
       let stroemanService = this.m_frameworkService.getService("StoremanService");
-      let tokenPair = await stroemanService.getTokenPair(params.tokenPairID);
+      let tokenPair = stroemanService.getTokenPair(params.tokenPairID);
       let nativeToken, poolToken, chainInfo;
       if (params.scChainType === tokenPair.fromChainType) { // MINT
         nativeToken = tokenPair.fromNativeToken;
@@ -49,7 +49,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
+    let tokenPair = storemanService.getTokenPair(params.tokenPairID);
     let chainType = (params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
     let nativeToken = (params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;

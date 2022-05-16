@@ -44,7 +44,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
     async getConvertInfoForCheck(stepData) {
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let params = stepData.params;
-        let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
+        let tokenPair = storemanService.getTokenPair(params.tokenPairID);
         let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
         let obj = {
             needCheck: true,

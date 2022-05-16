@@ -37,7 +37,7 @@ module.exports = class ProcessBurnOtherCoinToAncestorChain extends ProcessBase {
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
+    let tokenPair = storemanService.getTokenPair(params.tokenPairID);
     let blockNumber;
     if (tokenPair.fromChainType === "XRP") {
       blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPair.fromChainType);

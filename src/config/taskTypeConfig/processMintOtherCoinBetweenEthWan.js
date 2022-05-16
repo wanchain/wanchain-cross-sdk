@@ -39,7 +39,7 @@ module.exports = class ProcessMintOtherCoinBetweenEthWan extends ProcessBase {
     async getConvertInfoForCheck(stepData) {
         let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPair = await storemanService.getTokenPair(params.tokenPairID);
+        let tokenPair = storemanService.getTokenPair(params.tokenPairID);
         let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
         let obj = {
             needCheck: true,

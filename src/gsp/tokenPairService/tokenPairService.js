@@ -220,12 +220,11 @@ class TokenPairService {
       this.storageService.setCacheData("AssetLogo", Array.from(logoMapCacheNew));
     }
 
-    async getTokenPair(id) {
-        let tokenPair = this.m_mapTokenPair.get(id);
-        return tokenPair;
+    getTokenPair(id) {
+      return this.m_mapTokenPair.get(id);
     }
 
-    async getAssetLogo(name) {
+    getAssetLogo(name) {
       let logo = this.assetLogo.get(name);
       if (!logo) {
         logo = {data: new Identicon(crypto.createHash('md5').update(name).digest('hex')).toString(), type: "png"};
