@@ -184,7 +184,8 @@ module.exports = class CheckScEvent {
       let cur = count - idx - 1; // backwards
       let obj = ary[cur];
       try {
-        let topics = [eventHash, obj.uniqueID.toLowerCase()];
+        let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
+        let topics = [eventHash, eventUnique.toLowerCase()];
         let fromBlockNumber = obj.fromBlockNumber;
         let latestBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
         console.debug("%s blockNumber %d-%d processScLogger %s: %O", this.m_chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj);
@@ -196,9 +197,9 @@ module.exports = class CheckScEvent {
           try {
             let event;
             if (this.m_chainInfo.chainType === "TRX") {
-              event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, obj.uniqueID);
+              event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
             } else {
-              event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
+              event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, eventUnique);
             }
             if (event) {
               await this.updateUIAndStorage(obj, event.txHash, event.toAccount);

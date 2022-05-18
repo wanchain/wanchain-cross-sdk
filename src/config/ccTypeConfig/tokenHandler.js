@@ -56,6 +56,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       convert.fromAddr,
       chainInfo.crossScAddr);
     allowance = new BigNumber(allowance);
+    console.debug("%s token %s allowance %s(%s->%s)", chainInfo.chainType, tokenSc, allowance.toFixed(), convert.fromAddr, chainInfo.crossScAddr);
     let approve0Title = this.uiStrService.getStrByName("approve0Title");
     let approve0Desc = this.uiStrService.getStrByName("approve0Desc");
     let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
@@ -128,7 +129,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     steps.push({name: "userFastMint", stepIndex: steps.length + 1, title: mintTitle, desc: mintDesc, params});
   }
 
-  async buildUserFastBurn(steps, tokenPair, convert, taskType) {
+  async buildUserFastBurn(steps, tokenPair, convert) {
     let chainInfo = tokenPair.toScInfo;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
@@ -146,7 +147,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       value,
       userAccount: tool.getStandardAddressInfo(tokenPair.fromScInfo.chainType, convert.toAddr).evm,
       toAddr: convert.toAddr, // for readability
-      taskType,
+      taskType: "ProcessErc20UserFastBurn",
       fee: networkFee,
       tokenAccount: tokenPair.toAccount,
       userBurnFee: operateFee

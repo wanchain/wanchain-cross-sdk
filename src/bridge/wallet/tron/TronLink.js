@@ -53,9 +53,7 @@ class TronLink {
       {type: 'bytes', value: userAccount}
     ];
     let sc = tool.getStandardAddressInfo("TRX", crossScAddr).native;
-    console.log({crossScAddr, sc})
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
-    console.log({tx})
     return tx.transaction;
   }
 

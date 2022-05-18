@@ -307,20 +307,7 @@ class TokenPairService {
         }
 
         // 2.2 BURN
-        if (fromChainInfo.burnToChainHandle) {
-            // burn该配置项只适用于从WAN/ETH跨回原链
-            // 20210208 目前BTC/XRP均需配置,其他链跨向WAN/ETH的coin均需配置
-            tokenPair.ccType["BURN"] = fromChainInfo.burnToChainHandle;
-        } else {
-            // ETH <-> WAN 祖先链为ETH/WAN
-            if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
-                // token burn to 原链
-                tokenPair.ccType["BURN"] = "BurnErc20";
-            } else {
-                // btc/xrp对应的token,在WAN <-> ETH之间互跨
-                tokenPair.ccType["BURN"] = "BurnOtherCoinBetweenEthWanHandle";
-            }
-        }
+        tokenPair.ccType["BURN"] = "BurnErc20";
     }
 
     async updateSmgs() {

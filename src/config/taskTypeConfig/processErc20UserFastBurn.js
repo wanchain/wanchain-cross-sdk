@@ -48,21 +48,36 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let tokenPair = storemanService.getTokenPair(params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
-        let obj = {
-            needCheck: true,
-            checkInfo: {
-                ccTaskId: params.ccTaskId,
-                uniqueID: stepData.txHash,
-                userAccount: params.userAccount,
-                smgID: params.storemanGroupId,
-                tokenPairID: params.tokenPairID,
-                value: params.value,
-                chain: tokenPair.fromChainType,
-                fromBlockNumber: blockNumber,
-                taskType: "BURN"
-            }
+        let blockNumber;
+        if (tokenPair.fromChainType === "XRP") {
+          blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPair.fromChainType);
+        } else if (["DOT", "ADA"].includes(tokenPair.fromChainType)) {
+          blockNumber = 0;
+          // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
+        } else {
+          blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
+        }
+        console.log("ProcessErc20UserFastBurn getConvertInfoForCheck tokenPair: %O", tokenPair);
+        // exception: burn legency EOS from ethereum to wanchain is "BURN"
+        let taskType = (tokenPair.fromChainID === tokenPair.ancestorChainID)? "BURN" : "MINT";
+        let checker = {
+          needCheck: true,
+          checkInfo: {
+            ccTaskId: params.ccTaskId,
+            uniqueID: stepData.txHash,
+            userAccount: params.userAccount,
+            smgID: params.storemanGroupId,
+            tokenPairID: params.tokenPairID,
+            value: params.value,
+            chain: tokenPair.fromChainType,
+            fromBlockNumber: blockNumber,
+            taskType,
+            fromChain: tokenPair.toChainType,
+            fromAddr: params.fromAddr,
+            chainHash: stepData.txHash,
+            toAddr: params.toAddr
+          }
         };
-        return obj;
+        return checker;
     }
 };
