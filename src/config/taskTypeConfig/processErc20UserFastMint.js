@@ -1,7 +1,8 @@
 'use strict';
-let BigNumber = require("bignumber.js");
 
-let ProcessBase = require("./processBase.js");
+const BigNumber = require("bignumber.js");
+const ProcessBase = require("./processBase.js");
+const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessErc20UserFastMint extends ProcessBase {
     constructor(frameworkService) {
@@ -34,15 +35,14 @@ module.exports = class ProcessErc20UserFastMint extends ProcessBase {
                 this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
                 return;
             }
-
+            let userAccount = tool.getStandardAddressInfo(tokenPair.toChainType, params.userAccount).standard;
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
                 params.crossScAbi,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
-                params.userAccount);
-
+                userAccount);
             // async generateTx(toAddress, value, txData)
             let txValue = params.fee;
             let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr, txValue, scData, params.fromAddr);
@@ -58,20 +58,21 @@ module.exports = class ProcessErc20UserFastMint extends ProcessBase {
     // virtual function
     async getConvertInfoForCheck(paramsJson) {
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPairObj = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPairObj.toChainType);
+        let tokenPair = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
+        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
+        let userAccount = tool.getStandardAddressInfo(tokenPair.toChainType, paramsJson.params.userAccount).standard;
         let obj = {
             needCheck: true,
             checkInfo: {
-                "ccTaskId": paramsJson.params.ccTaskId,
-                "uniqueID": paramsJson.txhash,
-                "userAccount": paramsJson.params.userAccount,
-                "smgID": paramsJson.params.storemanGroupId,
-                "tokenPairID": paramsJson.params.tokenPairID,
-                "value": paramsJson.params.value,
-                "chain": tokenPairObj.toChainType,
-                "fromBlockNumber": blockNumber,
-                "taskType": "MINT"
+                ccTaskId: paramsJson.params.ccTaskId,
+                uniqueID: paramsJson.txhash,
+                userAccount,
+                smgID: paramsJson.params.storemanGroupId,
+                tokenPairID: paramsJson.params.tokenPairID,
+                value: paramsJson.params.value,
+                chain: tokenPair.toChainType,
+                fromBlockNumber: blockNumber,
+                taskType: "MINT"
             }
         };
         return obj;
