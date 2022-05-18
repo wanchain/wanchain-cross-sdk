@@ -24,6 +24,7 @@ class AssetPairs {
         return {
           assetPairId: pair.id,
           assetType: pair.ancestorSymbol,    // the ancestory symbol for this token
+          protocol: pair.toAccountType,      // token protocol, Erc20 or Erc721
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain
           toSymbol: pair.toSymbol,           // token symbol for toChain
           decimals: pair.decimals,           // the token decimals

@@ -41,12 +41,12 @@ class CrossChainTaskRecords {
   }
 
   // stepData has been assigned via CrossChainTaskSteps, only process additional logic
-  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo = "") {
+  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo) {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
-        if (ccTask.stepData[i].stepNo === stepIndex) {
+        if (ccTask.stepData[i].stepIndex === stepIndex) {
           if (("Failed" == result) || ("Rejected" == result)) {
             ccTask.status = result;
             if (errInfo) {
@@ -69,10 +69,9 @@ class CrossChainTaskRecords {
   }
 
   setTaskNetworkFee(ccTaskId, fee) {
-    console.log({ccTaskId, fee})
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
-      console.log("setTaskNetworkFee %s -> %s", ccTask.fee.networkFee.value, fee);
+      console.debug("task %d update networkFee %s -> %s", ccTaskId, ccTask.fee.networkFee.value, fee);
       ccTask.fee.networkFee.value = fee;
     }
   }
@@ -101,10 +100,13 @@ class CrossChainTaskRecords {
     this.ccTaskRecords.delete(ccTaskId);
   }
 
-  loadTradeTask(ccTaskObjList) {
-    for (let i = 0; i < ccTaskObjList.length; i++) {
-      let ccTask = ccTaskObjList[i];
+  loadTradeTask(ccTaskList) {
+    for (let i = 0; i < ccTaskList.length; i++) {
+      let ccTask = ccTaskList[i];
       if (ccTask.ota !== undefined) {
+        if (!ccTask.protocol) {
+          ccTask.protocol = "Erc20"; // for compatibility
+        }
         this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
       } else {
         console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);

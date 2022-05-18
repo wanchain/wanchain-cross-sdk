@@ -10,7 +10,8 @@ const config = {
 
 const abis = {
   "crossSc": require("../../config/abi/crossDelegate.json"),
-  "erc20": require("../../config/abi/erc20.json")
+  "erc20": require("../../config/abi/erc20.json"),
+  "erc721": require("../../config/abi/erc721.json")
 }
 
 module.exports = class ConfigService extends ConfigServiceInterface {
@@ -21,10 +22,6 @@ module.exports = class ConfigService extends ConfigServiceInterface {
     async init(network) {
         this.network = network;
         this.m_confgJson = config[network];
-        this.m_confgJson.StoremanService.forEach(chainInfo => {
-            chainInfo.crossScAbiJson = "crossSc";
-            chainInfo.erc20AbiJson = "erc20"; 
-        })
         // console.log(this.m_confgJson);
     }
 

@@ -179,6 +179,7 @@ class ApiInstance extends WsInstance {
       } else {
         params.fromBlock = option.fromBlock ? option.fromBlock : 0;
         params.toBlock = option.toBlock ? option.toBlock : 'latest';
+        params = {...option, ...params};
       }
     }
 
@@ -1790,12 +1791,19 @@ class ApiInstance extends WsInstance {
     }]
   *
   */
-  getTransByAddressBetweenBlocks(chainType, address, startBlockNo, endBlockNo, callback) {
+  getTransByAddressBetweenBlocks(chainType, address, startBlockNo, endBlockNo, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getTransByAddressBetweenBlocks';
-    let params = { chainType: chainType, address: address, startBlockNo: startBlockNo, endBlockNo: endBlockNo };
+    let params = { chainType: chainType, address: address, startBlockNo: startBlockNo, endBlockNo: endBlockNo, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -2371,12 +2379,19 @@ class ApiInstance extends WsInstance {
   *    "decimals": "18"
   *  }
   */
-  getTokenInfo(chainType, tokenScAddr, callback) {
+  getTokenInfo(chainType, tokenScAddr, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getTokenInfo';
-    let params = { chainType: chainType, tokenScAddr: tokenScAddr };
+    let params = { chainType: chainType, tokenScAddr: tokenScAddr, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -2435,12 +2450,19 @@ class ApiInstance extends WsInstance {
    }
   *
   */
-  getMultiTokenInfo(chainType, tokenScAddrArray, callback) {
-    if (callback) {
+  getMultiTokenInfo(chainType, tokenScAddrArray, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
+      if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getMultiTokenInfo';
-    let params = { chainType: chainType, tokenScAddrArray: tokenScAddrArray };
+    let params = { chainType: chainType, tokenScAddrArray: tokenScAddrArray, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -6893,57 +6915,8 @@ class ApiInstance extends WsInstance {
     });
   }
 
-  /**
-   *
-   * @apiName getRegisteredOrigToken
-   * @apiGroup Service
-   * @api {CONNECT} /ws/v3/YOUR-API-KEY getRegisteredOrigToken
-   * @apiVersion 1.2.1
-   * @apiDescription Get records of registered tokens information of original chain.
-   * <br><br><strong>Returns:</strong>
-   * <br><font color=&#39;blue&#39;>«Promise,undefined»</font> Returns undefined if used with callback or a promise otherwise.
-   *
-   * @apiParam {string} chainType The chain being queried, default: <code>'WAN'</code>.
-   * @apiParam {object} [options] Optional.
-   * <br>&nbsp;&nbsp;<code>tokenScAddr</code> - The token account of <code>'WAN'</code> chain.
-   * <br>&nbsp;&nbsp;<code>after</code> - The timestamp after you want to search.
-   * <br>&nbsp;&nbsp;<code>pageIndex</code> - The page index you want to search. If you want to query with the <code>pageIndex</code>, <code>page</code> is needed.
-   * <br>&nbsp;&nbsp;<code>page</code> - The page size you want to search.
-   * @apiParam {function} [callback] Optional, the callback will receive two parameters:
-   * <br>&nbsp;&nbsp;<code>err</code> - If an error occurred.
-   * <br>&nbsp;&nbsp;<code>result</code> - The saved result.
-   *
-   * @apiParamExample {string} JSON-RPC over websocket
-   * {"jsonrpc":"2.0","method":"getRegisteredOrigToken","params":{"chainType":"WAN", "after":1577155812700},"id":1}
-   *
-   * @apiExample {nodejs} Example callback usage:
-   *   const ApiInstance = require('iwan-sdk');
-   *   let apiTest = new ApiInstance(YOUR-API-KEY, YOUR-SECRET-KEY);
-   *   apiTest.getRegisteredOrigToken("WAN", {after:1577155812700}, (err, result) => {
-   *     console.log("Result is ", result);
-   *     apiTest.close();
-   *   });
-   *
-   * @apiExample {nodejs} Example promise usage:
-   *   const ApiInstance = require('iwan-sdk');
-   *   let apiTest = new ApiInstance(YOUR-API-KEY, YOUR-SECRET-KEY);
-   *   let result = await apiTest.getRegisteredOrigToken("WAN", {after:1577155812700});
-   *   console.log("Result is ", result);
-   *   apiTest.close();
-   *
-   * @apiSuccessExample {json} Successful Response
-   *  [
-   *      "tokenScAddr": "0xc6f4465a6a521124c8e3096b62575c157999d361",
-   *      "iconType": "jpg",
-   *      "iconData": "/9j/4AAQSkZJRgABAQEBLAEsA ... ...",
-   *      "updatedAt": :1589512354784
-   *    },
-   *    ... ...
-   *  ]
-   *
-   */
-  getRegisteredOrigToken(chainType, options, callback) {
-    let method = 'getRegisteredOrigToken';
+  getRegisteredTokenLogo(chainType, options, callback) {
+    let method = 'getRegisteredTokenLogo';
     let params = {};
 
     if (typeof (chainType) === "function") {
@@ -6958,7 +6931,7 @@ class ApiInstance extends WsInstance {
       options = chainType;
       chainType = undefined;
     }
-  if (!options || typeof(options) !== "object") {
+    if (!options || typeof(options) !== "object") {
       options = {};
     }
     if (callback) {
@@ -8574,41 +8547,6 @@ class ApiInstance extends WsInstance {
         return this.open;
     }
 
-    estimateNetworkFee(chainType, feeType, toChainType, callback) {
-        let method = 'estimateNetworkFee';
-        let params = {
-            "chainType": chainType,
-            "feeType": feeType,
-            "toChainType": toChainType
-        };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
-
-    getCrossChainFees(chainType, chainIds, callback) {
-        let method = 'getCrossChainFees';
-        let params = {
-            "chainType": chainType,
-            "chainIds": chainIds
-        };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
-
     getStoremanGroupConfig(storemanGroupId, callback) {
       let method = 'getStoremanGroupConfig';
       let params = {
@@ -8624,6 +8562,156 @@ class ApiInstance extends WsInstance {
         });
       });
     }
+
+    multiCall(chainType, calls, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (!options || typeof(options) !== "object") {
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'multiCall';
+      let params = {chainType: chainType, calls: calls, ...options};
+
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+    }
+
+    getMinCrossChainAmount(crossChain, symbol, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'getMinCrossChainAmount';
+      let params = { crossChain: crossChain, symbol: symbol, ...options };
+
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+    }
+
+    estimateCrossChainOperationFee(chainType, targetChainType, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'estimateCrossChainOperationFee';
+      let params = { chainType: chainType, targetChainType: targetChainType, ...options };
+    
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+    }
+
+    estimateCrossChainNetworkFee(chainType, targetChainType, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'estimateCrossChainNetworkFee';
+      let params = { chainType: chainType, targetChainType: targetChainType, ...options };
+    
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
+        });
+      });
+   }
+
+   getLatestBlock(chainType, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getLatestBlock';
+    let params = { chainType: chainType, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getEpochParameters(chainType, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getEpochParameters';
+    let params = { chainType: chainType, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getTokenPairsHash(options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getTokenPairsHash';
+    let params = { ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
 }
 
 module.exports = ApiInstance;

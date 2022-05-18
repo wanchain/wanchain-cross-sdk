@@ -9,6 +9,7 @@ const polkaUtilCrypto = require("@polkadot/util-crypto");
 const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
 const BigNumber = require("bignumber.js");
+const Wallet = require("./wallet/wallet.js");
 
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
@@ -51,15 +52,16 @@ class BridgeTask {
 
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
-    let [validWallet, feeErr, smgErr] = await Promise.all([
-      this._bridge.checkWallet(this._assetPair, this._direction, this._wallet),
-      this._checkFee(),
-      this._checkSmg()
-    ]);
+    let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
-    let err = feeErr || smgErr;
+    this._initToWallet();
+    let err = await this._checkFee();
+    if (err) {
+      throw new Error(err);
+    }
+    err = await this._checkSmg(); // depends on fee
     if (err) {
       throw new Error(err);
     }
@@ -84,6 +86,7 @@ class BridgeTask {
     let jsonTaskAssetPair = {
       assetPairId: assetPair.assetPairId,
       assetType: assetPair.assetType,
+      protocol: assetPair.protocol,
       direction: this._direction,
       fromSymbol: this._fromChainInfo.symbol,
       toSymbol: this._toChainInfo.symbol,
@@ -114,47 +117,65 @@ class BridgeTask {
     ccTaskData.stepData = taskSteps;
     // console.debug("ccTaskData: %O", ccTaskData);
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
-    bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
+    await bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
 
     // background process
     this._parseTaskStatus(taskSteps);
   }
 
+  async _initToWallet() {
+    if (this._toChainInfo.chainType === "DOT") {
+      let provider = this._bridge.network;
+      this._toWallet = new Wallet("polkadot{.js}", provider);
+    }
+  }
+
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    if ((this._fee.networkFee.isRatio === false) && new BigNumber(this._amount).lte(this._fee.networkFee.value)) {
-      console.error("Amount is too small to pay the fee: %s %s", this._fee.networkFee.value, this._fromChainInfo.symbol);
+    let unit = this._assetPair.assetType;
+    let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+    if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
+      console.error("Amount is too small to pay the fee: %s %s", fee, unit);
       return "Amount is too small to pay the fee";
     }
     return "";
   }
 
+  // depends on fee
   async _checkSmg() {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
+    let unit = this._assetPair.assetType;
     if (this._smg.changed) { // optimize for mainnet getQuota performance issue
       this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
-      console.log("%s %s %s quota: %O", this._direction, this._amount, this._fromChainInfo.symbol, this._quota);
+      console.debug("%s %s %s quota: %O", this._direction, this._amount, this._assetPair.assetType, this._quota);
       let amount = new BigNumber(this._amount);
-      if (amount.lt(this._quota.minQuota)) {
-        return "Less than minQuota";
-      } else if (amount.gt(this._quota.maxQuota)) {
+      if (amount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
-      }      
+      }
+      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let expectedReceivedValue = amount.minus(fee);
+      if (this._quota.minQuota > 0) {
+        if (expectedReceivedValue.lt(this._quota.minQuota)) {
+          return "Less than minValue";
+        }
+      } else if (expectedReceivedValue.lte(0)) {
+        return "Amount is too small";
+      }
     }
     // check activating balance
-    let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    if (chainInfo.minReserved) {
-      let smgAddr = ("XRP" === fromChainType)? this._getSmgXrpClassicAddress() : this._getSmgPolkaAddress();
-      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, true, false);
+    let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
+    if (chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin need to check smg balance
+      let smgAddr = this._getSmgAddress(fromChainType);
+      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance.plus(this._amount);
       if (estimateBalance.lt(chainInfo.minReserved)) {
         let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
-        console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+        console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), unit);
         return "Amount is too small to activate smg";
       }
     }
@@ -165,34 +186,49 @@ class BridgeTask {
     if (!this._fromAccount) { // third party wallet
       return "";
     }
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, true);
-    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, false);
-    let requiredCoin = new BigNumber(this._fee.operateFee.value);
-    let requiredAsset = this._amount;
-    if (tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName) === this._fromChainInfo.symbol) { // asset is coin
-      requiredCoin = requiredCoin.plus(requiredAsset);
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
+    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet});
+    let unit = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
+    let requiredCoin = new BigNumber(0);
+    let requiredAsset = 0;
+    if (this._assetPair.assetType === unit) { // asset is coin
+      requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
       this._task.setFromAccountBalance(coinBalance.toFixed());
     } else {
+      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
+      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
+      requiredAsset = this._amount;
       this._task.setFromAccountBalance(assetBalance.toFixed());
     }
     if (coinBalance.lt(requiredCoin)) {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
       return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
-    if (assetBalance.lt(requiredAsset)) {
-      console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
-      return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
+    if (this._assetPair.protocol === "Erc20") {
+      if (assetBalance.lt(requiredAsset)) {
+        console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
+        return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
+      }
+    } else { // erc721
+      let isOwnable = await this._bridge.storemanService.checkAccountOwnership(this._assetPair.assetPairId, this._direction, this._fromAccount, this._amount);
+      if (!isOwnable) {
+        console.debug("%s not owne token %d", this._fromAccount, this._amount);
+        return this._bridge.globalConstant.ERR_NOT_OWNER;
+      }
     }
+    return "";
   }
 
   async _checkToAccount() {
     // check activating balance
-    let chainInfo = await this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
+    let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, true);
-      console.log("toAccount %s balance: %s", this._toAccount, balance.toFixed());
-      let estimateBalance = balance.plus(this._amount);
+      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._toWallet, isCoin: true});
+      console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
+      let unit = this._assetPair.assetType;
+      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let estimateBalance = balance.plus(this._amount).minus(fee);
       if (estimateBalance.lt(chainInfo.minReserved)) {
         let diff = new BigNumber(chainInfo.minReserved).minus(balance);
         console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
@@ -232,7 +268,6 @@ class BridgeTask {
 
   async _parseTaskStatus(ccTaskStepsArray) {
     console.debug("bridgeTask _parseTaskStatus at %s ms", tool.getCurTimestamp());
-
     console.debug("task %s steps: %d", this.id, ccTaskStepsArray.length);
     let curStep = 0, executedStep = -1, stepTxHash = "";
     for (; curStep < ccTaskStepsArray.length; ) {
@@ -240,31 +275,30 @@ class BridgeTask {
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
-          this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, ""); // only update txHash, no result
+          this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, ""); // only update txHash, no result
           stepTxHash = taskStep.txHash;
         }
         if (executedStep != curStep) {
-          let jsonStepHandle = taskStep.jsonParams;
-          // to call server to execute the api
           console.debug("bridgeTask _parseTaskStatus step %s at %s ms", curStep, tool.getCurTimestamp());
-          await this._bridge.storemanService.processTxTask(jsonStepHandle, this._wallet);
+          await this._bridge.storemanService.processTxTask(taskStep, this._wallet);
           executedStep = curStep;
         } else {
           await tool.sleep(5000);
         }
         continue;
       }
+      console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
-        this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+        this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
         this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
         break;
       }
       if (!this._wallet) {
         this._procOtaAddr(taskStep);
-      } else if ((taskStep.jsonParams.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
+      } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
-      this._updateTaskByStepData(taskStep.stepNo, taskStep.txHash, stepResult, taskStep.errInfo);
+      this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
       curStep++;
       stepTxHash = "";
     }
@@ -336,6 +370,16 @@ class BridgeTask {
     const keyring = new Keyring({type: 'ecdsa', ss58Format: format});
     const smgAddr = keyring.encodeAddress(hash);
     return smgAddr;
+  }
+
+  _getSmgAddress(chainType) {
+    if ("XRP" === chainType) {
+      return this._getSmgXrpClassicAddress();
+    } else if ("DOT" === chainType) {
+      return this._getSmgPolkaAddress();
+    } else {
+      throw new Error("Unknown " + chainType + " smg address");
+    }
   }
 
   _getErrInfo(errCode) {

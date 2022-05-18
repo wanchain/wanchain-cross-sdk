@@ -24,11 +24,6 @@ let taskTypeConfigJson = {
       "handle": require("./processCoinUserFastMint")
     },
     {
-      "number": 5,
-      "name": "ProcessBurnOtherCoinToAncestorChain",
-      "handle": require("./processBurnOtherCoinToAncestorChain")
-    },
-    {
       "number": 6,
       "name": "ProcessMintOtherCoinBetweenEthWan",
       "handle": require("./processMintOtherCoinBetweenEthWan")
@@ -44,11 +39,6 @@ let taskTypeConfigJson = {
       "handle": require("./processXrpMintFromRipple")
     },
     {
-      "number": 9,
-      "name": "ProcessBurnOtherCoinBetweenEthWan",
-      "handle": require("./processBurnOtherCoinBetweenEthWan")
-    },
-    {
       "number": 10,
       "name": "ProcessDotMintFromPolka",
       "handle": require("./processDotMintFromPolka")
@@ -57,6 +47,16 @@ let taskTypeConfigJson = {
       "number": 11,
       "name": "ProcessBurnErc20ProxyToken",
       "handle": require("./ProcessBurnErc20ProxyToken")
+    },
+    {
+      "number": 12,
+      "name": "ProcessErc721Approve",
+      "handle": require("./processErc721Approve")
+    },
+    {
+      "number": 13,
+      "name": "ProcessAdaMintFromCardano",
+      "handle": require("./processAdaMintFromCardano")
     }
   ]
 };
