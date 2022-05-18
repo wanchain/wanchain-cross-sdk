@@ -30,7 +30,7 @@ class Polkadot {
       let accounts = await web3Accounts({ss58Format});
       return accounts.map(a => a.address);
     } else {
-      console.error("polkadot{.js} not installed or not allowed");
+      console.error("%s not installed or not allowed", this.type);
       throw new Error("Not installed or not allowed");
     }
   }

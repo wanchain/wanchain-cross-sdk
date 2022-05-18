@@ -27,7 +27,7 @@ class Nami {
       accounts = accounts.map(v => wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
     } catch (err) {
-      console.error("polkadot{.js} not installed or not allowed");
+      console.error("%s not installed or not allowed", this.type);
       throw new Error("Not installed or not allowed");
     }
   }

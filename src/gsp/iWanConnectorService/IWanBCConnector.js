@@ -247,8 +247,8 @@ class IWanBCConnector {
         return this.apiClient.getEpochParameters(chainType, options);
     }
 
-    async getRegisteredOrigToken(chainType, options) {
-      return this.apiClient.getRegisteredOrigToken(chainType, options);
+    async getRegisteredTokenLogo(chainType, options) {
+      return this.apiClient.getRegisteredTokenLogo(chainType, options);
     }
 
     async getTokenPairsHash(options) {

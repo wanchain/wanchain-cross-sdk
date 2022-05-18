@@ -116,7 +116,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(tokenPair.toScInfo.chainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
       toAddr: convert.toAddr, // for readability
       taskType,
       fee: networkFee,
@@ -145,7 +145,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(tokenPair.fromScInfo.chainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(tokenPair.fromChainType, convert.toAddr).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessErc20UserFastBurn",
       fee: networkFee,

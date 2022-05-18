@@ -28,7 +28,7 @@ module.exports = class MintCoinHandle {
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(tokenPair.toScInfo.chainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessCoinUserFastMint",
       fee

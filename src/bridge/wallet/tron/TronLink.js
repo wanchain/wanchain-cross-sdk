@@ -22,7 +22,7 @@ class TronLink {
       let accounts = [this.tronWeb.defaultAddress.base58];
       return accounts;
     } else {
-      console.error("TronLink not installed or not allowed");
+      console.error("%s not installed or not allowed", this.type);
       throw new Error("Not installed or not allowed");
     }
   }

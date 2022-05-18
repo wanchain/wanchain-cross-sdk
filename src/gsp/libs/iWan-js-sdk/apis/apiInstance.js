@@ -6915,8 +6915,8 @@ class ApiInstance extends WsInstance {
     });
   }
 
-  getRegisteredOrigToken(chainType, options, callback) {
-    let method = 'getRegisteredOrigToken';
+  getRegisteredTokenLogo(chainType, options, callback) {
+    let method = 'getRegisteredTokenLogo';
     let params = {};
 
     if (typeof (chainType) === "function") {

@@ -205,7 +205,7 @@ class TokenPairService {
       });
       let tokenScAddr = Array.from(accountSet);
       if (tokenScAddr.length) {
-        let logos = await this.iwanBCConnector.getRegisteredOrigToken({tokenScAddr, limit: tokenScAddr.length * 2});
+        let logos = await this.iwanBCConnector.getRegisteredTokenLogo({tokenScAddr, isAllTokenTypes:true});
         // console.debug({logos});
         logos.forEach(v => {
           let asset = tokenMap.get(v.chainType + "-" + v.tokenScAddr);
@@ -227,7 +227,7 @@ class TokenPairService {
     getAssetLogo(name) {
       let logo = this.assetLogo.get(name);
       if (!logo) {
-        logo = {data: new Identicon(crypto.createHash('md5').update(name).digest('hex')).toString(), type: "png"};
+        logo = {data: new Identicon(crypto.createHash('md5').update(name || "").digest('hex')).toString(), type: "png"};
       }
       return logo;
     }
