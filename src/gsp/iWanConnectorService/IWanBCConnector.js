@@ -160,17 +160,8 @@ class IWanBCConnector {
     }
 
     async getErc20Allowance(chain, scAddr, ownerAddr, spenderAddr) {
-        let abi = this.configService.getAbi("erc20");
-        let ret = await this.apiClient.callScFunc(chain,
-            scAddr,
-            "allowance",
-            [ownerAddr, spenderAddr],
-            abi);
-        if ((chain === "TRX") && (typeof(ret) !== "string") && ret.hex) {
-          return ret.hex;
-        } else {
-          return ret;
-        }
+      let ret = await this.apiClient.getTokenAllowance(chain, scAddr, ownerAddr, spenderAddr);
+      return ret;
     }
 
     async getScEvent(chainType, address, topics, option) {

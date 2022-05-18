@@ -226,7 +226,6 @@
       "chainName": "Bitcoin",
       "NETWORK": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
@@ -238,7 +237,6 @@
       "chainName": "Litecoin",
       "NETWORK": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
@@ -250,7 +248,6 @@
       "chainName": "Dogecoin",
       "NETWORK": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
@@ -261,7 +258,6 @@
       "chainType": "XRP",
       "chainName": "XRP Ledger",
       "mintFromChainHandle": "MintXrpFromRippleHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 6,
       "minReserved": 10,
       "TxScanInfo": {
@@ -273,7 +269,6 @@
       "chainType": "DOT",
       "chainName": "PolkaTestnet",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 12,
       "minReserved": 0.01,
       "TxScanInfo": {
@@ -285,7 +280,6 @@
       "chainType": "ADA",
       "chainName": "Cardano",
       "mintFromChainHandle": "MintAdaFromCardano",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 6,
       "TxScanInfo": {
         "taskInterval": 10000

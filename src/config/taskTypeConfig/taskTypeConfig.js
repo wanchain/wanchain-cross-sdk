@@ -24,11 +24,6 @@ let taskTypeConfigJson = {
       "handle": require("./processCoinUserFastMint")
     },
     {
-      "number": 5,
-      "name": "ProcessBurnOtherCoinToAncestorChain",
-      "handle": require("./processBurnOtherCoinToAncestorChain")
-    },
-    {
       "number": 6,
       "name": "ProcessMintOtherCoinBetweenEthWan",
       "handle": require("./processMintOtherCoinBetweenEthWan")
@@ -42,11 +37,6 @@ let taskTypeConfigJson = {
       "number": 8,
       "name": "ProcessXrpMintFromRipple",
       "handle": require("./processXrpMintFromRipple")
-    },
-    {
-      "number": 9,
-      "name": "ProcessBurnOtherCoinBetweenEthWan",
-      "handle": require("./processBurnOtherCoinBetweenEthWan")
     },
     {
       "number": 10,

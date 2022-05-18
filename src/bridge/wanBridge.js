@@ -336,9 +336,10 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).evm;
-      if (!tool.cmpAddress(toAccount, taskRedeemHash.toAccount)) {
-        console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
+      let expectedToAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).native;
+      let actualToAccount = tool.getStandardAddressInfo(ccTask.toChainType, taskRedeemHash.toAccount).native;
+      if (!tool.cmpAddress(expectedToAccount, actualToAccount)) {
+        console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
         this.emit("error", {taskId, reason: errInfo});
