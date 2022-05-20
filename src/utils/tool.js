@@ -222,9 +222,9 @@ function getStandardAddressInfo(chainType, address) {
 }
 
 function getCoinSymbol(chainType, chainName) {
-  if ((chainType === "DOT") && (chainName === "PolkaTestnet")) {
+  if ((chainType === "DOT") && ["PolkaTestnet", "testnet"].includes(chainName)) {
     return "WND";
-  } else if ((chainType === "MOVR") && (chainName === "Moonbase Alpha")) {
+  } else if ((chainType === "MOVR") && ["Moonbase Alpha", "testnet"].includes(chainName)) {
     return "DEV";
   } else {
     return chainType;
