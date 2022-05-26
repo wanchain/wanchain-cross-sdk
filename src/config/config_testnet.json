@@ -147,7 +147,7 @@
     {
       "chainId": "2147484198",
       "chainType": "XDC",
-      "chainName": "XinFin",
+      "chainName": "XDC Network",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
