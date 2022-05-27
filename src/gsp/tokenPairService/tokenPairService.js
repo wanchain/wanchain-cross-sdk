@@ -271,8 +271,6 @@ class TokenPairService {
     }
 
     getAssetLogo(name) {
-      let network = this.configService.getNetwork();
-      name = tool.getCoinSymbol(name, network);
       let logo = this.assetLogo.get(name);
       if (!logo) {
         logo = {data: new Identicon(crypto.createHash('md5').update(name || "").digest('hex')).toString(), type: "png"};
