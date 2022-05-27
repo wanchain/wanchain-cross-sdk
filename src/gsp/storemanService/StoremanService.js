@@ -149,6 +149,11 @@ class StoremanService {
       let tokenPairService = this.m_frameworkService.getService("TokenPairService");
       return tokenPairService.getAssetLogo(name);
     }
+
+    getChainLogo(chainType) {
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      return tokenPairService.getChainLogo(chainType);
+    }
 };
 
 module.exports = StoremanService;
