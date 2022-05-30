@@ -1,7 +1,6 @@
 {
   "StoremanService": [
     {
-      "name": "WanInfo",
       "chainId": "2153201998",
       "chainType": "WAN",
       "chainName": "Wanchain",
@@ -18,7 +17,6 @@
       }
     },
     {
-      "name": "EthInfo",
       "chainId": "2147483708",
       "chainType": "ETH",
       "chainName": "Ethereum",
@@ -35,7 +33,6 @@
       }
     },
     {
-      "name": "BscInfo",
       "chainId": "2147484362",
       "chainType": "BNB",
       "chainName": "BSC",
@@ -52,7 +49,6 @@
       }
     },
     {
-      "name": "AvaxInfo",
       "chainId": "2147492648",
       "chainType": "AVAX",
       "chainName": "Avalanche C-Chain",
@@ -69,7 +65,6 @@
       }
     },
     {
-      "name": "MoonriverInfo",
       "chainId": "1073741825",
       "chainType": "MOVR",
       "chainName": "Moonriver",
@@ -86,7 +81,6 @@
       }
     },
     {
-      "name": "MoonbeamInfo",
       "chainId": "1073741828",
       "chainType": "GLMR",
       "chainName": "Moonbeam",
@@ -103,14 +97,11 @@
       }
     },
     {
-      "name": "PolygonInfo",
       "chainId": "2147484614",
       "chainType": "MATIC",
       "chainName": "Polygon",
       "chainDecimals": 18,
       "crossScAddr": "0x2216072A246A84f7b9CE0f1415Dd239C9bF201aB",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
@@ -122,14 +113,11 @@
       }
     },
     {
-      "name": "ArbitrumInfo",
       "chainId": "1073741826",
       "chainType": "ARETH",
       "chainName": "Arbitrum",
       "chainDecimals": 18,
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "coinFastMintGasLimit": 3000000,
       "erc20ApproveGasLimit": 3000000,
       "erc20FastBurnGasLimit": 3500000,
@@ -141,7 +129,6 @@
       }
     },
     {
-      "name": "Fantom",
       "chainId": "2147484655",
       "chainType": "FTM",
       "chainName": "Fantom",
@@ -158,18 +145,46 @@
       }
     },
     {
-      "name": "XinFin",
+      "chainId": "2147484262",
+      "chainType": "OETH",
+      "chainName": "Optimism",
+      "crossScAddr": "0x....................................",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 10,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
       "chainId": "2147484198",
       "chainType": "XDC",
       "chainName": "XDC Network",
-      "chainDecimals": 18,
       "crossScAddr": "0xf7ba155556e2cd4dfe3fe26e506a14d2f4b97613",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
       "MaskChainId": 50,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
+      "chainId": "2147483843",
+      "chainType": "TRX",
+      "chainName": "Tron",
+      "crossScAddr": "0x....................................",
+      "crossScAddrNative": "....................................",
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 6,
+      "MaskChainId": 0,
       "ScScanInfo": {
         "taskInterval": 30000
       }
@@ -186,7 +201,8 @@
     "MintTitle": "MintTitle",
     "MintDesc": "MintDesc",
     "BurnTitle": "BurnTitle",
-    "BurnDesc": "BurnDesc"
+    "BurnDesc": "BurnDesc",
+    "CacheVersion": "0"
   },
   "iWanConnectorService": {
     "iWanOption": {
@@ -225,10 +241,7 @@
       "chainType": "BTC",
       "chainName": "Bitcoin",
       "NETWORK": "bitcoin",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
@@ -239,10 +252,7 @@
       "chainType": "LTC",
       "chainName": "Litecoin",
       "NETWORK": "mainnet",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
@@ -253,10 +263,7 @@
       "chainType": "DOGE",
       "chainName": "Dogecoin",
       "NETWORK": "mainnet",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
@@ -266,10 +273,7 @@
       "chainId": "2147483792",
       "chainType": "XRP",
       "chainName": "XRP Ledger",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "mintFromChainHandle": "MintXrpFromRippleHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 6,
       "minReserved": 10,
       "TxScanInfo": {
@@ -280,13 +284,19 @@
       "chainId": "2147484002",
       "chainType": "DOT",
       "chainName": "Polkadot",
-      "mintNetworkFee": "mintNetworkFee",
-      "burnNetworkFee": "burnNetworkFee",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
-      "burnToChainHandle": "BurnOtherCoinToAncestorChain",
       "chainDecimals": 10,
-      "RpcUrl": "wss://rpc.polkadot.io",
       "minReserved": 1,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
+      "chainId": "2147485463",
+      "chainType": "ADA",
+      "chainName": "Cardano",
+      "mintFromChainHandle": "MintAdaFromCardano",
+      "chainDecimals": 6,
       "TxScanInfo": {
         "taskInterval": 10000
       }

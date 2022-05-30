@@ -5,6 +5,7 @@ let globalConstant = {
     ERR_INSUFFICIENT_BALANCE: "Insufficient balance",
     ERR_INSUFFICIENT_GAS: "Insufficient gas",
     ERR_INSUFFICIENT_TOKEN_BALANCE: "Insufficient asset",
+    ERR_NOT_OWNER: "Not owner",
     ERR_OTHER_UNKNOWN_ERR: "Unknown error",
 };
 

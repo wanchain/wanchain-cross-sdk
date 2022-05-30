@@ -52,11 +52,17 @@ module.exports = class CheckTxReceiptService {
             let index = length - idx - 1;
             let obj = this.m_tradeTaskAry[index];
             try {
-                let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txhash);
+                let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txHash);
                 if (txReceipt) {
                     let result = "Failed";
                     let errInfo = "Transaction failed";
-                    if (txReceipt.status === "0x1" || txReceipt.status === true) {// 旧版0x0/0x1,1.2.6版true/false
+                    let isSuccess = false;
+                    if (obj.chain === "TRX") {
+                      isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
+                    } else {
+                      isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
+                    }
+                    if (isSuccess) {
                         result = "Succeeded";
                         errInfo = "";
                         await this.addToScEventScan(obj);
@@ -64,14 +70,14 @@ module.exports = class CheckTxReceiptService {
                     await this.m_eventService.emitEvent("TaskStepResult", {
                         ccTaskId: obj.ccTaskId,
                         stepIndex: obj.stepIndex,
-                        txHash: obj.txhash,
+                        txHash: obj.txHash,
                         result,
                         errInfo
                     });
                     await storageService.delete("CheckTxReceiptService", obj.ccTaskId);
                     this.m_tradeTaskAry.splice(index, 1);
                 } else {
-                    //let tx = await this.m_iwanBCConnector.getTxInfo(obj.chain, obj.txhash);
+                    //let tx = await this.m_iwanBCConnector.getTxInfo(obj.chain, obj.txHash);
                     //if (tx) {
                     //    continue;// 仍在队列中
                     //}
@@ -81,19 +87,17 @@ module.exports = class CheckTxReceiptService {
                     //}
                     continue;
                 }
-            }
-            catch (err) {
+            } catch (err) {
+                // console.error("%s %s getTransactionReceipt error: %O", obj.chain, obj.txHash, err);
                 continue;
             }
         }
     }
 
     async addToScEventScan(obj) {
-        if (obj.convertCheckInfo) {
-            if (obj.convertCheckInfo.needCheck) {
-                let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
-                await scEventScanService.add(obj.convertCheckInfo.checkInfo);
-            }
+        if (obj.convertCheckInfo && obj.convertCheckInfo.needCheck) {
+            let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
+            await scEventScanService.add(obj.convertCheckInfo.checkInfo);
         }
     }
 
@@ -102,7 +106,7 @@ module.exports = class CheckTxReceiptService {
         //    "chain": params.scChainType,
         //    "ccTaskId": params.ccTaskId,
         //    "stepIndex": paramsJson.stepIndex,
-        //    "txhash": ret.txhash,
+        //    "txHash": ret.txHash,
         //    "convertCheckInfo": convertCheckInfo
         //};
         obj.sendTime = new Date().getTime();

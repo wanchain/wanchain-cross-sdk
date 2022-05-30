@@ -73,7 +73,6 @@ class IWanBCConnector {
     }
 
     async getBalance(chain, addr) {
-        addr = tool.getStandardAddressInfo(chain, addr).standard;
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;
     }
@@ -124,8 +123,8 @@ class IWanBCConnector {
         }
     }
 
-    async getTokenPairs(chainIds) {
-        let ret = await this.apiClient.getTokenPairs(chainIds);
+    async getTokenPairs(options) {
+        let ret = await this.apiClient.getTokenPairs(options);
         return ret;
     }
 
@@ -149,8 +148,9 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getTokenInfo(chain, tokenAddr) {
-        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr);
+    async getTokenInfo(chain, tokenAddr, tokenType) {
+        let options = tokenType? {tokenType} : undefined;
+        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, options);
         return ret;
     }
 
@@ -159,14 +159,9 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getErc20Allowance(chain, scAddr, ownerAddr, spenderAddr, scAbi) {
-        let abi = this.configService.getAbi(scAbi);
-        let ret = await this.apiClient.callScFunc(chain,
-            scAddr,
-            "allowance",
-            [ownerAddr, spenderAddr],
-            abi);
-        return ret;
+    async getErc20Allowance(chain, scAddr, ownerAddr, spenderAddr) {
+      let ret = await this.apiClient.getTokenAllowance(chain, scAddr, ownerAddr, spenderAddr);
+      return ret;
     }
 
     async getScEvent(chainType, address, topics, option) {
@@ -176,6 +171,11 @@ class IWanBCConnector {
 
     async getStoremanGroupQuota(chainType, groupId, symbol, targetChainType) {
         let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol, targetChainType);
+        return ret;
+    }
+
+    async getMinCrossChainAmount(targetChainType, symbol) {
+        let ret = await this.apiClient.getMinCrossChainAmount(targetChainType, [symbol]);
         return ret;
     }
 
@@ -195,6 +195,77 @@ class IWanBCConnector {
 
     async getStoremanGroupConfig(storemanGroupId) {
         return await this.apiClient.getStoremanGroupConfig(storemanGroupId);
+    }
+
+    async checkErc721Approved(chain, token, id, owner, operator) {
+        let abi = this.configService.getAbi("erc721");
+        let [isApprovedForAll, getApproved] = await Promise.all([
+            this.apiClient.callScFunc(chain, token, "isApprovedForAll", [owner, operator], abi),
+            this.apiClient.callScFunc(chain, token, "getApproved", [id], abi)
+        ]);
+        return (isApprovedForAll || (getApproved.toLowerCase() === operator.toLowerCase()));
+    }
+
+    async checkErc721Ownership(chain, token, id, address) {
+        let abi = this.configService.getAbi("erc721");
+        let owner = await this.apiClient.callScFunc(chain, token, "ownerOf", [id], abi);
+        return (owner.toLowerCase() === address.toLowerCase());
+    }
+
+    async getNftInfoMulticall(ancestorChainType, ancestorChainToken, chain, token, owner, startIndex, endIndex) {
+        let idCalls = [];
+        for (let i = startIndex; i <= endIndex; i++) {
+            let call = {
+              target: token,
+              call: ['tokenOfOwnerByIndex(address,uint256)(uint256)', owner, i],
+              returns: [[i]]
+            }
+            idCalls.push(call);
+        }
+        let ids = await this.apiClient.multiCall(chain, idCalls);
+        let uriCalls = [];
+        for (let i = startIndex; i <= endIndex; i++) {
+            let call = {
+              target: ancestorChainToken,
+              call: ['tokenURI(uint256)(string)', ids.results.transformed[i]._hex],
+              returns: [[i]]
+            }
+            uriCalls.push(call);
+        }
+        let uris = await this.apiClient.multiCall(ancestorChainType, uriCalls);
+        let result = {};
+        for (let i = startIndex; i <= endIndex; i++) {
+            result[i] = {id: ids.results.transformed[i]._hex, uri: uris.results.transformed[i]};
+        }
+        return result;
+    }
+
+    async estimateCrossChainOperationFee(chainType, targetChainType, options) {
+        return this.apiClient.estimateCrossChainOperationFee(chainType, targetChainType, options);
+    }
+
+    async estimateCrossChainNetworkFee(chainType, targetChainType, options) {
+        return this.apiClient.estimateCrossChainNetworkFee(chainType, targetChainType, options);
+    }
+
+    async getLatestBlock(chainType) {
+        return this.apiClient.getLatestBlock(chainType);
+    }
+
+    async getEpochParameters(chainType, options) {
+        return this.apiClient.getEpochParameters(chainType, options);
+    }
+
+    async getRegisteredTokenLogo(chainType, options) {
+      return this.apiClient.getRegisteredTokenLogo(chainType, options);
+    }
+
+    async getTokenPairsHash(options) {
+      return this.apiClient.getTokenPairsHash(options);
+    }
+
+    async getRegisteredChainLogo(options) {
+      return this.apiClient.getRegisteredChainLogo(options);
     }
 };
 

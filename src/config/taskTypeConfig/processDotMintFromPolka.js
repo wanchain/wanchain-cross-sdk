@@ -1,51 +1,67 @@
 'use strict';
-let BigNumber = require("bignumber.js");
+
+const BigNumber = require("bignumber.js");
+const tool = require("../../utils/tool.js");
+const util = require("@polkadot/util");
+const utilCrypto = require("@polkadot/util-crypto");
+const { Keyring } = require('@polkadot/api');
+
+// memo should like follows
+// memo_Type + memo_Data, Divided Symbols should be '0x'
+// Type: 1, normal userLock; Data: tokenPairID + toAccount + fee
+// Type: 2, normal smg release; Data: tokenPairId + uniqueId/hashX
+// Type: 3, abnormal smg transfer for memo_userLock; Data: uniqueId
+// Type: 4, abnomral smg transfer for tag_userLock; Data: tag
+// Type: 5, smg debt transfer; Data: srcSmg
+const TX_TYPE = {
+  UserLock:   1,
+  SmgRelease: 2,
+  smgDebt:    5,
+  Invalid:    -1
+}
+
+const MemoTypeLen = 2;
+const TokenPairIDLen = 4;
+const ToAccountLen = 40; // without '0x'
 
 module.exports = class ProcessDotMintFromPolka {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(paramsJson, wallet) {
-    let WebStores = this.m_frameworkService.getService("WebStores");
-    let polkadotService = this.m_frameworkService.getService("PolkadotService");
-    //console.debug("ProcessDotMintFromPolka paramsJson:", paramsJson);
-    let params = paramsJson.params;
+  async process(stepData, wallet) {
+    let webStores = this.m_frameworkService.getService("WebStores");
+    // console.debug("ProcessDotMintFromPolka stepData:", stepData);
+    let params = stepData.params;
     try {
-      let tokenPairId = parseInt(params.tokenPairID);
-      let memo = await wallet.buildUserLockMemo(tokenPairId, params.userAccount, params.fee);
-      console.debug("ProcessDotMintFromPolka memo:", memo);
+      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
+      console.debug("ProcessDotMintFromPolka memo: %s", memo);
 
-      let api = await polkadotService.getApi();
+      let api = await wallet.getApi();
 
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
-      let storemanGroupAddr = await polkadotService.longPubKeyToAddress(params.storemanGroupGpk);
+      let storemanGroupAddr = this.longPubKeyToAddress(params.storemanGroupGpk);
       //console.log("storemanGroupAddr:", storemanGroupAddr);
 
       // 2 生成交易串
-      let totalTransferValue = '0x' + new BigNumber(params.value).toString(16);
+      let txValue = '0x' + new BigNumber(params.value).toString(16);
       let txs = [
         api.tx.system.remark(memo),
-        api.tx.balances.transferKeepAlive(storemanGroupAddr, totalTransferValue)
+        api.tx.balances.transferKeepAlive(storemanGroupAddr, txValue)
       ];
       // console.debug("txs:", txs);
-      // 3 计算交易费用
-      let estimateFee = await polkadotService.estimateFee(params.fromAddr, txs);
 
-      // 4 校验:balance >= (value + estimateFee + minReserved)
-      let balance = await polkadotService.getBalance(params.fromAddr);
-      balance = new BigNumber(balance);
-
+      // 3 check balance >= (value + gasFee + minReserved)
+      let balance = await wallet.getBalance(params.fromAddr);
+      let gasFee = await wallet.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType("DOT");
       let minReserved = new BigNumber(chainInfo.minReserved);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
-
-      let totalNeed = new BigNumber(params.value).plus(estimateFee).plus(minReserved);
-
-      if (balance.isLessThan(totalNeed)) {
-        console.error("ProcessDotMintFromPolka insufficient balance");
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", "Insufficient balance");
+      let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
+      if (new BigNumber(balance).lte(totalNeed)) {
+        console.error("ProcessDotMintFromPolka insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
@@ -53,36 +69,60 @@ module.exports = class ProcessDotMintFromPolka {
       let txHash;
       try {
         txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txHash, ""); // only update txHash, no result
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         if (err.message === "Cancelled") {
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Rejected");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
-          WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
         }
         return;
       }
-      paramsJson.txhash = txHash;
 
       // 查询目的链当前blockNumber
       let iwan = this.m_frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
-        stepIndex: paramsJson.stepIndex,
+        stepIndex: stepData.stepIndex,
         fromBlockNumber: blockNumber,
-        txHash: txHash,
+        txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
         taskType: "MINT"
       };
 
       let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
-      await checkDotTxService.addDotInfo(checkPara);
+      await checkDotTxService.addTask(checkPara);
     } catch (err) {
-      console.error("ProcessDotMintFromPolka process error: %O", err);
-      WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      console.error("ProcessDotMintFromPolka error: %O", err);
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
     }
+  }
+
+  buildUserLockData(tokenPair, userAccount, fee) {
+    let memo = "";
+    tokenPair = Number(tokenPair);
+    userAccount = tool.hexStrip0x(userAccount);
+    fee = new BigNumber(fee).toString(16);
+    if ((tokenPair !== NaN) && (userAccount.length === ToAccountLen)) {
+      let type = TX_TYPE.UserLock.toString(16).padStart(MemoTypeLen, 0);
+      tokenPair = parseInt(tokenPair).toString(16).padStart(TokenPairIDLen, 0);
+      memo = type + tokenPair + userAccount + fee;
+    } else {
+      console.error("buildUserlockMemo parameter invalid");
+    }
+    return memo;
+  }
+
+  longPubKeyToAddress(longPubKey, ss58Format = 42) {
+    longPubKey = '0x04' + longPubKey.slice(2);
+    const tmp = util.hexToU8a(longPubKey);
+    const pubKeyCompress = utilCrypto.secp256k1Compress(tmp);
+    const hash = utilCrypto.blake2AsU8a(pubKeyCompress);
+    const keyring = new Keyring({type: 'ecdsa', ss58Format: ss58Format});
+    const address = keyring.encodeAddress(hash);
+    return address;
   }
 };

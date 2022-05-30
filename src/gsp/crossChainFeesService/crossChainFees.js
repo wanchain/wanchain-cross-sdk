@@ -2,49 +2,37 @@
 let BigNumber = require("bignumber.js");
 
 module.exports = class crossChainFees {
-    constructor() {
-        this.m_mapProcessFeeHandle = new Map();
-    }
-
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
-        this.m_mapProcessFeeHandle.set("mintNetworkFee", this.getMintNetworkFee.bind(this));
-        this.m_mapProcessFeeHandle.set("burnNetworkFee", this.getBurnNetworkFee.bind(this));
     }
 
     // 费用，随tx的value字段发送的费用,serviceFee
     async getServcieFees(tokenPairId, typeOfMintOrBurn) {
         if (typeOfMintOrBurn === "MINT") {
-            return await this.getMintServcieFees(tokenPairId);
-        }
-        else if (typeOfMintOrBurn === "BURN") {
-            return await this.getBurnServiceFees(tokenPairId);
-        }
-        else {
+            return this.getMintServcieFees(tokenPairId);
+        } else if (typeOfMintOrBurn === "BURN") {
+            return this.getBurnServiceFees(tokenPairId);
+        } else {
             console.log("getServcieFees err typeOfMintOrBurn:", typeOfMintOrBurn);
         }
     }
 
     async getMintServcieFees(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
+        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
 
-        //console.log("getMintServcieFees tokenPairObj:", tokenPairObj);
+        //console.log("getMintServcieFees tokenPair:", tokenPair);
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
             return;
         }
 
-        let mintFees  = await iwanBCConnector.getCrossChainFees(tokenPairObj.fromChainType, [tokenPairObj.fromChainID, tokenPairObj.toChainID]);
+        let mintFees  = await iwanBCConnector.getCrossChainFees(tokenPair.fromChainType, [tokenPair.fromChainID, tokenPair.toChainID]);
         //console.log("mintFees:", mintFees);
-        let originFeeBN = new BigNumber(mintFees.lockFee);
-        let feeBN = originFeeBN.div(Math.pow(10, tokenPairObj.fromScInfo.chainDecimals));
+        let feeBN = new BigNumber(mintFees.lockFee).div(Math.pow(10, tokenPair.fromScInfo.chainDecimals));
         let ret = {
             fee: feeBN.toFixed(),
-            feeBN: feeBN,
-            originFee: originFeeBN.toFixed(),
-            originFeeBN: originFeeBN,
             isRatio: false
         };
         //console.log("getMintServcieFees ret:", ret);
@@ -53,22 +41,18 @@ module.exports = class crossChainFees {
 
     async getBurnServiceFees(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
+        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
         
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
             return;
         }
-        let burnFees = await iwanBCConnector.getCrossChainFees(tokenPairObj.toChainType, [tokenPairObj.toChainID, tokenPairObj.fromChainID]);
+        let burnFees = await iwanBCConnector.getCrossChainFees(tokenPair.toChainType, [tokenPair.toChainID, tokenPair.fromChainID]);
         //console.log("burnFees:", burnFees);
-        let originFeeBN = new BigNumber(burnFees.lockFee);
-        let feeBN = originFeeBN.div(Math.pow(10, tokenPairObj.toScInfo.chainDecimals));
+        let feeBN = new BigNumber(burnFees.lockFee).div(Math.pow(10, tokenPair.toScInfo.chainDecimals));
         let ret = {
             fee: feeBN.toFixed(),
-            feeBN: feeBN,
-            originFee: originFeeBN.toFixed(),
-            originFeeBN: originFeeBN,
             isRatio: false
         };
         //console.log("getBurnServiceFees ret:", ret);
@@ -81,95 +65,51 @@ module.exports = class crossChainFees {
     async estimateNetworkFee(tokenPairId, typeOfMintOrBurn) {
         if (typeOfMintOrBurn === "MINT") {
             return this.estimateMintNetworkFee(tokenPairId);
-        }
-        else if (typeOfMintOrBurn === "BURN") {
+        } else if (typeOfMintOrBurn === "BURN") {
             return this.estimateBurnNetworkFee(tokenPairId);
-        }
-        else {
+        } else {
             console.log("estimateNetworkFee err typeOfMintOrBurn:", typeOfMintOrBurn);
         }
     }
 
     async estimateMintNetworkFee(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
-
-        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
-        if (chainInfo.mintNetworkFee) {
-            let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.mintNetworkFee);
-            return await feeHandle(tokenPairObj);
-        }
-        else {
-            return {
-                fee: 0,
-                feeBN: new BigNumber(0),
-                originFee: 0,
-                originFeeBN: new BigNumber(0),
-                isRatio: false
-            };
-        }
+        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        return this.getMintNetworkFee(tokenPair);
     }
 
     async estimateBurnNetworkFee(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPairObj = await tokenPairService.getTokenPairObjById(tokenPairId);
-
-        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoById(tokenPairObj.fromChainID);
-        if (chainInfo.burnNetworkFee) {
-            let feeHandle = this.m_mapProcessFeeHandle.get(chainInfo.burnNetworkFee);
-            return await feeHandle(tokenPairObj);
-        }
-        else {
-            return {
-                fee: 0,
-                feeBN: new BigNumber(0),
-                originFee: 0,
-                originFeeBN: new BigNumber(0),
-                isRatio: false
-            };
-        }
+        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        return this.getBurnNetworkFee(tokenPair);
     }
 
-    async getBurnNetworkFee(tokenPairObj) {
+    async getBurnNetworkFee(tokenPair) {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-        let fee = await iwanBCConnector.estimateNetworkFee(tokenPairObj.fromChainType, "release", tokenPairObj.toChainType);
+        let fee = await iwanBCConnector.estimateNetworkFee(tokenPair.fromChainType, "release", tokenPair.toChainType);
         let feeBN = new BigNumber(fee);
-        console.log("getBurnNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
-        let originFee = fee;
-        let originFeeBN = feeBN;
-        let isRatio = (tokenPairObj.id == 66)? true : false;
+        console.log("getBurnNetworkFee tokenpair %s-%s: %s", tokenPair.fromChainType, tokenPair.toChainType, feeBN.toFixed())
+        let isRatio = (tokenPair.id == 66)? true : false;
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.toDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPair.toDecimals)));
         }
-        fee = feeBN.toFixed();
         return {
-            fee: fee,
-            feeBN: feeBN,
-            originFee: originFee,
-            originFeeBN: originFeeBN,
+            fee: feeBN.toFixed(),
             isRatio
         };
     }
 
-    async getMintNetworkFee(tokenPairObj) {
+    async getMintNetworkFee(tokenPair) {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-        let fee = await iwanBCConnector.estimateNetworkFee(tokenPairObj.fromChainType, "lock", tokenPairObj.toChainType);
+        let fee = await iwanBCConnector.estimateNetworkFee(tokenPair.fromChainType, "lock", tokenPair.toChainType);
         let feeBN = new BigNumber(fee);
-        console.log("getMintNetworkFee tokenpair %s-%s: %s", tokenPairObj.fromChainType, tokenPairObj.toChainType, feeBN.toFixed())
-        let originFee = fee;
-        let originFeeBN = feeBN;
-        let isRatio = (tokenPairObj.id == 66)? true : false;
+        console.log("getMintNetworkFee tokenpair %s-%s: %s", tokenPair.fromChainType, tokenPair.toChainType, feeBN.toFixed())
+        let isRatio = (tokenPair.id == 66)? true : false;
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPairObj.fromDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPair.fromDecimals)));
         }
-        fee = feeBN.toFixed();
         return {
-            fee: fee,
-            feeBN: feeBN,
-            originFee: originFee,
-            originFeeBN: originFeeBN,
+            fee: feeBN.toFixed(),
             isRatio
         };
     }

@@ -1,82 +1,83 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const ProcessBase = require("./processBase.js");
-const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     constructor(frameworkService) {
         super(frameworkService);
     }
 
-    async process(paramsJson, wallet) {
+    async process(stepData, wallet) {
         let uiStrService = this.m_frameworkService.getService("UIStrService");
         let strFailed = uiStrService.getStrByName("Failed");
-
-        let params = paramsJson.params;
+        let params = stepData.params;
         try {
-            if (!(await this.checkChainId(paramsJson, wallet))) {
+            if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-
-            if (typeof params.value === "string") {
-                params.value = new BigNumber(params.value);
-            }
-            let stroemanService = this.m_frameworkService.getService("StoremanService");
-            let tokenPair = await stroemanService.getTokenPairObjById(params.tokenPairID);
-            let allowance = await this.m_iwanBCConnector.getErc20Allowance(
-                params.scChainType,
-                tokenPair.toAccount,
-                params.fromAddr,
-                params.crossScAddr,
-                tokenPair.toScInfo.erc20AbiJson);
-            let bn_allowance = new BigNumber(allowance);
-            if (bn_allowance.isLessThan(params.value)) {
-                this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Insufficient ERC20 token allowance");
-                return;
-            }
-            let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, params.userAccount).standard;
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
-                params.crossScAbi,
+            let txData;
+            if (wallet.generateUserBurnData) { // wallet custumized
+              txData = await wallet.generateUserBurnData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
                 params.userBurnFee,
                 params.tokenAccount,
-                userAccount);
-
-            let txValue = params.fee;
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
-            await this.sendTransactionData(paramsJson, txData, wallet);
-            return;
-        }
-        catch (err) {
-            console.error("ProcessUserFastBurn process err: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Failed to generate transaction data");
+                params.userAccount,
+                params.fee);
+            } else {
+              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+              let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
+                  params.storemanGroupId,
+                  params.tokenPairID,
+                  params.value,
+                  params.userBurnFee,
+                  params.tokenAccount,
+                  params.userAccount);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
+            }
+            await this.sendTransactionData(stepData, txData, wallet);
+        } catch (err) {
+            console.error("ProcessErc20UserFastBurn error: %O", err);
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
         }
     }
 
     // virtual function
-    async getConvertInfoForCheck(paramsJson) {
+    async getConvertInfoForCheck(stepData) {
+        let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPair = await storemanService.getTokenPairObjById(paramsJson.params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
-        let userAccount = tool.getStandardAddressInfo(tokenPair.fromChainType, paramsJson.params.userAccount).standard;
-        let obj = {
-            needCheck: true,
-            checkInfo: {
-                ccTaskId: paramsJson.params.ccTaskId,
-                uniqueID: paramsJson.txhash,
-                userAccount,
-                smgID: paramsJson.params.storemanGroupId,
-                tokenPairID: paramsJson.params.tokenPairID,
-                value: paramsJson.params.value,
-                chain: tokenPair.fromChainType,
-                fromBlockNumber: blockNumber,
-                taskType: "BURN"
-            }
+        let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+        let blockNumber;
+        if (tokenPair.fromChainType === "XRP") {
+          blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPair.fromChainType);
+        } else if (["DOT", "ADA"].includes(tokenPair.fromChainType)) {
+          blockNumber = 0;
+          // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
+        } else {
+          blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
+        }
+        console.log("ProcessErc20UserFastBurn getConvertInfoForCheck tokenPair: %O", tokenPair);
+        // exception: burn legency EOS from ethereum to wanchain is "BURN"
+        let taskType = (tokenPair.fromChainID === tokenPair.ancestorChainID)? "BURN" : "MINT";
+        let checker = {
+          needCheck: true,
+          checkInfo: {
+            ccTaskId: params.ccTaskId,
+            uniqueID: stepData.txHash,
+            userAccount: params.userAccount,
+            smgID: params.storemanGroupId,
+            tokenPairID: params.tokenPairID,
+            value: params.value,
+            chain: tokenPair.fromChainType,
+            fromBlockNumber: blockNumber,
+            taskType,
+            fromChain: tokenPair.toChainType,
+            fromAddr: params.fromAddr,
+            chainHash: stepData.txHash,
+            toAddr: params.toAddr
+          }
         };
-        return obj;
+        return checker;
     }
 };

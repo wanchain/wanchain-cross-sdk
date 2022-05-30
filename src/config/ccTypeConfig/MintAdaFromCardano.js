@@ -3,7 +3,7 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
-module.exports = class MintDotFromPolkaHandle {
+module.exports = class MintAdaFromCardano {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
@@ -21,11 +21,11 @@ module.exports = class MintDotFromPolkaHandle {
         storemanGroupGpk: convert.storemanGroupGpk,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessDotMintFromPolka",
+        taskType: "ProcessAdaMintFromCardano",
         fee,
         fromAddr: convert.fromAddr
       };
-      console.debug("MintDotFromPolkaHandle params: %O", params);
+      console.debug("MintAdaFromCardano params: %O", params);
       let ret = [
         {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
@@ -35,7 +35,7 @@ module.exports = class MintDotFromPolkaHandle {
         errCode: null
       };
     } catch (err) {
-      console.error("MintDotFromPolkaHandle error: %O", err);
+      console.error("MintAdaFromCardano error: %O", err);
       webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {
         stepNum: 0,

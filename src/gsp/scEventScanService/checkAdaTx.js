@@ -2,7 +2,7 @@
 
 const axios = require("axios");
 
-module.exports = class CheckDotTx {
+module.exports = class CheckAdaTx {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
     this.m_CheckAry = [];
@@ -43,10 +43,10 @@ module.exports = class CheckDotTx {
 
   async add(obj) {
     try {
-      console.debug("checkDotTx add obj:", obj);
+      // console.debug("checkAdaTx add obj: %O", obj);
       this.m_CheckAry.unshift(obj);
     } catch (err) {
-      console.error("checkDotTx add error: %O", err);
+      console.error("checkAdaTx add error: %O", err);
     }
   }
 
@@ -59,16 +59,15 @@ module.exports = class CheckDotTx {
       if (this.m_CheckAry.length <= 0) {
         return;
       }
-      let url = this.m_apiServerConfig.url + "/api/dot/queryTxInfoByChainHash/";
+      let url = this.m_apiServerConfig.url + "/api/ada/queryTxInfoByChainHash/";
       let count = this.m_CheckAry.length;
       for (let idx = 0; idx < count; ++idx) {
         let index = count - idx - 1;
         let obj = this.m_CheckAry[index];
         let txUrl = url + obj.fromChain + "/" + obj.uniqueID;
         let ret = await axios.get(txUrl);
-        console.debug("CheckDotTx %s ret.data: %O", txUrl, ret.data);
+        console.debug("CheckAdaTx %s: %O", txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
-          // found
           await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
           let storageService = this.m_frameworkService.getService("StorageService");
           storageService.delete("ScEventScanService", obj.uniqueID);
@@ -76,7 +75,7 @@ module.exports = class CheckDotTx {
         }
       }
     } catch (err) {
-      console.error("CheckDotTx runTask err: %O", err);
+      console.error("CheckAdaTx runTask err: %O", err);
     }
   }
 };
