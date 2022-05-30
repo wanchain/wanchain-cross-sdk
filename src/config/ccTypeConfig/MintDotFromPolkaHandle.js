@@ -1,42 +1,41 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
+let BigNumber = require("bignumber.js");
 
 module.exports = class MintDotFromPolkaHandle {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
 
-  async process(tokenPair, convert) {
-    let webStores = this.m_frameworkService.getService("WebStores");
+  async process(tokenPairObj, convertJson) {
+    let WebStores = this.m_frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals)).toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
+      let value = new BigNumber(convertJson.value).multipliedBy(Math.pow(10, tokenPairObj.fromDecimals)).toFixed();
       let params = {
-        ccTaskId: convert.ccTaskId,
-        toChainType: tokenPair.toChainType,
-        userAccount: convert.toAddr,
-        storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
-        tokenPairID: convert.tokenPairId,
+        ccTaskId: convertJson.ccTaskId,
+        toChainType: tokenPairObj.toChainType,
+        userAccount: convertJson.toAddr,
+        storemanGroupId: convertJson.storemanGroupId,
+        storemanGroupGpk: convertJson.storemanGroupGpk,
+        tokenPairID: convertJson.tokenPairId,
         value,
         taskType: "ProcessDotMintFromPolka",
-        fee,
-        fromAddr: convert.fromAddr
+        fee: convertJson.fee.operateFee.rawValue,
+        networkFee: convertJson.fee.networkFee.rawValue, // not used
+        fromAddr: convertJson.fromAddr
       };
       console.debug("MintDotFromPolkaHandle params: %O", params);
       let ret = [
         {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
-      webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
+      WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, ret);
       return {
         stepNum: ret.length,
         errCode: null
       };
     } catch (err) {
       console.error("MintDotFromPolkaHandle error: %O", err);
-      webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
+      WebStores["crossChainTaskSteps"].setTaskSteps(convertJson.ccTaskId, []);
       return {
         stepNum: 0,
         errCode: err

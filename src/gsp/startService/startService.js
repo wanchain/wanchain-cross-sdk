@@ -30,8 +30,12 @@ let ChainInfoService = require("../chainInfoService/chainInfoService");
 
 const GlobalConstant = require("../globalConstantService/globalConstant");
 
+let PolkadotService = undefined;
+if (typeof(window) !== "undefined") {
+    PolkadotService = require("../polkadotService/polkadotService");
+}
+
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
-let CheckAdaTxService = require("../checkAdaTxService/checkAdaTxService");
 
 class StartService {
     constructor(isTestMode) {
@@ -100,13 +104,15 @@ class StartService {
             await iwanBCConnector.init(frameworkService);
             frameworkService.registerService("iWanConnectorService", iwanBCConnector);
 
+            if (typeof(window) !== "undefined") {
+                let polkadotService = new PolkadotService();
+                await polkadotService.init(frameworkService);
+                frameworkService.registerService("PolkadotService", polkadotService);
+            }
+
             let checkDotTxService = new CheckDotTxService();
             await checkDotTxService.init(frameworkService);
             frameworkService.registerService("CheckDotTxService", checkDotTxService);
-
-            let checkAdaTxService = new CheckAdaTxService();
-            await checkAdaTxService.init(frameworkService);
-            frameworkService.registerService("CheckAdaTxService", checkAdaTxService);            
 
             let storemanService = new StoremanService();
             await storemanService.init(frameworkService);
@@ -181,11 +187,9 @@ class StartService {
 
             let checkDotTxService = frameworkService.getService("CheckDotTxService");
             await checkDotTxService.start();
-
-            let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
-            await checkAdaTxService.start();            
-        } catch (err) {
-            console.error("startService start err:", err);
+        }
+        catch (err) {
+            console.log("startService start err:", err);
         }
     }
 

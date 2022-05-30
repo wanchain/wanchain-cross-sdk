@@ -16,9 +16,7 @@ npm install --save wanchain-cross-sdk
 <li>Install wallets extension for your browser, such as:
 
 [MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn),
-[WanMask](https://github.com/wanchain/wanmask),
-[polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd),
-[Nami](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo?hl=zh-CN).
+[WanMask](https://github.com/wanchain/wanmask) and [polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd).
 
 <li>Install BTC, LTC and XRP wallets if you need to convert asset from Bitcoin, Litecoin or XRP Ledger.
 
@@ -39,16 +37,13 @@ bridge.on("ready", assetPairs => {
       {
         assetPairId: "39",
         assetType: "AVAX",
-        protocol: "Erc20",
-        fromSymbol: "AVAX",
-        toSymbol: "wanAVAX",
         decimals: "18",
-        fromChainType: "AVAX",
-        toChainType: "WAN",
         fromChainName: "Avalanche C-Chain",
+        fromChainType: "AVAX",
+        fromSymbol: "AVAX",
         toChainName: "Wanchain",
-        fromAccount: "0x0000000000000000000000000000000000000000",
-        toAccount: "0xc8f5b26589392fde84ee0482e2b5a77dfbe943fc"
+        toChainType: "WAN",
+        toSymbol: "wanAVAX"
       },
       ......
     ]
@@ -64,8 +59,10 @@ bridge.on("ready", assetPairs => {
     "Failed to send transaction"
     "Rejected"
     "Insufficient ERC20 token allowance"
+    "Failed to generate transaction data"
     "Insufficient balance"
-    "Failed to approve token"
+    "Repeated approval of erc20 tokens"
+    "Failed to approve ERC20 token"
     "Failed to generate ota"
     "Transaction failed"
     "Amount is too small to pay the fee"
@@ -110,15 +107,14 @@ bridge.init(iwanAuth);
 
 Step 3: Connect a wallet.
 
-SDK for browser supports polkadot{.js}, Nami, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
+SDK for browser supports polkadot{.js}, MetaMask, WanMask and other web3-compatible wallets, you should select them to connect according to the chain you plan to send transactions.
 ```javascript
 // connect to the wallet in your own way and get the provider, such as:
 let metaMaskWallet = window.ethereum;
 let wanMaskWallet = window.wanchain;
 
-// SDK provides an easy way to use polkadot{.js} and Nami wallet, you can just provide network name instead of provider
-let polkadotWallet = "testnet"; // or mainnet
-let cardanoWallet = "testnet";  // or mainnet
+// SDK provides an easy way to use polkadot{.js} wallet, you can only provide url instead of provider
+let polkadotWallet = "wss://westend-rpc.polkadot.io";
 ```
 SDK for Node.js currently only supports Truffle HDWallet.
 ```javascript
@@ -171,7 +167,7 @@ try {
   // check storeman group quota
   let quota = await bridge.getQuota(assetPair, "mint");
   if (amount.lt(quota.minQuota)) {
-    throw "Less than minValue";
+    throw "Less than minQuota";
   } else if (amount.gt(quota.maxQuota)) {
     throw "Exceed maxQuota";
   }
@@ -191,14 +187,13 @@ try {
     "Invalid wallet"
     "Amount is too small to pay the fee"
     "Smg unavailable"
-    "Less than minValue"
+    "Less than minQuota"
     "Exceed maxQuota"
     "Amount is too small to activate smg"
     "Insufficient balance"
     "Amount is too small to activate toAccount"
     "Insufficient gas"
     "Insufficient asset"
-    "Not owner"
     "Unknown error"
   */
 }

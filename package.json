@@ -24,10 +24,7 @@
     "multicoin-address-validator": "^0.5.2",
     "ws": "^5.2.2",
     "@truffle/hdwallet-provider": "^1.5.0",
-    "lowdb": "^1.0.0",
-    "@emurgo/cardano-serialization-lib-asmjs": "9.1.4",
-    "identicon.js": "^2.3.3",
-    "tronweb": "^4.1.0"
+    "lowdb": "^1.0.0"
   },
   "main": "index.js",
   "scripts": {

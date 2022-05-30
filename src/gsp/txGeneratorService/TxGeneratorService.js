@@ -15,27 +15,16 @@ module.exports = class TxGeneratorService{
     }
 
     // erc20 approve
-    async generatorErc20ApproveData(ecr20Address, spenderAddress, value) {
+    async generatorErc20ApproveData(ecr20Address, erc20AbiJson, spenderAddress, value) {
         try {
             value = "0x" + new BigNumber(value).toString(16);
-            let abi = this.configService.getAbi("erc20");
+            let abi = this.configService.getAbi(erc20AbiJson);
             let erc20Inst = new web3.eth.Contract(abi, ecr20Address.toLowerCase());
             let txData = erc20Inst.methods.approve(spenderAddress.toLowerCase(), value).encodeABI();
             return txData;
-        } catch (err) {
-            console.log("generatorErc20ApproveData error: %O", err);
         }
-    }
-
-    // erc721 approve
-    async generatorErc721ApproveData(tokenAddress, operator, tokenId) {
-        try {
-            let abi = this.configService.getAbi("erc721");
-            let sc = new web3.eth.Contract(abi, tokenAddress.toLowerCase());
-            let txData = sc.methods.setApprovalForAll(operator.toLowerCase(), true).encodeABI();
-            return txData;
-        } catch (err) {
-            console.error("generatorErc721ApproveData error: %O", err);
+        catch (err) {
+            console.log("generatorErc20ApproveData err:", err);
         }
     }
 
@@ -67,18 +56,18 @@ module.exports = class TxGeneratorService{
         return rawTx;
     }
 
-    async generateUserLockData(crossScAddr, smgID, tokenPairID, value, userAccount) {
+    async generateUserLockData(crossScAddr, crossScAbiJson, smgID, tokenPairID, value, userAccount) {
         value = "0x" + new BigNumber(value).toString(16);
-        let abi = this.configService.getAbi("crossSc");
+        let abi = this.configService.getAbi(crossScAbiJson);
         let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
         let txData = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
         return txData;
     }
 
-    async generateUserBurnData(crossScAddr, smgID, tokenPairID, value, fee, tokenAccount, userAccount) {
+    async generateUserBurnData(crossScAddr, crossScAbiJson, smgID, tokenPairID, value, fee, tokenAccount, userAccount) {
         value = "0x" + new BigNumber(value).toString(16);
         fee = "0x" + new BigNumber(fee).toString(16);
-        let abi = this.configService.getAbi("crossSc");
+        let abi = this.configService.getAbi(crossScAbiJson);
         let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
         let txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
         return txData;

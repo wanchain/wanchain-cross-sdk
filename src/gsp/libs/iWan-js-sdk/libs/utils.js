@@ -50,22 +50,5 @@ function promiseOrCallback(callback, fn) {
   });
 };
 
-function newJson(srcObj) {
-  let mobj = {};
-  if (typeof(srcObj) === "object") {
-      mobj = Array.isArray(srcObj) ? [] : mobj;
-      for (let index in srcObj) {
-          if (typeof(srcObj[index]) === "object") {
-              mobj[index] = newJson(srcObj[index]);
-          } else {
-              mobj[index] = srcObj[index];
-          }
-      }
-  }
-
-  return mobj;
-}
-
 exports.wrapCallback = wrapCallback;
 exports.promiseOrCallback = promiseOrCallback;
-exports.newJson = newJson;

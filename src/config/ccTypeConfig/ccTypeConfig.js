@@ -24,6 +24,16 @@ let ccTypeConfigJson = {
       "handle": require("./MintOtherCoinBetweenEthWanHandle")
     },
     {
+      "number": 5,
+      "name": "BurnOtherCoinBetweenEthWanHandle",
+      "handle": require("./BurnOtherCoinBetweenEthWanHandle")
+    },
+    {
+      "number": 6,
+      "name": "BurnOtherCoinToAncestorChain",
+      "handle": require("./BurnOtherCoinToAncestorChain")
+    },
+    {
       "number": 7,
       "name": "MintBtcFromBitcoinHandle",
       "handle": require("./MintBtcFromBitcoinHandle")
@@ -42,11 +52,6 @@ let ccTypeConfigJson = {
       "number": 10,
       "name": "BurnErc20ProxyToken",
       "handle": require("./BurnErc20ProxyToken")
-    },
-    {
-      "number": 11,
-      "name": "MintAdaFromCardano",
-      "handle": require("./MintAdaFromCardano")
     }
   ]
 };

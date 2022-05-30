@@ -84,7 +84,7 @@ module.exports = class CheckXrpTx {
                     if (ret.data.data) {
                         // found
                         let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.xrpHash, toAccount: ret.data.data.xrpAddr});
+                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash: ret.data.data.xrpHash, toAccount: ret.data.data.xrpAddr});
                         let storageService = this.m_frameworkService.getService("StorageService");
                         await storageService.delete("ScEventScanService", obj.uniqueID);
                         this.m_CheckAry.splice(index, 1);

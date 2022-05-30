@@ -2,13 +2,9 @@ const Web3Wallet = require("./web3Wallet");
 
 let runInBrowser = false;
 let Polkadot = undefined;
-let Nami = undefined;
-let TronLink = undefined;
 if (typeof(window) !== "undefined") {
-  runInBrowser = true;
   Polkadot = require("./polkadot/polkadotJs");
-  Nami = require("./cardano/nami");
-  TronLink = require("./tron/TronLink");
+  runInBrowser = true;
 }
 
 class Wallet {
@@ -17,7 +13,6 @@ class Wallet {
       throw new Error("Invalid provider");
     }
     this.type = type;
-    console.debug("SDK: new Wallet type %s", type);
     if (["MetaMask", "WanMask", "WalletConnect", "WanWallet"].includes(type)) {
       if (runInBrowser) { // only browser
         return new Web3Wallet(type, provider);
@@ -31,14 +26,6 @@ class Wallet {
     } else if (type === "polkadot{.js}") {
       if (runInBrowser) { // only browser
         return new Polkadot(type, provider);
-      }
-    } else if (type === "Nami") {
-      if (runInBrowser) { // only browser
-        return new Nami(type, provider);
-      }
-    } else if (type === "TronLink") {
-      if (runInBrowser) { // only browser
-        return new TronLink(type, provider);
       }
     }
     throw new Error("Unsupported wallet type");

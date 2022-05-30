@@ -69,12 +69,12 @@ module.exports = class CheckBtcTxService {
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
                     let txHashField = this.chainType.toLowerCase() + "Hash";
-                    let txHash = ret.data.data[txHashField];
-                    let sender = await this.m_utilService.getBtcTxSender(this.chainType, txHash);
-                    obj.uniqueID = this.getOtaTxUniqueId(txHash, obj.oneTimeAddr);
+                    let txhash = ret.data.data[txHashField];
+                    let sender = await this.m_utilService.getBtcTxSender(this.chainType, txhash);
+                    obj.uniqueID = this.getOtaTxUniqueId(txhash, obj.oneTimeAddr);
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,
-                        txHash,
+                        txhash,
                         sentAmount: ret.data.data.value,
                         sender,
                         uniqueId: obj.uniqueID

@@ -70,7 +70,7 @@ module.exports = class CheckXrpTxService {
                     obj.uniqueID = "0x" + ret.data.data.xrpHash;
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,
-                        txHash: ret.data.data.xrpHash,
+                        txhash: ret.data.data.xrpHash,
                         sentAmount: ret.data.data.sentValue,
                         sender: ret.data.data.xrpAddr
                     });

@@ -41,7 +41,7 @@ class StorageService {
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
         this.m_WebStores = this.m_frameworkService.getService("WebStores");
-        await db.read();
+        db.read();
     }
 
     async init_load() {
@@ -100,7 +100,7 @@ class StorageService {
                 let key = storeName + "_keys";
                 let storeKeysStr = window.localStorage.getItem(key);
                 if (storeKeysStr) {
-                    await db.set(key, storeKeysStr).write();
+                    db.set(key, storeKeysStr).write();
                     try {
                         let storeKeysAry = JSON.parse(storeKeysStr);
                         let valueAry = [];
@@ -110,7 +110,7 @@ class StorageService {
                                 let keyName = storeKeysAry[storeKeyIdx];
                                 key = storeName + "_" + keyName;
                                 let value = window.localStorage.getItem(key);
-                                await db.set(key, value).write();
+                                db.set(key, value).write();
                                 valueAry.push(JSON.parse(value));
                                 storeKeysMap.set(keyName, true);
                             } catch (err) {
@@ -150,18 +150,18 @@ class StorageService {
             if (!storeKeysMap.has(key)) {
                 storeKeysMap.set(key, true);
                 let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-                await db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
+                db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
             }
         } else {
             let storeKeysMap = new Map();
             storeKeysMap.set(key, true);
             this.m_mapStoreKeys.set(storeName, storeKeysMap);
             let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
-            await db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
+            db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
             let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-            await db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
+            db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
         }
-        await db.set(storeName + "_" + key, JSON.stringify(val)).write();
+        db.set(storeName + "_" + key, JSON.stringify(val)).write();
     }
 
     async delete(storeName, key) {
@@ -172,20 +172,20 @@ class StorageService {
         if (!storeKeysMap.has(key)) {
             return;
         }
-        await db.unset(storeName + "_" + key).write();
+        db.unset(storeName + "_" + key).write();
         storeKeysMap.delete(key);
         let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
         if (storeKeysAry.length > 0) {
-            await db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
+            db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
         } else {
-            await db.unset(storeName + "_keys").write();
+            db.unset(storeName + "_keys").write();
             this.m_mapStoreKeys.delete(storeName);
             let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
             if (storeNamesAry.length > 0) {
-                await db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
+                db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
             }
             else {
-                await db.unset("StorageService_storeNames").write();
+                db.unset("StorageService_storeNames").write();
             }
         }
     }
@@ -196,44 +196,6 @@ class StorageService {
             ary.push(key);
         }
         return ary;
-    }
-
-    getCacheData(name, json2obj = true) {
-      if (typeof(window) !== "undefined") {
-        let data = window.localStorage.getItem(name);
-        if (data) {
-          if (json2obj) {
-            data = JSON.parse(data)
-          }
-          return data;
-        }
-      }
-      return null;
-    }
-
-    setCacheData(name, data) {
-      if (typeof(window) !== "undefined") {
-        if (typeof(data) !== "string") {
-          data = JSON.stringify(data);
-        }
-        window.localStorage.setItem(name, data);
-      }
-    }
-
-    getAssetLogos() {
-      if (typeof(window) !== "undefined") {
-        let data = window.localStorage.getItem("AssetLogo");
-        if (data) {
-          return JSON.parse(data);
-        }
-      }
-      return null;
-    }
-
-    setAssetLogos(data) {
-      if (typeof(window) !== "undefined") {
-        window.localStorage.setItem("AssetLogo", JSON.stringify(data));
-      }
     }
 };
 

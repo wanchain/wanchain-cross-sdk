@@ -14,11 +14,10 @@ module.exports = class ProcessBase {
     this.m_storageService = frameworkService.getService("StorageService");
   }
   // virtual function
-  async process(stepData, wallet) {
+  async process(paramsJson, wallet) {
   }
-
   // virtual function
-  async getConvertInfoForCheck(stepData) {
+  async getConvertInfoForCheck(paramsJson) {
     let obj = {
       needCheck: false,
       checkInfo: {}
@@ -26,25 +25,25 @@ module.exports = class ProcessBase {
     return obj;
   }
 
-  async sendTransactionData(stepData, txData, wallet) {
+  async sendTransactionData(paramsJson, txData, wallet) {
     try {
-      console.log("processBase sendTransactionData stepData:", stepData);
+      console.log("processBase sendTransactionData paramsJson:", paramsJson);
       let uiStrService = this.m_frameworkService.getService("UIStrService");
       let strFailed = uiStrService.getStrByName("Failed");
-      let params = stepData.params;
+      let params = paramsJson.params;
 
       let accountAry = await wallet.getAccounts();
       let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
       if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
         console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
         return;
       }
 
-      let txHash = "";
+      let txhash = "";
       try {
-        txHash = await wallet.sendTransaction(txData);
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+        txhash = await wallet.sendTransaction(txData); 
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, txhash, ""); // only update txHash, no result
       } catch (err) {
         let result, errInfo = "";
         if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
@@ -53,17 +52,18 @@ module.exports = class ProcessBase {
           result = "Failed";
           errInfo = "Failed to send transaction";
         }
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", result, errInfo);
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", result, errInfo);
         console.error("task %s sendTransactionData error: %O", params.ccTaskId, err);
         return;
       }
 
-      let convertCheckInfo = await this.getConvertInfoForCheck(stepData);
+      paramsJson.txhash = txhash;
+      let convertCheckInfo = await this.getConvertInfoForCheck(paramsJson);
       let obj = {
         chain: params.scChainType,
         ccTaskId: params.ccTaskId,
-        stepIndex: stepData.stepIndex,
-        txHash,
+        stepIndex: paramsJson.stepIndex,
+        txhash,
         convertCheckInfo: convertCheckInfo
       };
       let checkTxReceiptService = this.m_frameworkService.getService("CheckTxReceiptService");
@@ -73,21 +73,21 @@ module.exports = class ProcessBase {
     }
   }
 
-  async checkChainId(stepData, wallet) {
+  async checkChainId(paramsJson, wallet) {
     let uiStrService = this.m_frameworkService.getService("UIStrService");
     let strFailed = uiStrService.getStrByName("Failed");
-    let params = stepData.params;
+    let params = paramsJson.params;
     try {
       let chainId = await wallet.getChainId();
       if (chainId === params.chainId) {
         return true;
       } else {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
         console.error("wallet chainId changes from %s to %s", params.chainId, chainId);
         return false;
       }      
     } catch (err) {
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, paramsJson.stepIndex, "", strFailed, "Invalid wallet");
       console.error("task %s checkChainId err: %O", params.ccTaskId, err);
       return false;
     }

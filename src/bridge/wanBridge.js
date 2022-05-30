@@ -8,6 +8,7 @@ const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
+const NOT_SMART_CONTRACT_ASSETS = ['BTC', 'LTC', 'XRP', 'WND', 'DOT', 'DOGE'];
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
@@ -24,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 1058", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 1721", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -33,7 +34,6 @@ class WanBridge extends EventEmitter {
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
-    this.iWanConnectorService = this._service.getService("iWanConnectorService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
@@ -131,23 +131,35 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, options) {
+  async getAccountAsset(assetPair, direction, account, isCoin = false, keepAlive = false) {
     direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, options);
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, isCoin, keepAlive);
     balance = balance.toFixed();
-    console.debug("SDK: getAccountAsset, pair: %s, direction: %s, account: %s, options: %O, result: %s", assetPair.assetPairId, direction, account,
-                  {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.type : undefined},
-                  balance);
+    console.debug("SDK: getAccountAsset, pair: %s, direction: %s, account: %s, options: %O, result: %s", assetPair.assetPairId, direction, account, {isCoin, keepAlive}, balance);
     return balance;
   }
 
   async estimateFee(assetPair, direction) {
     direction = this._unifyDirection(direction);
-    let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
+    let operateFee = await this.feesService.getServcieFees(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
+    let operateFeeUnit = '', networkFeeUnit = '';
+    if (direction == 'MINT') {
+      operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+    } else {
+      operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
+      if (networkFee.isRatio) {
+        networkFeeUnit = assetPair.assetType;
+      } else if (NOT_SMART_CONTRACT_ASSETS.includes(assetPair.fromChainType)) {
+        networkFeeUnit = assetPair.assetType;
+      } else {
+        networkFeeUnit = operateFeeUnit;
+      }
+    }
     let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
+      operateFee: {value: new BigNumber(operateFee.fee).toFixed(), unit: operateFeeUnit, rawValue: operateFee.originFee, isRatio: operateFee.isRatio},
+      networkFee: {value: new BigNumber(networkFee.fee).toFixed(), unit: networkFeeUnit, rawValue: networkFee.originFee, isRatio: networkFee.isRatio}
     };
     console.debug("SDK: estimateFee, pair: %s, direction: %s, result: %O", assetPair.assetPairId, direction, fee);
     return fee;
@@ -169,7 +181,7 @@ class WanBridge extends EventEmitter {
     }
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -182,47 +194,26 @@ class WanBridge extends EventEmitter {
     } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
     } else if ("DOT" === chainType) {
+      // PLAN: adapted to polka app
       return tool.isValidDotAddress(account, this.network);
-    } else if ("ADA" === chainType) {
-      return tool.isValidAdaAddress(account, this.network);
     } else if ("XDC" === chainType) {
-      return tool.isValidXdcAddress(account);
-    } else if ("TRX" === chainType) {
-      return tool.isValidTrxAddress(account);
+      return tool.isValidXdcAddress(account, this.network);
     } else {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;
     }
   }
 
-  async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
-    direction = this._unifyDirection(direction);
-    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    // let tokenPair = this.storemanService.getTokenPair(assetPair.assetPairId); // do not get info from ancestorChain
-    // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
-    let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
-    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, startIndex: %d, endIndex: %d, chain: %s, asset: %s, result: %O",
-                  assetPair.assetPairId, direction, account, startIndex, endIndex, chainType, assetPair.assetType, infos);
-    return infos;
-  }
-
-  getHistory(options) {
-    let taskId = undefined, protocol = undefined;
-    if (options) {
-      taskId = options.taskId;
-      protocol = options.protocol;
-    }
+  getHistory(taskId = undefined) {
     let history = [];
     let records = this.stores.crossChainTaskRecords;
     for (let [id, task] of records.ccTaskRecords) {
-      if (((taskId === undefined) || (taskId == id)) && ((protocol === undefined) || (protocol === task.protocol))) {
+      if ((taskId === undefined) || (taskId == id)) {
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
           timestamp: task.ccTaskId,
           asset: task.assetType,
-          protocol: task.protocol,
           direction: task.convertType,
           fromSymbol: task.fromSymbol,
           toSymbol: task.toSymbol,          
@@ -247,33 +238,22 @@ class WanBridge extends EventEmitter {
         }
       }
     }
-    console.debug("SDK: getHistory, options: %O, count: %d", options, history.length);
+    console.debug("SDK: getHistory, taskId: %s, count: %d", taskId, history.length);
     return history;
   }
 
-  async deleteHistory(options) {
-    let taskId = undefined, protocol = undefined;
-    if (options) {
-      taskId = options.taskId;
-      protocol = options.protocol;
-    }
+  async deleteHistory(taskId = undefined) {
     let count = 0;
     let records = this.stores.crossChainTaskRecords;
-    let ids = Array.from(records.ccTaskRecords.values())
-      .filter(v => (((taskId === undefined) || (taskId == v.ccTaskId)) && ((protocol === undefined) || (protocol === v.protocol))))
-      .map(v => v.ccTaskId);
+    let ids = Array.from(records.ccTaskRecords.keys()).filter(id => ((taskId === undefined) || (taskId == id)));
     for (let i = 0; i < ids.length; i++) {
       let id = ids[i];
       records.removeTradeTask(id);
       await this.storageService.delete("crossChainTaskRecords", id);
       count++;
     }
-    console.debug("SDK: deleteHistory, options: %O, count: %d", options, count);
+    console.debug("SDK: deleteHistory, taskId: %s, count: %d", taskId, count);
     return count;
-  }
-
-  getAssetLogo(name) {
-    return this.storemanService.getAssetLogo(name);
   }
 
   _onStoremanInitilized(success) {
@@ -291,13 +271,21 @@ class WanBridge extends EventEmitter {
     console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
-    let txHash = taskLockHash.txHash;
+    let txHash = taskLockHash.txhash;
     let value = taskLockHash.sentAmount;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (!ccTask) {
       return;
     }
-    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType, ccTask.decimals));
+    let fee = new BigNumber(0);
+    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
+      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
+        fee = fee.plus(ccTask.fee.networkFee.value);
+      }
+      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
+        fee = fee.plus(ccTask.fee.operateFee.value);
+      }
+    }
     if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the fee";
       console.error({taskId, errInfo});
@@ -328,7 +316,7 @@ class WanBridge extends EventEmitter {
     console.debug("_onRedeemTxHash: %O", taskRedeemHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskRedeemHash.ccTaskId;
-    let txHash = taskRedeemHash.txHash;
+    let txHash = taskRedeemHash.txhash;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (!ccTask) {
       return;
@@ -336,10 +324,9 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      let expectedToAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).native;
-      let actualToAccount = tool.getStandardAddressInfo(ccTask.toChainType, taskRedeemHash.toAccount).native;
-      if (!tool.cmpAddress(expectedToAccount, actualToAccount)) {
-        console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
+      let toAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).standard;
+      if (toAccount.toLowerCase() != taskRedeemHash.toAccount.toLowerCase()) {
+        console.error("tx toAccount %s does not match task toAccount %s", taskRedeemHash.toAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
         this.emit("error", {taskId, reason: errInfo});
@@ -347,10 +334,21 @@ class WanBridge extends EventEmitter {
     }
     // received amount, TODO: get actual value from chain
     let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
-    receivedAmount = receivedAmount.minus(fee).toFixed();
+    if (NOT_SMART_CONTRACT_ASSETS.includes(ccTask.assetType)) { // not-smart-contract asset
+      if (ccTask.fee.networkFee.unit === ccTask.assetType) {
+        receivedAmount = receivedAmount.minus(ccTask.fee.networkFee.value);
+      }
+      if (ccTask.fee.operateFee.unit === ccTask.assetType) {
+        receivedAmount = receivedAmount.minus(ccTask.fee.operateFee.value);
+      }
+    } else {
+      if (ccTask.fee.networkFee.isRatio) { // layer 2 network fee
+        let fee = receivedAmount.times(ccTask.fee.networkFee.value).toFixed(ccTask.decimals);
+        receivedAmount = receivedAmount.minus(fee);
+      }
+    }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
-    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
+    records.setTaskRedeemTxHash(taskId, txHash, receivedAmount.toFixed());
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
   }

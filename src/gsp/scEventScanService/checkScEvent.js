@@ -3,7 +3,6 @@
 const Web3 = require("web3");
 const web3 = new Web3();
 const wanUtil = require("wanchain-util");
-const tool = require("../../utils/tool");
 
 module.exports = class CheckScEvent {
     constructor(frameworkService) {
@@ -24,7 +23,7 @@ module.exports = class CheckScEvent {
         this.m_eventService = this.m_frameworkService.getService("EventService");
         this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
         let configService = this.m_frameworkService.getService("ConfigService");
-        this.crossScAbi = configService.getAbi("crossSc");
+        this.crossScAbi = configService.getAbi(this.m_chainInfo.crossScAbiJson);
     }
 
     async onDeleteTask(ccTaskId) {
@@ -85,7 +84,8 @@ module.exports = class CheckScEvent {
             if (processFun) {
                 await processFun();
             }
-        } catch (err) {
+        }
+        catch (err) {
             console.log("checkScEvent chainType:", this.m_chainInfo.chainType, ",err:", err);
         }
     }
@@ -93,25 +93,24 @@ module.exports = class CheckScEvent {
   async processSmgMintLogger() {
     //console.log("processSmgMintLogger ", this.m_chainInfo.chainType, ",ary.length:", ary.length);
     let eventHash = this.getSmgMintLoggerTopics();
-    let eventName = "SmgMintLogger";
-    await this.processScLogger("MINT", eventHash, eventName);
+    await this.processScLogger("MINT", eventHash);
   }
 
   async processSmgReleaseLogger() {
     let eventHash = this.getSmgReleaseLoggerTopics();
-    let eventName = "SmgReleaseLogger";
-    await this.processScLogger("BURN", eventHash, eventName);
+    await this.processScLogger("BURN", eventHash);
   }
 
   checkIsExistTask() {
     let aryMint = this.m_mapCheckAry.get("MINT");
     let aryBurn = this.m_mapCheckAry.get("BURN");
-    if ((aryMint.length === 0) && (aryBurn.length === 0)) {
-      return false;
-    } else {
-      return true;
+    if (aryMint.length === 0 && aryBurn.length === 0) {
+            return false;
+        }
+        else {
+            return true;
+        }
     }
-  }
 
   parseLogs(logs, abi) {
       if (logs === null || !Array.isArray(logs)) {
@@ -174,7 +173,7 @@ module.exports = class CheckScEvent {
       return '0x' + wanUtil.sha3(prototype).toString('hex');
   }
 
-  async processScLogger(type, eventHash, eventName) {
+  async processScLogger(type, eventHash) {
     let ary = this.m_mapCheckAry.get(type);
     let count = ary.length;
     if (count === 0) {
@@ -184,8 +183,7 @@ module.exports = class CheckScEvent {
       let cur = count - idx - 1; // backwards
       let obj = ary[cur];
       try {
-        let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
-        let topics = [eventHash, eventUnique.toLowerCase()];
+        let topics = [eventHash, obj.uniqueID.toLowerCase()];
         let fromBlockNumber = obj.fromBlockNumber;
         let latestBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
         console.debug("%s blockNumber %d-%d processScLogger %s: %O", this.m_chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj);
@@ -194,21 +192,12 @@ module.exports = class CheckScEvent {
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
-          try {
-            let event;
-            if (this.m_chainInfo.chainType === "TRX") {
-              event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
-            } else {
-              event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, eventUnique);
-            }
-            if (event) {
-              await this.updateUIAndStorage(obj, event.txHash, event.toAccount);
-              ary.splice(cur, 1);
-            } else { // wait next scan
-              obj.fromBlockNumber = toBlockNumber + 1;
-            }
-          } catch (err) {
-            // console.error("processScLogger %s %O error: %O", type, obj, err);
+          let event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics, obj.uniqueID);
+          if (event) {
+            await this.updateUIAndStorage(obj, event.txhash, event.toAccount);
+            ary.splice(cur, 1);
+          } else { // wait next scan
+            obj.fromBlockNumber = toBlockNumber + 1;
           }
         }
       } catch (err) {
@@ -231,52 +220,15 @@ module.exports = class CheckScEvent {
     for (let i = 0; i < decodedEvts.length; ++i) {
       let args = decodedEvts[i].args;
       if (args.uniqueID.toLowerCase() === uniqueID.toLowerCase()) {
-        return {txHash: decodedEvts[i].transactionHash, toAccount: args.userAccount};
+        return {txhash: decodedEvts[i].transactionHash, toAccount: args.userAccount};
       }
     }
     return null;
   }
 
-  async scanTrxScEvent(fromBlock, toBlock, eventName, eventHash, uniqueID) {
-    let events = await this.m_iwanBCConnector.getScEvent(
-      this.m_chainInfo.chainType,
-      this.m_chainInfo.crossScAddr,
-      [],
-      {fromBlock, toBlock, eventName}
-    );
-    for (let i = 0; i < events.length; i++) {
-      let event = events[i];
-      let txInfo = await this.m_iwanBCConnector.getTxInfo(this.m_chainInfo.chainType, event.transaction, {withTopics: true});
-      if (!txInfo.log) {
-        throw new Error("log is not ready");
-      }
-      let j = 0;
-      for (; j < txInfo.log.length; j++) {
-        let txLog = txInfo.log[j];
-        if (tool.cmpAddress(txLog.address, this.m_chainInfo.crossScAddr) && (("0x" + txLog.topics[0]) === eventHash)) {
-          Object.assign(event, txLog);
-          event.transactionHash = "0x" + event.transaction;
-          event.topics = event.topics.map(v => "0x" + v);
-          break;
-        }
-      }
-      if (j === txInfo.log.length) {
-        console.error("can't get %s log data: %O", this.m_chainInfo.chainType, event);
-      }
-    }
-    let decodedEvts = this.parseLogs(events, this.crossScAbi);
-    for (let i = 0; i < decodedEvts.length; ++i) {
-      let args = decodedEvts[i].args;
-      if (args.uniqueID.toLowerCase() === uniqueID.toLowerCase()) {
-        return {txHash: decodedEvts[i].transactionHash, toAccount: args.userAccount};
-      }
-    }
-    return null;
-  }
-
-  async updateUIAndStorage(obj, txHash, toAccount) {
+  async updateUIAndStorage(obj, txhash, toAccount) {
     try {
-      this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash, toAccount});
+      this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txhash, toAccount});
       let storageService = this.m_frameworkService.getService("StorageService");
       await storageService.delete("ScEventScanService", obj.uniqueID);
     } catch (err) {
