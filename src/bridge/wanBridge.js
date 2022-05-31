@@ -131,7 +131,7 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, options) {
+  async getAccountAsset(assetPair, direction, account, options = {}) {
     direction = this._unifyDirection(direction);
     let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, options);
     balance = balance.toFixed();
