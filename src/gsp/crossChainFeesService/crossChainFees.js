@@ -91,7 +91,7 @@ module.exports = class crossChainFees {
         console.log("getBurnNetworkFee tokenpair %s-%s: %s", tokenPair.fromChainType, tokenPair.toChainType, feeBN.toFixed())
         let isRatio = (tokenPair.id == 66)? true : false;
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPair.toDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPair.decimals)));
         }
         return {
             fee: feeBN.toFixed(),
@@ -106,7 +106,7 @@ module.exports = class crossChainFees {
         console.log("getMintNetworkFee tokenpair %s-%s: %s", tokenPair.fromChainType, tokenPair.toChainType, feeBN.toFixed())
         let isRatio = (tokenPair.id == 66)? true : false;
         if (!isRatio) {
-            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPair.fromDecimals)));
+            feeBN = feeBN.div(Math.pow(10, parseInt(tokenPair.decimals)));
         }
         return {
             fee: feeBN.toFixed(),

@@ -122,7 +122,7 @@ class TokenPairService {
     }
 
     async readTokenpairs() {
-      /* TODO: enable logo cache after rpc support it
+      /* TODO: enable token pair cache after rpc support it
       let uiVer = this.uiStrService.getStrByName("CacheVersion") || "0";
       let iwanVer = await this.iwanBCConnector.getTokenPairsHash();
       let verCache = this.storageService.getCacheData("Version") || {};
