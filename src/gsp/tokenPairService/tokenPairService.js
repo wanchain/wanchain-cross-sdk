@@ -352,8 +352,7 @@ class TokenPairService {
                     tokenPair.ccType["MINT"] = "MintErc20";
                 }
             } else {
-                // 祖先链是其他链,coin跨到WAN/ETH后,其对应token在ETH/WAN之间互跨,双向都是userBurn,
-                // btc/xrp对应的token,在WAN <-> ETH之间互跨
+                // 祖先链是其他链的coin或token,在非祖先链之间转移,双向都是userBurn
                 tokenPair.ccType["MINT"] = "MintOtherCoinBetweenEthWanHandle";
             }
         }
