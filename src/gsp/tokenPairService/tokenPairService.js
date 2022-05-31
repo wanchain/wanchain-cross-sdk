@@ -127,8 +127,10 @@ class TokenPairService {
       let iwanVer = await this.iwanBCConnector.getTokenPairsHash();
       let verCache = this.storageService.getCacheData("Version") || {};
       console.debug({uiVer, iwanVer, verCache});
-      this.forceRefresh = (verCache.ui !== uiVer);      
+      this.forceRefresh = (verCache.ui !== uiVer);
+      */
       let tokenPairs = [];
+      /*
       if ((!this.forceRefresh) && (iwanVer === verCache.iwan)) {
         tokenPairs = this.storageService.getCacheData("TokenPair") || [];
         if (tokenPairs.length) { // maybe localstoreage TokenPair is cleared
