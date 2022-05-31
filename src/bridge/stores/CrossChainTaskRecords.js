@@ -41,7 +41,7 @@ class CrossChainTaskRecords {
   }
 
   // stepData has been assigned via CrossChainTaskSteps, only process additional logic
-  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo) {
+  updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo = "") {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {

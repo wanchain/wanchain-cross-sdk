@@ -2,7 +2,7 @@
 
 const BigNumber = require("bignumber.js");
 
-const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"];
+const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"]; // TRX has self wallet but also be supported by rpc 
 
 class StoremanService {
     constructor() {
@@ -37,7 +37,7 @@ class StoremanService {
                     this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType),
                     this.m_iwanBCConnector.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
                 ]);
-                // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, ret);
+                // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
                 let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};

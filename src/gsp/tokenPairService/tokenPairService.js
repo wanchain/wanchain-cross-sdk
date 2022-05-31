@@ -3,7 +3,6 @@
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
 const util = require('util');
-const tool = require('../../utils/tool');
 
 class TokenPairService {
     constructor(isTestMode) {
@@ -89,7 +88,7 @@ class TokenPairService {
                 tp.fromSymbol = tp.ancestorSymbol;
                 tokenPairMap.set(tp.id, tp);
               } else {
-                let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.fromAccountType);
+                let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType);
                 let fromSymbol = tokenSymbolCacheOld.get(key);
                 if (fromSymbol) {
                   tp.fromSymbol = fromSymbol;
@@ -149,7 +148,7 @@ class TokenPairService {
       tokenPairs = tokenPairs.filter(tp => {
         if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair                
           if (tp.fromAccount !== "0x0000000000000000000000000000000000000000") {
-            let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.fromAccountType);
+            let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType);
             if (!tokenSymbolCacheOld.get(key)) {
               missSymbols++;
               tokenSymbolCacheOld.set(key, "");
@@ -161,7 +160,6 @@ class TokenPairService {
           return false;
         }
       });
-      let ps = []; // this.getSmgs()
       if (missSymbols) {
         let ps = [];
         let iwan = this.iwanBCConnector;

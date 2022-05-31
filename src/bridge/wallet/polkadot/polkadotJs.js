@@ -1,7 +1,7 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
 const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
-const BigNumber = require("bignumber.js");
+const BigNumber = require('bignumber.js');
 
 class Polkadot {
   constructor(type, provider) {
