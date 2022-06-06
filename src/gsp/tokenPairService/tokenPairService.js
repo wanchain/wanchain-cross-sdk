@@ -88,7 +88,7 @@ class TokenPairService {
                 tp.fromSymbol = tp.ancestorSymbol;
                 tokenPairMap.set(tp.id, tp);
               } else {
-                let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType);
+                let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType || "Erc20");
                 let fromSymbol = tokenSymbolCacheOld.get(key);
                 if (fromSymbol) {
                   tp.fromSymbol = fromSymbol;
@@ -124,7 +124,7 @@ class TokenPairService {
       let iwanVer = await this.iwanBCConnector.getTokenPairsHash();
       let verCache = this.storageService.getCacheData("Version") || {};
       console.debug({uiVer, iwanVer, verCache});
-      this.forceRefresh = (verCache.ui !== uiVer);      
+      this.forceRefresh = (verCache.ui !== uiVer);
       let tokenPairs = [];
       if ((!this.forceRefresh) && (iwanVer === verCache.iwan)) {
         tokenPairs = this.storageService.getCacheData("TokenPair") || [];
@@ -148,7 +148,7 @@ class TokenPairService {
       tokenPairs = tokenPairs.filter(tp => {
         if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair                
           if (tp.fromAccount !== "0x0000000000000000000000000000000000000000") {
-            let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType);
+            let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType || "Erc20");
             if (!tokenSymbolCacheOld.get(key)) {
               missSymbols++;
               tokenSymbolCacheOld.set(key, "");
