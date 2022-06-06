@@ -145,6 +145,22 @@
       }
     },
     {
+      "chainId": "2147484644",
+      "chainType": "OKT",
+      "chainName": "OKC",
+      "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 65,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
       "chainId": "2147484198",
       "chainType": "XDC",
       "chainName": "XDC Network",
