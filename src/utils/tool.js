@@ -1,14 +1,20 @@
 const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
-const litecore = require('litecore-lib');
-const { bech32 } = require('bech32');
-const { PolkadotSS58Format, deriveAddress } = require('@substrate/txwrapper-core');
+const { encodeAddress } = require('@polkadot/keyring');
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
 const crypto = require('crypto');
 const Web3 = require("web3");
 const TronWeb = require('tronweb');
+
+// self define to reduce imported package size
+const PolkadotSS58Format = {
+	polkadot: 0,
+	kusama: 2,
+	westend: 42,
+	substrate: 42,
+};
 
 const web3 = new Web3();
 const tronweb = new TronWeb("https://api.nileex.io", "https://api.nileex.io", "https://api.nileex.io");
@@ -83,26 +89,14 @@ function isValidBtcAddress(address, network) {
 }
 
 function isValidLtcAddress(address, network) {
-  if (typeof (address) !== 'string') {
-    return false;
+  if (network !== "testnet") {
+    network = "prod";
   }
-  try {
-    let isMainNet = (network === 'mainnet')? true : false;
-    if (litecore.Address.isValid(address, isMainNet? 'livenet' : 'testnet')) {
-      return true;
-    }
-    if ((isMainNet && address.startsWith('ltc1')) || (!isMainNet && address.startsWith('tltc1'))) {
-      try {
-        bech32.decode(address);
-        return true;
-      } catch (err) {
-        return false;
-      }
-    }
-  } catch (err) {
-    return false;
+  if (((network === "testnet") && address.startsWith('2')) || ((network === "prod") && address.startsWith('3'))) {
+    return false; // disble legacy segwit address
   }
-  return false;
+  let valid = WAValidator.validate(address, 'LTC', network);
+  return valid;
 }
 
 function isValidDogeAddress(address, network) {
@@ -121,7 +115,7 @@ function isValidXrpAddress(address) {
 function isValidDotAddress(account, network) {  
   try {
     let format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
-    let addr = deriveAddress(account, format);
+    let addr = encodeAddress(account, format);
     console.log("DOT %s account %s formatted to %s", network, account, addr);
     return (account === addr);
   } catch(err) {
@@ -265,6 +259,7 @@ function cmpAddress(address1, address2) {
 }
 
 module.exports = {
+  PolkadotSS58Format,
   getCurTimestamp,
   checkTimeout,
   sleep,

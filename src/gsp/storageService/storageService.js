@@ -85,7 +85,7 @@ class StorageService {
                 }
             }
         } else if (typeof(window) !== "undefined") { // try to migrate old version history to lowdb for compatibility, delete later
-            console.log("try to migrate old version history");
+            // console.log("try to migrate old version history");
             await this.loadLegacy();
         }
     }
