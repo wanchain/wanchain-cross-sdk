@@ -13,7 +13,7 @@ module.exports = class crossChainFees {
         } else if (typeOfMintOrBurn === "BURN") {
             return this.getBurnServiceFees(tokenPairId);
         } else {
-            console.log("getServcieFees err typeOfMintOrBurn:", typeOfMintOrBurn);
+            console.error("getServcieFees err typeOfMintOrBurn:", typeOfMintOrBurn);
         }
     }
 
@@ -25,7 +25,7 @@ module.exports = class crossChainFees {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
-            return;
+            throw new Error("iWan is unavailable");
         }
 
         let mintFees  = await iwanBCConnector.getCrossChainFees(tokenPair.fromChainType, [tokenPair.fromChainID, tokenPair.toChainID]);
@@ -46,7 +46,7 @@ module.exports = class crossChainFees {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
-            return;
+            throw new Error("iWan is unavailable");
         }
         let burnFees = await iwanBCConnector.getCrossChainFees(tokenPair.toChainType, [tokenPair.toChainID, tokenPair.fromChainID]);
         //console.log("burnFees:", burnFees);
@@ -68,7 +68,7 @@ module.exports = class crossChainFees {
         } else if (typeOfMintOrBurn === "BURN") {
             return this.estimateBurnNetworkFee(tokenPairId);
         } else {
-            console.log("estimateNetworkFee err typeOfMintOrBurn:", typeOfMintOrBurn);
+            console.error("estimateNetworkFee err typeOfMintOrBurn:", typeOfMintOrBurn);
         }
     }
 
