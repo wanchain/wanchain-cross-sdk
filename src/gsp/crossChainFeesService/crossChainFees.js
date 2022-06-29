@@ -19,6 +19,7 @@ module.exports = class crossChainFees {
         }
         let src = (direction === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
         let target = (direction === "MINT")? tokenPair.toScInfo : tokenPair.fromScInfo;
+        let decimals = (direction === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
         let fee = await iwanBCConnector.estimateCrossChainOperationFee(src.chainType, target.chainType);
         if (tokenPair.toAccountType === "Erc721") {
             fee.value = "0";
@@ -26,7 +27,7 @@ module.exports = class crossChainFees {
         // console.debug("estimateOperationFee %s->%s raw: %O", src.chainType, target.chainType, fee);
         let feeBN = new BigNumber(fee.value);
         let ret = {
-            fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, tokenPair.decimals)).toFixed(),
+            fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
             isRatio: fee.isPercent,
             unit: tokenPair.ancestorSymbol
         };

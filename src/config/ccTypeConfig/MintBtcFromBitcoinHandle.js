@@ -18,8 +18,8 @@ module.exports = class MintBtcFromBitcoinHandle {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let handleName = handleNames[tokenPair.fromChainType];
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals);
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType: tokenPair.fromChainType,

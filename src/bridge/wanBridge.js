@@ -230,6 +230,8 @@ class WanBridge extends EventEmitter {
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
           decimals: task.decimals,
+          fromDecimals: task.fromDecimals,
+          toDecimals: task.toDecimals,
           receivedAmount: task.receivedAmount,
           fee: task.fee,
           fromAccount: task.fromAccount,

@@ -23,6 +23,7 @@ class StoremanService {
             let tokenPair = tokenPairService.getTokenPair(tokenPairId);
             if (tokenPair) {
                 let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
+                let decimals = (fromChainType === tokenPair.fromChainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
                 if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
                     // wanEOS特殊处理wan -> eth mint storeman采用旧的处理方式
                     fromChainType = "EOS";
@@ -38,8 +39,8 @@ class StoremanService {
                     this.m_iwanBCConnector.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
                 ]);
                 // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
-                let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
-                let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
+                let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
+                let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(tokenPair.decimals))); // TODO: adapt to fromDecimals
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
             }            
         } catch (err) {
@@ -97,10 +98,11 @@ class StoremanService {
                     } else {
                         balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.fromChainType, addr, assetPair.fromAccount);
                     }
+                    decimals = assetPair.fromDecimals;
                 } else if (type === "BURN") {
                     balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.toChainType, addr, assetPair.toAccount);
-                }
-                decimals = assetPair.ancestorDecimals;
+                    decimals = assetPair.toDecimals;
+                }                
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
             if (kaChainInfo && options.keepAlive) {

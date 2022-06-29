@@ -46,6 +46,8 @@ bridge.on("ready", assetPairs => {
         fromSymbol: "AVAX",
         toSymbol: "wanAVAX",
         decimals: "18",
+        fromDecimals: "18",
+        toDecimals: "18",
         fromChainType: "AVAX",
         toChainType: "WAN",
         fromChainName: "Avalanche C-Chain",

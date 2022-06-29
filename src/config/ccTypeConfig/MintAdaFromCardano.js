@@ -11,8 +11,8 @@ module.exports = class MintAdaFromCardano {
   async process(tokenPair, convert) {
     let webStores = this.m_frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals)).toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals, false);
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
