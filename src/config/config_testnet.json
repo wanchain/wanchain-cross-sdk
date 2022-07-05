@@ -327,7 +327,7 @@
     },
     {
       "id": "66",
-      "comment": "native USDT between Arbitrum<->Polygon",
+      "comment": "Arbitrum USDT pool <->Polygon USDT pool",
       "mintHandle": "BurnErc20ProxyToken",
       "burnHandle": "BurnErc20ProxyToken",
       "fromNativeToken": "0xd4b5f10d61916bd6e0860144a91ac658de8a1437",
@@ -335,10 +335,17 @@
     },
     {
       "id": "74",
-      "comment": "Ethereum <-> Avalanche native VEE",
+      "comment": "Ethereum native VEE <-> Avalanche VEE pool",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20ProxyToken",
       "toNativeToken": "0x4be13Aee4D6ce3CA7A20f411f0B9ba41D23b4835"
+    },
+    {
+      "id": "178",
+      "comment": "Moonriver native FINN <-> Clove FINN pool",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20ProxyToken",
+      "toNativeToken": "0xfda7a6d11fdd32f18e8d8d9ce1e97a9575141875"
     }
   ],
   "LockTxTimeout": 86400000

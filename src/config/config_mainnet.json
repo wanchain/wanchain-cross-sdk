@@ -343,7 +343,7 @@
     },
     {
       "id": "66",
-      "comment": "native USDT between Arbitrum<->Polygon",
+      "comment": "Arbitrum USDT pool <->Polygon USDT pool",
       "mintHandle": "BurnErc20ProxyToken",
       "burnHandle": "BurnErc20ProxyToken",
       "fromNativeToken": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
@@ -351,7 +351,7 @@
     },
     {
       "id": "74",
-      "comment": "Ethereum <-> Avalanche native VEE",
+      "comment": "Ethereum native VEE <-> Avalanche VEE pool",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20ProxyToken",
       "toNativeToken": "0x...................................."
