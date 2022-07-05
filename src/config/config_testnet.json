@@ -177,6 +177,22 @@
       }
     },
     {
+      "chainId": "0x40000005",
+      "chainType": "CLV",
+      "chainName": "Clover",
+      "crossScAddr": "0xCef19151F44fC3df678554F35c1dd7F29afacDE8",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 1024,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
       "chainId": "2147483843",
       "chainType": "TRX",
       "chainName": "Tron",
