@@ -201,7 +201,7 @@ class TokenPairService {
             tokenPairMap.set(tp.id, tp);
             tokenSymbolCacheNew.set(key, fromSymbol);
           } else {
-            console.error("ignore unavailable token pair %s(%s, %s<->%s)", tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName);
+            console.error("ignore unavailable token pair %s(%s, %s<->%s)", tp.id, tp.ancestorSymbol, tp.fromChainID, tp.toChainID);
           }
         }
       })
