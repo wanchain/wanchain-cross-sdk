@@ -201,7 +201,7 @@ class TokenPairService {
             tokenPairMap.set(tp.id, tp);
             tokenSymbolCacheNew.set(key, fromSymbol);
           } else {
-            console.error("ignore unavailable token pair %s(%s, %s<->%s)", tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName);
+            console.error("ignore unavailable token pair %s(%s, %s<->%s)", tp.id, tp.ancestorSymbol, tp.fromChainID, tp.toChainID);
           }
         }
       })
@@ -317,8 +317,10 @@ class TokenPairService {
     updateTokenPairInfo(tokenPair) {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
-        tokenPair.decimals = tokenPair.decimals || 0;
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
+            tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
+            tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
+            tokenPair.decimals = (Number(tokenPair.fromDecimals) < Number(tokenPair.toDecimals))? tokenPair.fromDecimals : tokenPair.toDecimals;
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);

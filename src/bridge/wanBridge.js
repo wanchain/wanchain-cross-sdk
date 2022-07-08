@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2206171126", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2207081556", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -74,7 +74,12 @@ class WanBridge extends EventEmitter {
       if (chainInfo.MaskChainId) {
         if (wallet) {
           let walletChainId = await wallet.getChainId();
-          return (chainInfo.MaskChainId == walletChainId);
+          if (chainInfo.MaskChainId == walletChainId) {
+            return true;
+          } else {
+            console.debug("SDK: checkWallet id %s != %s", walletChainId, chainInfo.MaskChainId);
+            return false;
+          }
         } else {
           return false;
         }
@@ -184,7 +189,7 @@ class WanBridge extends EventEmitter {
     }
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -245,6 +250,8 @@ class WanBridge extends EventEmitter {
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
           decimals: task.decimals,
+          fromDecimals: task.fromDecimals,
+          toDecimals: task.toDecimals,
           receivedAmount: task.receivedAmount,
           fee: task.fee,
           fromAccount: task.fromAccount,

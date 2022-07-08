@@ -20,7 +20,8 @@ npm install --save wanchain-cross-sdk
 [polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd),
 [Nami](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo),
 [XDCPay](https://chrome.google.com/webstore/detail/xdcpay/bocpokimicclpaiekenaeelehdjllofo),
-[MetaX](https://chrome.google.com/webstore/detail/metax/mcohilncbfahbmgdjkbpemcciiolgcge),
+[OKX Wallet](https://chrome.google.com/webstore/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge),
+[CLV Wallet](https://chrome.google.com/webstore/detail/clv-wallet/nhnkbkgjikgcigadomkphalanndcapjk),
 [TronLink](https://chrome.google.com/webstore/detail/tronlink/ibnejdfjmmkpcnlpebklmnkoeoihofec).
 
 <li>Install BTC, LTC and XRP wallets if you need to convert asset from Bitcoin, Litecoin or XRP Ledger.
@@ -46,6 +47,8 @@ bridge.on("ready", assetPairs => {
         fromSymbol: "AVAX",
         toSymbol: "wanAVAX",
         decimals: "18",
+        fromDecimals: "18",
+        toDecimals: "18",
         fromChainType: "AVAX",
         toChainType: "WAN",
         fromChainName: "Avalanche C-Chain",

@@ -16,8 +16,8 @@ module.exports = class MintCoinHandle {
     this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
     this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
 
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
-    let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+    let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals, false);
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,

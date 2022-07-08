@@ -27,7 +27,9 @@ class AssetPairs {
           protocol: pair.toAccountType || "Erc20", // token protocol, Erc20 or Erc721
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain
           toSymbol: pair.toSymbol,           // token symbol for toChain
-          decimals: pair.decimals,           // the token decimals
+          decimals: pair.decimals,           // effective decimals
+          fromDecimals: pair.fromDecimals,   // from token decimals
+          toDecimals: pair.toDecimals,       // to token decimals
           fromChainType: pair.fromChainType, // from Chain Type
           toChainType: pair.toChainType,     // to Chain Type
           fromChainName: pair.fromChainName, // from Chain Name
