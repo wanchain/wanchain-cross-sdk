@@ -103,7 +103,7 @@ class StoremanService {
                 } else if (type === "BURN") {
                     balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.toChainType, addr, assetPair.toAccount);
                     decimals = assetPair.toDecimals;
-                }                
+                }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
             if (kaChainInfo && options.keepAlive) {

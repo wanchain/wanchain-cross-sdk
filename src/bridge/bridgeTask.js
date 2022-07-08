@@ -95,7 +95,7 @@ class BridgeTask {
       fromChainType: this._fromChainInfo.chainType,
       toChainType: this._toChainInfo.chainType,
       fromChainName: this._fromChainInfo.chainName,
-      toChainName: this._toChainInfo.chainName,      
+      toChainName: this._toChainInfo.chainName,
       isOtaTx: !this._wallet,
       fee: this._fee,
       smg: this._smg
