@@ -355,6 +355,13 @@
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20ProxyToken",
       "toNativeToken": "0x...................................."
+    },
+    {
+      "id": "178",
+      "comment": "Moonriver native FINN <-> Clove FINN pool",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20ProxyToken",
+      "toNativeToken": "0xBeA4928632e482A0A1241B38f596a311Ad7b98B1"
     }
   ],
   "LockTxTimeout": 86400000
