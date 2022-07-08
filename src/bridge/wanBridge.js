@@ -73,7 +73,12 @@ class WanBridge extends EventEmitter {
       if (chainInfo.MaskChainId) {
         if (wallet) {
           let walletChainId = await wallet.getChainId();
-          return (chainInfo.MaskChainId == walletChainId);
+          if (chainInfo.MaskChainId == walletChainId) {
+            return true;
+          } else {
+            console.debug("SDK: checkWallet id %s != %s", walletChainId, chainInfo.MaskChainId);
+            return false;
+          }
         } else {
           return false;
         }
