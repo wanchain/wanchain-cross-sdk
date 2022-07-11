@@ -331,7 +331,7 @@ class TokenPairService {
                 return false; // can not get token info from chain
             }
         } else {
-            console.log("ignore unsupported token pair %s(%s, %s<->%s)", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName);
+            console.log("ignore unsupported token pair %s(%s, %s<->%s)", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainID, tokenPair.toChainID);
             return false; // lack of chain config, need to upgrade sdk
         }
     }
