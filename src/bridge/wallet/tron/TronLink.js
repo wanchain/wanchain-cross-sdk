@@ -5,7 +5,7 @@ const TxResource = {
   approveBandwidth: 345,
   approveEnergy: 22495,
   lockBandwidth: 480,
-  lockEnergy: 17202,
+  lockEnergy: 43267, // TRX: 17202, Token: 43267
   burnBandwidth: 571,
   burnEnergy: 41505,
 }
