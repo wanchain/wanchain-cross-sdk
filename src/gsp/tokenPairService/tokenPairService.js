@@ -2,7 +2,6 @@
 
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
-const util = require('util');
 
 class TokenPairService {
     constructor(isTestMode) {
@@ -352,7 +351,7 @@ class TokenPairService {
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
-      if (origToken) {
+      if (origToken || (tokenAccount == 0)) { // original token or coin
         return "BURN"; // release
       } else {
         return "MINT";
