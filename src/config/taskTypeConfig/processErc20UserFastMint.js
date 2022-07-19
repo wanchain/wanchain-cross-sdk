@@ -44,7 +44,10 @@ module.exports = class ProcessErc20UserFastMint extends ProcessBase {
         let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let tokenPair = storemanService.getTokenPair(params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
+        let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
+        let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
+        let taskType = storemanService.getTokenEventType(params.tokenPairID, direction);
         let obj = {
             needCheck: true,
             checkInfo: {
@@ -54,9 +57,9 @@ module.exports = class ProcessErc20UserFastMint extends ProcessBase {
                 smgID: params.storemanGroupId,
                 tokenPairID: params.tokenPairID,
                 value: params.value,
-                chain: tokenPair.toChainType,
+                chain: checkChainType,
                 fromBlockNumber: blockNumber,
-                taskType: "MINT"
+                taskType
             }
         };
         return obj;

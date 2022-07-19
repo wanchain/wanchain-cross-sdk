@@ -100,9 +100,11 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     }
   }
 
-  async buildUserFastMint(steps, tokenPair, convert, taskType) {
-    let chainInfo = tokenPair.fromScInfo;
+  async buildUserFastMint(steps, tokenPair, convert) {
+    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+    let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
@@ -117,11 +119,11 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
       toAddr: convert.toAddr, // for readability
-      taskType,
+      taskType: "ProcessErc20UserFastMint",
       fee: networkFee,
-      tokenAccount: tokenPair.fromAccount,
+      tokenAccount,
       userBurnFee: operateFee
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
@@ -131,11 +133,14 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   }
 
   async buildUserFastBurn(steps, tokenPair, convert) {
-    let chainInfo = tokenPair.toScInfo;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals));
+    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+    let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.toDecimals, false);
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -146,11 +151,11 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(tokenPair.fromChainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessErc20UserFastBurn",
       fee: networkFee,
-      tokenAccount: tokenPair.toAccount,
+      tokenAccount,
       userBurnFee: operateFee
     };
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);

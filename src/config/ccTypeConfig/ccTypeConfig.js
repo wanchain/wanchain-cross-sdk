@@ -19,11 +19,6 @@ let ccTypeConfigJson = {
       "handle": require("./BurnErc20Handle")
     },
     {
-      "number": 4,
-      "name": "MintOtherCoinBetweenEthWanHandle",
-      "handle": require("./MintOtherCoinBetweenEthWanHandle")
-    },
-    {
       "number": 7,
       "name": "MintBtcFromBitcoinHandle",
       "handle": require("./MintBtcFromBitcoinHandle")
