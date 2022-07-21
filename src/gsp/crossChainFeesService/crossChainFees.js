@@ -19,7 +19,7 @@ module.exports = class crossChainFees {
 
     async getMintServcieFees(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        let tokenPair = tokenPairService.getTokenPair(tokenPairId);
 
         //console.log("getMintServcieFees tokenPair:", tokenPair);
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
@@ -41,7 +41,7 @@ module.exports = class crossChainFees {
 
     async getBurnServiceFees(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        let tokenPair = tokenPairService.getTokenPair(tokenPairId);
         
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
@@ -74,13 +74,13 @@ module.exports = class crossChainFees {
 
     async estimateMintNetworkFee(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        let tokenPair = tokenPairService.getTokenPair(tokenPairId);
         return this.getMintNetworkFee(tokenPair);
     }
 
     async estimateBurnNetworkFee(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = await tokenPairService.getTokenPair(tokenPairId);
+        let tokenPair = tokenPairService.getTokenPair(tokenPairId);
         return this.getBurnNetworkFee(tokenPair);
     }
 

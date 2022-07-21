@@ -273,6 +273,10 @@ class IWanBCConnector {
     async getRegisteredChainLogo(options) {
       return this.apiClient.getRegisteredChainLogo(options);
     }
+
+    async getRegisteredMultiChainOrigToken(options) {
+      return this.apiClient.getRegisteredMultiChainOrigToken(options);
+    }
 };
 
 module.exports = IWanBCConnector;

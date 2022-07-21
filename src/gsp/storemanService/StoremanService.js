@@ -133,6 +133,11 @@ class StoremanService {
         return tokenPairService.getTokenPair(tokenPairId);
     }
 
+    getTokenEventType(tokenPairId, direction) {
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      return tokenPairService.getTokenEventType(tokenPairId, direction);
+    }
+
     async updateSmgs() {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         return tokenPairService.updateSmgs();

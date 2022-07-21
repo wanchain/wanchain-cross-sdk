@@ -24,11 +24,6 @@ let taskTypeConfigJson = {
       "handle": require("./processCoinUserFastMint")
     },
     {
-      "number": 6,
-      "name": "ProcessMintOtherCoinBetweenEthWan",
-      "handle": require("./processMintOtherCoinBetweenEthWan")
-    },
-    {
       "number": 7,
       "name": "ProcessMintBtcFromBitcoin",
       "handle": require("./processMintBtcFromBitcoin")

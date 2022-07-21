@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2207111700", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2207191933", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -90,8 +90,8 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("SDK: createTask, pair: %s, direction: %s, amount: %s, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
-                  assetPair.assetPairId, direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp());
+    console.debug("SDK: createTask, direction: %s, amount: %s, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms, assetPair: %O",
+                  direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
     direction = this._unifyDirection(direction);
     let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
