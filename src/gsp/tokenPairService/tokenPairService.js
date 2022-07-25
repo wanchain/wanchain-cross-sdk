@@ -351,7 +351,7 @@ class TokenPairService {
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
-      if (origToken || (tokenAccount == 0)) { // original token or coin
+      if (origToken || (tokenAccount === tokenPair.ancestorAccount)) { // original token or coin
         return "BURN"; // release
       } else {
         return "MINT";
