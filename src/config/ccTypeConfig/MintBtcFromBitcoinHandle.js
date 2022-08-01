@@ -24,7 +24,7 @@ module.exports = class MintBtcFromBitcoinHandle {
         ccTaskId: convert.ccTaskId,
         fromChainType: tokenPair.fromChainType,
         toChainType: tokenPair.toChainType,
-        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
+        userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.storemanGroupGpk,
