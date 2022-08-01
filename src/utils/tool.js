@@ -210,7 +210,7 @@ function getStandardAddressInfo(chainType, address) {
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
     return {native: address, evm: address};
   } else {
-    let evmBytes = web3.utils.asciiToHex(address)
+    let evmBytes = web3.utils.asciiToHex(address);
     return {native: address, evm: evmBytes};
   }
 }
