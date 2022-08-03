@@ -179,7 +179,7 @@
     {
       "chainId": "1073741829",
       "chainType": "CLV",
-      "chainName": "Clover",
+      "chainName": "Clover P-Chain",
       "crossScAddr": "0xCef19151F44fC3df678554F35c1dd7F29afacDE8",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
