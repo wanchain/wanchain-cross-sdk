@@ -193,6 +193,22 @@
       }
     },
     {
+      "chainId": "1073741830",
+      "chainType": "FX",
+      "chainName": "Function X",
+      "crossScAddr": "0x4f1aB74c2a9E8f591e8A80768e115C9f75935bAD",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 90001,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
       "chainId": "2147483843",
       "chainType": "TRX",
       "chainName": "Tron",
