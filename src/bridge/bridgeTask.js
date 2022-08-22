@@ -292,13 +292,13 @@ class BridgeTask {
         continue;
       }
       console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
-      if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult is tag value or ota address
+      if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult contains ota address, XRP tagId or BTC randomId
         this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
         this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
         break;
       }
       if (!this._wallet) {
-        this._procOtaAddr(taskStep);
+        this._procOtaAddr(stepResult);
       } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
@@ -308,7 +308,7 @@ class BridgeTask {
     }
   }
 
-  _procOtaAddr(taskStep) {
+  _procOtaAddr(stepResult) {
     if (this._ota) {
       return;
     }
@@ -316,12 +316,12 @@ class BridgeTask {
     let chainType = this._fromChainInfo.chainType;
     let ota = {taskId: this.id};
     if (["BTC", "LTC", "DOGE"].includes(chainType)) {
-      records.attachTagIdByTaskId(this.id, taskStep.stepResult);
-      this._ota = taskStep.stepResult;
+      records.setTaskOtaInfo(this.id, {address: stepResult.address, randomId: stepResult.randomId});
+      this._ota = stepResult.address;
       ota.address = this._ota;
     } else if (chainType === "XRP") {
-      let xrpAddr = this._getXAddressByTagId(taskStep.stepResult);
-      records.attachTagIdByTaskId(this.id, xrpAddr.xAddr, xrpAddr.tagId, xrpAddr.rAddr);
+      let xrpAddr = this._getXAddressByTagId(stepResult);
+      records.setTaskOtaInfo(this.id, {address: xrpAddr.xAddr, tagId: xrpAddr.tagId, rAddress: xrpAddr.rAddr});
       this._ota = xrpAddr.xAddr;
       ota.address = this._ota;
       ota.rAddress = xrpAddr.rAddr;
