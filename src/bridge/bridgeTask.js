@@ -183,6 +183,18 @@ class BridgeTask {
         return "Amount is too small to activate smg";
       }
     }
+    // check xrp token trust line
+    if ((fromChainType === "XRP") && (this._direction === "MINT") && (this._assetPair.fromAccount != 0)) { // only mint token need to check smg trust line
+      if (!this._bridge.validateXrpTokenAmount(this._amount)) {
+        return "Amount out of range";
+      }
+      let smgAddr = this._getSmgAddress(fromChainType);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, smgAddr);
+      if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
+        console.debug("%s smgAddr %s token %s trust line: %s", fromChainType, smgAddr, this._assetPair.assetType, line? line.limit.minus(line.balance).toFixed() : "0");
+        return "No trust line or liquidity not enough";
+      }
+    }
     return "";
   }
 

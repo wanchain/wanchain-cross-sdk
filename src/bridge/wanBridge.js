@@ -200,6 +200,10 @@ class WanBridge extends EventEmitter {
     }
   }
 
+  validateXrpTokenAmount(amount) {
+    return tool.validateXrpTokenAmount(amount);
+  }
+
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;

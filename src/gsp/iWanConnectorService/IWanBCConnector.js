@@ -268,6 +268,10 @@ class IWanBCConnector {
     async getRegisteredMultiChainOrigToken(options) {
       return this.apiClient.getRegisteredMultiChainOrigToken(options);
     }
+
+    async getTrustLines(address, options) {
+      return this.apiClient.getTrustLines("XRP", address, options);
+    }
 };
 
 module.exports = IWanBCConnector;
