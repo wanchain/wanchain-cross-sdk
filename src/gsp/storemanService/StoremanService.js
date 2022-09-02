@@ -165,7 +165,7 @@ class StoremanService {
     }
 
     async getXrpTokenTrustLine(tokenAccount, userAccount) {
-      let [issuer, currency] = tool.parseXrpTokenPairAccount(tokenAccount, false);
+      let [currency, issuer] = tool.parseXrpTokenPairAccount(tokenAccount, false);
       let lines = await this.m_iwanBCConnector.getTrustLines(userAccount);
       let line = lines.find(v => (v.account === issuer) && (v.currency === currency));
       if (line) {

@@ -323,12 +323,12 @@ function xrpConvertDemurrageToUTF8(demurrageCode) {
 }
 
 function parseXrpTokenPairAccount(tokenAccount, normalizeCurrency) {
-  let tokenInfo = ascii2letter(tokenAccount);
+  let tokenInfo = ascii2letter(hexStrip0x(tokenAccount));
   let [issuer, currency] = tokenInfo.split(":");
   if (normalizeCurrency) {
     currency = xrpNormalizeCurrencyCode(currency);
   }
-  return [issuer, currency];
+  return [currency, issuer];
 }
 
 function validateXrpTokenAmount(amount) {
