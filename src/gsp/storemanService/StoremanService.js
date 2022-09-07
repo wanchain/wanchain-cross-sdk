@@ -48,7 +48,7 @@ class StoremanService {
         } catch (err) {
             console.error("getStroremanGroupQuotaInfo error: %O", err);
         }
-        return {maxQuota: "0", minQuota: "0"};
+        return {maxQuota: "10000", minQuota: "0"};
     }
 
     async getConvertInfo(convertJson) {
