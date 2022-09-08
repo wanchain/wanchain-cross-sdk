@@ -340,6 +340,14 @@ function validateXrpTokenAmount(amount) {
   return true;
 }
 
+function parseTokenPairSymbol(chain, symbol) {
+  if ((chain === "XRP") || (chain == '2147483792')) {
+    return xrpNormalizeCurrencyCode(symbol) || symbol;
+  } else {
+    return symbol;
+  }
+}
+
 module.exports = {
   PolkadotSS58Format,
   getCurTimestamp,
@@ -364,5 +372,6 @@ module.exports = {
   sha256,
   cmpAddress,
   parseXrpTokenPairAccount,
-  validateXrpTokenAmount
+  validateXrpTokenAmount,
+  parseTokenPairSymbol
 }

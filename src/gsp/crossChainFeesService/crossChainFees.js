@@ -29,7 +29,7 @@ module.exports = class crossChainFees {
         let ret = {
             fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
             isRatio: fee.isPercent,
-            unit: tokenPair.ancestorSymbol
+            unit: tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol)
         };
         return ret;
     }
