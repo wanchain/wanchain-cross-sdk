@@ -9,6 +9,7 @@ const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
 const BigNumber = require("bignumber.js");
 const Wallet = require("./wallet/wallet.js");
+const util = require('util');
 
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
@@ -176,23 +177,33 @@ class BridgeTask {
       let smgAddr = this._getSmgAddress(fromChainType);
       let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
-      let estimateBalance = smgBalance.plus(this._amount);
+      let estimateBalance = smgBalance;
+      let isLockCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
+      if (isLockCoin) {
+        estimateBalance = estimateBalance.plus(this._amount);
+      }
       if (estimateBalance.lt(chainInfo.minReserved)) {
-        let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
-        console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), unit);
-        return "Amount is too small to activate smg";
+        if (isLockCoin) {
+          let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
+          console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), unit);
+          return "Amount is too small to activate storeman account";
+        } else {
+          return "storeman account is inactive";
+        }
       }
     }
     // check xrp token trust line
-    if ((fromChainType === "XRP") && (this._direction === "MINT") && (this._assetPair.fromAccount != 0)) { // only mint token need to check smg trust line
+    if ((fromChainType === "XRP") && (this._direction === "MINT") && (this._assetPair.fromAccount != 0)) { // only mint token from xrp need to check smg trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
       let smgAddr = this._getSmgAddress(fromChainType);
       let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        console.debug("%s smgAddr %s token %s trust line: %s", fromChainType, smgAddr, this._assetPair.assetType, line? line.limit.minus(line.balance).toFixed() : "0");
-        return "No trust line or liquidity not enough";
+        let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
+        let msg = util.format("storeman account %s has no trust line or liquidity is not enough for token %s", smgAddr, token);
+        console.debug("%s: liquidity=%s", msg, line? line.limit.minus(line.balance).toFixed() : "0");
+        return msg;
       }
     }
     return "";
@@ -242,13 +253,34 @@ class BridgeTask {
     if (chainInfo.minReserved) {
       let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._toWallet, isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
-      let unit = this._assetPair.assetType;
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
-      let estimateBalance = balance.plus(this._amount).minus(fee);
+      let estimateBalance = balance;
+      let isReleaseCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
+      if (isReleaseCoin) {
+        let unit = this._assetPair.assetType;
+        let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+        estimateBalance = estimateBalance.plus(this._amount).minus(fee);
+      }
       if (estimateBalance.lt(chainInfo.minReserved)) {
-        let diff = new BigNumber(chainInfo.minReserved).minus(balance);
-        console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
-        return "Amount is too small to activate toAccount";
+        if (isReleaseCoin) {
+          let diff = new BigNumber(chainInfo.minReserved).minus(balance);
+          console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+          return "Amount is too small to activate recipient account";
+        } else {
+          return "Recipient account is inactive";
+        }
+      }
+    }
+    // check xrp token trust line
+    if ((this._toChainInfo.chainType === "XRP") && (this._direction === "BURN") && (this._assetPair.fromAccount != 0)) { // only burn token to xrp need to check recipient trust line
+      if (!this._bridge.validateXrpTokenAmount(this._amount)) {
+        return "Amount out of range";
+      }
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, this._toAccount);
+      if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
+        let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
+        let msg = util.format("Recipient account %s has no trust line or liquidity is not enough for token %s", this._toAccount, token);
+        console.debug("%s: liquidity=%s", msg, line? line.limit.minus(line.balance).toFixed() : "0");
+        return msg;
       }
     }
     return "";
