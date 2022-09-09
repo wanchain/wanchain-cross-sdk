@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
+const tool = require('../../utils/tool');
 
 class TokenPairService {
     constructor(isTestMode) {
@@ -270,13 +271,13 @@ class TokenPairService {
     updateTokenPairFromChainInfo(tokenPair) {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
-        tokenPair.fromSymbol = tokenPair.fromSymbol;
+        tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
     }
 
     updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
-        tokenPair.toSymbol = tokenPair.symbol;
+        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol)
     }
 
     updateTokenPairCcHandle(tokenPair) {
