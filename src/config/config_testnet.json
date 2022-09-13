@@ -132,14 +132,14 @@
       "chainId": "2147484262",
       "chainType": "OETH",
       "chainName": "Optimism",
-      "crossScAddr": "0x0467bF248BdDb10e4465214E9baf404Ff8e93332",
+      "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
-      "MaskChainId": 69,
+      "MaskChainId": 420,
       "ScScanInfo": {
         "taskInterval": 30000
       }
