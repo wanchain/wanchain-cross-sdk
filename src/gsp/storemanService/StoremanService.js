@@ -41,14 +41,14 @@ class StoremanService {
                     this.m_iwanBCConnector.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
                 ]);
                 // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
-                let maxQuota = new BigNumber(10000); // new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
+                let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
                 let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
             }            
         } catch (err) {
             console.error("getStroremanGroupQuotaInfo error: %O", err);
         }
-        return {maxQuota: "10000", minQuota: "0"};
+        return {maxQuota: "0", minQuota: "0"};
     }
 
     async getConvertInfo(convertJson) {
