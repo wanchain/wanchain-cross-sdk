@@ -201,8 +201,8 @@ class BridgeTask {
       let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
         let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
-        let msg = util.format("storeman account %s has no trust line or liquidity is not enough for token %s", smgAddr, token);
-        console.debug("%s: liquidity=%s", msg, line? line.limit.minus(line.balance).toFixed() : "0");
+        let msg = util.format("Storeman has no trust line for %s", token);
+        console.debug("%s: smg=%s, liquidity=%s", msg, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
         return msg;
       }
     }
@@ -278,8 +278,9 @@ class BridgeTask {
       let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, this._toAccount);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
         let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
-        let msg = util.format("Recipient account %s has no trust line or liquidity is not enough for token %s", this._toAccount, token);
-        console.debug("%s: liquidity=%s", msg, line? line.limit.minus(line.balance).toFixed() : "0");
+        let reason = line? "Liquidity is not enough" : "No trust line";
+        let msg = util.format("%s for %s", reason, token);
+        console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
         return msg;
       }
     }
