@@ -147,9 +147,8 @@ class TokenPairService {
       let tokenMap = new Map();
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
-        if (tp.fromChainID === tp.ancestorChainID) {
-          assetMap.set(tp.ancestorSymbol, {chain: tp.fromChainType, address: tp.fromAccount});
-        }
+        let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
+        assetMap.set(tp.ancestorSymbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
