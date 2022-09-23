@@ -18,7 +18,7 @@ class Wallet {
     }
     this.type = type;
     console.debug("SDK: new Wallet type %s", type);
-    if (["MetaMask", "WanMask", "WalletConnect", "WanWallet"].includes(type)) {
+    if (["MetaMask", "WanMask", "WalletConnect", "WanWallet", "XDCPay", "OKXWallet", "CLVWallet"].includes(type)) {
       if (runInBrowser) { // only browser
         return new Web3Wallet(type, provider);
       }

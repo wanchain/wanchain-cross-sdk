@@ -154,6 +154,12 @@ class IWanBCConnector {
         return ret;
     }
 
+    async getMultiTokenInfo(chain, tokenScAddrArray, tokenType) {
+      let options = tokenType? {tokenType} : undefined;
+      let ret = await this.apiClient.getMultiTokenInfo(chain, tokenScAddrArray, options);
+      return ret;
+    }
+
     async getTokenBalance(chain, accountAddr, tokenAddr) {
         let ret = await this.apiClient.getTokenBalance(chain, accountAddr, tokenAddr);
         return ret;
@@ -266,6 +272,10 @@ class IWanBCConnector {
 
     async getRegisteredChainLogo(options) {
       return this.apiClient.getRegisteredChainLogo(options);
+    }
+
+    async getRegisteredMultiChainOrigToken(options) {
+      return this.apiClient.getRegisteredMultiChainOrigToken(options);
     }
 };
 

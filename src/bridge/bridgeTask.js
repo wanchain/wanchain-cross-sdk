@@ -3,7 +3,6 @@ const keypairs = require('ripple-keypairs');
 const elliptic = require('elliptic');
 const Secp256k1 = elliptic.ec('secp256k1');
 const xrpAddrCodec = require('ripple-address-codec');
-const { PolkadotSS58Format } = require('@substrate/txwrapper-core');
 const polkaUtil = require("@polkadot/util");
 const polkaUtilCrypto = require("@polkadot/util-crypto");
 const { Keyring } = require('@polkadot/api');
@@ -23,11 +22,13 @@ class BridgeTask {
     this._wallet = wallet;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
+      decimals: assetPair.fromDecimals,
       chainType: assetPair.fromChainType,
       chainName: assetPair.fromChainName
     };
     let toChainInfo = {
       symbol: assetPair.toSymbol,
+      decimals: assetPair.toDecimals,
       chainType: assetPair.toChainType,
       chainName: assetPair.toChainName
     };
@@ -52,6 +53,7 @@ class BridgeTask {
 
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
+    // check
     let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
     if (!validWallet) {
       throw new Error("Invalid wallet");
@@ -73,36 +75,37 @@ class BridgeTask {
     if (err) {
       throw new Error(err);
     }
-  }
 
-  async start() {
-    console.debug("bridgeTask start at %s ms", tool.getCurTimestamp());
-
-    let bridge = this._bridge;
+    // set task data
     let assetPair = this._assetPair;
-    let ccTaskData = this._task.ccTaskData;
-
-    // task
-    let jsonTaskAssetPair = {
+    let taskData = {
       assetPairId: assetPair.assetPairId,
       assetType: assetPair.assetType,
+      decimals: assetPair.decimals,
       protocol: assetPair.protocol,
       direction: this._direction,
+      amount: this._amount,
+      fromAccount: this._fromAccount,
+      toAccount: this._toAccount,
+      toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
       toSymbol: this._toChainInfo.symbol,
+      fromDecimals: this._fromChainInfo.decimals,
+      toDecimals: this._toChainInfo.decimals,
       fromChainType: this._fromChainInfo.chainType,
       toChainType: this._toChainInfo.chainType,
       fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
-      smg: this._smg,
+      isOtaTx: !this._wallet,
+      fee: this._fee,
+      smg: this._smg
     };
-    // console.debug("jsonTaskAssetPair: %O", jsonTaskAssetPair);
+    // console.debug({taskData});
+    this._task.setTaskData(taskData);
+  }
 
-    this._task.setTaskAssetPair(jsonTaskAssetPair);
-    this._task.setFee(this._fee);
-    this._task.setOtaTx(!this._wallet);
-    this._task.setTaskAccounts(this._fromAccount, this._toAccount);
-    this._task.setTaskAmount(this._amount, assetPair.decimals);
+  async start() {
+    console.debug("bridgeTask start at %s ms", tool.getCurTimestamp());
 
     // build steps
     console.debug("bridgeTask _checkTaskSteps at %s ms", tool.getCurTimestamp());
@@ -110,12 +113,13 @@ class BridgeTask {
     if (errInfo) {
       throw new Error(errInfo);
     }
+    this._task.setTaskData({status: "Performing"});
 
     // save context
-    ccTaskData.status = "Performing";
+    let bridge = this._bridge;
+    let ccTaskData = this._task.ccTaskData;
     let taskSteps = bridge.stores.crossChainTaskSteps.mapCCTaskStepsArray.get(this.id);
-    ccTaskData.stepData = taskSteps;
-    // console.debug("ccTaskData: %O", ccTaskData);
+    this._task.setTaskData({stepData: taskSteps});
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
     await bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
 
@@ -194,12 +198,12 @@ class BridgeTask {
     if (this._assetPair.assetType === unit) { // asset is coin
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
-      this._task.setFromAccountBalance(coinBalance.toFixed());
+      this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
       let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
       requiredAsset = this._amount;
-      this._task.setFromAccountBalance(assetBalance.toFixed());
+      this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
     if (coinBalance.lt(requiredCoin)) {
       console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
@@ -259,7 +263,7 @@ class BridgeTask {
     let stepInfo = await this._bridge.storemanService.getConvertInfo(convert);
     // console.debug("getConvertInfo: %O", stepInfo);
     if (stepInfo.stepNum > 0) {
-      this._task.setTaskStepNums(stepInfo.stepNum);
+      this._task.setTaskData({stepNums: stepInfo.stepNum});
       return "";
     } else {
       return this._getErrInfo(stepInfo.errCode);
@@ -363,7 +367,7 @@ class BridgeTask {
   }
 
   _getSmgPolkaAddress() {
-    let format = ("testnet" === this._bridge.network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
+    let format = ("testnet" === this._bridge.network)? tool.PolkadotSS58Format.westend : tool.PolkadotSS58Format.polkadot;
     let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);

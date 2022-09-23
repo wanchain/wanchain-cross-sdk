@@ -17,7 +17,9 @@ class CrossChainTask {
       fromAccount: '', // the from account
       toAccount: '', // the to account
       amount: '',  // convert amount
-      decimals: 0,
+      decimals: 0, // effective decimals
+      fromDecimals: 0, // from token decimals
+      toDecimals: 0, // to token decimals
       sentAmount: '', // actually sent amount
       receivedAmount: '', // final received amount
       status: '',
@@ -34,44 +36,15 @@ class CrossChainTask {
     };
   }
 
-  setTaskAssetPair(jsonTaskAssetPair) {
-    this.ccTaskData.assetPairId = jsonTaskAssetPair.assetPairId;
-    this.ccTaskData.assetType = jsonTaskAssetPair.assetType;
-    this.ccTaskData.protocol = jsonTaskAssetPair.protocol;
-    this.ccTaskData.convertType = jsonTaskAssetPair.direction;
-    this.ccTaskData.fromSymbol = jsonTaskAssetPair.fromSymbol;
-    this.ccTaskData.toSymbol = jsonTaskAssetPair.toSymbol;
-    this.ccTaskData.fromChainType = jsonTaskAssetPair.fromChainType;
-    this.ccTaskData.toChainType = jsonTaskAssetPair.toChainType;
-    this.ccTaskData.fromChainName = jsonTaskAssetPair.fromChainName;
-    this.ccTaskData.toChainName = jsonTaskAssetPair.toChainName;    
-    this.ccTaskData.smg = jsonTaskAssetPair.smg;
-  }
-
-  setTaskAccounts(fromAccount, toAccount) {
-    this.ccTaskData.fromAccount = fromAccount;
-    this.ccTaskData.toAccount = toAccount;
-  }
-
-  setFromAccountBalance(balance) {
-    this.ccTaskData.fromAccountBalance = balance;
-  }
-
-  setFee(fee) {
-    this.ccTaskData.fee = fee;
-  }
-
-  setOtaTx(isOtaTx) {
-    this.ccTaskData.isOtaTx = isOtaTx;
-  }
-
-  setTaskAmount(amount, decimals) {
-    this.ccTaskData.amount = amount;
-    this.ccTaskData.decimals = Number(decimals);
-  }
-
-  setTaskStepNums(stepNums) {
-    this.ccTaskData.stepNums = stepNums;
+  setTaskData(taskData) {
+    for (let k in taskData) {
+      let sk = (k === 'direction')? 'convertType' : k;
+      if (this.ccTaskData[sk] !== undefined) {
+        this.ccTaskData[sk] = taskData[k];
+      } else {
+        console.error("task %s setTaskData undefined key %s", this.ccTaskData.ccTaskId, sk);
+      }
+    }
   }
 }
 

@@ -23,18 +23,18 @@ module.exports = class BurnErc20ProxyToken {
 
     let steps = [];
 
-    // Erc20
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals));
     // check erc20 token
-    let nativeToken, poolToken, chainInfo;
+    let nativeToken, poolToken, chainInfo, decimals;
     if (convert.convertType === "MINT") {
       nativeToken = tokenPair.fromNativeToken;
       poolToken = tokenPair.fromAccount;
       chainInfo = tokenPair.fromScInfo;
+      decimals = tokenPair.fromDecimals;
     } else {
       nativeToken = tokenPair.toNativeToken;
       poolToken = tokenPair.toAccount;
-      chainInfo = tokenPair.toScInfo;      
+      chainInfo = tokenPair.toScInfo;
+      decimals = tokenPair.toDecimals;
     }
     let approveMaxValue = new BigNumber(chainInfo.approveMaxValue);
     let erc20ApproveParas = {
@@ -49,6 +49,7 @@ module.exports = class BurnErc20ProxyToken {
       taskType: "ProcessErc20Approve"
     };
     console.debug("BurnErc20ProxyToken erc20ApproveParas: %O", erc20ApproveParas);
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
     let allowance = await this.m_iwanBCConnector.getErc20Allowance(chainInfo.chainType,
       nativeToken,// tokenAddr
       convert.fromAddr, // account
@@ -73,7 +74,7 @@ module.exports = class BurnErc20ProxyToken {
     // function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)  
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals, false);
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
     let userFastBurnParas = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -105,8 +106,7 @@ module.exports = class BurnErc20ProxyToken {
         stepNum: steps.length,
         errCode: null
       };
-    }
-    else {
+    } else {
       console.error("BurnErc20ProxyToken insufficient gas");
       this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {

@@ -161,6 +161,22 @@
       }
     },
     {
+      "chainId": "2147484644",
+      "chainType": "OKT",
+      "chainName": "OKC",
+      "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 66,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
       "chainId": "2147484198",
       "chainType": "XDC",
       "chainName": "XDC Network",
@@ -172,6 +188,22 @@
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 50,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
+      "chainId": "1073741829",
+      "chainType": "CLV",
+      "chainName": "Clover P-Chain",
+      "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 1024,
       "ScScanInfo": {
         "taskInterval": 30000
       }
@@ -311,7 +343,7 @@
     },
     {
       "id": "66",
-      "comment": "native USDT between Arbitrum<->Polygon",
+      "comment": "Arbitrum USDT pool <->Polygon USDT pool",
       "mintHandle": "BurnErc20ProxyToken",
       "burnHandle": "BurnErc20ProxyToken",
       "fromNativeToken": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
@@ -319,10 +351,17 @@
     },
     {
       "id": "74",
-      "comment": "Ethereum <-> Avalanche native VEE",
+      "comment": "Ethereum native VEE <-> Avalanche VEE pool",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20ProxyToken",
       "toNativeToken": "0x...................................."
+    },
+    {
+      "id": "178",
+      "comment": "Moonriver native FINN <-> Clove FINN pool",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20ProxyToken",
+      "toNativeToken": "0xBeA4928632e482A0A1241B38f596a311Ad7b98B1"
     }
   ],
   "LockTxTimeout": 86400000

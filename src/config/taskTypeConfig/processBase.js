@@ -46,6 +46,7 @@ module.exports = class ProcessBase {
         txHash = await wallet.sendTransaction(txData);
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
+        // console.debug({err, str: err.toString()});
         let result, errInfo = "";
         if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
           result = "Rejected";
