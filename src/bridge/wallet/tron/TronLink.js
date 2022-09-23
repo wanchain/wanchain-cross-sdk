@@ -1,6 +1,15 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../../utils/tool");
 
+const TxResource = {
+  approveBandwidth: 345,
+  approveEnergy: 22495,
+  lockBandwidth: 480,
+  lockEnergy: 43267, // TRX: 17202, Token: 43267
+  burnBandwidth: 571,
+  burnEnergy: 41505,
+}
+
 class TronLink {
   constructor(type, provider) {
     if (!['mainnet', 'testnet', 'nile'].includes(provider)) {
@@ -8,7 +17,6 @@ class TronLink {
     }
     this.type = type;
     this.tronWeb = window.tronWeb;
-    console.log("tronWeb: %O", window.tronWeb)
   }
 
   // standard function
@@ -41,8 +49,9 @@ class TronLink {
   // customized function
 
   async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, coinValue) {
+    let feeLimit = await this.getFeeLimit("lock");
     let options = {
-      feeLimit: 100000000,
+      feeLimit,
       callValue: new BigNumber(coinValue).toFixed(), // tx coin value
     };
     let fn = "userLock(bytes32,uint256,uint256,bytes)"; // userLock(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
@@ -58,8 +67,9 @@ class TronLink {
   }
 
   async generatorErc20ApproveData(erc20Addr, spenderAddr, value) {
+    let feeLimit = await this.getFeeLimit("approve");
     let options = {
-      feeLimit: 100000000,
+      feeLimit,
       callValue: 0, // total value
     };
     let fn = "approve(address,uint256)"; // approve(address _spender, uint256 _value)
@@ -73,8 +83,9 @@ class TronLink {
   }
 
   async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, coinValue) {
+    let feeLimit = await this.getFeeLimit("burn");
     let options = {
-      feeLimit: 100000000,
+      feeLimit,
       callValue: new BigNumber(coinValue).toFixed(), // tx coin value
     };
     let fn = "userBurn(bytes32,uint256,uint256,uint256,address,bytes)"; // userBurn(bytes32 smgID, uint tokenPairID, uint value, uint fee, address tokenAccount, bytes userAccount)
@@ -89,6 +100,14 @@ class TronLink {
     let sc = tool.getStandardAddressInfo("TRX", crossScAddr).native;
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
     return tx.transaction;
+  }
+
+  async getFeeLimit(action) {
+    let chainParas = await this.tronWeb.trx.getChainParameters();
+    // console.debug({chainParas});
+    let bandwidthFee = new BigNumber(chainParas.find(v => v.key === 'getTransactionFee').value).times(TxResource[action + "Bandwidth"]);
+    let energeFee = new BigNumber(chainParas.find(v => v.key === 'getEnergyFee').value).times(TxResource[action + "Energy"]);
+    return bandwidthFee.plus(energeFee).times(1.2).toFixed();
   }
 }
 

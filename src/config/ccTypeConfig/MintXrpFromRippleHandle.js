@@ -11,12 +11,17 @@ module.exports = class MintXrpFromRipple {
   async process(tokenPair, convert) {
     let WebStores = this.m_frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.decimals)).toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.decimals);
+      let value = new BigNumber(convert.value);
+      if (tokenPair.fromAccount == 0) { // token ignore decimals
+        value = value.multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+      }
+      value = value.toFixed();
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals);
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
-        userAccount: convert.toAddr,
+        userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
+        toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.storemanGroupGpk,
         tokenPairID: convert.tokenPairId,

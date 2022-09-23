@@ -1,12 +1,16 @@
 const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
 const { encodeAddress } = require('@polkadot/keyring');
-const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
 const crypto = require('crypto');
-const Web3 = require("web3");
+const Web3 = require('web3');
 const TronWeb = require('tronweb');
+
+let wasm = null;
+if (typeof(window) !== "undefined") {
+  wasm = require("@emurgo/cardano-serialization-lib-asmjs");
+}
 
 // self define to reduce imported package size
 const PolkadotSS58Format = {
@@ -53,6 +57,23 @@ function bytes2Hex(bytes) {
   return Array.from(bytes, function(byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
+}
+
+function ascii2letter(asciiStr) {
+  let len = asciiStr.length;
+  if (len % 2 != 0) {
+      return '';
+  }
+  let letterStr = [];
+  for (var i = 0; i < len; i = i + 2) {
+      let tmp = asciiStr.substr(i, 2);
+      if (tmp != '00') {
+        letterStr.push(String.fromCharCode(parseInt(tmp, 16)));
+      } else { // invalid ascii
+        return '';
+      }
+  }
+  return letterStr.join('');
 }
 
 function isValidEthAddress(address) {
@@ -210,7 +231,7 @@ function getStandardAddressInfo(chainType, address) {
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
     return {native: address, evm: address};
   } else {
-    let evmBytes = web3.utils.asciiToHex(address)
+    let evmBytes = web3.utils.asciiToHex(address);
     return {native: address, evm: evmBytes};
   }
 }
@@ -258,6 +279,75 @@ function cmpAddress(address1, address2) {
   return (address1.substr(-40).toLowerCase() == address2.substr(-40).toLowerCase());
 }
 
+function xrpNormalizeCurrencyCode(currencyCode, maxLength = 20) {
+  if (!currencyCode) {
+    return "";
+  }
+  if (currencyCode.length === 3 && currencyCode.trim().toLowerCase() !== 'xrp') {
+      // "Standard" currency code
+      return currencyCode.trim();
+  }
+  if (currencyCode.match(/^[a-fA-F0-9]{40}$/) && !isNaN(parseInt(currencyCode, 16))) {
+      // Hexadecimal currency code
+      const hex = currencyCode.toString().replace(/(00)+$/g, '');
+      if (hex.startsWith('01')) {
+          // Old demurrage code. https://xrpl.org/demurrage.html
+          return xrpConvertDemurrageToUTF8(currencyCode);
+      }
+      if (hex.startsWith('02')) {
+          // XLS-16d NFT Metadata using XLS-15d Concise Transaction Identifier
+          // https://github.com/XRPLF/XRPL-Standards/discussions/37
+          const xlf15d = Buffer.from(hex, 'hex').slice(8).toString('utf-8').slice(0, maxLength).trim();
+          if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== 'xrp') {
+              return xlf15d;
+          }
+      }
+      const decodedHex = Buffer.from(hex, 'hex').toString('utf-8').slice(0, maxLength).trim();
+      if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== 'xrp') {
+          // ASCII or UTF-8 encoded alphanumeric code, 3+ characters long
+          return decodedHex;
+      }
+  }
+  return "";
+}
+
+function xrpConvertDemurrageToUTF8(demurrageCode) {
+  let bytes = Buffer.from(demurrageCode, "hex");
+  let code = String.fromCharCode(bytes[1]) + String.fromCharCode(bytes[2]) + String.fromCharCode(bytes[3]);
+  let interest_start = (bytes[4] << 24) + (bytes[5] << 16) + (bytes[6] <<  8) + (bytes[7]);
+  let interest_period = bytes.readDoubleBE(8);
+  const year_seconds = 31536000; // By convention, the XRP Ledger's interest/demurrage rules use a fixed number of seconds per year (31536000), which is not adjusted for leap days or leap seconds
+  let interest_after_year = Math.pow(Math.E, (interest_start+year_seconds - interest_start) / interest_period)
+  let interest = (interest_after_year * 100) - 100;
+  return (`${code} (${interest}% pa)`);
+}
+
+function parseXrpTokenPairAccount(tokenAccount, normalizeCurrency) {
+  let tokenInfo = ascii2letter(hexStrip0x(tokenAccount));
+  let [issuer, currency] = tokenInfo.split(":");
+  if (normalizeCurrency) {
+    currency = xrpNormalizeCurrencyCode(currency);
+  }
+  return [currency, issuer];
+}
+
+function validateXrpTokenAmount(amount) {
+  let v = new BigNumber(amount).toExponential();
+  let [p, e] = v.split("e");
+  if ((p.replace(/\./g, '').length > 16) || (e > 95) || (e < -81)) {
+    return false;
+  }
+  return true;
+}
+
+function parseTokenPairSymbol(chain, symbol) {
+  if ((chain === "XRP") || (chain == '2147483792')) {
+    return xrpNormalizeCurrencyCode(symbol) || symbol;
+  } else {
+    return symbol;
+  }
+}
+
 module.exports = {
   PolkadotSS58Format,
   getCurTimestamp,
@@ -265,6 +355,7 @@ module.exports = {
   sleep,
   hexStrip0x,
   bytes2Hex,
+  ascii2letter,
   isValidEthAddress,
   isValidWanAddress,
   isValidBtcAddress,
@@ -279,5 +370,8 @@ module.exports = {
   getCoinSymbol,
   parseFee,
   sha256,
-  cmpAddress
+  cmpAddress,
+  parseXrpTokenPairAccount,
+  validateXrpTokenAmount,
+  parseTokenPairSymbol
 }

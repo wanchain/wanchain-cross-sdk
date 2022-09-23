@@ -2,7 +2,7 @@
 
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
-const util = require('util');
+const tool = require('../../utils/tool');
 
 class TokenPairService {
     constructor(isTestMode) {
@@ -10,11 +10,11 @@ class TokenPairService {
         this.m_iwanConnected = false;
         this.m_mapTokenPair = new Map(); // tokenPairId => tokenPair
         this.m_mapTokenPairCfg = new Map(); // tokenPairId => tokenPairConfig
-        this.tokenSymbol = new Map(); // chain-address => symbol
         this.assetLogo = new Map(); // name => logo
         this.chainLogo = new Map(); // type => logo
         this.storageService = null; // init after token pair service
         this.forceRefresh = false;
+        this.multiChainOrigToken = new Map();
     }
 
     async init(frameworkService) {
@@ -48,7 +48,7 @@ class TokenPairService {
     async getSmgs(startTime) {
         let smgList = await this.iwanBCConnector.getStoremanGroupList();
         let ts = new Date().getTime();
-        console.debug("getSmgs consume %s ms", ts - startTime);
+        console.debug("getSmgs %d consume %s ms", smgList.length, ts - startTime);
         let workingList = [];
         for (let i = 0; i < smgList.length; i++) {
             let group = smgList[i];
@@ -71,24 +71,29 @@ class TokenPairService {
         this.storageService = this.frameworkService.getService("StorageService");
         try {
             let ts0 = new Date().getTime();
-            let tokenPairs = await this.readTokenpairs(ts0);
+            let tokenPairMap = new Map();
+            let [tokenPairs] = await Promise.all([
+              this.readTokenpairs(ts0),
+              this.readMultiChainOrigToken(ts0)
+            ]);
             tokenPairs = tokenPairs.filter(tp => {
-              if (tp.ancestorSymbol !== "EOS") {
-                return this.updateTokenPairInfo(tp); // ignore unsupported token pair
-              } else {
-                return false; // ignore deprecated tokens
+              if (tp.ancestorSymbol !== "EOS") { // ignore deprecated tokens
+                if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
+                  tokenPairMap.set(tp.id, tp);
+                  return true;
+                }
               }
+              return false;
             });
             let ts1 = new Date().getTime();
             let ps = [
-              this.getSmgs(ts1),
-              this.readTokenSymbols(tokenPairs, ts1)
+              this.getSmgs(ts1)
             ];
             if (typeof(window) !== "undefined") {
               ps.push(this.readAssetLogos(tokenPairs, ts1));
               ps.push(this.readChainLogos(tokenPairs, ts1));
             }
-            let [smgList, tokenPairMap] = await Promise.all(ps);
+            let [smgList] = await Promise.all(ps);
             let ts2 = new Date().getTime();
             console.debug("readAssetPair consume %s/%s ms", ts2 - ts1, ts2 - ts0);
             // console.debug("available tokenPairMap: %O", tokenPairMap.values());
@@ -121,93 +126,20 @@ class TokenPairService {
         this.storageService.setCacheData("Version", {ui: uiVer, iwan: iwanVer});
       }
       let ts = new Date().getTime();
-      console.debug("readTokenpairs consume %s ms", ts - startTime);
+      console.debug("readTokenpairs %d consume %s ms", tokenPairs.length, ts - startTime);
       return tokenPairs;
     }
 
-    async readTokenSymbols(tokenPairs, startTime) {
-      // read cached symbols
-      let cache = this.forceRefresh? [] : (this.storageService.getCacheData("TokenSymbol") || []);
-      let tokenSymbolCacheOld = new Map(cache);
-      // collect available token pairs and missed symbols
-      let missSymbols = 0;
-      tokenPairs.forEach(tp => {
-        if (tp.fromAccount !== "0x0000000000000000000000000000000000000000") {
-          let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType || "Erc20");
-          if (!tokenSymbolCacheOld.get(key)) {
-            missSymbols++;
-            tokenSymbolCacheOld.set(key, ""); // insert new symbol
-            // console.debug("%s %s symbol miss cache", tp.fromChainType, tp.fromAccount);
-          }
-        }
-      });
-      // fetch missed symbols
-      if (missSymbols) {
-        let mc20 = new Map(), mc721 = new Map();
-        Array.from(tokenSymbolCacheOld.keys()).map(tsk => {
-          let [chain, account, type] = tsk.split("-");
-          if (!tokenSymbolCacheOld.get(tsk)) { // inserted new symbols
-            let mcMap = (type === "Erc721")? mc721 : mc20;
-            let accounts = mcMap.get(chain);
-            if (!accounts) {
-              accounts = [];
-              mcMap.set(chain, accounts);
-            }
-            accounts.push(account);
-          }
-        })
-        mc20 = Array.from(mc20);
-        let mcAall = mc20.concat(Array.from(mc721));
-        let tokens = await Promise.all(mcAall.map(async (mc, i) => {
-          let type = (i >= mc20.length)? "Erc721" : "Erc20";
-          try {
-            let res = await this.iwanBCConnector.getMultiTokenInfo(mc[0], mc[1], type);
-            return res;
-          } catch (err) {
-            console.error("get %s %s tokens %s error: %O", mc[0], type, mc[1], err);
-            return {};
-          }
-        }));
-        tokens.forEach((item, i) => {
-          let type = (i >= mc20.length)? "Erc721" : "Erc20";
-          let chain = mcAall[i][0];
-          for (let k in item) {
-            let symbol = item[k].symbol;
-            let key = util.format("%s-%s-%s", chain, k, type);
-            if (symbol) {
-              tokenSymbolCacheOld.set(key, symbol);
-            } else {
-              console.error("%s getTokenInfo none", key);
-            }
-          }
-        });
-      } else {
-        console.debug("all symbol hit cache");
-      }
-      let ts = new Date().getTime();
-      console.debug("readTokenSymbols consume %s ms", ts - startTime);
-      // collect available token pairs and construct symbol new cache
-      let tokenPairMap = new Map();
-      let tokenSymbolCacheNew = new Map(); // may be less than old
-      tokenPairs.map(tp => { // update fromSymbol
-        if (tp.fromAccount === "0x0000000000000000000000000000000000000000") {
-          tp.fromSymbol = tp.ancestorSymbol;
-          tokenPairMap.set(tp.id, tp);
-        } else {
-          let key = util.format("%s-%s-%s", tp.fromChainType, tp.fromAccount, tp.toAccountType || "Erc20");
-          let fromSymbol = tokenSymbolCacheOld.get(key);
-          if (fromSymbol) {
-            tp.fromSymbol = fromSymbol;
-            tokenPairMap.set(tp.id, tp);
-            tokenSymbolCacheNew.set(key, fromSymbol);
-          } else {
-            console.error("ignore unavailable token pair %s(%s, %s<->%s)", tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName);
-          }
-        }
+    async readMultiChainOrigToken(startTime) {
+      let origTokens = await this.iwanBCConnector.getRegisteredMultiChainOrigToken();
+      let map = new Map();
+      origTokens.forEach(t => {
+        let key = t.chainType + "-" + t.tokenScAddr;
+        map.set(key, t);
       })
-      this.tokenSymbol = tokenSymbolCacheNew;
-      this.storageService.setCacheData("TokenSymbol", Array.from(tokenSymbolCacheNew));
-      return tokenPairMap;
+      this.multiChainOrigToken = map;
+      let ts = new Date().getTime();
+      console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
     }
 
     async readAssetLogos(tokenPairs, startTime) {
@@ -215,9 +147,8 @@ class TokenPairService {
       let tokenMap = new Map();
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
-        if (tp.fromChainID === tp.ancestorChainID) {
-          assetMap.set(tp.ancestorSymbol, {chain: tp.fromChainType, address: tp.fromAccount});
-        }
+        let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
+        assetMap.set(tp.ancestorSymbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -246,7 +177,7 @@ class TokenPairService {
         console.debug("all asset logo hit cache");
       }
       let ts = new Date().getTime();
-      console.debug("readAssetLogos consume %s ms", ts - startTime);
+      console.debug("readAssetLogos %d consume %s ms", tokenScAddr.length, ts - startTime);
       this.assetLogo = logoMapCacheNew;
       this.storageService.setCacheData("AssetLogo", Array.from(logoMapCacheNew));
     }
@@ -289,7 +220,7 @@ class TokenPairService {
         console.debug("all chain logo hit cache");
       }
       let ts = new Date().getTime();
-      console.debug("readChainLogos consume %s ms", ts - startTime);
+      console.debug("readChainLogos %d consume %s ms", newChains.length, ts - startTime);
       this.chainLogo = logoMapCacheNew;
       this.storageService.setCacheData("ChainLogo", Array.from(logoMapCacheNew));
     }
@@ -317,8 +248,10 @@ class TokenPairService {
     updateTokenPairInfo(tokenPair) {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
-        tokenPair.decimals = tokenPair.decimals || 0;
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
+            tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
+            tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
+            tokenPair.decimals = (Number(tokenPair.fromDecimals) < Number(tokenPair.toDecimals))? tokenPair.fromDecimals : tokenPair.toDecimals;
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
@@ -329,7 +262,7 @@ class TokenPairService {
                 return false; // can not get token info from chain
             }
         } else {
-            console.log("ignore unsupported token pair %s(%s, %s<->%s)", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName);
+            console.log("ignore unsupported token pair %s(%s, %s<->%s)", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainID, tokenPair.toChainID);
             return false; // lack of chain config, need to upgrade sdk
         }
     }
@@ -337,12 +270,13 @@ class TokenPairService {
     updateTokenPairFromChainInfo(tokenPair) {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
+        tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
     }
 
     updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
-        tokenPair.toSymbol = tokenPair.symbol;
+        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol)
     }
 
     updateTokenPairCcHandle(tokenPair) {
@@ -383,12 +317,45 @@ class TokenPairService {
                 }
             } else {
                 // 祖先链是其他链的coin或token,在非祖先链之间转移,双向都是userBurn
-                tokenPair.ccType["MINT"] = "MintOtherCoinBetweenEthWanHandle";
+                tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
             }
         }
 
         // 2.2 BURN
-        tokenPair.ccType["BURN"] = "BurnErc20";
+        tokenPair.ccType["BURN"] = this.getTokenBurnHandler(tokenPair, "BURN");
+    }
+
+    // for internal call
+    getTokenBurnHandler(tokenPair, direction) {
+      let chainType = (direction === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
+      let tokenAccount = (direction === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+      let key = chainType + "-" + tokenAccount;
+      let origToken = this.multiChainOrigToken.get(key);
+      if (origToken) {
+        if (direction === "BURN") {
+          console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
+        }
+        return "MintErc20";
+      } else {
+        // if (direction === "MINT") {
+        //   console.debug("tokenpair %s %s(%s->%s) handler is BurnErc20", tokenPair.id, tokenPair.fromSymbol, tokenPair.fromChainType, tokenPair.toChainType);
+        // }
+        return "BurnErc20";
+      }
+    }
+
+    // for external call
+    getTokenEventType(tokenPairId, direction) {
+      let tokenPair = this.getTokenPair(tokenPairId);
+      let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+      let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
+      let key = chainType + "-" + tokenAccount;
+      let origToken = this.multiChainOrigToken.get(key);
+      if (origToken || (tokenAccount === tokenPair.ancestorAccount)) { // original token or coin
+        return "BURN"; // release
+      } else {
+        return "MINT";
+      }
     }
 
     async updateSmgs() {

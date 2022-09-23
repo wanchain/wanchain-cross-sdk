@@ -26,17 +26,11 @@ class CrossChainTaskRecords {
     }    
   }
 
-  attachTagIdByTaskId(ccTaskId, address, tagId, rAddress) {
+  setTaskOtaInfo(ccTaskId, ota) {
     // adapted to BTC/XRP crosschain task on 2021.0111     
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
-      ccTask.ota = {address};
-      if (tagId) {
-        ccTask.ota.tagId = tagId;
-      }
-      if (rAddress) {
-        ccTask.ota.rAddress = rAddress;
-      }
+      ccTask.ota = ota;
     }
   }
 

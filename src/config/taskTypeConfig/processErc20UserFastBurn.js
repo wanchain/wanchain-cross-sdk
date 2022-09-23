@@ -48,18 +48,19 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         let params = stepData.params;
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+        let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
+        let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
         let blockNumber;
-        if (tokenPair.fromChainType === "XRP") {
-          blockNumber = await this.m_iwanBCConnector.getLedgerVersion(tokenPair.fromChainType);
-        } else if (["DOT", "ADA"].includes(tokenPair.fromChainType)) {
+        if (checkChainType === "XRP") {
+          blockNumber = await this.m_iwanBCConnector.getLedgerVersion(checkChainType);
+        } else if (["DOT", "ADA"].includes(checkChainType)) {
           blockNumber = 0;
           // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
         } else {
-          blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.fromChainType);
+          blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
         }
-        console.log("ProcessErc20UserFastBurn getConvertInfoForCheck tokenPair: %O", tokenPair);
         // exception: burn legency EOS from ethereum to wanchain is "BURN"
-        let taskType = (tokenPair.fromChainID === tokenPair.ancestorChainID)? "BURN" : "MINT";
+        let taskType = storemanService.getTokenEventType(params.tokenPairID, direction);
         let checker = {
           needCheck: true,
           checkInfo: {
@@ -69,10 +70,10 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             smgID: params.storemanGroupId,
             tokenPairID: params.tokenPairID,
             value: params.value,
-            chain: tokenPair.fromChainType,
+            chain: checkChainType,
             fromBlockNumber: blockNumber,
             taskType,
-            fromChain: tokenPair.toChainType,
+            fromChain: params.scChainType,
             fromAddr: params.fromAddr,
             chainHash: stepData.txHash,
             toAddr: params.toAddr

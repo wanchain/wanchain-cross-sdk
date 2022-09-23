@@ -1,6 +1,7 @@
 "use strict";
 
 const BigNumber = require("bignumber.js");
+const tool = require("../../utils/tool");
 
 const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"]; // TRX has self wallet but also be supported by rpc 
 
@@ -23,14 +24,25 @@ class StoremanService {
             let tokenPair = tokenPairService.getTokenPair(tokenPairId);
             if (tokenPair) {
                 let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
+                let decimals = (fromChainType === tokenPair.fromChainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
                 if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
                     // wanEOS特殊处理wan -> eth mint storeman采用旧的处理方式
                     fromChainType = "EOS";
                 }
-                let quota = await this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType);
+                let minAmountChain = toChainType;
+                if (tokenPair.fromAccount == 0) {
+                    minAmountChain = tokenPair.fromChainType;
+                } else if (tokenPair.toAccount == 0) {
+                    minAmountChain = tokenPair.toChainType;
+                }
+                let minAmountDecimals = (minAmountChain === tokenPair.fromChainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
+                let [quota, min] = await Promise.all([
+                    this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType),
+                    this.m_iwanBCConnector.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
+                ]);
                 // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
-                let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
-                let minQuota = new BigNumber(quota[0].minQuota).div(Math.pow(10, parseInt(tokenPair.ancestorDecimals)));
+                let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
+                let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
             }            
         } catch (err) {
@@ -88,10 +100,11 @@ class StoremanService {
                     } else {
                         balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.fromChainType, addr, assetPair.fromAccount);
                     }
+                    decimals = assetPair.fromDecimals;
                 } else if (type === "BURN") {
                     balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.toChainType, addr, assetPair.toAccount);
+                    decimals = assetPair.toDecimals;
                 }
-                decimals = assetPair.ancestorDecimals;
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
             if (kaChainInfo && options.keepAlive) {
@@ -131,6 +144,11 @@ class StoremanService {
         return tokenPairService.getTokenPair(tokenPairId);
     }
 
+    getTokenEventType(tokenPairId, direction) {
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      return tokenPairService.getTokenEventType(tokenPairId, direction);
+    }
+
     async updateSmgs() {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         return tokenPairService.updateSmgs();
@@ -144,6 +162,19 @@ class StoremanService {
     getChainLogo(chainType) {
       let tokenPairService = this.m_frameworkService.getService("TokenPairService");
       return tokenPairService.getChainLogo(chainType);
+    }
+
+    async getXrpTokenTrustLine(tokenAccount, userAccount) {
+      let [currency, issuer] = tool.parseXrpTokenPairAccount(tokenAccount, false);
+      let lines = await this.m_iwanBCConnector.getTrustLines(userAccount);
+      let line = lines.find(v => (v.account === issuer) && (v.currency === currency));
+      if (line) {
+        return {
+          limit: new BigNumber(line.limit),
+          balance: new BigNumber(line.balance)
+        };
+      }
+      return null;
     }
 };
 
