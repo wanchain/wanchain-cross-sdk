@@ -2,6 +2,7 @@
 
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
+const axios = require("axios");
 
 const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"]; // TRX has self wallet but also be supported by rpc 
 
@@ -13,6 +14,7 @@ class StoremanService {
         try {
             this.m_frameworkService = frameworkService;
             this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+            this.chainInfoService = this._service.getService("ChainInfoService");
         } catch (err) {
             console.log("StoremanService init err:", err);
         }
@@ -64,46 +66,52 @@ class StoremanService {
     async getAccountBalance(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = tokenPairService.getTokenPair(assetPairId);
-            if (!assetPair) {
+            let tokenPair = tokenPairService.getTokenPair(assetPairId);
+            if (!tokenPair) {
                 return new BigNumber(0);
             }
             let balance, decimals, kaChainInfo = null;
             let wallet = options.wallet; // third party wallet is required
             if (options.isCoin) {
                 if (type === "MINT") {
-                    if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.fromChainType)) {
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.fromChainType)) {
                         balance = await wallet.getBalance(addr);
                     } else {
-                        balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
+                        balance = await this.m_iwanBCConnector.getBalance(tokenPair.fromChainType, addr);
                     }
-                    kaChainInfo = assetPair.fromScInfo;
-                    decimals = assetPair.fromScInfo.chainDecimals;
+                    kaChainInfo = tokenPair.fromScInfo;
+                    decimals = tokenPair.fromScInfo.chainDecimals;
                 } else if (type === "BURN") {
-                    if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.toChainType)) {
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.toChainType)) {
                         balance = await wallet.getBalance(addr);
                     } else {
-                        balance = await this.m_iwanBCConnector.getBalance(assetPair.toChainType, addr);
+                        balance = await this.m_iwanBCConnector.getBalance(tokenPair.toChainType, addr);
                     }
-                    decimals = assetPair.toScInfo.chainDecimals;
+                    decimals = tokenPair.toScInfo.chainDecimals;
                 }
             } else {
                 if (type === "MINT") {
-                    if (assetPair.fromAccount === "0x0000000000000000000000000000000000000000") {
+                    if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
                         // COIN
-                        if (SELF_WALLET_BALANCE_CHAINS.includes(assetPair.fromChainType)) {
+                        if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.fromChainType)) {
                             balance = await wallet.getBalance(addr);
                         } else {
-                            balance = await this.m_iwanBCConnector.getBalance(assetPair.fromChainType, addr);
+                            balance = await this.m_iwanBCConnector.getBalance(tokenPair.fromChainType, addr);
                         }
-                        kaChainInfo = assetPair.fromScInfo;
+                        kaChainInfo = tokenPair.fromScInfo;
+                    } else if (tokenPair.fromAccountType === "Erc1155") {
+                        balance = await this.getErc1155Balance(tokenPair.fromChainType, addr, tokenPair.fromAccount);
                     } else {
-                        balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.fromChainType, addr, assetPair.fromAccount);
+                        balance = await this.m_iwanBCConnector.getTokenBalance(tokenPair.fromChainType, addr, tokenPair.fromAccount);
                     }
-                    decimals = assetPair.fromDecimals;
+                    decimals = tokenPair.fromDecimals;
                 } else if (type === "BURN") {
-                    balance = await this.m_iwanBCConnector.getTokenBalance(assetPair.toChainType, addr, assetPair.toAccount);
-                    decimals = assetPair.toDecimals;
+                    if (tokenPair.toAccountType === "Erc1155") {
+                        balance = await this.getErc1155Balance(tokenPair.toChainType, addr, tokenPair.toAccount);
+                    } else {
+                        balance = await this.m_iwanBCConnector.getTokenBalance(tokenPair.toChainType, addr, tokenPair.toAccount);
+                    }
+                    decimals = tokenPair.toDecimals;
                 }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
@@ -117,7 +125,7 @@ class StoremanService {
             }
             return balance;
         } catch (err) {
-            console.error("get assetPair %s type %s address %s balance error: %O", assetPairId, type, addr, err);
+            console.error("get tokenPair %s type %s address %s balance error: %O", assetPairId, type, addr, err);
             return new BigNumber(0);
         }
     }
@@ -125,16 +133,16 @@ class StoremanService {
     async checkAccountOwnership(assetPairId, type, addr, tokenId) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let assetPair = tokenPairService.getTokenPair(assetPairId);
-            if (!assetPair) {
+            let tokenPair = tokenPairService.getTokenPair(assetPairId);
+            if (!tokenPair) {
                 return false;
             }
-            let chain = (type === "MINT")? assetPair.fromChainType : assetPair.toChainType;
-            let token = (type === "MINT")? assetPair.fromAccount : assetPair.toAccount;
+            let chain = (type === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
+            let token = (type === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
             let isOwnable = await this.m_iwanBCConnector.checkErc721Ownership(chain, token, tokenId, addr);
             return isOwnable;
         } catch (err) {
-            console.error("check assetPair %s type %s address %s token %s ownership error: %O", assetPairId, type, addr, tokenId, err);
+            console.error("check tokenPair %s type %s address %s token %s ownership error: %O", assetPairId, type, addr, tokenId, err);
             return false;
         }
     }
@@ -176,8 +184,65 @@ class StoremanService {
       }
       return null;
     }
+
+    async getNftInfo(type, chain, tokenAddr, owner, limit, skip = 0, includeUri = true) {
+      let chainInfo = this.chainInfoService.getChainInfoByType(chain);
+      let url = chainInfo.subgraph;
+      const query = {
+        query: `
+          query getNftList($tokenAddr: String, $owner: String, $limit: Int, $skip: Int) {
+            tokenBalances(first: $limit, skip: $skip, where: {tokenAddr: $tokenAddr, owner: $owner}, orderBy: tokenId, orderDirection: asc) {
+              tokenId
+              value
+            }
+          }
+        `,
+        variables: {tokenAddr, owner, limit, skip}
+      };
+      let tokens = [];
+      let res = await axios.post(url, JSON.stringify(query));
+      if (res && res.data && res.data.data && res.data.data.tokenBalances) {
+        tokens = res.data.data.tokenBalances;
+      }
+      let result = [], uriCalls = [];
+      let uriIf = (type === "Erc721")? "tokenURI(uint256)(string)" : "uri(uint256)(string)";
+      tokens.forEach(v => {
+        let id = v.tokenId; // hex with 0x
+        result.push({id, balance: v.value});
+        if (includeUri) {
+          let call = {
+            target: tokenAddr,
+            call: [uriIf, id],
+            returns: [[id]]
+          }
+          uriCalls.push(call);
+        }
+      })
+      if (uriCalls.length) {
+        let res = await this.m_iwanBCConnector.multiCall("ETH", uriCalls);
+        let uris = res.results.transformed;
+        result.forEach(v => {
+          v.uri = uris[v.id].replace(/\{id\}/g, tool.hexStrip0x(v.id));
+          v.id = new BigNumber(v.id).toFixed();
+        })
+      }
+      return result;
+    }
+
+    async getErc1155Balance(chain, owner, token) {
+      let balance = 0, skip = 0;
+      for ( ; ; ) {
+        let result = await this.getNftInfo("Erc1155", chain, token, owner, 1000, skip, false);
+        let bal = Object.keys(result).length;
+        balance += bal;
+        if (bal < 1000) {
+          break;
+        } else {
+          skip += bal;
+        }
+      }
+      return balance;
+    }
 };
 
 module.exports = StoremanService;
-
-
