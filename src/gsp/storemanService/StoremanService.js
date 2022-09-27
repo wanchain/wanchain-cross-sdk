@@ -1,6 +1,7 @@
 "use strict";
 
 const BigNumber = require("bignumber.js");
+const tool = require("../../utils/tool");
 
 const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"]; // TRX has self wallet but also be supported by rpc 
 
@@ -151,6 +152,19 @@ class StoremanService {
     getChainLogo(chainType) {
       let tokenPairService = this.m_frameworkService.getService("TokenPairService");
       return tokenPairService.getChainLogo(chainType);
+    }
+
+    async getXrpTokenTrustLine(tokenAccount, userAccount) {
+      let [currency, issuer] = tool.parseXrpTokenPairAccount(tokenAccount, false);
+      let lines = await this.m_iwanBCConnector.getTrustLines(userAccount);
+      let line = lines.find(v => (v.account === issuer) && (v.currency === currency));
+      if (line) {
+        return {
+          limit: new BigNumber(line.limit),
+          balance: new BigNumber(line.balance)
+        };
+      }
+      return null;
     }
 };
 

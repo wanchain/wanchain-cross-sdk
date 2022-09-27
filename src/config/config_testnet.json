@@ -20,14 +20,14 @@
       "chainId": "2147483708",
       "chainType": "ETH",
       "chainName": "Ethereum",
-      "crossScAddr": "0x7b985c9379a13d2adf685aee9cb6d2e3f1809ffb",
+      "crossScAddr": "0xb8460Eeaa06Bc6668dad9fd42B661C0B96b3bE57",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
-      "MaskChainId": 4,
+      "MaskChainId": 5,
       "ScScanInfo": {
         "taskInterval": 30000
       }
@@ -101,13 +101,13 @@
       "chainType": "ARETH",
       "chainName": "Arbitrum",
       "chainDecimals": 18,
-      "crossScAddr": "0xbf0deB5CD8E072018632e9646b4fE998d4047a86",
+      "crossScAddr": "0x3E18014F7c11F4D70b0023d8f61350A3Ef8f0978",
       "coinFastMintGasLimit": 3000000,
       "erc20ApproveGasLimit": 3000000,
       "erc20FastBurnGasLimit": 3500000,
       "erc20FastMintGasLimit": 3500000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
-      "MaskChainId": 421611,
+      "MaskChainId": 421613,
       "ScScanInfo": {
         "taskInterval": 10000
       }
@@ -132,14 +132,14 @@
       "chainId": "2147484262",
       "chainType": "OETH",
       "chainName": "Optimism",
-      "crossScAddr": "0x0467bF248BdDb10e4465214E9baf404Ff8e93332",
+      "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "coinFastMintGasLimit": 300000,
       "erc20ApproveGasLimit": 75000,
       "erc20FastBurnGasLimit": 350000,
       "erc20FastMintGasLimit": 350000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
-      "MaskChainId": 69,
+      "MaskChainId": 420,
       "ScScanInfo": {
         "taskInterval": 30000
       }
@@ -188,6 +188,22 @@
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 1024,
+      "ScScanInfo": {
+        "taskInterval": 30000
+      }
+    },
+    {
+      "chainId": "1073741830",
+      "chainType": "FX",
+      "chainName": "Function X",
+      "crossScAddr": "0x4f1aB74c2a9E8f591e8A80768e115C9f75935bAD",
+      "coinFastMintGasLimit": 300000,
+      "erc20ApproveGasLimit": 75000,
+      "erc20FastBurnGasLimit": 350000,
+      "erc20FastMintGasLimit": 350000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 90001,
       "ScScanInfo": {
         "taskInterval": 30000
       }

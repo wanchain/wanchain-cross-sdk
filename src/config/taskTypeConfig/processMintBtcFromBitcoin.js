@@ -83,7 +83,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
           "apiServerNetworkFee": p2sh.apiServerNetworkFee
         };
         await eventService.emitEvent("NetworkFee", obj);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", p2sh.address); // networkfee
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: p2sh.address, randomId: p2sh.randomId}); // networkfee
       }
     } catch (err) {
       console.error("%s err: %O", processorName, err);
@@ -102,11 +102,8 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let chainInfo = await chainInfoService.getChainInfoByType(fromChainType);
       let network = networks[fromChainType][chainInfo.NETWORK];
 
-      const random = crypto.randomBytes(32).toString('hex');
-      const id = '0x' + random;
-      const hash = crypto.createHash('sha256');
-      hash.update(id + chainAddr);
-      let hashValue = hash.digest('hex');
+      const randomId = '0x' + crypto.randomBytes(32).toString('hex');
+      const hashValue = crypto.createHash('sha256').update(randomId + chainAddr).digest('hex');
       if (hashValue.startsWith('0x')) {
         hashValue = ret.slice(2);
       }
@@ -121,7 +118,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       // save p2sh 和id 到apiServer
       let data = {
         oneTimeAddr: p2sh,
-        randomId: id,
+        randomId,
         chainType: toChainType,
         chainAddr: chainAddr,
         smgPublicKey: storemanGroupPublicKey,
@@ -141,7 +138,8 @@ module.exports = class ProcessMintBtcFromBitcoin {
         await checkTxService.addOTAInfo(data);
         return {
           address: p2sh,
-          apiServerNetworkFee: ret.data.apiServerNetworkFee
+          apiServerNetworkFee: ret.data.apiServerNetworkFee,
+          randomId
         };
       } else {
         console.error("%s ProcessMintBtcFromBitcoin generateOnetimeAddress, url: %s, data: %O, ret: %O", names[fromChainType], url, data, ret);

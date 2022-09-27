@@ -186,11 +186,11 @@ module.exports = class CheckScEvent {
       try {
         let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
         let topics = [eventHash, eventUnique.toLowerCase()];
-        let fromBlockNumber = obj.fromBlockNumber;
         let latestBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
-        console.debug("%s blockNumber %d-%d processScLogger %s: %O", this.m_chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj);
+        let fromBlockNumber = obj.fromBlockNumber;
+        let toBlockNumber = fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
-          let toBlockNumber = fromBlockNumber + 500; // some chain limit to 1000
+          toBlockNumber = fromBlockNumber + 500; // some chain limit to 1000
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
@@ -210,7 +210,11 @@ module.exports = class CheckScEvent {
           } catch (err) {
             // console.error("processScLogger %s %O error: %O", type, obj, err);
           }
+        } else { // rollback
+          obj.fromBlockNumber = latestBlockNumber;
         }
+        console.debug("%s blockNumber %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.m_chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
       } catch (err) {
         console.error("processScLogger %s %O error: %O", type, obj, err);
       }

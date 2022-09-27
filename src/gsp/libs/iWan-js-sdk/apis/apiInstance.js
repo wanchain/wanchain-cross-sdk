@@ -8565,21 +8565,25 @@ class ApiInstance extends WsInstance {
         });
     }
 
-    getCrossChainFees(chainType, chainIds, callback) {
-        let method = 'getCrossChainFees';
-        let params = {
-            "chainType": chainType,
-            "chainIds": chainIds
-        };
+    getCrossChainFees(chainType, chainIds, options, callback) {
+      if (typeof(options) === "function") {
+        callback = options;
+        options = {};
+      }
+      if (callback) {
+        callback = utils.wrapCallback(callback);
+      }
+      let method = 'getCrossChainFees';
+      let params = { chainType: chainType, chainIds: chainIds, ...options };
 
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
+      return utils.promiseOrCallback(callback, cb => {
+        this._request(method, params, (err, result) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, result);
         });
+      });
     }
 
     getStoremanGroupConfig(storemanGroupId, callback) {
@@ -8793,6 +8797,27 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
+  getTrustLines(chainType, address, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getTrustLines';
+    let params = { chainType: chainType, address:address, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }  
 }
 
 module.exports = ApiInstance;

@@ -2,6 +2,7 @@
 
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
+const tool = require('../../utils/tool');
 
 class TokenPairService {
     constructor(isTestMode) {
@@ -147,7 +148,8 @@ class TokenPairService {
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
-        assetMap.set(tp.ancestorSymbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
+        let symbol = tool.parseTokenPairSymbol(tp.ancestorChainID, tp.ancestorSymbol);
+        assetMap.set(symbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -269,13 +271,13 @@ class TokenPairService {
     updateTokenPairFromChainInfo(tokenPair) {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
-        tokenPair.fromSymbol = tokenPair.fromSymbol;
+        tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
     }
 
     updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
-        tokenPair.toSymbol = tokenPair.symbol;
+        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol)
     }
 
     updateTokenPairCcHandle(tokenPair) {

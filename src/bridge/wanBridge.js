@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2208011727", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2209271123", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.configService = this._service.getService("ConfigService");
@@ -153,7 +153,7 @@ class WanBridge extends EventEmitter {
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
     let operateFeeUnit = '', networkFeeUnit = '';
     if (direction == 'MINT') {
-      operateFeeUnit = tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
+      operateFeeUnit = operateFee.isTokenFee? assetPair.assetType: tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
       networkFeeUnit = networkFee.isRatio? assetPair.assetType : tool.getCoinSymbol(assetPair.fromChainType, assetPair.fromChainName);
     } else {
       operateFeeUnit = tool.getCoinSymbol(assetPair.toChainType, assetPair.toChainName);
@@ -189,7 +189,7 @@ class WanBridge extends EventEmitter {
     }
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -213,6 +213,10 @@ class WanBridge extends EventEmitter {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
       return false;
     }
+  }
+
+  validateXrpTokenAmount(amount) {
+    return tool.validateXrpTokenAmount(amount);
   }
 
   async getNftInfo(assetPair, direction, account, startIndex, endIndex) {

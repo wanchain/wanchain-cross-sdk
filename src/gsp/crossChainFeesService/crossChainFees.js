@@ -28,12 +28,19 @@ module.exports = class crossChainFees {
             throw new Error("iWan is unavailable");
         }
 
-        let mintFees  = await iwanBCConnector.getCrossChainFees(tokenPair.fromChainType, [tokenPair.fromChainID, tokenPair.toChainID]);
+        let mintFees  = await iwanBCConnector.getCrossChainFees(tokenPair.fromChainType, [tokenPair.fromChainID, tokenPair.toChainID], {tokenPairID: tokenPairId});
         //console.log("mintFees:", mintFees);
-        let feeBN = new BigNumber(mintFees.lockFee).div(Math.pow(10, tokenPair.fromScInfo.chainDecimals));
+        let fee = mintFees.lockFee, isTokenFee = false, decimals = tokenPair.fromScInfo.chainDecimals; // only mint XRP token use revokeFee and unit is token, others use lockFee and unit is coin
+        if (mintFees.revokeFee !== '0') { 
+          fee = mintFees.revokeFee;
+          isTokenFee = true;
+          decimals = tokenPair.fromDecimals;
+        }
+        let feeBN = new BigNumber(fee).div(Math.pow(10, decimals));
         let ret = {
             fee: feeBN.toFixed(),
-            isRatio: false
+            isRatio: false,
+            isTokenFee
         };
         //console.log("getMintServcieFees ret:", ret);
         return ret;
