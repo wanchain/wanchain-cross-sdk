@@ -44,6 +44,8 @@ bridge.on("ready", assetPairs => {
         assetPairId: "39",
         assetType: "AVAX",
         protocol: "Erc20",
+        ancestorChainType: "AVAX",
+        ancestorChainName: "Avalanche C-Chain",
         fromSymbol: "AVAX",
         toSymbol: "wanAVAX",
         decimals: "18",

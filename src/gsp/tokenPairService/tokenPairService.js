@@ -247,6 +247,9 @@ class TokenPairService {
     }
 
     updateTokenPairInfo(tokenPair) {
+        let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
+        tokenPair.ancestorChainType = ancestorChainInfo.chainType;
+        tokenPair.ancestorChainName = ancestorChainInfo.chainName;
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
