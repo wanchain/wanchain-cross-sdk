@@ -188,7 +188,7 @@ class BridgeTask {
           console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), unit);
           return "Amount is too small to activate storeman account";
         } else {
-          return "storeman account is inactive";
+          return "Storeman account is inactive";
         }
       }
     }
