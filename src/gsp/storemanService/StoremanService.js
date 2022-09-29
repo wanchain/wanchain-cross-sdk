@@ -14,7 +14,7 @@ class StoremanService {
         try {
             this.m_frameworkService = frameworkService;
             this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-            this.chainInfoService = this._service.getService("ChainInfoService");
+            this.chainInfoService = frameworkService.getService("ChainInfoService");
         } catch (err) {
             console.log("StoremanService init err:", err);
         }

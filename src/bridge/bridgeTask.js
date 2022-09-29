@@ -19,7 +19,7 @@ class BridgeTask {
     this._direction = direction;
     this._fromAccount = fromAccount;
     this._toAccount = toAccount;
-    this._amount = new BigNumber(amount).toFixed();
+    this._amount = (assetPair.protocol === "Erc20")? new BigNumber(amount).toFixed() : amount;
     this._wallet = wallet;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
@@ -60,13 +60,15 @@ class BridgeTask {
       throw new Error("Invalid wallet");
     }
     this._initToWallet();
-    let err = await this._checkFee();
-    if (err) {
-      throw new Error(err);
-    }
-    err = await this._checkSmg(); // depends on fee
-    if (err) {
-      throw new Error(err);
+    if (this._assetPair.protocol === "Erc20") {
+      let err = await this._checkFee();
+      if (err) {
+        throw new Error(err);
+      }
+      err = await this._checkSmg(); // depends on fee
+      if (err) {
+        throw new Error(err);
+      }
     }
     let [fromAccountErr, toAccountErr] = await Promise.all([
       this._checkFromAccount(),

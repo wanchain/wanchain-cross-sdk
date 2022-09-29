@@ -6,6 +6,7 @@ const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
+const util = require("util");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
@@ -88,7 +89,7 @@ class WanBridge extends EventEmitter {
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
     console.debug("SDK: createTask, direction: %s, amount: %s, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms, assetPair: %O",
-                  direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
+                  direction, this._formatAmount(assetPair.protocol, amount), fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
     direction = this._unifyDirection(direction);
     let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
@@ -413,6 +414,14 @@ class WanBridge extends EventEmitter {
 
   _isThirdPartyWallet(chainType) {
     return THIRD_PARTY_WALLET_CHAINS.includes(chainType);
+  }
+
+  _formatAmount(tokenType, amount) {
+    if (["Erc20", "Erc721"].includes(tokenType)) {
+      return amount.toString();
+    } else if (tokenType === "Erc1155") {
+      return amount.map(v => util.format("%O", v)).toString();
+    }
   }
 }
 
