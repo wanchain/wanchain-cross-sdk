@@ -148,7 +148,8 @@ class TokenPairService {
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
-        assetMap.set(tp.ancestorSymbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
+        let symbol = tool.parseTokenPairSymbol(tp.ancestorChainID, tp.ancestorSymbol);
+        assetMap.set(symbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -246,6 +247,9 @@ class TokenPairService {
     }
 
     updateTokenPairInfo(tokenPair) {
+        let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
+        tokenPair.ancestorChainType = ancestorChainInfo.chainType;
+        tokenPair.ancestorChainName = ancestorChainInfo.chainName;
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
