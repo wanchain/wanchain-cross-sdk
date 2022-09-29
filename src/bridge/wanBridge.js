@@ -27,13 +27,11 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2209271123", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
-    this.configService = this._service.getService("ConfigService");
     this.storemanService = this._service.getService("StoremanService");
     this.storageService = this._service.getService("StorageService");
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
-    this.iWanConnectorService = this._service.getService("iWanConnectorService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
@@ -204,15 +202,13 @@ class WanBridge extends EventEmitter {
     return tool.validateXrpTokenAmount(amount);
   }
 
-  async getNftInfo(assetPair, direction, account, startIndex, endIndex) {
+  async getNftInfo(assetPair, direction, account, limit, skip = 0) {
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    // let tokenPair = this.storemanService.getTokenPair(assetPair.assetPairId); // do not get info from ancestorChain
-    // let ancestorChain = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
     let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.iWanConnectorService.getNftInfoMulticall(chainType, token, chainType, token, account, startIndex, endIndex);
-    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, startIndex: %d, endIndex: %d, chain: %s, asset: %s, result: %O",
-                  assetPair.assetPairId, direction, account, startIndex, endIndex, chainType, assetPair.assetType, infos);
+    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, limit, skip, true);
+    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, limit: %d, skip: %d, chain: %s, asset: %s, result: %O",
+                  assetPair.assetPairId, direction, account, limit, skip, chainType, assetPair.assetType, infos);
     return infos;
   }
 

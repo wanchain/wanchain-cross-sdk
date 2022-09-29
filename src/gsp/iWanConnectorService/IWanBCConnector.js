@@ -1,7 +1,6 @@
 'use strict';
 
 const iWanClient = require('../libs/iWan-js-sdk/apis/apiInstance.js');
-const tool = require('../../utils/tool.js');
 
 class IWanBCConnector {
     constructor(option) {
@@ -209,32 +208,8 @@ class IWanBCConnector {
         return (owner.toLowerCase() === address.toLowerCase());
     }
 
-    async getNftInfoMulticall(ancestorChainType, ancestorChainToken, chain, token, owner, startIndex, endIndex) {
-        let idCalls = [];
-        for (let i = startIndex; i <= endIndex; i++) {
-            let call = {
-              target: token,
-              call: ['tokenOfOwnerByIndex(address,uint256)(uint256)', owner, i],
-              returns: [[i]]
-            }
-            idCalls.push(call);
-        }
-        let ids = await this.apiClient.multiCall(chain, idCalls);
-        let uriCalls = [];
-        for (let i = startIndex; i <= endIndex; i++) {
-            let call = {
-              target: ancestorChainToken,
-              call: ['tokenURI(uint256)(string)', ids.results.transformed[i]._hex],
-              returns: [[i]]
-            }
-            uriCalls.push(call);
-        }
-        let uris = await this.apiClient.multiCall(ancestorChainType, uriCalls);
-        let result = {};
-        for (let i = startIndex; i <= endIndex; i++) {
-            result[i] = {id: ids.results.transformed[i]._hex, uri: uris.results.transformed[i]};
-        }
-        return result;
+    async multiCall(chainType, calls) {
+        return this.apiClient.multiCall(chainType, calls);
     }
 
     async estimateCrossChainOperationFee(chainType, targetChainType, options) {
