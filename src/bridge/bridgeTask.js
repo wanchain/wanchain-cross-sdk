@@ -60,11 +60,11 @@ class BridgeTask {
       throw new Error("Invalid wallet");
     }
     this._initToWallet();
+    let err = await this._checkFee();
+    if (err) {
+      throw new Error(err);
+    }
     if (this._assetPair.protocol === "Erc20") {
-      let err = await this._checkFee();
-      if (err) {
-        throw new Error(err);
-      }
       err = await this._checkSmg(); // depends on fee
       if (err) {
         throw new Error(err);
@@ -139,11 +139,13 @@ class BridgeTask {
 
   async _checkFee() {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    let unit = this._assetPair.assetType;
-    let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
-    if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
-      console.error("Amount is too small to pay the fee: %s %s", fee, unit);
-      return "Amount is too small to pay the fee";
+    if (this._assetPair.protocol === "Erc20") {
+      let unit = this._assetPair.assetType;
+      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
+        console.error("Amount is too small to pay the fee: %s %s", fee, unit);
+        return "Amount is too small to pay the fee";
+      }
     }
     return "";
   }
