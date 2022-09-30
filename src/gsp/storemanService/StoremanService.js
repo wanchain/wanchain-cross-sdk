@@ -130,23 +130,6 @@ class StoremanService {
         }
     }
 
-    async checkAccountOwnership(assetPairId, type, addr, tokenId) {
-        try {
-            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPair = tokenPairService.getTokenPair(assetPairId);
-            if (!tokenPair) {
-                return false;
-            }
-            let chain = (type === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
-            let token = (type === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-            let isOwnable = await this.m_iwanBCConnector.checkErc721Ownership(chain, token, tokenId, addr);
-            return isOwnable;
-        } catch (err) {
-            console.error("check tokenPair %s type %s address %s token %s ownership error: %O", assetPairId, type, addr, tokenId, err);
-            return false;
-        }
-    }
-
     getTokenPair(tokenPairId) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         return tokenPairService.getTokenPair(tokenPairId);

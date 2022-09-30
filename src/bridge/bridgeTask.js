@@ -74,11 +74,9 @@ class BridgeTask {
     if (err) {
       throw new Error(err);
     }
-    if (this._assetPair.protocol === "Erc20") {
-      err = await this._checkSmg(); // depends on fee
-      if (err) {
-        throw new Error(err);
-      }
+    err = await this._checkSmg(); // depends on fee
+    if (err) {
+      throw new Error(err);
     }
     let [fromAccountErr, toAccountErr] = await Promise.all([
       this._checkFromAccount(),
@@ -167,6 +165,9 @@ class BridgeTask {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
+    if (this._assetPair.protocol !== "Erc20") {
+      return "";
+    }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
     let unit = this._assetPair.assetType;
@@ -252,12 +253,6 @@ class BridgeTask {
       if (assetBalance.lt(requiredAsset)) {
         console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
         return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
-      }
-    } else { // erc721
-      let isOwnable = await this._bridge.storemanService.checkAccountOwnership(this._assetPair.assetPairId, this._direction, this._fromAccount, this._amount);
-      if (!isOwnable) {
-        console.debug("%s not owne token %d", this._fromAccount, this._amount);
-        return this._bridge.globalConstant.ERR_NOT_OWNER;
       }
     }
     return "";

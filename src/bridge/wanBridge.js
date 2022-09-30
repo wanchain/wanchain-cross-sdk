@@ -158,6 +158,9 @@ class WanBridge extends EventEmitter {
   }
 
   async getQuota(assetPair, direction) {
+    if (assetPair.protocol !== "Erc20") {
+      return {maxQuota: "20", minQuota: "1"};
+    }
     direction = this._unifyDirection(direction);
     let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let smg = await this.getSmgInfo();
