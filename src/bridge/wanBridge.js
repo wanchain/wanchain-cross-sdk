@@ -145,15 +145,15 @@ class WanBridge extends EventEmitter {
     return balance;
   }
 
-  async estimateFee(assetPair, direction) {
+  async estimateFee(assetPair, direction, options = {}) {
     direction = this._unifyDirection(direction);
     let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
-    let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction);
+    let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction, options);
     let fee = {
       operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
       networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
     };
-    console.debug("SDK: estimateFee, pair: %s, direction: %s, result: %O", assetPair.assetPairId, direction, fee);
+    console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %s, result: %O", assetPair.assetPairId, direction, options, fee);
     return fee;
   }
 
@@ -358,9 +358,14 @@ class WanBridge extends EventEmitter {
       }
     }
     // received amount, TODO: get actual value from chain
-    let receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-    let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
-    receivedAmount = receivedAmount.minus(fee).toFixed();
+    let receivedAmount;
+    if (ccTask.protocol === "Erc20") {
+      receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
+      let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
+      receivedAmount = receivedAmount.minus(fee).toFixed();
+    } else {
+      receivedAmount = ccTask.amount;
+    }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);

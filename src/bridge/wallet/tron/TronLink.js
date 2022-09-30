@@ -48,11 +48,11 @@ class TronLink {
 
   // customized function
 
-  async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, coinValue) {
+  async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, extInfo) {
     let feeLimit = await this.getFeeLimit("lock");
     let options = {
       feeLimit,
-      callValue: new BigNumber(coinValue).toFixed(), // tx coin value
+      callValue: new BigNumber(extInfo.coinValue).toFixed(), // tx coin value
     };
     let fn = "userLock(bytes32,uint256,uint256,bytes)"; // userLock(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
     let params = [
@@ -82,11 +82,11 @@ class TronLink {
     return tx.transaction;
   }
 
-  async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, coinValue) {
+  async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, extInfo) {
     let feeLimit = await this.getFeeLimit("burn");
     let options = {
       feeLimit,
-      callValue: new BigNumber(coinValue).toFixed(), // tx coin value
+      callValue: new BigNumber(extInfo.coinValue).toFixed(), // tx coin value
     };
     let fn = "userBurn(bytes32,uint256,uint256,uint256,address,bytes)"; // userBurn(bytes32 smgID, uint tokenPairID, uint value, uint fee, address tokenAccount, bytes userAccount)
     let params = [

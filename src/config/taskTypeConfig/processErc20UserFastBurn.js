@@ -24,7 +24,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
                 params.userBurnFee,
                 params.tokenAccount,
                 params.userAccount,
-                params.fee);
+                {coinValue: params.fee});
             } else {
               let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
               let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
@@ -33,7 +33,8 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
                   params.value,
                   params.userBurnFee,
                   params.tokenAccount,
-                  params.userAccount);
+                  params.userAccount,
+                  {tokenType: params.tokenType});
               txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
             }
             await this.sendTransactionData(stepData, txData, wallet);

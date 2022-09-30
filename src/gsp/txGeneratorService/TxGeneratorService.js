@@ -27,7 +27,7 @@ module.exports = class TxGeneratorService{
         }
     }
 
-    // erc721 approve
+    // nft approve: erc721 & erc1155
     async generatorErc721ApproveData(tokenAddress, operator, tokenId) {
         try {
             let abi = this.configService.getAbi("erc721");
@@ -67,20 +67,50 @@ module.exports = class TxGeneratorService{
         return rawTx;
     }
 
-    async generateUserLockData(crossScAddr, smgID, tokenPairID, value, userAccount) {
-        value = "0x" + new BigNumber(value).toString(16);
+    async generateUserLockData(crossScAddr, smgID, tokenPairID, value, userAccount, extInfo = {}) {
         let abi = this.configService.getAbi("crossSc");
         let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
-        let txData = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
+        let txData, tokenType = extInfo.tokenType;
+        if (tokenType === "Erc20") {
+          value = "0x" + new BigNumber(value).toString(16);
+          txData = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
+        } else {
+          let tokenIDs = [], tokenValues = [];
+          value.forEach(v => {
+            if (tokenType === "Erc721") {
+              tokenIDs.push("0x" + new BigNumber(v).toString(16));
+              tokenValues.push("0x1");
+            } else if (tokenType === "Erc1155") {
+              tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
+              tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
+            }
+          })
+          txData = crossScInst.methods.userLockNFT(smgID, tokenPairID, tokenIDs, tokenValues, userAccount);
+        }
         return txData;
     }
 
-    async generateUserBurnData(crossScAddr, smgID, tokenPairID, value, fee, tokenAccount, userAccount) {
+    async generateUserBurnData(crossScAddr, smgID, tokenPairID, value, fee, tokenAccount, userAccount, extInfo = {}) {
+      let abi = this.configService.getAbi("crossSc");
+      let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
+      let txData, tokenType = extInfo.tokenType;
+      if (tokenType === "Erc20") {
         value = "0x" + new BigNumber(value).toString(16);
         fee = "0x" + new BigNumber(fee).toString(16);
-        let abi = this.configService.getAbi("crossSc");
-        let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
-        let txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
+        txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
+      } else {
+          let tokenIDs = [], tokenValues = [];
+          value.forEach(v => {
+            if (tokenType === "Erc721") {
+              tokenIDs.push("0x" + new BigNumber(v).toString(16));
+              tokenValues.push("0x1");
+            } else if (tokenType === "Erc1155") {
+              tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
+              tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
+            }
+          })
+          txData = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount);
+        }
         return txData;
     }
 }

@@ -11,6 +11,9 @@ const BigNumber = require("bignumber.js");
 const Wallet = require("./wallet/wallet.js");
 const util = require('util');
 
+// consistant with crosschain contract
+const MAX_NFT_BATCH_SIZE = 20;
+
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
     this.id = Date.now();
@@ -19,7 +22,14 @@ class BridgeTask {
     this._direction = direction;
     this._fromAccount = fromAccount;
     this._toAccount = toAccount;
-    this._amount = (assetPair.protocol === "Erc20")? new BigNumber(amount).toFixed() : amount;
+    if (assetPair.protocol === "Erc20") {
+      this._amount = new BigNumber(amount).toFixed();
+    } else {
+      if (amount.length > MAX_NFT_BATCH_SIZE) {
+        throw new Error("Max NFT batch size is " + MAX_NFT_BATCH_SIZE);
+      }
+      this._amount = amount;
+    }
     this._wallet = wallet;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
@@ -138,8 +148,10 @@ class BridgeTask {
   }
 
   async _checkFee() {
-    this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    if (this._assetPair.protocol === "Erc20") {
+    let isErc20 = (this._assetPair.protocol === "Erc20");
+    let options = isErc20? {} : {batchSize: this._amount.length};
+    this._fee = await this._bridge.estimateFee(this._assetPair, this._direction, options);
+    if (isErc20) {
       let unit = this._assetPair.assetType;
       let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
       if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee

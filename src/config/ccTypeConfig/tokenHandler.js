@@ -1,11 +1,8 @@
 'use strict';
 
-const Web3 = require("web3");
 const BigNumber = require("bignumber.js");
 const tool = require('../../utils/tool.js');
 const CCTypeHandleInterface = require("./CCTypeHandleInterface.js");
-
-const web3 = new Web3();
 
 module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & ERC721
   constructor(frameworkService) {
@@ -27,7 +24,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   }
 
   async buildApproveSteps(steps, tokenPair, convert) {
-    if (tokenPair.toAccountType === "Erc721") {
+    if (["Erc721", "Erc1155"].includes(tokenPair.toAccountType)) {
       return this.buildErc721Approve(steps, tokenPair, convert);
     } else { // defalut Erc20
       return this.buildErc20Approve(steps, tokenPair, convert);
@@ -79,7 +76,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   async buildErc721Approve(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-    let value = convert.value; // tokenId
+    let value = convert.value; // [tokenId] or [{tokenId, amount}]
     let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, chainInfo.crossScAddr);
     if (approved === false) {
       let params = {
@@ -105,7 +102,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+    let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
@@ -124,7 +122,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       taskType: "ProcessErc20UserFastMint",
       fee: networkFee,
       tokenAccount,
-      userBurnFee: operateFee
+      userBurnFee: operateFee,
+      tokenType
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
     let mintTitle = this.uiStrService.getStrByName("MintTitle");
@@ -137,7 +136,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+    let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
@@ -156,7 +156,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       taskType: "ProcessErc20UserFastBurn",
       fee: networkFee,
       tokenAccount,
-      userBurnFee: operateFee
+      userBurnFee: operateFee,
+      tokenType
     };
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");
