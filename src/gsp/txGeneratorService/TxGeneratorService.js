@@ -85,7 +85,8 @@ module.exports = class TxGeneratorService{
               tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
             }
           })
-          txData = crossScInst.methods.userLockNFT(smgID, tokenPairID, tokenIDs, tokenValues, userAccount);
+          txData = crossScInst.methods.userLockNFT(smgID, tokenPairID, tokenIDs, tokenValues, userAccount).encodeABI();
+          console.log({tokenIDs, tokenValues, txData})
         }
         return txData;
     }
@@ -109,7 +110,7 @@ module.exports = class TxGeneratorService{
               tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
             }
           })
-          txData = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount);
+          txData = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount).encodeABI();
         }
         return txData;
     }
