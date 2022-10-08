@@ -55,7 +55,7 @@ module.exports = class crossChainFees {
         if (connected === false) {
             throw new Error("iWan is unavailable");
         }
-        let burnFees = await iwanBCConnector.getCrossChainFees(tokenPair.toChainType, [tokenPair.toChainID, tokenPair.fromChainID]);
+        let burnFees = await iwanBCConnector.getCrossChainFees(tokenPair.toChainType, [tokenPair.toChainID, tokenPair.fromChainID], {tokenPairID: tokenPairId});
         //console.log("burnFees:", burnFees);
         let feeBN = new BigNumber(burnFees.lockFee).div(Math.pow(10, tokenPair.toScInfo.chainDecimals));
         let ret = {

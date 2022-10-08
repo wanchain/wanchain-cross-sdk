@@ -195,8 +195,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getCrossChainFees(chainType, chainIds) {
-        return await this.apiClient.getCrossChainFees(chainType, chainIds);
+    async getCrossChainFees(chainType, chainIds, options) {
+        return await this.apiClient.getCrossChainFees(chainType, chainIds, options);
     }
 
     async getStoremanGroupConfig(storemanGroupId) {
