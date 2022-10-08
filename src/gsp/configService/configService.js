@@ -14,7 +14,7 @@ const abis = {
   "erc721": require("../../config/abi/erc721.json")
 }
 
-const crossDelegateLegacyEvent = [{
+abis.crossScLegacyEvent = [{
 	"anonymous": false,
 	"inputs": [{
 		"indexed": true,
@@ -81,9 +81,6 @@ const crossDelegateLegacyEvent = [{
 	"name": "SmgReleaseLoggerLegacy",
 	"type": "event"
 }];
-
-abis.crossSc = abis.crossSc.concat(crossDelegateLegacyEvent);
-console.log("abis.crossSc: %O", abis.crossSc);
 
 module.exports = class ConfigService extends ConfigServiceInterface {
     constructor() {
