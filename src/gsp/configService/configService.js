@@ -45,7 +45,7 @@ abis.crossScLegacyEvent = [{
 		"name": "userAccount",
 		"type": "address"
 	}],
-	"name": "SmgMintLoggerLegacy",
+	"name": "SmgMintLogger",
 	"type": "event"
 }, {
 	"anonymous": false,
@@ -78,7 +78,7 @@ abis.crossScLegacyEvent = [{
 		"name": "userAccount",
 		"type": "address"
 	}],
-	"name": "SmgReleaseLoggerLegacy",
+	"name": "SmgReleaseLogger",
 	"type": "event"
 }];
 

@@ -24,7 +24,8 @@ module.exports = class CheckScEvent {
         this.m_eventService = this.m_frameworkService.getService("EventService");
         this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
         let configService = this.m_frameworkService.getService("ConfigService");
-        this.crossScAbi = configService.getAbi("crossSc");
+        let isLegacySc = ["ETH", "BSC"].includes(chainInfo.chainType);
+        this.crossScAbi = isLegacySc? configService.getAbi("crossScLegacyEvent") : configService.getAbi("crossSc");
     }
 
     async onDeleteTask(ccTaskId) {
@@ -92,13 +93,13 @@ module.exports = class CheckScEvent {
 
   async processSmgMintLogger() {
     //console.log("processSmgMintLogger ", this.m_chainInfo.chainType, ",ary.length:", ary.length);
-    let eventHash = this.getSmgMintLoggerTopics();
+    let eventHash = this.getEventHash("SmgMintLogger");
     let eventName = "SmgMintLogger";
     await this.processScLogger("MINT", eventHash, eventName);
   }
 
   async processSmgReleaseLogger() {
-    let eventHash = this.getSmgReleaseLoggerTopics();
+    let eventHash = this.getEventHash("SmgReleaseLogger");
     let eventName = "SmgReleaseLogger";
     await this.processScLogger("BURN", eventHash, eventName);
   }
@@ -143,16 +144,6 @@ module.exports = class CheckScEvent {
               return log;
           }
       });
-  }
-
-  getSmgMintLoggerTopics() {
-      let eventHash = this.getEventHash("SmgMintLogger");
-      return eventHash;
-  }
-
-  getSmgReleaseLoggerTopics() {
-      let eventHash = this.getEventHash("SmgReleaseLogger");
-      return eventHash;
   }
 
   getEventHash(eventName) {
