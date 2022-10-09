@@ -218,9 +218,8 @@ class BridgeTask {
       let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
         let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
-        let msg = util.format("Storeman has no trust line for %s", token);
-        console.debug("%s: smg=%s, liquidity=%s", msg, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
-        return msg;
+        console.debug("Storeman has no trust line for %s: smg=%s, liquidity=%s", token, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
+        return "The XRPL token crosschain is being activated. Please try again later";
       }
     }
     return "";
