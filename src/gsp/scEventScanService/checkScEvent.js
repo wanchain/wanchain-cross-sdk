@@ -135,7 +135,7 @@ module.exports = class CheckScEvent {
           log.eventName = abiJson.name;
           log.args = args;
           // extract required field from array
-          if (["SmgMintNFT", "SmgReleaseNFT"].includes(json.name)) {
+          if (["SmgMintNFT", "SmgReleaseNFT"].includes(abiJson.name)) {
             log.args.userAccount = args.values[args.keys.indexOf("userAccount:address")];
           }
           return log;

@@ -30,7 +30,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                   params.storemanGroupId,
                   params.tokenPairID,
                   crossValue,
-                  params.userAccount);
+                  params.userAccount,
+                  {tokenType: "Erc20"});
               txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
