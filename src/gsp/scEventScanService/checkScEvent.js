@@ -27,7 +27,7 @@ module.exports = class CheckScEvent {
     this.m_eventService = this.m_frameworkService.getService("EventService");
     this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
     let configService = this.m_frameworkService.getService("ConfigService");
-    this.crossScAbi = ["ETH", "BSC", "XDC"].includes(chainInfo.chainType)? configService.getAbi("crossSc") : configService.getAbi("crossScLegacyEvent");
+    this.crossScAbi = ["ETH", "BNB", "XDC"].includes(chainInfo.chainType)? configService.getAbi("crossSc") : configService.getAbi("crossScLegacyEvent");
   }
 
   async onDeleteTask(ccTaskId) {
