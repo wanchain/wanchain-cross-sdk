@@ -10,6 +10,9 @@ const util = require("util");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
+// consistant with crosschain contract
+const MAX_NFT_BATCH_SIZE = 20;
+
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
     super();
@@ -159,7 +162,7 @@ class WanBridge extends EventEmitter {
 
   async getQuota(assetPair, direction) {
     if (assetPair.protocol !== "Erc20") {
-      return {maxQuota: "20", minQuota: "1"};
+      return {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "1"};
     }
     direction = this._unifyDirection(direction);
     let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
