@@ -15,7 +15,6 @@ module.exports = class CheckBtcTxService {
         this.m_frameworkService = frameworkService;
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_eventService = frameworkService.getService("EventService");
-        this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
 
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
@@ -97,22 +96,4 @@ module.exports = class CheckBtcTxService {
             }
         }
     }
-
-    async onDeleteTask(ccTaskId) {
-        try {
-            for (let idx = 0; idx < this.checkOtas.length; ++idx) {
-                let obj = this.checkOtas[idx];
-                if (obj.ccTaskId === ccTaskId) {
-                    this.checkOtas.splice(idx, 1);
-                    let storageService = this.m_frameworkService.getService("StorageService");
-                    await storageService.delete(this.serviceName, obj.ccTaskId);
-                    break;
-                }
-            }
-        }
-        catch (err) {
-            console.log("%s onDeleteTask err: %O", this.serviceName, err);
-        }
-    }
 }
-

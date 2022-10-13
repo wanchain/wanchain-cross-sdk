@@ -30,7 +30,8 @@
       "MaskChainId": 1,
       "ScScanInfo": {
         "taskInterval": 30000
-      }
+      },
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/eth-1155nft-subgraph"
     },
     {
       "chainId": "2147484362",

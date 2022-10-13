@@ -21,7 +21,7 @@ module.exports = class crossChainFees {
         let target = (direction === "MINT")? tokenPair.toScInfo : tokenPair.fromScInfo;
         let decimals = (direction === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
         let fee = await iwanBCConnector.estimateCrossChainOperationFee(src.chainType, target.chainType, {tokenPairID: tokenPairId});
-        if (tokenPair.toAccountType === "Erc721") {
+        if (tokenPair.toAccountType !== "Erc20") {
             fee.value = "0";
         }
         // console.debug("estimateOperationFee %s->%s raw: %O", src.chainType, target.chainType, fee);
@@ -35,7 +35,7 @@ module.exports = class crossChainFees {
     }
 
     // contract fee
-    async estimateNetworkFee(tokenPairId, direction) {
+    async estimateNetworkFee(tokenPairId, direction, options) {
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         let tokenPair = tokenPairService.getTokenPair(tokenPairId);
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
@@ -45,7 +45,7 @@ module.exports = class crossChainFees {
         }
         let src = (direction === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
         let target = (direction === "MINT")? tokenPair.toScInfo : tokenPair.fromScInfo;
-        let fee = await iwanBCConnector.estimateCrossChainNetworkFee(src.chainType, target.chainType, {tokenPairID: tokenPairId});
+        let fee = await iwanBCConnector.estimateCrossChainNetworkFee(src.chainType, target.chainType, {tokenPairID: tokenPairId, batchSize: options.batchSize});
         // console.debug("estimateNetworkFee %s->%s raw: %O", src.chainType, target.chainType, fee);
         let feeBN = new BigNumber(fee.value);
         return {

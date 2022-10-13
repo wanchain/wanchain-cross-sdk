@@ -11,6 +11,9 @@ const BigNumber = require("bignumber.js");
 const Wallet = require("./wallet/wallet.js");
 const util = require('util');
 
+// consistant with crosschain contract
+const MAX_NFT_BATCH_SIZE = 20;
+
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
     this.id = Date.now();
@@ -19,7 +22,14 @@ class BridgeTask {
     this._direction = direction;
     this._fromAccount = fromAccount;
     this._toAccount = toAccount;
-    this._amount = new BigNumber(amount).toFixed();
+    if (assetPair.protocol === "Erc20") {
+      this._amount = new BigNumber(amount).toFixed();
+    } else {
+      if (amount.length > MAX_NFT_BATCH_SIZE) {
+        throw new Error("Max NFT batch size is " + MAX_NFT_BATCH_SIZE);
+      }
+      this._amount = amount;
+    }
     this._wallet = wallet;
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
@@ -136,12 +146,16 @@ class BridgeTask {
   }
 
   async _checkFee() {
-    this._fee = await this._bridge.estimateFee(this._assetPair, this._direction);
-    let unit = this._assetPair.assetType;
-    let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
-    if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
-      console.error("Amount is too small to pay the fee: %s %s", fee, unit);
-      return "Amount is too small to pay the fee";
+    let isErc20 = (this._assetPair.protocol === "Erc20");
+    let options = isErc20? {} : {batchSize: this._amount.length};
+    this._fee = await this._bridge.estimateFee(this._assetPair, this._direction, options);
+    if (isErc20) {
+      let unit = this._assetPair.assetType;
+      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
+        console.error("Amount is too small to pay the fee: %s %s", fee, unit);
+        return "Amount is too small to pay the fee";
+      }
     }
     return "";
   }
@@ -151,6 +165,9 @@ class BridgeTask {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
+    if (this._assetPair.protocol !== "Erc20") {
+      return "";
+    }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
     let unit = this._assetPair.assetType;
@@ -235,12 +252,6 @@ class BridgeTask {
       if (assetBalance.lt(requiredAsset)) {
         console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
         return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
-      }
-    } else { // erc721
-      let isOwnable = await this._bridge.storemanService.checkAccountOwnership(this._assetPair.assetPairId, this._direction, this._fromAccount, this._amount);
-      if (!isOwnable) {
-        console.debug("%s not owne token %d", this._fromAccount, this._amount);
-        return this._bridge.globalConstant.ERR_NOT_OWNER;
       }
     }
     return "";

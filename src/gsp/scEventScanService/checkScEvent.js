@@ -5,173 +5,158 @@ const web3 = new Web3();
 const wanUtil = require("wanchain-util");
 const tool = require("../../utils/tool");
 
+const EventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT"];
+
 module.exports = class CheckScEvent {
-    constructor(frameworkService) {
-        this.m_frameworkService = frameworkService;
-        this.m_mapEventHandler = new Map();
-        this.m_mapCheckAry = new Map();
-    }
+  constructor(frameworkService) {
+    this.m_frameworkService = frameworkService;
+    this.m_mapEventHandler = new Map();
+    this.m_mapCheckAry = new Map();
+  }
 
-    async init(chainInfo) {
-        this.m_chainInfo = chainInfo;
-        this.m_mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
-        this.m_mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
-        this.m_mapCheckAry.set("MINT", []);
-        this.m_mapCheckAry.set("BURN", []);
-        this.m_iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-        this.m_taskService = this.m_frameworkService.getService("TaskService");
-        this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
-        this.m_eventService = this.m_frameworkService.getService("EventService");
-        this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
-        let configService = this.m_frameworkService.getService("ConfigService");
-        this.crossScAbi = configService.getAbi("crossSc");
-    }
+  async init(chainInfo) {
+    this.m_chainInfo = chainInfo;
+    this.m_mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
+    this.m_mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
+    this.m_mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
+    this.m_mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
+    EventTypes.forEach(v => this.m_mapCheckAry.set(v, []));
+    this.m_iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
+    this.m_taskService = this.m_frameworkService.getService("TaskService");
+    this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
+    this.m_eventService = this.m_frameworkService.getService("EventService");
+    let configService = this.m_frameworkService.getService("ConfigService");
+    this.crossScAbi = ["ETH", "BNB", "XDC"].includes(chainInfo.chainType)? configService.getAbi("crossSc") : configService.getAbi("crossScLegacyEvent");
+  }
 
-    async onDeleteTask(ccTaskId) {
-        let ret = await this.deleteTaskById("MINT", ccTaskId);
-        if (ret === true) {
-            return;
+  async deleteTaskById(type, ccTaskId) {
+    try {
+      let ary = this.m_mapCheckAry.get(type);
+      for (let idx = 0; idx < ary.length; ++idx) {
+        let obj = ary[idx];
+        if (obj.ccTaskId === ccTaskId) {
+          ary.splice(idx, 1);
+          let storageService = this.m_frameworkService.getService("StorageService");
+          storageService.delete("ScEventScanService", obj.uniqueID);
+          return true;
         }
-        await this.deleteTaskById("BURN", ccTaskId);
+      }
+      return false;
     }
+    catch (err) {
+      console.log("deleteTaskById err:", err);
+      return false;
+    }
+  }
 
-    async deleteTaskById(type, ccTaskId) {
-        try {
-            let ary = this.m_mapCheckAry.get(type);
-            for (let idx = 0; idx < ary.length; ++idx) {
-                let obj = ary[idx];
-                if (obj.ccTaskId === ccTaskId) {
-                    ary.splice(idx, 1);
-                    let storageService = this.m_frameworkService.getService("StorageService");
-                    storageService.delete("ScEventScanService", obj.uniqueID);
-                    return true;
-                }
-            }
-            return false;
+  async add(obj) {
+    //console.log("CheckScEvent obj:", obj);
+    let ary = this.m_mapCheckAry.get(obj.taskType);
+    if (ary) {
+      ary.unshift(obj);
+      //console.log("this.m_mapCheckAry:", this.m_mapCheckAry);
+    }
+  }
+
+  async load(obj) {
+    await this.add(obj);
+  }
+
+  async runTask(taskPara) {
+    try {
+      let connected = await this.m_iwanBCConnector.isConnected();
+      if (connected) {
+        for (let v of EventTypes) {
+          let fn = this.m_mapEventHandler.get(v);
+          if (fn) {
+            await fn();
+          } else {
+            console.error("CheckScEvent unsupported event type: %s", v);
+          }
         }
-        catch (err) {
-            console.log("deleteTaskById err:", err);
-            return false;
-        }
+      }
+    } catch (err) {
+      console.log("checkScEvent chainType:", this.m_chainInfo.chainType, ",err:", err);
     }
-
-    async add(obj) {
-        //console.log("CheckScEvent obj:", obj);
-        let ary = this.m_mapCheckAry.get(obj.taskType);
-        if (ary) {
-            ary.unshift(obj);
-            //console.log("this.m_mapCheckAry:", this.m_mapCheckAry);
-        }
-    }
-
-    async load(obj) {
-        await this.add(obj);
-    }
-
-    async runTask(taskPara) {
-        try {
-            let connected = await this.m_iwanBCConnector.isConnected();
-            if (connected === false) {
-                //console.log("CheckScEvent runTask iwan no connect");
-                return;
-            }
-
-            let processFun = this.m_mapEventHandler.get("MINT");
-            if (processFun) {
-                await processFun();
-            }
-
-            processFun = this.m_mapEventHandler.get("BURN");
-            if (processFun) {
-                await processFun();
-            }
-        } catch (err) {
-            console.log("checkScEvent chainType:", this.m_chainInfo.chainType, ",err:", err);
-        }
-    }
+  }
 
   async processSmgMintLogger() {
     //console.log("processSmgMintLogger ", this.m_chainInfo.chainType, ",ary.length:", ary.length);
-    let eventHash = this.getSmgMintLoggerTopics();
+    let eventHash = this.getEventHash("SmgMintLogger");
     let eventName = "SmgMintLogger";
     await this.processScLogger("MINT", eventHash, eventName);
   }
 
   async processSmgReleaseLogger() {
-    let eventHash = this.getSmgReleaseLoggerTopics();
+    let eventHash = this.getEventHash("SmgReleaseLogger");
     let eventName = "SmgReleaseLogger";
     await this.processScLogger("BURN", eventHash, eventName);
   }
 
-  checkIsExistTask() {
-    let aryMint = this.m_mapCheckAry.get("MINT");
-    let aryBurn = this.m_mapCheckAry.get("BURN");
-    if ((aryMint.length === 0) && (aryBurn.length === 0)) {
-      return false;
-    } else {
-      return true;
-    }
+  async processSmgMintNft() {
+    let eventHash = this.getEventHash("SmgMintNFT");
+    let eventName = "SmgMintNFT";
+    await this.processScLogger("MINTNFT", eventHash, eventName);
+  }
+
+  async processSmgReleaseNft() {
+    let eventHash = this.getEventHash("SmgReleaseNFT");
+    let eventName = "SmgReleaseNFT";
+    await this.processScLogger("BURNNFT", eventHash, eventName);
   }
 
   parseLogs(logs, abi) {
-      if (logs === null || !Array.isArray(logs)) {
-          return logs;
-      }
-      return logs.map(function (log) {
-          let abiJson = abi.find(function (json) {
-              return (json.type === 'event' && web3.eth.abi.encodeEventSignature(json) === log.topics[0]);
-          });
-
-          if (abiJson) {
-              try {
-                  //topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
-                  log.topics.splice(0, 1);
-                  let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, log.topics);
-                  for (var index = 0; index < abiJson.inputs.length; index++) {
-                      if (args.hasOwnProperty(index)) {
-                          delete args[index];
-                      }
-                  }
-                  log.eventName = abiJson.name;
-                  log.args = args;
-                  return log;
-              } catch (err) {
-                  console.log(err);
-                  return log;
-              }
-          } else {
-              return log;
-          }
+    if (logs === null || !Array.isArray(logs)) {
+      return logs;
+    }
+    return logs.map(function (log) {
+      let abiJson = abi.find(function (json) {
+        return (json.type === 'event' && web3.eth.abi.encodeEventSignature(json) === log.topics[0]);
       });
-  }
-
-  getSmgMintLoggerTopics() {
-      let eventHash = this.getEventHash("SmgMintLogger");
-      return eventHash;
-  }
-
-  getSmgReleaseLoggerTopics() {
-      let eventHash = this.getEventHash("SmgReleaseLogger");
-      return eventHash;
+      if (abiJson) {
+        try {
+          //topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
+          log.topics.splice(0, 1);
+          let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, log.topics);
+          for (var index = 0; index < abiJson.inputs.length; index++) {
+            if (args.hasOwnProperty(index)) {
+              delete args[index];
+            }
+          }
+          log.eventName = abiJson.name;
+          log.args = args;
+          // extract required field from array
+          if (["SmgMintNFT", "SmgReleaseNFT"].includes(abiJson.name)) {
+            log.args.userAccount = args.values[args.keys.indexOf("userAccount:address")];
+          }
+          return log;
+        } catch (err) {
+          console.log(err);
+          return log;
+        }
+      } else {
+        return log;
+      }
+    });
   }
 
   getEventHash(eventName) {
-      let prototype = "";
-      for (let i = 0; i < this.crossScAbi.length; ++i) {
-          let item = this.crossScAbi[i];
-          if (item.name == eventName) {
-              prototype = eventName + '(';
-              for (let j = 0; j < item.inputs.length; ++j) {
-                  if (j != 0) {
-                    prototype = prototype + ',';
-                  }
-                  prototype = prototype + item.inputs[j].type;
-              }
-              prototype = prototype + ')';
-              break;
+    let prototype = "";
+    for (let i = 0; i < this.crossScAbi.length; ++i) {
+      let item = this.crossScAbi[i];
+      if (item.name == eventName) {
+        prototype = eventName + '(';
+        for (let j = 0; j < item.inputs.length; ++j) {
+          if (j != 0) {
+            prototype = prototype + ',';
           }
+          prototype = prototype + item.inputs[j].type;
+        }
+        prototype = prototype + ')';
+        break;
       }
-      return '0x' + wanUtil.sha3(prototype).toString('hex');
+    }
+    return '0x' + wanUtil.sha3(prototype).toString('hex');
   }
 
   async processScLogger(type, eventHash, eventName) {
@@ -180,6 +165,7 @@ module.exports = class CheckScEvent {
     if (count === 0) {
       return;
     }
+    let storageService = this.m_frameworkService.getService("StorageService");
     for (let idx = 0; idx < count; idx++) {
       let cur = count - idx - 1; // backwards
       let obj = ary[cur];
@@ -187,10 +173,13 @@ module.exports = class CheckScEvent {
         let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
         let topics = [eventHash, eventUnique.toLowerCase()];
         let latestBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
-        let fromBlockNumber = obj.fromBlockNumber;
+        let fromBlockNumber = obj.fromBlockNumber - 30; // for rollback
+        if (fromBlockNumber < 1) {
+          fromBlockNumber = 1;
+        }
         let toBlockNumber = fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
-          toBlockNumber = fromBlockNumber + 500; // some chain limit to 1000
+          toBlockNumber = fromBlockNumber + 300; // OKC
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
@@ -204,6 +193,7 @@ module.exports = class CheckScEvent {
             if (event) {
               await this.updateUIAndStorage(obj, event.txHash, event.toAccount);
               ary.splice(cur, 1);
+              continue; // process next job
             } else { // wait next scan
               obj.fromBlockNumber = toBlockNumber + 1;
             }
@@ -215,6 +205,7 @@ module.exports = class CheckScEvent {
         }
         console.debug("%s blockNumber %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
                       this.m_chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
+        await storageService.save("ScEventScanService", obj.uniqueID, obj);
       } catch (err) {
         console.error("processScLogger %s %O error: %O", type, obj, err);
       }

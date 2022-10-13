@@ -30,7 +30,8 @@
       "MaskChainId": 5,
       "ScScanInfo": {
         "taskInterval": 30000
-      }
+      },
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-eth-nft"
     },
     {
       "chainId": "2147484362",
@@ -46,7 +47,8 @@
       "MaskChainId": 97,
       "ScScanInfo": {
         "taskInterval": 10000
-      }
+      },
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-bsc-nft-subgraph"
     },
     {
       "chainId": "2147492648",
@@ -174,7 +176,8 @@
       "MaskChainId": 51,
       "ScScanInfo": {
         "taskInterval": 30000
-      }
+      },
+      "subgraph": "http://34.210.227.55:8000/subgraphs/name/orelliao/testnet-apothem-nft"
     },
     {
       "chainId": "1073741829",

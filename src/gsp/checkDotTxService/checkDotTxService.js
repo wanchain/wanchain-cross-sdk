@@ -12,7 +12,6 @@ module.exports = class CheckDotTxService {
         this.taskService = frameworkService.getService("TaskService");
         this.webStores = frameworkService.getService("WebStores");
         this.eventService = frameworkService.getService("EventService");
-        this.eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
     }
 
     async loadTradeTask(tasks) {
@@ -69,21 +68,4 @@ module.exports = class CheckDotTxService {
             console.error("CheckDotTxService error: %O", err);
         }
     }
-
-    async onDeleteTask(ccTaskId) {
-        try {
-            for (let idx = 0; idx < this.checkArray.length; ++idx) {
-                let task = this.checkArray[idx];
-                if (task.ccTaskId === ccTaskId) {
-                    this.checkArray.splice(idx, 1);
-                    let storageService = this.frameworkService.getService("StorageService");
-                    await storageService.delete("CheckDotTxService", task.ccTaskId);
-                    break;
-                }
-            }
-        } catch (err) {
-            console.error("CheckDotTxService onDeleteTask error: %O", err);
-        }
-    }
 }
-

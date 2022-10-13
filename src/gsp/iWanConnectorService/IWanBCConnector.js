@@ -1,7 +1,6 @@
 'use strict';
 
 const iWanClient = require('../libs/iWan-js-sdk/apis/apiInstance.js');
-const tool = require('../../utils/tool.js');
 
 class IWanBCConnector {
     constructor(option) {
@@ -194,47 +193,14 @@ class IWanBCConnector {
         return await this.apiClient.getStoremanGroupConfig(storemanGroupId);
     }
 
-    async checkErc721Approved(chain, token, id, owner, operator) {
+    async checkErc721Approved(chain, token, ids, owner, operator) {
         let abi = this.configService.getAbi("erc721");
-        let [isApprovedForAll, getApproved] = await Promise.all([
-            this.apiClient.callScFunc(chain, token, "isApprovedForAll", [owner, operator], abi),
-            this.apiClient.callScFunc(chain, token, "getApproved", [id], abi)
-        ]);
-        return (isApprovedForAll || (getApproved.toLowerCase() === operator.toLowerCase()));
+        let isApprovedForAll = await this.apiClient.callScFunc(chain, token, "isApprovedForAll", [owner, operator], abi);
+        return isApprovedForAll;
     }
 
-    async checkErc721Ownership(chain, token, id, address) {
-        let abi = this.configService.getAbi("erc721");
-        let owner = await this.apiClient.callScFunc(chain, token, "ownerOf", [id], abi);
-        return (owner.toLowerCase() === address.toLowerCase());
-    }
-
-    async getNftInfoMulticall(ancestorChainType, ancestorChainToken, chain, token, owner, startIndex, endIndex) {
-        let idCalls = [];
-        for (let i = startIndex; i <= endIndex; i++) {
-            let call = {
-              target: token,
-              call: ['tokenOfOwnerByIndex(address,uint256)(uint256)', owner, i],
-              returns: [[i]]
-            }
-            idCalls.push(call);
-        }
-        let ids = await this.apiClient.multiCall(chain, idCalls);
-        let uriCalls = [];
-        for (let i = startIndex; i <= endIndex; i++) {
-            let call = {
-              target: ancestorChainToken,
-              call: ['tokenURI(uint256)(string)', ids.results.transformed[i]._hex],
-              returns: [[i]]
-            }
-            uriCalls.push(call);
-        }
-        let uris = await this.apiClient.multiCall(ancestorChainType, uriCalls);
-        let result = {};
-        for (let i = startIndex; i <= endIndex; i++) {
-            result[i] = {id: ids.results.transformed[i]._hex, uri: uris.results.transformed[i]};
-        }
-        return result;
+    async multiCall(chainType, calls) {
+        return this.apiClient.multiCall(chainType, calls);
     }
 
     async estimateCrossChainOperationFee(chainType, targetChainType, options) {
