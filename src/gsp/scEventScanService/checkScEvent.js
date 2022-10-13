@@ -174,6 +174,7 @@ module.exports = class CheckScEvent {
     if (count === 0) {
       return;
     }
+    let storageService = this.m_frameworkService.getService("StorageService");
     for (let idx = 0; idx < count; idx++) {
       let cur = count - idx - 1; // backwards
       let obj = ary[cur];
@@ -198,6 +199,7 @@ module.exports = class CheckScEvent {
             if (event) {
               await this.updateUIAndStorage(obj, event.txHash, event.toAccount);
               ary.splice(cur, 1);
+              continue; // process next job
             } else { // wait next scan
               obj.fromBlockNumber = toBlockNumber + 1;
             }
@@ -209,6 +211,7 @@ module.exports = class CheckScEvent {
         }
         console.debug("%s blockNumber %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
                       this.m_chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
+        await storageService.save("ScEventScanService", obj.uniqueID, obj);
       } catch (err) {
         console.error("processScLogger %s %O error: %O", type, obj, err);
       }
