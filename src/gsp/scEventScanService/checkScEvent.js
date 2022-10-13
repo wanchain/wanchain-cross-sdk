@@ -182,7 +182,10 @@ module.exports = class CheckScEvent {
         let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
         let topics = [eventHash, eventUnique.toLowerCase()];
         let latestBlockNumber = await this.m_iwanBCConnector.getBlockNumber(this.m_chainInfo.chainType);
-        let fromBlockNumber = obj.fromBlockNumber;
+        let fromBlockNumber = obj.fromBlockNumber - 30; // for rollback
+        if (fromBlockNumber < 1) {
+          fromBlockNumber = 1;
+        }
         let toBlockNumber = fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
           toBlockNumber = fromBlockNumber + 300; // OKC
