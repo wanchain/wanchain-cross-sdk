@@ -202,7 +202,7 @@ class StoremanService {
         }
       })
       if (uriCalls.length) {
-        let res = await this.m_iwanBCConnector.multiCall("ETH", uriCalls);
+        let res = await this.m_iwanBCConnector.multiCall(chain, uriCalls);
         let uris = res.results.transformed;
         result.forEach(v => {
           v.uri = uris[v.id].replace(/\{id\}/g, tool.hexStrip0x(v.id));

@@ -91,8 +91,8 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("SDK: createTask, direction: %s, amount: %s, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms, assetPair: %O",
-                  direction, this._formatAmount(assetPair.protocol, amount), fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
+    console.debug("SDK: createTask, direction: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms, assetPair: %O",
+                  direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
     direction = this._unifyDirection(direction);
     let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     // check fromAccount
@@ -425,14 +425,6 @@ class WanBridge extends EventEmitter {
 
   _isThirdPartyWallet(chainType) {
     return THIRD_PARTY_WALLET_CHAINS.includes(chainType);
-  }
-
-  _formatAmount(tokenType, amount) {
-    if (tokenType === "Erc20") {
-      return new BigNumber(amount).toFixed();
-    } else { // nft: Erc721, Erc1155
-      return amount.map(v => util.format("%O", v)).toString();
-    }
   }
 }
 

@@ -86,7 +86,6 @@ module.exports = class TxGeneratorService{
             }
           })
           txData = crossScInst.methods.userLockNFT(smgID, tokenPairID, tokenIDs, tokenValues, userAccount).encodeABI();
-          console.log({tokenIDs, tokenValues, txData})
         }
         return txData;
     }

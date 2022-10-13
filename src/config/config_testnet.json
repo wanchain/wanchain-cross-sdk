@@ -48,7 +48,7 @@
       "ScScanInfo": {
         "taskInterval": 10000
       },
-      "subgraph": "https://thegraph.com/explorer/subgraph/orelliao/testnet-bsc-nft-subgraph"
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-bsc-nft-subgraph"
     },
     {
       "chainId": "2147492648",
