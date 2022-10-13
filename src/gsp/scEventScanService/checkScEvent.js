@@ -185,7 +185,7 @@ module.exports = class CheckScEvent {
         let fromBlockNumber = obj.fromBlockNumber;
         let toBlockNumber = fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
-          toBlockNumber = fromBlockNumber + 500; // some chain limit to 1000
+          toBlockNumber = fromBlockNumber + 300; // OKC
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
