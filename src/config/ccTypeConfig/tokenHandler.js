@@ -76,7 +76,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   async buildErc721Approve(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-    let value = convert.value; // [tokenId] or [{tokenId, amount}]
+    let value = convert.value; // [tokenId, name] or [{tokenId, name, amount}]
     let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, chainInfo.crossScAddr);
     if (approved === false) {
       let params = {

@@ -78,7 +78,7 @@ module.exports = class TxGeneratorService{
           let tokenIDs = [], tokenValues = [];
           value.forEach(v => {
             if (tokenType === "Erc721") {
-              tokenIDs.push("0x" + new BigNumber(v).toString(16));
+              tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
               tokenValues.push("0x1");
             } else if (tokenType === "Erc1155") {
               tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
@@ -103,7 +103,7 @@ module.exports = class TxGeneratorService{
           let tokenIDs = [], tokenValues = [];
           value.forEach(v => {
             if (tokenType === "Erc721") {
-              tokenIDs.push("0x" + new BigNumber(v).toString(16));
+              tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
               tokenValues.push("0x1");
             } else if (tokenType === "Erc1155") {
               tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));

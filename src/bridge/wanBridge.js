@@ -428,9 +428,9 @@ class WanBridge extends EventEmitter {
   }
 
   _formatAmount(tokenType, amount) {
-    if (["Erc20", "Erc721"].includes(tokenType)) {
-      return amount.toString();
-    } else if (tokenType === "Erc1155") {
+    if (tokenType === "Erc20") {
+      return new BigNumber(amount).toFixed();
+    } else { // nft: Erc721, Erc1155
       return amount.map(v => util.format("%O", v)).toString();
     }
   }
