@@ -25,17 +25,8 @@ module.exports = class CheckScEvent {
     this.m_taskService = this.m_frameworkService.getService("TaskService");
     this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
     this.m_eventService = this.m_frameworkService.getService("EventService");
-    this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
     let configService = this.m_frameworkService.getService("ConfigService");
     this.crossScAbi = ["ETH", "BNB", "XDC"].includes(chainInfo.chainType)? configService.getAbi("crossSc") : configService.getAbi("crossScLegacyEvent");
-  }
-
-  async onDeleteTask(ccTaskId) {
-    let ret = await this.deleteTaskById("MINT", ccTaskId);
-    if (ret === true) {
-        return;
-    }
-    await this.deleteTaskById("BURN", ccTaskId);
   }
 
   async deleteTaskById(type, ccTaskId) {
@@ -105,13 +96,13 @@ module.exports = class CheckScEvent {
   async processSmgMintNft() {
     let eventHash = this.getEventHash("SmgMintNFT");
     let eventName = "SmgMintNFT";
-    await this.processScLogger("MINT", eventHash, eventName);
+    await this.processScLogger("MINTNFT", eventHash, eventName);
   }
 
   async processSmgReleaseNft() {
     let eventHash = this.getEventHash("SmgReleaseNFT");
     let eventName = "SmgReleaseNFT";
-    await this.processScLogger("BURN", eventHash, eventName);
+    await this.processScLogger("BURNNFT", eventHash, eventName);
   }
 
   parseLogs(logs, abi) {

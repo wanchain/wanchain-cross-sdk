@@ -11,24 +11,6 @@ module.exports = class CheckTxReceiptService {
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_WebStores = frameworkService.getService("WebStores");
         this.m_eventService = frameworkService.getService("EventService");
-        this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
-    }
-
-    async onDeleteTask(ccTaskId) {
-        try {
-            for (let idx = 0; idx < this.m_tradeTaskAry.length; ++idx) {
-                let obj = this.m_tradeTaskAry[idx];
-                if (obj.ccTaskId === ccTaskId) {
-                    this.m_tradeTaskAry.splice(idx, 1);
-                    let storageService = this.m_frameworkService.getService("StorageService");
-                    storageService.delete("ScEventScanService", obj.ccTaskId);
-                    break;
-                }
-            }
-        }
-        catch (err) {
-            console.log("CheckTxReceiptService onDeleteTask err:", err);
-        }
     }
 
     async loadTradeTask(tradeTaskAry) {
@@ -115,4 +97,3 @@ module.exports = class CheckTxReceiptService {
         this.m_tradeTaskAry.push(obj);
     }
 };
-
