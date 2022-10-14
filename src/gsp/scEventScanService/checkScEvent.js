@@ -26,7 +26,8 @@ module.exports = class CheckScEvent {
     this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
     this.m_eventService = this.m_frameworkService.getService("EventService");
     let configService = this.m_frameworkService.getService("ConfigService");
-    this.crossScAbi = ["ETH", "BNB", "XDC"].includes(chainInfo.chainType)? configService.getAbi("crossSc") : configService.getAbi("crossScLegacyEvent");
+    let network = configService.getNetwork();
+    this.crossScAbi = ((network === "mainnet") || ["ETH", "BNB", "XDC"].includes(chainInfo.chainType))? configService.getAbi("crossSc") : configService.getAbi("crossScLegacyEvent");
   }
 
   async deleteTaskById(type, ccTaskId) {
