@@ -156,7 +156,7 @@ class WanBridge extends EventEmitter {
       operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
       networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
     };
-    console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %s, result: %O", assetPair.assetPairId, direction, options, fee);
+    console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %O, result: %O", assetPair.assetPairId, direction, options, fee);
     return fee;
   }
 
