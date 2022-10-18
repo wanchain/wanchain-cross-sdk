@@ -177,7 +177,7 @@
       "ScScanInfo": {
         "taskInterval": 30000
       },
-      "subgraph": "http://34.210.227.55:8000/subgraphs/name/orelliao/testnet-apothem-nft"
+      "subgraph": "https://apothem.thegraph.one/subgraphs/name/orelliao/testnet-apothem-nft"
     },
     {
       "chainId": "1073741829",
