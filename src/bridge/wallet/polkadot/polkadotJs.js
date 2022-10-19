@@ -52,6 +52,7 @@ class Polkadot {
     options.blockHash = blockHash.toHex();
     options.era = 64;
     let txHash = await this.api.tx.utility.batchAll(txs).signAndSend(sender, options);
+    console.debug("polkadotJs sendTransaction txHash: %s, %O", typeof(txHash), txHash);
     return txHash.toHex();
   }
 
