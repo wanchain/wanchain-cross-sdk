@@ -96,7 +96,8 @@
       "MaskChainId": 80001,
       "ScScanInfo": {
         "taskInterval": 10000
-      }
+      },
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-matic-subgraph"
     },
     {
       "chainId": "1073741826",
