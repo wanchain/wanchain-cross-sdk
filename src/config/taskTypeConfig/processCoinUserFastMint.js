@@ -23,14 +23,15 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 params.tokenPairID,
                 crossValue,
                 params.userAccount,
-                params.value);
+                {coinValue: params.value});
             } else { // common evm
               let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
               let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
                   params.storemanGroupId,
                   params.tokenPairID,
                   crossValue,
-                  params.userAccount);
+                  params.userAccount,
+                  {tokenType: "Erc20"});
               txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);

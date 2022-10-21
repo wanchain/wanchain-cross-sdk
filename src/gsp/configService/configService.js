@@ -14,6 +14,74 @@ const abis = {
   "erc721": require("../../config/abi/erc721.json")
 }
 
+abis.crossScLegacyEvent = [{
+	"anonymous": false,
+	"inputs": [{
+		"indexed": true,
+		"name": "uniqueID",
+		"type": "bytes32"
+	}, {
+		"indexed": true,
+		"name": "smgID",
+		"type": "bytes32"
+	}, {
+		"indexed": true,
+		"name": "tokenPairID",
+		"type": "uint256"
+	}, {
+		"indexed": false,
+		"name": "value",
+		"type": "uint256"
+	}, {
+		"indexed": false,
+		"name": "fee",
+		"type": "uint256"
+	}, {
+		"indexed": false,
+		"name": "tokenAccount",
+		"type": "address"
+	}, {
+		"indexed": false,
+		"name": "userAccount",
+		"type": "address"
+	}],
+	"name": "SmgMintLogger",
+	"type": "event"
+}, {
+	"anonymous": false,
+	"inputs": [{
+		"indexed": true,
+		"name": "uniqueID",
+		"type": "bytes32"
+	}, {
+		"indexed": true,
+		"name": "smgID",
+		"type": "bytes32"
+	}, {
+		"indexed": true,
+		"name": "tokenPairID",
+		"type": "uint256"
+	}, {
+		"indexed": false,
+		"name": "value",
+		"type": "uint256"
+	}, {
+		"indexed": false,
+		"name": "fee",
+		"type": "uint256"
+	}, {
+		"indexed": false,
+		"name": "tokenAccount",
+		"type": "address"
+	}, {
+		"indexed": false,
+		"name": "userAccount",
+		"type": "address"
+	}],
+	"name": "SmgReleaseLogger",
+	"type": "event"
+}];
+
 module.exports = class ConfigService extends ConfigServiceInterface {
     constructor() {
         super();

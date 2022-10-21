@@ -247,6 +247,9 @@ class TokenPairService {
     }
 
     updateTokenPairInfo(tokenPair) {
+        let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
+        tokenPair.ancestorChainType = ancestorChainInfo.chainType;
+        tokenPair.ancestorChainName = ancestorChainInfo.chainName;
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (tokenPair.fromScInfo && tokenPair.toScInfo) {
@@ -350,12 +353,13 @@ class TokenPairService {
       let tokenPair = this.getTokenPair(tokenPairId);
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
+      let protocol = (direction === "MINT")? tokenPair.toAccountType : tokenPair.fromAccountType;
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken || (tokenAccount === tokenPair.ancestorAccount)) { // original token or coin
-        return "BURN"; // release
+        return (protocol === "Erc20")? "BURN" : "BURNNFT"; // release
       } else {
-        return "MINT";
+        return (protocol === "Erc20")? "MINT" : "MINTNFT";
       }
     }
 

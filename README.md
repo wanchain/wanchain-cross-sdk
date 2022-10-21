@@ -44,6 +44,8 @@ bridge.on("ready", assetPairs => {
         assetPairId: "39",
         assetType: "AVAX",
         protocol: "Erc20",
+        ancestorChainType: "AVAX",
+        ancestorChainName: "Avalanche C-Chain",
         fromSymbol: "AVAX",
         toSymbol: "wanAVAX",
         decimals: "18",
@@ -158,7 +160,10 @@ try {
   // for polkadot, you can call wallet.getAccounts(network) to get all accounts and then select one as fromAccount
   let fromAccount = "sender-address-on-from-chain";
 
-  // input toAccount and amount manully
+  // input toAccount and amount manully, the amount format of different token types is as follows
+  // Erc20: number
+  // Erc721: {tokenId: number, name: string}
+  // Erc721: {tokenId: number, name: string, name, amount: number}
   let toAccount = 'receiver-address-on-to-chain';
   let amount = new BigNumber(0.1);
 

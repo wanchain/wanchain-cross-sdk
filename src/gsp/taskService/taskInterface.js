@@ -12,4 +12,3 @@ module.exports = class TaskInterface {
         throw new Error("Abstract method!");
     }
 };
-

@@ -34,8 +34,8 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         params.value,
         params.userBurnFee,
         params.tokenAccount,
-        params.userAccount);
-
+        params.userAccount,
+        {tokenType: "Erc20"});
       let txValue = params.fee;
       let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
       await this.sendTransactionData(stepData, txData, wallet);

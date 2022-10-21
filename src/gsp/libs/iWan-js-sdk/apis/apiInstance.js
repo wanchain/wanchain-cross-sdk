@@ -8547,45 +8547,6 @@ class ApiInstance extends WsInstance {
         return this.open;
     }
 
-    estimateNetworkFee(chainType, feeType, toChainType, callback) {
-        let method = 'estimateNetworkFee';
-        let params = {
-            "chainType": chainType,
-            "feeType": feeType,
-            "toChainType": toChainType
-        };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
-
-    getCrossChainFees(chainType, chainIds, options, callback) {
-      if (typeof(options) === "function") {
-        callback = options;
-        options = {};
-      }
-      if (callback) {
-        callback = utils.wrapCallback(callback);
-      }
-      let method = 'getCrossChainFees';
-      let params = { chainType: chainType, chainIds: chainIds, ...options };
-
-      return utils.promiseOrCallback(callback, cb => {
-        this._request(method, params, (err, result) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb(null, result);
-        });
-      });
-    }
-
     getStoremanGroupConfig(storemanGroupId, callback) {
       let method = 'getStoremanGroupConfig';
       let params = {
