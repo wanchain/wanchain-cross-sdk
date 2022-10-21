@@ -31,7 +31,7 @@
       "ScScanInfo": {
         "taskInterval": 30000
       },
-      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/eth-1155nft-subgraph"
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/eth-subgraph"
     },
     {
       "chainId": "2147484362",
@@ -47,7 +47,8 @@
       "MaskChainId": 56,
       "ScScanInfo": {
         "taskInterval": 10000
-      }
+      },
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/bsc-subgraph"
     },
     {
       "chainId": "2147492648",
@@ -111,7 +112,8 @@
       "MaskChainId": 137,
       "ScScanInfo": {
         "taskInterval": 10000
-      }
+      },
+      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/matic-subgraph"
     },
     {
       "chainId": "1073741826",
@@ -191,7 +193,8 @@
       "MaskChainId": 50,
       "ScScanInfo": {
         "taskInterval": 30000
-      }
+      },
+      "subgraph": "http://xinfin.thegraph.one/subgraphs/name/orelliao/Subgraph_XinFin"
     },
     {
       "chainId": "1073741829",
