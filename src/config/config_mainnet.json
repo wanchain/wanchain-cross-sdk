@@ -194,7 +194,7 @@
       "ScScanInfo": {
         "taskInterval": 30000
       },
-      "subgraph": "http://xinfin.thegraph.one/subgraphs/name/orelliao/Subgraph_XinFin"
+      "subgraph": "https://xinfin.thegraph.one/subgraphs/name/orelliao/Subgraph_XinFin"
     },
     {
       "chainId": "1073741829",
