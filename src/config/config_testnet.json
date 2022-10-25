@@ -14,7 +14,8 @@
       "MaskChainId": 999,
       "ScScanInfo": {
         "taskInterval": 10000
-      }
+      },
+      "subgraph": "https://graph-testnet.zookeeper.finance/subgraphs/name/orelliao/testnet-wan-nft/graphql"
     },
     {
       "chainId": "2147483708",
