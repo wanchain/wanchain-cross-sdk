@@ -30,7 +30,7 @@
       "chainDecimals": 18,
       "MaskChainId": 1,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       },
       "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/eth-subgraph"
     },
@@ -96,7 +96,7 @@
       "chainDecimals": 18,
       "MaskChainId": 1284,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -161,7 +161,7 @@
       "chainDecimals": 18,
       "MaskChainId": 10,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -177,7 +177,7 @@
       "chainDecimals": 18,
       "MaskChainId": 66,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -193,7 +193,7 @@
       "chainDecimals": 18,
       "MaskChainId": 50,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       },
       "subgraph": "https://xinfin.thegraph.one/subgraphs/name/orelliao/Subgraph_XinFin"
     },
@@ -210,20 +210,20 @@
       "chainDecimals": 18,
       "MaskChainId": 1024,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
       "chainId": "2147483843",
       "chainType": "TRX",
       "chainName": "Tron",
-      "crossScAddr": "0x....................................",
-      "crossScAddrNative": "....................................",
+      "crossScAddr": "0xfe464ebd5bb5d95731f90aa7b9e39df920a61c97",
+      "crossScAddrNative": "TZ9grqg3LwBKiddGra3WGHPdddJz3tow8N",
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 6,
       "MaskChainId": 0,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     }
   ],
