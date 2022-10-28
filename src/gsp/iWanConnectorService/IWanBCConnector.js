@@ -238,6 +238,10 @@ class IWanBCConnector {
     async getTrustLines(address, options) {
       return this.apiClient.getTrustLines("XRP", address, options);
     }
+
+    async getRegisteredSubgraph(options) {
+      return this.apiClient.getRegisteredSubgraph(options);
+    }
 };
 
 module.exports = IWanBCConnector;

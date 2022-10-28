@@ -14,7 +14,6 @@ class StoremanService {
         try {
             this.m_frameworkService = frameworkService;
             this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-            this.chainInfoService = frameworkService.getService("ChainInfoService");
         } catch (err) {
             console.log("StoremanService init err:", err);
         }
@@ -169,8 +168,6 @@ class StoremanService {
     }
 
     async getNftInfo(type, chain, tokenAddr, owner, limit, skip = 0, includeUri = true) {
-      let chainInfo = this.chainInfoService.getChainInfoByType(chain);
-      let url = chainInfo.subgraph;
       const query = {
         query: `
           query getNftList($tokenAddr: String, $owner: String, $limit: Int, $skip: Int) {
@@ -183,7 +180,9 @@ class StoremanService {
         variables: {tokenAddr, owner, limit, skip}
       };
       let tokens = [];
-      let res = await axios.post(url, JSON.stringify(query));
+      let urls = await this.m_iwanBCConnector.getRegisteredSubgraph({chainType: chain, keywords: [tokenAddr]});
+      console.debug("get %s token %s subgraph: %O", chain, tokenAddr, urls);
+      let res = await axios.post(urls[0].subgraph, JSON.stringify(query));
       if (res && res.data && res.data.data && res.data.data.tokenBalances) {
         tokens = res.data.data.tokenBalances;
       }
