@@ -21,7 +21,7 @@ const PolkadotSS58Format = {
 };
 
 const web3 = new Web3();
-const tronweb = new TronWeb("https://api.nileex.io", "https://api.nileex.io", "https://api.nileex.io");
+const tronweb = new TronWeb({fullHost: "https://api.nileex.io"});
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();

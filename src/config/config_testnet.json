@@ -30,7 +30,7 @@
       "chainDecimals": 18,
       "MaskChainId": 5,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       },
       "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-eth-nft"
     },
@@ -145,7 +145,7 @@
       "chainDecimals": 18,
       "MaskChainId": 420,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -161,7 +161,7 @@
       "chainDecimals": 18,
       "MaskChainId": 65,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -177,7 +177,7 @@
       "chainDecimals": 18,
       "MaskChainId": 51,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       },
       "subgraph": "https://apothem.thegraph.one/subgraphs/name/orelliao/testnet-apothem-nft"
     },
@@ -194,7 +194,7 @@
       "chainDecimals": 18,
       "MaskChainId": 1024,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -210,7 +210,7 @@
       "chainDecimals": 18,
       "MaskChainId": 90001,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -223,7 +223,7 @@
       "chainDecimals": 6,
       "MaskChainId": 0,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     }
   ],
