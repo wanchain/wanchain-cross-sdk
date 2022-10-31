@@ -209,13 +209,13 @@ class WanBridge extends EventEmitter {
     return tool.validateXrpTokenAmount(amount);
   }
 
-  async getNftInfo(assetPair, direction, account, limit, skip = 0) {
+  async getNftInfo(assetPair, direction, account, options) {
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, limit, skip, true);
-    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, limit: %d, skip: %d, chain: %s, asset: %s, result: %O",
-                  assetPair.assetPairId, direction, account, limit, skip, chainType, assetPair.assetType, infos);
+    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
+    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, chain: %s, asset: %s, options: %O, result: %O",
+                  assetPair.assetPairId, direction, account, chainType, assetPair.assetType, options, infos);
     return infos;
   }
 

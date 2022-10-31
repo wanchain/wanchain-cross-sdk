@@ -167,7 +167,70 @@ class StoremanService {
       return null;
     }
 
-    async getNftInfo(type, chain, tokenAddr, owner, limit, skip = 0, includeUri = true) {
+    async getNftInfo(type, chain, tokenAddr, owner, options) {
+      if (options.tokenIds) {
+        return _getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
+      } else {
+        return _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip);
+      }
+    }
+
+    async _getNftInfoFromChain(type, chain, tokenAddr, owner, tokenIds) {
+      let result = [], mcs = [];
+      tokenIds.forEach(v => {
+        let id = "0x" + new BigNumber(v).toString(16);
+        if (type === "Erc721") { // get erc721 owner
+          mcs.push({
+            target: tokenAddr,
+            call: ["ownerOf(uint256)(address)", id],
+            returns: [[id + "-owner"]]
+          });
+        } else { // get erc1155 balance
+          mcs.push({
+            target: tokenAddr,
+            call: ["balanceOf(address,uint256)(uint256)", owner, id],
+            returns: [[id + "-balance"]]
+          });
+        }
+        // uri
+        let uriIf = (type === "Erc721")? "tokenURI(uint256)(string)" : "uri(uint256)(string)";
+        mcs.push({
+          target: tokenAddr,
+          call: [uriIf, id],
+          returns: [[id + "-uri"]]
+        });
+      })
+      if (mcs.length) {
+        let res = await this.m_iwanBCConnector.multiCall(chain, mcs);
+        let data = res.results.transformed;
+        tokenIds.forEach(v => {
+          let id = "0x" + new BigNumber(v).toString(16);
+          let balance = 0;
+          if (type === "Erc721") {
+            let getOwner = data[id + "-owner"];
+            if (tool.cmpAddress(getOwner, owner)) {
+              balance = 1;
+            }
+          } else {
+            balance = data[id + "-balance"]._hex;
+          }
+          balance = new BigNumber(balance);
+          if (balance.gt(0)) {
+            let fullId = (Array(63).fill('0').join("") + tool.hexStrip0x(id)).slice(-64);
+            result.push({
+              id: new BigNumber(id).toFixed(),
+              balance: balance.toFixed(),
+              uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
+            })
+          } else {
+            console.debug("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
+          }
+        })
+      }
+      return result;
+    }
+
+    async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri = true) {
       const query = {
         query: `
           query getNftList($tokenAddr: String, $owner: String, $limit: Int, $skip: Int) {
