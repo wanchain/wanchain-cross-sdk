@@ -169,9 +169,9 @@ class StoremanService {
 
     async getNftInfo(type, chain, tokenAddr, owner, options) {
       if (options.tokenIds) {
-        return _getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
+        return this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
       } else {
-        return _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip);
+        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip);
       }
     }
 
