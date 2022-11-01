@@ -77,7 +77,7 @@ class TokenPairService {
               this.readMultiChainOrigToken(ts0)
             ]);
             tokenPairs = tokenPairs.filter(tp => {
-              if (tp.ancestorSymbol !== "EOS") { // ignore deprecated tokens
+              if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
                 if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
                   tokenPairMap.set(tp.id, tp);
                   return true;
