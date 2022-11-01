@@ -4,10 +4,8 @@ const tool = require("../../../utils/tool");
 const TxResource = {
   approveBandwidth: 345,
   approveEnergy: 22495,
-  lockBandwidth: 480,
-  lockEnergy: 43267, // TRX: 17202, Token: 43267
-  burnBandwidth: 571,
-  burnEnergy: 41505,
+  crossBandwidth: 571, // mint: 480, burn: 571
+  crossEnergy: 43267, // mint TRX: 17202, mint token: 43267, burn: 41505
 }
 
 class TronLink {
@@ -49,7 +47,7 @@ class TronLink {
   // customized function
 
   async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, extInfo) {
-    let feeLimit = await this.getFeeLimit("lock");
+    let feeLimit = await this.getFeeLimit("cross");
     let options = {
       feeLimit,
       callValue: new BigNumber(extInfo.coinValue).toFixed(), // tx coin value
@@ -83,7 +81,7 @@ class TronLink {
   }
 
   async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, extInfo) {
-    let feeLimit = await this.getFeeLimit("burn");
+    let feeLimit = await this.getFeeLimit("cross");
     let options = {
       feeLimit,
       callValue: new BigNumber(extInfo.coinValue).toFixed(), // tx coin value

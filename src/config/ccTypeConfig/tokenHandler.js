@@ -42,7 +42,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       scChainType: chainInfo.chainType,
       erc20Addr: tokenSc,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20ApproveGasLimit,
+      gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: chainInfo.crossScAddr,
       taskType: "ProcessErc20Approve"
@@ -85,7 +85,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         scChainType: chainInfo.chainType,
         tokenAddr: tokenSc,
         gasPrice: chainInfo.gasPrice,
-        gasLimit: chainInfo.erc20ApproveGasLimit,
+        gasLimit: chainInfo.approveGasLimit,
         value,
         operator: chainInfo.crossScAddr,
         taskType: "ProcessErc721Approve"
@@ -113,7 +113,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20FastMintGasLimit,
+      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -147,7 +147,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20FastBurnGasLimit,
+      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -194,5 +194,13 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         errCode: this.globalConstant.ERR_INSUFFICIENT_GAS
       };
     }
+  }
+
+  getCrossTxGasLimit(chainInfo, tokenType, value) {
+    let gasLimit = chainInfo.crossGasLimit;
+    if ((tokenType !== "Erc20") && (value.length > 1)) {
+      gasLimit = gasLimit + gasLimit * 0.2 * (value.length - 1);
+    }
+    return parseInt(gasLimit);
   }
 }
