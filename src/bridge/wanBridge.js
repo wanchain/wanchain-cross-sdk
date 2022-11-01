@@ -11,7 +11,7 @@ const util = require("util");
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
 // consistant with crosschain contract
-const MAX_NFT_BATCH_SIZE = 20;
+const MAX_NFT_BATCH_SIZE = 10;
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
