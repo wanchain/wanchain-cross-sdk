@@ -33,7 +33,7 @@
     {
       "chainId": "2147484362",
       "chainType": "BNB",
-      "chainName": "BSC",
+      "chainName": "BNB Chain",
       "crossScAddr": "0xc3711bdbe7e3063bf6c22e7fed42f782ac82baee",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
