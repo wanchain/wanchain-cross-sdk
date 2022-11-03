@@ -168,6 +168,8 @@ class StoremanService {
     }
 
     async getNftInfo(type, chain, tokenAddr, owner, options) {
+      tokenAddr = tokenAddr.toLowerCase();
+      owner = owner.toLowerCase();
       if (options.tokenIds) {
         return this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
       } else {
@@ -231,6 +233,8 @@ class StoremanService {
     }
 
     async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri = true) {
+      limit = parseInt(limit || 10);
+      skip = parseInt(skip || 0);
       const query = {
         query: `
           query getNftList($tokenAddr: String, $owner: String, $limit: Int, $skip: Int) {
@@ -278,7 +282,7 @@ class StoremanService {
       let balance = 0, skip = 0;
       for ( ; ; ) {
         let result = await this.getNftInfo("Erc1155", chain, token, owner, 1000, skip, false);
-        let bal = Object.keys(result).length;
+        let bal = result.length;
         balance += bal;
         if (bal < 1000) {
           break;
