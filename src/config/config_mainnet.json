@@ -13,7 +13,7 @@
       "ScScanInfo": {
         "taskInterval": 10000
       },
-      "subgraph": "https://thegraph.one/subgraphs/name/orel/Subgraph_Wan"
+      "subgraph": "https://thegraph.one/subgraphs/name/orelliao/Subgraph_Wan"
     },
     {
       "chainId": "2147483708",

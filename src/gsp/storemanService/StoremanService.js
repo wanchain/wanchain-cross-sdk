@@ -161,6 +161,10 @@ class StoremanService {
     async getNftInfo(type, chain, tokenAddr, owner, limit, skip = 0, includeUri = true) {
       let chainInfo = this.chainInfoService.getChainInfoByType(chain);
       let url = chainInfo.subgraph;
+      tokenAddr = tokenAddr.toLowerCase();
+      owner = owner.toLowerCase();
+      limit = parseInt(limit);
+      skip = parseInt(skip);
       const query = {
         query: `
           query getNftList($tokenAddr: String, $owner: String, $limit: Int, $skip: Int) {
