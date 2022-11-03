@@ -210,7 +210,7 @@ class StoremanService {
       let balance = 0, skip = 0;
       for ( ; ; ) {
         let result = await this.getNftInfo("Erc1155", chain, token, owner, 1000, skip, false);
-        let bal = Object.keys(result).length;
+        let bal = result.length;
         balance += bal;
         if (bal < 1000) {
           break;
