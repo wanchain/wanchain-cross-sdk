@@ -230,7 +230,7 @@ class StoremanService {
             }
           })
         } catch (err) { // erc721 would throw error if query nonexistent token
-          console.error("getNftInfoFromChain error: %O", err);
+          console.debug("getNftInfoFromChain error: %O", err);
         }
       }
       return result;
