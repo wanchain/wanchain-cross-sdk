@@ -203,31 +203,35 @@ class StoremanService {
         });
       })
       if (mcs.length) {
-        let res = await this.m_iwanBCConnector.multiCall(chain, mcs);
-        let data = res.results.transformed;
-        tokenIds.forEach(v => {
-          let id = "0x" + new BigNumber(v).toString(16);
-          let balance = 0;
-          if (type === "Erc721") {
-            let getOwner = data[id + "-owner"];
-            if (tool.cmpAddress(getOwner, owner)) {
-              balance = 1;
+        try {
+          let res = await this.m_iwanBCConnector.multiCall(chain, mcs);
+          let data = res.results.transformed;
+          tokenIds.forEach(v => {
+            let id = "0x" + new BigNumber(v).toString(16);
+            let balance = 0;
+            if (type === "Erc721") {
+              let getOwner = data[id + "-owner"];
+              if (tool.cmpAddress(getOwner, owner)) {
+                balance = 1;
+              }
+            } else {
+              balance = data[id + "-balance"]._hex;
             }
-          } else {
-            balance = data[id + "-balance"]._hex;
-          }
-          balance = new BigNumber(balance);
-          if (balance.gt(0)) {
-            let fullId = (Array(63).fill('0').join("") + tool.hexStrip0x(id)).slice(-64);
-            result.push({
-              id: new BigNumber(id).toFixed(),
-              balance: balance.toFixed(),
-              uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
-            })
-          } else {
-            console.debug("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
-          }
-        })
+            balance = new BigNumber(balance);
+            if (balance.gt(0)) {
+              let fullId = (Array(63).fill('0').join("") + tool.hexStrip0x(id)).slice(-64);
+              result.push({
+                id: new BigNumber(id).toFixed(),
+                balance: balance.toFixed(),
+                uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
+              })
+            } else {
+              console.debug("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
+            }
+          })
+        } catch (err) { // erc721 would throw error if query nonexistent token
+          console.error("getNftInfoFromChain error: %O", err);
+        }
       }
       return result;
     }
