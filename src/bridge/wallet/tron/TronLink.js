@@ -3,9 +3,9 @@ const tool = require("../../../utils/tool");
 
 const TxResource = {
   approveBandwidth: 345,
-  approveEnergy: 22495,
+  approveEnergy: 22677,
   crossBandwidth: 571, // mint: 480, burn: 571
-  crossEnergy: 43267, // mint TRX: 17202, mint token: 43267, burn: 41505
+  crossEnergy: 59948, // mint TRX: 17202, mint token: 59948, burn: 41505
 }
 
 class TronLink {

@@ -14,7 +14,6 @@ class StoremanService {
         try {
             this.m_frameworkService = frameworkService;
             this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-            this.chainInfoService = frameworkService.getService("ChainInfoService");
         } catch (err) {
             console.log("StoremanService init err:", err);
         }
@@ -158,13 +157,78 @@ class StoremanService {
       return null;
     }
 
-    async getNftInfo(type, chain, tokenAddr, owner, limit, skip = 0, includeUri = true) {
-      let chainInfo = this.chainInfoService.getChainInfoByType(chain);
-      let url = chainInfo.subgraph;
+    async getNftInfo(type, chain, tokenAddr, owner, options) {
       tokenAddr = tokenAddr.toLowerCase();
       owner = owner.toLowerCase();
-      limit = parseInt(limit);
-      skip = parseInt(skip);
+      if (options.tokenIds) {
+        return this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
+      } else {
+        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip);
+      }
+    }
+
+    async _getNftInfoFromChain(type, chain, tokenAddr, owner, tokenIds) {
+      let result = [], mcs = [];
+      tokenIds.forEach(v => {
+        let id = "0x" + new BigNumber(v).toString(16);
+        if (type === "Erc721") { // get erc721 owner
+          mcs.push({
+            target: tokenAddr,
+            call: ["ownerOf(uint256)(address)", id],
+            returns: [[id + "-owner"]]
+          });
+        } else { // get erc1155 balance
+          mcs.push({
+            target: tokenAddr,
+            call: ["balanceOf(address,uint256)(uint256)", owner, id],
+            returns: [[id + "-balance"]]
+          });
+        }
+        // uri
+        let uriIf = (type === "Erc721")? "tokenURI(uint256)(string)" : "uri(uint256)(string)";
+        mcs.push({
+          target: tokenAddr,
+          call: [uriIf, id],
+          returns: [[id + "-uri"]]
+        });
+      })
+      if (mcs.length) {
+        try {
+          let res = await this.m_iwanBCConnector.multiCall(chain, mcs);
+          let data = res.results.transformed;
+          tokenIds.forEach(v => {
+            let id = "0x" + new BigNumber(v).toString(16);
+            let balance = 0;
+            if (type === "Erc721") {
+              let getOwner = data[id + "-owner"];
+              if (tool.cmpAddress(getOwner, owner)) {
+                balance = 1;
+              }
+            } else {
+              balance = data[id + "-balance"]._hex;
+            }
+            balance = new BigNumber(balance);
+            if (balance.gt(0)) {
+              let fullId = (Array(63).fill('0').join("") + tool.hexStrip0x(id)).slice(-64);
+              result.push({
+                id: new BigNumber(id).toFixed(),
+                balance: balance.toFixed(),
+                uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
+              })
+            } else {
+              console.debug("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
+            }
+          })
+        } catch (err) { // erc721 would throw error if query nonexistent token
+          console.debug("getNftInfoFromChain error: %O", err);
+        }
+      }
+      return result;
+    }
+
+    async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri = true) {
+      limit = parseInt(limit || 10);
+      skip = parseInt(skip || 0);
       const query = {
         query: `
           query getNftList($tokenAddr: String, $owner: String, $limit: Int, $skip: Int) {
@@ -177,7 +241,9 @@ class StoremanService {
         variables: {tokenAddr, owner, limit, skip}
       };
       let tokens = [];
-      let res = await axios.post(url, JSON.stringify(query));
+      let urls = await this.m_iwanBCConnector.getRegisteredSubgraph({chainType: chain, keywords: [tokenAddr]});
+      console.debug("get %s token %s subgraph: %O", chain, tokenAddr, urls);
+      let res = await axios.post(urls[0].subgraph, JSON.stringify(query));
       if (res && res.data && res.data.data && res.data.data.tokenBalances) {
         tokens = res.data.data.tokenBalances;
       }
