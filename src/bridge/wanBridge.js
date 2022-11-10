@@ -6,7 +6,6 @@ const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
-const util = require("util");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
