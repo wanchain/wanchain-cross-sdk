@@ -248,11 +248,11 @@ class TokenPairService {
 
     updateTokenPairInfo(tokenPair) {
         let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
-        tokenPair.ancestorChainType = ancestorChainInfo.chainType;
-        tokenPair.ancestorChainName = ancestorChainInfo.chainName;
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
-        if (tokenPair.fromScInfo && tokenPair.toScInfo) {
+        if (ancestorChainInfo && tokenPair.fromScInfo && tokenPair.toScInfo) {
+            tokenPair.ancestorChainType = ancestorChainInfo.chainType;
+            tokenPair.ancestorChainName = ancestorChainInfo.chainName;
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.decimals = (Number(tokenPair.fromDecimals) < Number(tokenPair.toDecimals))? tokenPair.fromDecimals : tokenPair.toDecimals;
