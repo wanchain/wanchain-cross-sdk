@@ -21,8 +21,8 @@ class AssetPairs {
     });
     if (assetPairs) { // maybe only update smgs
       let pairList = assetPairs.map(pair => {
-        this.tokens.add(pair.fromAccount.toLowerCase());
-        this.tokens.add(pair.toAccount.toLowerCase());
+        this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount));
+        this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount));
         return {
           assetPairId: pair.id,
           assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol),    // the ancestory symbol for this token
@@ -69,8 +69,19 @@ class AssetPairs {
     return ((this.assetPairList.length > 0) && (this.smgList.length > 0));
   }
 
-  isTokenAccount(account) {
-    return this.tokens.has(account.toLowerCase());
+  getTokenAccount(chain, account) {
+    let native;
+    if (chain === "XRP") {
+      native = tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
+    } else {
+      native = tool.getStandardAddressInfo(chain, account).native;
+    }
+    return native.toLowerCase();
+  }
+
+  isTokenAccount(chain, account) {
+    let checkAccount = tool.getStandardAddressInfo(chain, account).native.toLowerCase();
+    return this.tokens.has(checkAccount);
   }
 }
 
