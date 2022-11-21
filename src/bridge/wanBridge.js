@@ -27,7 +27,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2211011454", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2211161808", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -172,12 +172,12 @@ class WanBridge extends EventEmitter {
   }
 
   validateToAccount(assetPair, direction, account) {
-    if (this.stores.assetPairs.isTokenAccount(account)) {
+    direction = this._unifyDirection(direction);
+    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    if (this.stores.assetPairs.isTokenAccount(chainType, account)) {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, account: %s, result: is token account", assetPair.assetPairId, direction, account);
       return false;
     }
-    direction = this._unifyDirection(direction);
-    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
