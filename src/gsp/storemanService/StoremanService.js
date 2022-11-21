@@ -45,7 +45,7 @@ class StoremanService {
                 let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
                 let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
-            }            
+            }
         } catch (err) {
             console.error("getStroremanGroupQuotaInfo error: %O", err);
         }
