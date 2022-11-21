@@ -52,6 +52,10 @@ class Polkadot {
     options.blockHash = blockHash.toHex();
     options.era = 64;
     let txHash = await this.api.tx.utility.batchAll(txs).signAndSend(sender, options);
+    if (txHash.txHash) { // strangely, local dapp directly returns txHash, but vercel dapp returns a composite object
+      txHash = txHash.txHash;
+    }
+    console.debug("polkadotJs sendTransaction txHash: %s, %O", typeof(txHash), txHash);
     return txHash.toHex();
   }
 

@@ -12,7 +12,7 @@ const Wallet = require("./wallet/wallet.js");
 const util = require('util');
 
 // consistant with crosschain contract
-const MAX_NFT_BATCH_SIZE = 20;
+const MAX_NFT_BATCH_SIZE = 10;
 
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {

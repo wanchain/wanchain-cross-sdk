@@ -24,7 +24,7 @@ module.exports = class MintCoinHandle {
       scChainType: tokenPair.fromChainType,
       crossScAddr: tokenPair.fromScInfo.crossScAddr,
       gasPrice: tokenPair.fromScInfo.gasPrice, // undefined, get from chain dynamiclly
-      gasLimit: tokenPair.fromScInfo.coinFastMintGasLimit, // for tron is feeLimit
+      gasLimit: tokenPair.fromScInfo.crossGasLimit, // for tron is feeLimit
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,

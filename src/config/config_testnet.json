@@ -5,10 +5,8 @@
       "chainType": "WAN",
       "chainName": "Wanchain",
       "crossScAddr": "0x62de27e16f6f31d9aa5b02f4599fc6e21b339e79",
-      "coinFastMintGasLimit": 500000,
-      "erc20ApproveGasLimit": 80000,
-      "erc20FastBurnGasLimit": 500000,
-      "erc20FastMintGasLimit": 500000,
+      "crossGasLimit": 500000,
+      "approveGasLimit": 80000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 999,
@@ -21,34 +19,28 @@
       "chainType": "ETH",
       "chainName": "Ethereum",
       "crossScAddr": "0xb8460Eeaa06Bc6668dad9fd42B661C0B96b3bE57",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 5,
       "ScScanInfo": {
-        "taskInterval": 30000
-      },
-      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-eth-nft"
+        "taskInterval": 15000
+      }
     },
     {
       "chainId": "2147484362",
       "chainType": "BNB",
-      "chainName": "BSC",
+      "chainName": "BNB Chain",
       "crossScAddr": "0xb12513cFCb13b7bE59Ba431C040B7206B0a211b9",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 97,
       "ScScanInfo": {
         "taskInterval": 10000
-      },
-      "subgraph": "https://api.thegraph.com/subgraphs/name/orelliao/testnet-bsc-nft-subgraph"
+      }
     },
     {
       "chainId": "2147492648",
@@ -57,10 +49,8 @@
       "crossScAddr": "0x4c200A0867753454Db78AF84d147Bd03e567f234",
       "chainDecimals": 18,
       "MaskChainId": 43113,
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "ScScanInfo": {
         "taskInterval": 10000
@@ -72,10 +62,8 @@
       "chainName": "Moonbase Alpha",
       "chainDecimals": 18,
       "crossScAddr": "0x9274Be9167c7dBa7F81b61d3870e0272cB8474f6",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 1287,
       "ScScanInfo": {
@@ -88,10 +76,8 @@
       "chainName": "Polygon",
       "chainDecimals": 18,
       "crossScAddr": "0xB5bf1013898a93f0BD902F6e346Ed6cBB627b791",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 80001,
       "ScScanInfo": {
@@ -104,10 +90,8 @@
       "chainName": "Arbitrum",
       "chainDecimals": 18,
       "crossScAddr": "0x3E18014F7c11F4D70b0023d8f61350A3Ef8f0978",
-      "coinFastMintGasLimit": 3000000,
-      "erc20ApproveGasLimit": 3000000,
-      "erc20FastBurnGasLimit": 3500000,
-      "erc20FastMintGasLimit": 3500000,
+      "crossGasLimit": 3500000,
+      "approveGasLimit": 750000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 421613,
       "ScScanInfo": {
@@ -120,10 +104,8 @@
       "chainName": "Fantom",
       "chainDecimals": 18,
       "crossScAddr": "0x265FC66e84939f36D90Ee38734afe4a770D2c114",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 4002,
       "ScScanInfo": {
@@ -135,15 +117,13 @@
       "chainType": "OETH",
       "chainName": "Optimism",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 420,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -151,15 +131,13 @@
       "chainType": "OKT",
       "chainName": "OKC",
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 65,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -167,32 +145,27 @@
       "chainType": "XDC",
       "chainName": "XDC Network",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 51,
       "ScScanInfo": {
-        "taskInterval": 30000
-      },
-      "subgraph": "http://34.210.227.55:8000/subgraphs/name/orelliao/testnet-apothem-nft"
+        "taskInterval": 15000
+      }
     },
     {
       "chainId": "1073741829",
       "chainType": "CLV",
       "chainName": "Clover P-Chain",
       "crossScAddr": "0xCef19151F44fC3df678554F35c1dd7F29afacDE8",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 1024,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -200,15 +173,13 @@
       "chainType": "FX",
       "chainName": "Function X",
       "crossScAddr": "0x4f1aB74c2a9E8f591e8A80768e115C9f75935bAD",
-      "coinFastMintGasLimit": 300000,
-      "erc20ApproveGasLimit": 75000,
-      "erc20FastBurnGasLimit": 350000,
-      "erc20FastMintGasLimit": 350000,
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 90001,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     },
     {
@@ -221,7 +192,7 @@
       "chainDecimals": 6,
       "MaskChainId": 0,
       "ScScanInfo": {
-        "taskInterval": 30000
+        "taskInterval": 15000
       }
     }
   ],
@@ -237,7 +208,7 @@
     "MintDesc": "MintDesc",
     "BurnTitle": "BurnTitle",
     "BurnDesc": "BurnDesc",
-    "CacheVersion": "0"
+    "CacheVersion": "1"
   },
   "iWanConnectorService": {
     "iWanOption": {
@@ -343,14 +314,6 @@
       "comment": "EOS token between WAN<->ETH",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20"
-    },
-    {
-      "id": "66",
-      "comment": "Arbitrum USDT pool <->Polygon USDT pool",
-      "mintHandle": "BurnErc20ProxyToken",
-      "burnHandle": "BurnErc20ProxyToken",
-      "fromNativeToken": "0xd4b5f10d61916bd6e0860144a91ac658de8a1437",
-      "toNativeToken": "0x5b0b9d1a58cacb8e3f7cb72225996fc535530f6b"
     },
     {
       "id": "74",

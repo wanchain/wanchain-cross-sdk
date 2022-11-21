@@ -6,12 +6,11 @@ const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
-const util = require("util");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
 // consistant with crosschain contract
-const MAX_NFT_BATCH_SIZE = 20;
+const MAX_NFT_BATCH_SIZE = 10;
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
@@ -28,7 +27,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2209271123", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2211161808", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -156,7 +155,7 @@ class WanBridge extends EventEmitter {
       operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
       networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
     };
-    console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %s, result: %O", assetPair.assetPairId, direction, options, fee);
+    console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %O, result: %O", assetPair.assetPairId, direction, options, fee);
     return fee;
   }
 
@@ -173,12 +172,12 @@ class WanBridge extends EventEmitter {
   }
 
   validateToAccount(assetPair, direction, account) {
-    if (this.stores.assetPairs.isTokenAccount(account)) {
+    direction = this._unifyDirection(direction);
+    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
+    if (this.stores.assetPairs.isTokenAccount(chainType, account)) {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, account: %s, result: is token account", assetPair.assetPairId, direction, account);
       return false;
     }
-    direction = this._unifyDirection(direction);
-    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
     if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
@@ -209,13 +208,13 @@ class WanBridge extends EventEmitter {
     return tool.validateXrpTokenAmount(amount);
   }
 
-  async getNftInfo(assetPair, direction, account, limit, skip = 0) {
+  async getNftInfo(assetPair, direction, account, options) {
     direction = this._unifyDirection(direction);
     let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
     let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, limit, skip, true);
-    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, limit: %d, skip: %d, chain: %s, asset: %s, result: %O",
-                  assetPair.assetPairId, direction, account, limit, skip, chainType, assetPair.assetType, infos);
+    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
+    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, chain: %s, asset: %s, options: %O, result: %O",
+                  assetPair.assetPairId, direction, account, chainType, assetPair.assetType, options, infos);
     return infos;
   }
 
