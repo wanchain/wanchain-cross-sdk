@@ -298,6 +298,16 @@
       }
     },
     {
+      "chainId": "1073741831",
+      "chainType": "PHA",
+      "chainName": "Rhala",
+      "mintFromChainHandle": "MintDotFromPolkaHandle",
+      "chainDecimals": 12,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
       "chainId": "2147485463",
       "chainType": "ADA",
       "chainName": "Cardano",

@@ -1,11 +1,12 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
-const { PolkadotSS58Format } = require('../../../utils/tool.js');
+const { getPolkadotSS58Format } = require('../../../utils/tool.js');
 const BigNumber = require('bignumber.js');
 
 class Polkadot {
-  constructor(type, provider) {
+  constructor(type, provider, chain) {
     this.type = type;
+    this.chain = chain;
     if (typeof(provider) === "string") {
       if (provider === "mainnet") {
         provider = "wss://rpc.polkadot.io";
@@ -26,7 +27,7 @@ class Polkadot {
   async getAccounts(network) {
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
-      let ss58Format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
+      let ss58Format = getPolkadotSS58Format(this.chain, network);
       let accounts = await web3Accounts({ss58Format});
       return accounts.map(a => a.address);
     } else {

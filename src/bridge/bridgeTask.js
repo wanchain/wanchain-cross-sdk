@@ -139,9 +139,9 @@ class BridgeTask {
   }
 
   async _initToWallet() {
-    if (this._toChainInfo.chainType === "DOT") {
+    if (["DOT", "PHA"].includes(this._toChainInfo.chainType)) {
       let provider = this._bridge.network;
-      this._toWallet = new Wallet("polkadot{.js}", provider);
+      this._toWallet = new Wallet("polkadot{.js}", provider, this._toChainInfo.chainType);
     }
   }
 
@@ -421,8 +421,8 @@ class BridgeTask {
     return xrpAddr;
   }
 
-  _getSmgPolkaAddress() {
-    let format = ("testnet" === this._bridge.network)? tool.PolkadotSS58Format.westend : tool.PolkadotSS58Format.polkadot;
+  _getSmgPolkaAddress(chain) {
+    let format = tool.getPolkadotSS58Format(chain, this._bridge.network);
     let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);
@@ -434,8 +434,8 @@ class BridgeTask {
   _getSmgAddress(chainType) {
     if ("XRP" === chainType) {
       return this._getSmgXrpClassicAddress();
-    } else if ("DOT" === chainType) {
-      return this._getSmgPolkaAddress();
+    } else if (["DOT", "PHA"].includes(chainType)) {
+      return this._getSmgPolkaAddress(chainType);
     } else {
       throw new Error("Unknown " + chainType + " smg address");
     }

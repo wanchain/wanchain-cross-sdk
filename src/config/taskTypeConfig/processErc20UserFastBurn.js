@@ -54,7 +54,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         let blockNumber;
         if (checkChainType === "XRP") {
           blockNumber = await this.m_iwanBCConnector.getLedgerVersion(checkChainType);
-        } else if (["DOT", "ADA"].includes(checkChainType)) {
+        } else if (["DOT", "ADA", "PHA"].includes(checkChainType)) {
           blockNumber = 0;
           // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
         } else {

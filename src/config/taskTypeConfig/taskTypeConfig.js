@@ -52,7 +52,12 @@ let taskTypeConfigJson = {
       "number": 13,
       "name": "ProcessAdaMintFromCardano",
       "handle": require("./processAdaMintFromCardano")
-    }
+    },
+    {
+      "number": 14,
+      "name": "ProcessPhaMintFromPhala",
+      "handle": require("./processPhaMintFromPhala")
+    },    
   ]
 };
 

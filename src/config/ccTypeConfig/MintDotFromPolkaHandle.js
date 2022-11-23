@@ -3,6 +3,11 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
+const TaskTypes = {
+  DOT: "ProcessDotMintFromPolka",
+  PHA: "ProcessPhaMintFromPhala"
+};
+
 module.exports = class MintDotFromPolkaHandle {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
@@ -21,7 +26,7 @@ module.exports = class MintDotFromPolkaHandle {
         storemanGroupGpk: convert.storemanGroupGpk,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessDotMintFromPolka",
+        taskType: TaskTypes[tokenPair.fromChainType],
         fee,
         fromAddr: convert.fromAddr
       };
