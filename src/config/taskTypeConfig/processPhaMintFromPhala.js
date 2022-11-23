@@ -1,13 +1,13 @@
 'use strict';
 
 const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
-const util = require("@polkadot/util");
-const utilCrypto = require("@polkadot/util-crypto");
-const { Keyring } = require('@polkadot/api');
 
 const PhalaSideChainId = {
   ETH: 0
+}
+
+const PhalaSideAssetId = {
+  PHA: 0
 }
 
 module.exports = class ProcessPhaMintFromPhala {
@@ -22,11 +22,12 @@ module.exports = class ProcessPhaMintFromPhala {
     try {
       let api = await wallet.getApi();
 
+      // 2 生成交易串
       let txValue = '0x' + new BigNumber(params.value).toString(16);
       let txs = [
         api.tx.xTransfer.transfer(
           api.createType('XcmV1MultiAsset', {
-            id: await getPhaAssetId(api),
+            id: this.getPhalaAssetId(api, PhalaSideAssetId[params.asset]),
             fun: api.createType('XcmV1MultiassetFungibility', {
               Fungible: api.createType('Compact<U128>', txValue)
             })
@@ -57,13 +58,13 @@ module.exports = class ProcessPhaMintFromPhala {
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType("DOT");
-      let minReserved = new BigNumber(chainInfo.minReserved);
+      let minReserved = new BigNumber(chainInfo.minReserved || 0);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
       if (new BigNumber(balance).lte(totalNeed)) {
         console.error("ProcessPhaMintFromPhala insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
-        // webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
-        // return;
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
+        return;
       }
 
       // 5 签名并发送
@@ -94,8 +95,8 @@ module.exports = class ProcessPhaMintFromPhala {
         taskType: "MINT"
       };
 
-      let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
-      await checkDotTxService.addTask(checkPara);
+      let checkPhaTxService = this.m_frameworkService.getService("CheckPhaTxService");
+      await checkPhaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessPhaMintFromPhala error: %O", err);
       webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");

@@ -65,7 +65,7 @@ class Polkadot {
     if (txHash.txHash) { // strangely, local dapp directly returns txHash, but vercel dapp returns a composite object
       txHash = txHash.txHash;
     }
-    console.debug("polkadotJs sendTransaction txHash: %s, %O", typeof(txHash), txHash);
+    console.debug("polkadotJs %s sendTransaction txHash: %s, %O", this.chain, typeof(txHash), txHash);
     return txHash.toHex();
   }
 
