@@ -3,16 +3,25 @@ const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extensi
 const { getPolkadotSS58Format } = require('../../../utils/tool.js');
 const BigNumber = require('bignumber.js');
 
+const DefaultProvider = {
+  DOT: {
+    mainnet: "wss://rpc.polkadot.io",
+    testnet: "wss://westend-rpc.polkadot.io"
+  },
+  PHA: {
+    testnet: "wss://rhala-api.phala.network/ws"
+  }
+}
+
 class Polkadot {
   constructor(type, provider, chain) {
     this.type = type;
     this.chain = chain;
     if (typeof(provider) === "string") {
-      if (provider === "mainnet") {
-        provider = "wss://rpc.polkadot.io";
-      } else  if (provider === "testnet") {
-        provider = "wss://westend-rpc.polkadot.io";
+      if (["mainnet", "testnet"].includes(provider)) {
+        provider = DefaultProvider[chain][provider];
       }
+      console.log("new %s polkadot.js wallet, provider: %s", chain, provider);
       provider = new WsProvider(provider);
     }
     this.api = new ApiPromise({provider});
