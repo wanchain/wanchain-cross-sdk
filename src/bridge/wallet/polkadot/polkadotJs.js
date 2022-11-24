@@ -52,21 +52,21 @@ class Polkadot {
   }
 
   async sendTransaction(txs, sender) {
-    await this.getApi();
-    let fromInjector = await web3FromAddress(sender);
-    let blockInfo = await this.api.rpc.chain.getBlock();
-    let blockNumber = blockInfo.block.header.number;
-    let blockHash = await this.api.rpc.chain.getBlockHash(blockNumber.unwrap());
-    let options = {};
-    options.signer = fromInjector.signer;
-    options.blockHash = blockHash.toHex();
-    options.era = 64;
-    let txHash = await this.api.tx.utility.batchAll(txs).signAndSend(sender, options);
-    if (txHash.txHash) { // strangely, local dapp directly returns txHash, but vercel dapp returns a composite object
-      txHash = txHash.txHash;
-    }
-    console.debug("polkadotJs %s sendTransaction txHash: %s, %O", this.chain, typeof(txHash), txHash);
-    return txHash.toHex();
+    return new Promise(async (resolve, reject) => {
+      await this.getApi();
+      let injector = await web3FromAddress(sender);
+      this.api.tx.utility.batchAll(txs).signAndSend(sender, {signer: injector.signer}, ({txHash, status}) => {
+        console.log("sendTransaction tx %s status: %s", txHash, status.type);
+        if (status.isInBlock || status.isFinalized) {
+          let block = status.isInBlock? status.asInBlock : status.asFinalized;
+          console.log("sendTransaction at block %s tx %s", block.toString(), txHash);
+          return resolve(txHash);
+        }
+      }).catch(err => {
+        console.log("sendTransaction2 failed: %O", err);
+        return reject(err);
+      });
+    })
   }
 
   // customized function
