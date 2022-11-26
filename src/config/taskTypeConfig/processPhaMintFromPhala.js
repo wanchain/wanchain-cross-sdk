@@ -36,15 +36,15 @@ module.exports = class ProcessPhaMintFromPhala {
             parents: 0,
             interior: api.createType('Junctions', {
               X3: [
-                  api.createType('XcmV1Junction', {
-                      GeneralKey: '0x7762' // "wb": WanBridge
-                  }),
-                  api.createType('XcmV1Junction', {
-                      GeneralIndex: PhalaSideChainId[params.toChainType]
-                  }),
-                  api.createType('XcmV1Junction', {
-                      GeneralKey: params.userAccount
-                  }),
+                api.createType('XcmV1Junction', {
+                    GeneralKey: '0x7762' // "wb": WanBridge
+                }),
+                api.createType('XcmV1Junction', {
+                    GeneralIndex: PhalaSideChainId[params.toChainType]
+                }),
+                api.createType('XcmV1Junction', {
+                    GeneralKey: params.userAccount
+                })
               ]
             })
           }),
