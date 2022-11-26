@@ -85,6 +85,8 @@ module.exports = class ProcessPhaMintFromPhala {
       // 查询目的链当前blockNumber
       let iwan = this.m_frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
+      let storemanService = this.m_frameworkService.getService("StoremanService");
+      let taskType = storemanService.getTokenEventType(params.tokenPairID, "MINT");
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
@@ -92,7 +94,7 @@ module.exports = class ProcessPhaMintFromPhala {
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
-        taskType: "MINT"
+        taskType
       };
 
       let checkPhaTxService = this.m_frameworkService.getService("CheckPhaTxService");
