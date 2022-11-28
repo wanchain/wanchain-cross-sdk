@@ -57,7 +57,7 @@ let taskTypeConfigJson = {
       "number": 14,
       "name": "ProcessPhaMintFromPhala",
       "handle": require("./processPhaMintFromPhala")
-    },    
+    },
   ]
 };
 

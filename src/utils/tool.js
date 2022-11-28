@@ -134,7 +134,7 @@ function isValidXrpAddress(address) {
   return valid;
 }
 
-function isValidPolkadotAddress(account, chain, network) {  
+function isValidPolkadotAddress(account, chain, network) {
   try {
     let format = getPolkadotSS58Format(chain, network);
     let addr = encodeAddress(account, format);
