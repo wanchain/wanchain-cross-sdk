@@ -190,8 +190,8 @@ class WanBridge extends EventEmitter {
       return tool.isValidDogeAddress(account, this.network);
     } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
-    } else if ("DOT" === chainType) {
-      return tool.isValidDotAddress(account, this.network);
+    } else if (["DOT", "PHA"].includes(chainType)) {
+      return tool.isValidPolkadotAddress(account, chainType, this.network);
     } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
     } else if ("XDC" === chainType) {

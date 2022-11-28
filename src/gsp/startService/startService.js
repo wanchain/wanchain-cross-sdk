@@ -100,9 +100,13 @@ class StartService {
             await iwanBCConnector.init(frameworkService);
             frameworkService.registerService("iWanConnectorService", iwanBCConnector);
 
-            let checkDotTxService = new CheckDotTxService();
+            let checkDotTxService = new CheckDotTxService("DOT");
             await checkDotTxService.init(frameworkService);
             frameworkService.registerService("CheckDotTxService", checkDotTxService);
+
+            let checkPhaTxService = new CheckDotTxService("PHA");
+            await checkPhaTxService.init(frameworkService);
+            frameworkService.registerService("CheckPhaTxService", checkPhaTxService);
 
             let checkAdaTxService = new CheckAdaTxService();
             await checkAdaTxService.init(frameworkService);
@@ -181,6 +185,9 @@ class StartService {
 
             let checkDotTxService = frameworkService.getService("CheckDotTxService");
             await checkDotTxService.start();
+
+            let checkPhaTxService = frameworkService.getService("CheckPhaTxService");
+            await checkPhaTxService.start();
 
             let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
             await checkAdaTxService.start();            

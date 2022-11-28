@@ -14,10 +14,11 @@ if (typeof(window) !== "undefined") {
 
 // self define to reduce imported package size
 const PolkadotSS58Format = {
-	polkadot: 0,
-	kusama: 2,
-	westend: 42,
-	substrate: 42,
+  polkadot: 0,
+  kusama: 2,
+  phala: 30,
+  westend: 42,
+  substrate: 42,
 };
 
 const web3 = new Web3();
@@ -133,14 +134,14 @@ function isValidXrpAddress(address) {
   return valid;
 }
 
-function isValidDotAddress(account, network) {  
+function isValidPolkadotAddress(account, chain, network) {
   try {
-    let format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
+    let format = getPolkadotSS58Format(chain, network);
     let addr = encodeAddress(account, format);
-    console.log("DOT %s account %s formatted to %s", network, account, addr);
+    console.log("polkadot %s %s account %s formatted to %s", chain, network, account, addr);
     return (account === addr);
   } catch(err) {
-    console.log("DOT %s account %s is invalid: %s", network, account, err);
+    console.log("polkadot %s %s account %s is invalid: %s", chain, network, account, err);
     return false;
   }
 }
@@ -348,6 +349,16 @@ function parseTokenPairSymbol(chain, symbol) {
   }
 }
 
+function getPolkadotSS58Format(chain, network) {
+  if (chain === "DOT") {
+    return (network === "mainnet")? PolkadotSS58Format.polkadot : PolkadotSS58Format.westend;
+  } else if (chain === "PHA") {
+    return (network === "mainnet")? PolkadotSS58Format.phala : PolkadotSS58Format.phala;
+  } else {
+    throw new Error("unsupported polkadot chain " + chain);
+  }
+}
+
 module.exports = {
   PolkadotSS58Format,
   getCurTimestamp,
@@ -362,7 +373,7 @@ module.exports = {
   isValidLtcAddress,
   isValidDogeAddress,
   isValidXrpAddress,
-  isValidDotAddress,
+  isValidPolkadotAddress,
   isValidAdaAddress,
   isValidXdcAddress,
   isValidTrxAddress,
@@ -373,5 +384,6 @@ module.exports = {
   cmpAddress,
   parseXrpTokenPairAccount,
   validateXrpTokenAmount,
-  parseTokenPairSymbol
+  parseTokenPairSymbol,
+  getPolkadotSS58Format
 }
