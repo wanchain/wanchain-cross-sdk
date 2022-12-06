@@ -1,14 +1,7 @@
 'use strict';
 
 const BigNumber = require("bignumber.js");
-
-const PhalaSideChainId = {
-  ETH: 0
-}
-
-const PhalaSideAssetId = {
-  PHA: 0
-}
+const configAbi = require("../abi/crossConfig.json");
 
 module.exports = class ProcessPhaMintFromPhala {
   constructor(frameworkService) {
@@ -16,18 +9,28 @@ module.exports = class ProcessPhaMintFromPhala {
   }
 
   async process(stepData, wallet) {
-    let webStores = this.m_frameworkService.getService("WebStores");
     // console.debug("ProcessPhaMintFromPhala stepData:", stepData);
+    let webStores = this.m_frameworkService.getService("WebStores");
+    let configService = this.m_frameworkService.getService("ConfigService");
+    let configScAddr = await configService.getGlobalConfig("crossConfigAddress");
+    let iwan = this.m_frameworkService.getService("iWanConnectorService");
     let params = stepData.params;
+
     try {
       let api = await wallet.getApi();
 
       // 2 生成交易串
+      let args = [params.toChainID, params.fromChainID, Number(params.tokenPairID)];
+      let tpInfo = await iwan.callScFunc("WAN", configScAddr, "parseDestProjectChainInfo", args, configAbi);
+      if ((!tpInfo.projectSrcChainID) || (!tpInfo.projectTokenPairID)) {
+        throw new Error("Invalid token pair");
+      }
+
       let txValue = '0x' + new BigNumber(params.value).toString(16);
       let txs = [
         api.tx.xTransfer.transfer(
           api.createType('XcmV1MultiAsset', {
-            id: this.getPhalaAssetId(api, PhalaSideAssetId[params.asset]),
+            id: this.getPhalaAssetId(api, Number(tpInfo.projectTokenPairID)),
             fun: api.createType('XcmV1MultiassetFungibility', {
               Fungible: api.createType('Compact<U128>', txValue)
             })
@@ -40,7 +43,7 @@ module.exports = class ProcessPhaMintFromPhala {
                     GeneralKey: '0x7762' // "wb": WanBridge
                 }),
                 api.createType('XcmV1Junction', {
-                    GeneralIndex: PhalaSideChainId[params.toChainType]
+                    GeneralIndex: Number(tpInfo.projectSrcChainID)
                 }),
                 api.createType('XcmV1Junction', {
                     GeneralKey: params.userAccount
@@ -51,13 +54,13 @@ module.exports = class ProcessPhaMintFromPhala {
           null, // No need to specify a certain weight if transfer will not through XCM
         )
       ];
-      console.debug("txs:", txs);
+      // console.debug("txs:", txs);
 
       // 3 check balance >= (value + gasFee + minReserved)
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType("DOT");
+      let chainInfo = await chainInfoService.getChainInfoByType("PHA");
       let minReserved = new BigNumber(chainInfo.minReserved || 0);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
@@ -83,7 +86,6 @@ module.exports = class ProcessPhaMintFromPhala {
       }
 
       // 查询目的链当前blockNumber
-      let iwan = this.m_frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let storemanService = this.m_frameworkService.getService("StoremanService");
       let taskType = storemanService.getTokenEventType(params.tokenPairID, "MINT");

@@ -340,5 +340,6 @@
       "toNativeToken": "0xfda7a6d11fdd32f18e8d8d9ce1e97a9575141875"
     }
   ],
-  "LockTxTimeout": 86400000
+  "LockTxTimeout": 86400000,
+  "crossConfigAddress": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D"
 }
