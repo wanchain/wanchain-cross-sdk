@@ -230,7 +230,7 @@ class TokenPairService {
       return this.m_mapTokenPair.get(id);
     }
 
-    getAssetLogo(name, protocol = "Erc20") {
+    getAssetLogo(name, protocol) {
       let ps = protocol? [protocol.toLowerCase()] : ["erc20", "erc721", "erc1155"];
       for (let i = 0; i < ps.length; i++) {
         let key = name + "_" + ps[i];
