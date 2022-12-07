@@ -144,9 +144,9 @@ class StoremanService {
         return tokenPairService.updateSmgs();
     }
 
-    getAssetLogo(name) {
+    getAssetLogo(name, protocol) {
       let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getAssetLogo(name);
+      return tokenPairService.getAssetLogo(name, protocol);
     }
 
     getChainLogo(chainType) {

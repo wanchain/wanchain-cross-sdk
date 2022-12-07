@@ -149,7 +149,7 @@ class TokenPairService {
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
         let symbol = tool.parseTokenPairSymbol(tp.ancestorChainID, tp.ancestorSymbol);
-        assetMap.set(symbol, {chain: chainInfo.chainType, address: tp.ancestorAccount});
+        assetMap.set(symbol + "_" + tp.toAccountType.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -230,12 +230,16 @@ class TokenPairService {
       return this.m_mapTokenPair.get(id);
     }
 
-    getAssetLogo(name) {
-      let logo = this.assetLogo.get(name);
-      if (!logo) {
-        logo = {data: new Identicon(crypto.createHash('md5').update(name || "").digest('hex')).toString(), type: "png"};
+    getAssetLogo(name, protocol = "Erc20") {
+      let ps = protocol? [protocol.toLowerCase()] : ["erc20", "erc721", "erc1155"];
+      for (let i = 0; i < ps.length; i++) {
+        let key = name + "_" + ps[i];
+        let logo = this.assetLogo.get(key);
+        if (logo) {
+          return logo;
+        }
       }
-      return logo;
+      return {data: new Identicon(crypto.createHash('md5').update(ps[0]).digest('hex')).toString(), type: "png"};
     }
 
     getChainLogo(chainType) {

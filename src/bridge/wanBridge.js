@@ -285,8 +285,8 @@ class WanBridge extends EventEmitter {
     return count;
   }
 
-  getAssetLogo(name) {
-    return this.storemanService.getAssetLogo(name);
+  getAssetLogo(name, protocol) {
+    return this.storemanService.getAssetLogo(name, protocol);
   }
 
   getChainLogo(chainType) {
