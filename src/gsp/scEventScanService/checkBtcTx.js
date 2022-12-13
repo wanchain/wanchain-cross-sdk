@@ -6,7 +6,7 @@ module.exports = class CheckBtcTx{
     constructor(frameworkService, chainType) {
         this.m_frameworkService = frameworkService;
         this.chainType = chainType;
-        this.serviceName = "Check" + this.chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "Tx";
+        this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "Tx";
         this.m_CheckAry = [];
     }
 

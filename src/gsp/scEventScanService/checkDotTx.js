@@ -6,18 +6,18 @@ module.exports = class CheckDotTx {
   constructor(frameworkService, chainType) {
     this.m_frameworkService = frameworkService;
     this.chainType = chainType;
-    this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "Tx";
+    this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "Tx";
     this.m_CheckAry = [];
   }
 
-  async init(chainType) {
+  async init() {
     this.m_taskService = this.m_frameworkService.getService("TaskService");
 
     this.m_configService = this.m_frameworkService.getService("ConfigService");
     this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
 
     let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-    let chainInfo = await chainInfoService.getChainInfoByType(chainType);
+    let chainInfo = await chainInfoService.getChainInfoByType(this.chainType);
 
     this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
     this.m_eventService = this.m_frameworkService.getService("EventService");
