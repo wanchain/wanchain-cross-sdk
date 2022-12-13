@@ -3,8 +3,10 @@
 const axios = require("axios");
 
 module.exports = class CheckDotTx {
-  constructor(frameworkService) {
+  constructor(frameworkService, chainType) {
     this.m_frameworkService = frameworkService;
+    this.chainType = chainType;
+    this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "Tx";
     this.m_CheckAry = [];
   }
 
@@ -23,10 +25,10 @@ module.exports = class CheckDotTx {
 
   async add(obj) {
     try {
-      console.debug("checkDotTx add obj:", obj);
+      console.debug("%s add obj:", this.serviceName, obj);
       this.m_CheckAry.unshift(obj);
     } catch (err) {
-      console.error("checkDotTx add error: %O", err);
+      console.error("%s add error: %O", this.serviceName, err);
     }
   }
 
@@ -39,14 +41,14 @@ module.exports = class CheckDotTx {
       if (this.m_CheckAry.length <= 0) {
         return;
       }
-      let url = this.m_apiServerConfig.url + "/api/dot/queryTxInfoByChainHash/";
+      let url = this.m_apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/queryTxInfoByChainHash/";
       let count = this.m_CheckAry.length;
       for (let idx = 0; idx < count; ++idx) {
         let index = count - idx - 1;
         let obj = this.m_CheckAry[index];
         let txUrl = url + obj.fromChain + "/" + obj.uniqueID;
         let ret = await axios.get(txUrl);
-        console.debug("CheckDotTx %s ret.data: %O", txUrl, ret.data);
+        console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
           // found
           await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
@@ -56,7 +58,7 @@ module.exports = class CheckDotTx {
         }
       }
     } catch (err) {
-      console.error("CheckDotTx runTask err: %O", err);
+      console.error("%s runTask err: %O", this.serviceName, err);
     }
   }
 };

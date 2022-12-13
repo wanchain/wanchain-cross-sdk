@@ -42,9 +42,13 @@ module.exports = class ScEventScanService {
     await checkXrpTx.init("XRP");
     this.m_mapCheckHandle.set("XRP", checkXrpTx);
 
-    let checkDotTx = new CheckDotTx(this.m_frameworkService);
-    await checkDotTx.init("DOT");
+    let checkDotTx = new CheckDotTx(this.m_frameworkService, "DOT");
+    await checkDotTx.init();
     this.m_mapCheckHandle.set("DOT", checkDotTx);
+
+    let checkPhaTx = new CheckDotTx(this.m_frameworkService, "PHA");
+    await checkPhaTx.init();
+    this.m_mapCheckHandle.set("PHA", checkPhaTx);
 
     let checkAdaTx = new CheckAdaTx(this.m_frameworkService);
     await checkAdaTx.init("ADA");
