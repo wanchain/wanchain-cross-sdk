@@ -200,6 +200,8 @@
       "chainType": "ASTR",
       "chainName": "ShiBuya",
       "crossScAddr": "0x0758fe272Ab2DeDcd182B84D3e3F9310F21a4153",
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 81,
