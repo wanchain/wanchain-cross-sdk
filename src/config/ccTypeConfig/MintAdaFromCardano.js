@@ -16,6 +16,7 @@ module.exports = class MintAdaFromCardano {
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
+        crossScAddr: tokenPair.fromScInfo.crossScAddr,
         userAccount: convert.toAddr,
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.storemanGroupGpk,

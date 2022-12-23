@@ -15,6 +15,7 @@ class TronLink {
     }
     this.type = type;
     this.tronWeb = window.tronWeb;
+    this.tronLink = window.tronLink; // chrome v3.22.0 and later inject tronLink object
   }
 
   // standard function
@@ -24,12 +25,15 @@ class TronLink {
   }
 
   async getAccounts(network) {
-    if (this.tronWeb && this.tronWeb.defaultAddress) {
-      let accounts = [this.tronWeb.defaultAddress.base58];
-      return accounts;
+    if (this.tronLink) {
+      // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject
+      await this.tronLink.request({method: 'tron_requestAccounts'});
+    }
+    if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
+      return [this.tronWeb.defaultAddress.base58];
     } else {
-      console.error("%s not installed or not allowed", this.type);
-      throw new Error("Not installed or not allowed");
+      console.error("%s not installed or locked", this.type);
+      throw new Error("Not installed or locked");
     }
   }
 

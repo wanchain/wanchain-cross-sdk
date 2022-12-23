@@ -29,7 +29,9 @@ module.exports = class MintDotFromPolkaHandle {
         taskType: TaskTypes[tokenPair.fromChainType],
         fee,
         fromAddr: convert.fromAddr,
-        asset: tokenPair.ancestorSymbol
+        asset: tokenPair.ancestorSymbol,
+        fromChainID: tokenPair.fromChainID, // for Phala
+        toChainID: tokenPair.toChainID      // for Phala
       };
       console.debug("MintDotFromPolkaHandle params: %O", params);
       let ret = [

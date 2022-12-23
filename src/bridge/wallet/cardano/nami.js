@@ -68,7 +68,7 @@ class Nami {
     return count;
   }
   
-  async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData) {
+  async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData) {
     const totalAssets = await this.multiAssetCount(
       outputs.get(0).amount().multiasset()
     );
@@ -106,8 +106,12 @@ class Nami {
         utxo.output().amount()
       );
     }
-  
-    txBuilder.add_output(outputs.get(0));
+
+    let output = outputs.get(0);
+    if (plutusData) {
+      output.set_plutus_data(plutusData);
+    }
+    txBuilder.add_output(output);
   
     if (auxiliaryData) txBuilder.set_auxiliary_data(auxiliaryData);
   
