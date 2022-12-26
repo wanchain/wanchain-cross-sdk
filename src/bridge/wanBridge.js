@@ -365,9 +365,18 @@ class WanBridge extends EventEmitter {
     // received amount, TODO: get actual value from chain
     let receivedAmount;
     if (ccTask.protocol === "Erc20") {
-      receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-      let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
-      receivedAmount = receivedAmount.minus(fee).toFixed();
+      let sentAmount = ccTask.sentAmount || ccTask.amount;
+      let expected = new BigNumber(sentAmount);
+      let fee = tool.parseFee(ccTask.fee, expected, ccTask.assetType, ccTask.decimals);
+      expected = expected.minus(fee).toFixed();
+      if (taskRedeemHash.value) {
+        receivedAmount = new BigNumber(taskRedeemHash.value).div(Math.pow(10, ccTask.toDecimals)).toFixed();
+        if (receivedAmount !== expected) {
+          this._updateFee(taskId, ccTask.fee, ccTask.assetType, sentAmount, receivedAmount);
+        }
+      } else {
+        receivedAmount = expected;
+      }
     } else {
       receivedAmount = ccTask.amount;
     }
@@ -377,6 +386,21 @@ class WanBridge extends EventEmitter {
     this.emit("redeem", {taskId, txHash});
   }
 
+  _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
+    let feeType;
+    if (taskFee.networkFee.unit === assetType) {
+      feeType = "networkFee";
+    } else { // if (taskFee.operateFee.unit === assetType)
+      feeType = "operateFee";
+    }
+    let fee = new BigNumber(sentAmount).minus(receivedAmount);
+    if (taskFee[feeType].isRatio) {
+      fee = fee.div(sentAmount);
+    }
+    let records = this.stores.crossChainTaskRecords;
+    records.updateTaskFee(taskId, feeType, fee.toFixed());
+  }
+
   _onNetworkFee(taskNetworkFee) {
     console.log("_onNetworkFee: %O", taskNetworkFee);
     let records = this.stores.crossChainTaskRecords;
@@ -384,7 +408,7 @@ class WanBridge extends EventEmitter {
     let networkFee = new BigNumber(taskNetworkFee.apiServerNetworkFee).toFixed();
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      records.setTaskNetworkFee(taskId, networkFee);
+      records.updateTaskFee(taskId, "networkFee", networkFee);
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }

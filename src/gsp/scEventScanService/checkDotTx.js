@@ -50,8 +50,8 @@ module.exports = class CheckDotTx {
         let ret = await axios.get(txUrl);
         console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
-          // found
-          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
+          let data = ret.data.data;
+          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount: data.toAddr, value: data.value});
           let storageService = this.m_frameworkService.getService("StorageService");
           storageService.delete("ScEventScanService", obj.uniqueID);
           this.m_CheckAry.splice(index, 1);
