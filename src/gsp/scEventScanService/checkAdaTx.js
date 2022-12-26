@@ -48,7 +48,8 @@ module.exports = class CheckAdaTx {
         let ret = await axios.get(txUrl);
         console.debug("CheckAdaTx %s: %O", txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
-          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
+          let data = ret.data.data;
+          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount: data.toAddr, value: data.value});
           let storageService = this.m_frameworkService.getService("StorageService");
           storageService.delete("ScEventScanService", obj.uniqueID);
           this.m_CheckAry.splice(index, 1);

@@ -64,17 +64,15 @@ module.exports = class CheckBtcTx{
                 let txUrl = url + obj.uniqueID;
                 let ret = await axios.get(txUrl);
                 console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
-                if (ret.data.success === true) {
-                    if (ret.data.data) {
-                        // found
-                        let eventService = this.m_frameworkService.getService("EventService");
-                        let txHashField = this.chainType.toLowerCase() + "Hash";
-                        let addrField = this.chainType.toLowerCase() + "Addr";
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data[txHashField], toAccount: ret.data.data[addrField]});
-                        let storageService = this.m_frameworkService.getService("StorageService");
-                        storageService.delete("ScEventScanService", obj.uniqueID);
-                        this.m_CheckAry.splice(index, 1);
-                    }
+                if (ret.data.success && ret.data.data) {
+                    let eventService = this.m_frameworkService.getService("EventService");
+                    let txHashField = this.chainType.toLowerCase() + "Hash";
+                    let addrField = this.chainType.toLowerCase() + "Addr";
+                    let data = ret.data.data;
+                    await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data[txHashField], toAccount: data[addrField], value: data.value});
+                    let storageService = this.m_frameworkService.getService("StorageService");
+                    storageService.delete("ScEventScanService", obj.uniqueID);
+                    this.m_CheckAry.splice(index, 1);
                 }
             }
         } catch (err) {

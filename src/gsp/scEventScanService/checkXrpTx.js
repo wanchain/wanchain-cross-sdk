@@ -59,15 +59,13 @@ module.exports = class CheckXrpTx {
                 let txUrl = url + obj.uniqueID;
                 let ret = await axios.get(txUrl);
                 console.debug("checkXrpTx %s ret.data: %O", txUrl, ret.data);
-                if (ret.data.success === true) {
-                    if (ret.data.data) {
-                        // found
-                        let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.xrpHash, toAccount: ret.data.data.xrpAddr});
-                        let storageService = this.m_frameworkService.getService("StorageService");
-                        await storageService.delete("ScEventScanService", obj.uniqueID);
-                        this.m_CheckAry.splice(index, 1);
-                    }
+                if (ret.data.success && ret.data.data) {
+                    let eventService = this.m_frameworkService.getService("EventService");
+                    let data = ret.data.data;
+                    await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.xrpHash, toAccount: data.xrpAddr, value: data.value});
+                    let storageService = this.m_frameworkService.getService("StorageService");
+                    await storageService.delete("ScEventScanService", obj.uniqueID);
+                    this.m_CheckAry.splice(index, 1);
                 }
             }
         }
