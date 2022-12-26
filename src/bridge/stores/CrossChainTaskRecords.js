@@ -68,7 +68,7 @@ class CrossChainTaskRecords {
       console.debug("task %d update %s fee: %s->%s", ccTaskId, type, ccTask.fee[type].value, value);
       ccTask.fee[type].value = value;
     } else {
-      console.error("task %d fee data is damaged");
+      console.error("task %d fee data is damaged", ccTaskId);
     }
   }
 
