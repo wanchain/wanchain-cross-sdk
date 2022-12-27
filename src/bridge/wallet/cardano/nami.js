@@ -86,17 +86,31 @@ class Nami {
     );
     const inputs = selection.input;
   
-    let txBuilder = wasm.TransactionBuilder.new(
+    const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
+    .coins_per_utxo_byte(
+      wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
+    )
+    .fee_algo(
       wasm.LinearFee.new(
         wasm.BigNum.from_str(protocolParameters.linearFee.minFeeA),
         wasm.BigNum.from_str(protocolParameters.linearFee.minFeeB)
-      ),
-      wasm.BigNum.from_str(protocolParameters.minUtxo),
-      wasm.BigNum.from_str(protocolParameters.poolDeposit),
-      wasm.BigNum.from_str(protocolParameters.keyDeposit),
-      protocolParameters.maxValSize,
-      protocolParameters.maxTxSize
-    );
+      )
+    )
+    .key_deposit(wasm.BigNum.from_str(protocolParameters.keyDeposit))
+    .pool_deposit(
+      wasm.BigNum.from_str(protocolParameters.poolDeposit)
+    )
+    .max_tx_size(protocolParameters.maxTxSize)
+    .max_value_size(protocolParameters.maxValSize)
+    .ex_unit_prices(wasm.ExUnitPrices.new(
+      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
+      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
+    ))
+    // .collateral_percentage(protocolParameters.collateralPercentage)
+    // .max_collateral_inputs(protocolParameters.maxCollateralInputs)
+    .build();
+
+    let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
   
     for (let i = 0; i < inputs.length; i++) {
       const utxo = inputs[i];

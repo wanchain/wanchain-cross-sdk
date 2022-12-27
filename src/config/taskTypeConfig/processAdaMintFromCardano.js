@@ -224,7 +224,7 @@ module.exports = class ProcessAdaMintFromCardano {
     ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
     return wasm.PlutusData.new_constr_plutus_data(
         wasm.ConstrPlutusData.new(
-            wasm.Int.new_i32(0),
+            wasm.BigNum.from_str('0'),
             ls
         )
     )
