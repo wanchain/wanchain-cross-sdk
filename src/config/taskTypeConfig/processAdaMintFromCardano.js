@@ -10,7 +10,7 @@ const tool = require("../../utils/tool.js");
     type: 1,             // number
     tokenPairID: 1,      // number
     toAccount: 0x...,    // string
-    fee: 10              // number
+    smgID: 0x...         // string
   }
   smgRelease:
   {
@@ -40,9 +40,6 @@ module.exports = class ProcessAdaMintFromCardano {
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
-      let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // smg address is manual specified
-      console.debug("ProcessAdaMintFromCardano storemanGroupAddr: %s", storemanGroupAddr);
-
       let protocolParameters = await this.initTx();
       let utxos = await wallet.cardano.getUtxos();
       utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
@@ -52,7 +49,7 @@ module.exports = class ProcessAdaMintFromCardano {
       let tokenPair = storemanService.getTokenPair(params.tokenPairID);
       let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
       let output = {
-        address: wasm.Address.from_bech32(storemanGroupAddr),
+        address: wasm.Address.from_bech32(params.crossScAddr),
         amount: [
           {
             unit: 'lovelace',
@@ -79,18 +76,20 @@ module.exports = class ProcessAdaMintFromCardano {
       let outputs = wasm.TransactionOutputs.new();
       outputs.add(
         wasm.TransactionOutput.new(
-          wasm.Address.from_bech32(storemanGroupAddr),
+          wasm.Address.from_bech32(params.crossScAddr),
           this.assetsToValue(output.amount)
         )
       );
 
-      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
+      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
       let auxiliaryData = wasm.AuxiliaryData.new();
       auxiliaryData.set_metadata(metaData);
 
+      let plutusData = this.genPlutusData();
+
       let tx;
       try {
-        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData);
+        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData);
       } catch (err) {
         console.error("ProcessAdaMintFromCardano buildTx error: %O", err);
         if (err === "Insufficient input in transaction") {
@@ -200,7 +199,7 @@ module.exports = class ProcessAdaMintFromCardano {
     ).to_str();
   }
 
-  buildUserLockData(tokenPairID, toAccount, fee) {
+  buildUserLockData(tokenPairID, toAccount, smgID) {
     tokenPairID = Number(tokenPairID);
     if ((tokenPairID !== NaN) && (toAccount.length === ToAccountLen)) {
       let data = {
@@ -208,7 +207,7 @@ module.exports = class ProcessAdaMintFromCardano {
           type: TX_TYPE.UserLock,
           tokenPairID,
           toAccount,
-          fee: Number(new BigNumber(fee).toFixed())
+          smgID
         }
       };
       // console.debug("nami buildUserLockData: %O", data);
@@ -218,6 +217,17 @@ module.exports = class ProcessAdaMintFromCardano {
       console.error("buildUserLockMetaData parameter invalid");
       return null;
     }
+  }
+
+  genPlutusData() { // just dummy data
+    let ls = wasm.PlutusList.new();
+    ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
+    return wasm.PlutusData.new_constr_plutus_data(
+        wasm.ConstrPlutusData.new(
+            wasm.BigNum.from_str('0'),
+            ls
+        )
+    )
   }
 
   showUtxos(utxos) {
