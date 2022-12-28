@@ -253,21 +253,32 @@ function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
   if (fee.operateFee.unit === unit) {
     tmp = new BigNumber(fee.operateFee.value);
     if (fee.operateFee.isRatio) {
-      tmp = tmp.times(amount).toFixed(decimals);
+      tmp = tmp.times(amount);
+      if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
+        tmp = fee.operateFee.min;
+      } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
+        tmp = fee.operateFee.max;
+      }
     }
     result = result.plus(tmp);
   }
   if (fee.networkFee.unit === unit) {
     tmp = new BigNumber(fee.networkFee.value);
     if (fee.networkFee.isRatio) {
-      tmp = tmp.times(amount).toFixed(decimals);
+      tmp = tmp.times(amount);
+      if ((fee.networkFee.min != 0) && (tmp.lt(fee.networkFee.min))) {
+        tmp = fee.networkFee.min;
+      } else if ((fee.networkFee.max != 0) && (tmp.gt(fee.networkFee.max))) {
+        tmp = fee.networkFee.max;
+      }
     }
     result = result.plus(tmp);
   }
-  if (!formatWithDecimals) {
-    result = result.multipliedBy(Math.pow(10, decimals));
+  if (formatWithDecimals) {
+    return result.toFixed(decimals);
+  } else {
+    return result.times(Math.pow(10, decimals)).toFixed(0);
   }
-  return result.toFixed();
 }
 
 function sha256(str) {

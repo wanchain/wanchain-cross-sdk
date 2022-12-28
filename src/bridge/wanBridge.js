@@ -152,8 +152,8 @@ class WanBridge extends EventEmitter {
     let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction, options);
     let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max}
     };
     console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %O, result: %O", assetPair.assetPairId, direction, options, fee);
     return fee;

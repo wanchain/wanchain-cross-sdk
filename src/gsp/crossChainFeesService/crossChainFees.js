@@ -26,12 +26,13 @@ module.exports = class crossChainFees {
         }
         // console.debug("estimateOperationFee %s->%s raw: %O", src.chainType, target.chainType, fee);
         let feeBN = new BigNumber(fee.value);
-        let ret = {
+        return {
             fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
             isRatio: fee.isPercent,
-            unit: tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol)
+            unit: tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol),
+            min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
+            max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, decimals)).toFixed()
         };
-        return ret;
     }
 
     // contract fee
@@ -51,7 +52,9 @@ module.exports = class crossChainFees {
         return {
             fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, src.chainDecimals)).toFixed(),
             isRatio: fee.isPercent,
-            unit: tool.getCoinSymbol(src.chainType, src.chainName)
+            unit: tool.getCoinSymbol(src.chainType, src.chainName),
+            min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, src.chainDecimals)).toFixed(),
+            max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, src.chainDecimals)).toFixed()
         };
     }
 };
