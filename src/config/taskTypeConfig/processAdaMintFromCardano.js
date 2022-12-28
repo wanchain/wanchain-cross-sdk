@@ -72,7 +72,7 @@ module.exports = class ProcessAdaMintFromCardano {
         // console.debug({minAda});
         output.amount[0].quantity = minAda;
       }
-      console.log("output.amount: %O", output.amount);
+      // console.log("output.amount: %O", output.amount);
       let outputs = wasm.TransactionOutputs.new();
       outputs.add(
         wasm.TransactionOutput.new(
