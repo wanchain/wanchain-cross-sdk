@@ -16,7 +16,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txData, crossValue = new BigNumber(params.value).minus(params.fee);
+            let txData, crossValue = new BigNumber(params.value).minus(params.networkFee);
             if (wallet.generateUserLockData) { // wallet custumized
               txData = await wallet.generateUserLockData(params.crossScAddr,
                 params.storemanGroupId,

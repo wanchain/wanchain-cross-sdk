@@ -247,21 +247,10 @@ function getCoinSymbol(chainType, chainName) {
   }
 }
 
-function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
-  let result = new BigNumber(0), tmp;
+function parseFee(fee, amount, unit, decimals, options) {
+  options = options || {formatWithDecimals: true};
+  let result = networkFee = new BigNumber(0), tmp;
   decimals = Number(decimals);
-  if (fee.operateFee.unit === unit) {
-    tmp = new BigNumber(fee.operateFee.value);
-    if (fee.operateFee.isRatio) {
-      tmp = tmp.times(amount);
-      if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
-        tmp = fee.operateFee.min;
-      } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
-        tmp = fee.operateFee.max;
-      }
-    }
-    result = result.plus(tmp);
-  }
   if (fee.networkFee.unit === unit) {
     tmp = new BigNumber(fee.networkFee.value);
     if (fee.networkFee.isRatio) {
@@ -272,9 +261,24 @@ function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
         tmp = fee.networkFee.max;
       }
     }
+    networkFee = tmp;
+    if ((!options.feeType) || (options.feeType === "networkFee")) {
+      result = result.plus(networkFee);
+    }
+  }
+  if ((fee.operateFee.unit === unit) && ((!options.feeType) || (options.feeType === "operateFee"))) {
+    tmp = new BigNumber(fee.operateFee.value);
+    if (fee.operateFee.isRatio) {
+      tmp = tmp.times(new BigNumber(amount).minus(networkFee));
+      if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
+        tmp = fee.operateFee.min;
+      } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
+        tmp = fee.operateFee.max;
+      }
+    }
     result = result.plus(tmp);
   }
-  if (formatWithDecimals) {
+  if (options.ormatWithDecimals) {
     return result.toFixed(decimals);
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0);
