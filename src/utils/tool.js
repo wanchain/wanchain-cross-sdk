@@ -278,7 +278,7 @@ function parseFee(fee, amount, unit, decimals, options) {
     }
     result = result.plus(tmp);
   }
-  if (options.ormatWithDecimals) {
+  if (options.formatWithDecimals) {
     return result.toFixed(decimals);
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0);
