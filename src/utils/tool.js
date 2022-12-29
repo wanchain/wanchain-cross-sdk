@@ -248,9 +248,8 @@ function getCoinSymbol(chainType, chainName) {
 }
 
 function parseFee(fee, amount, unit, decimals, options) {
-  options = options || {formatWithDecimals: true};
+  options = Object.assign({formatWithDecimals: true}, options);
   let result = networkFee = new BigNumber(0), tmp;
-  decimals = Number(decimals);
   if (fee.networkFee.unit === unit) {
     tmp = new BigNumber(fee.networkFee.value);
     if (fee.networkFee.isRatio) {
@@ -279,7 +278,7 @@ function parseFee(fee, amount, unit, decimals, options) {
     result = result.plus(tmp);
   }
   if (options.formatWithDecimals) {
-    return result.toFixed(decimals);
+    return result.toFixed();
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0);
   }
