@@ -57,10 +57,12 @@ class Polkadot {
       let injector = await web3FromAddress(sender);
       this.api.tx.utility.batchAll(txs).signAndSend(sender, {signer: injector.signer}, ({txHash, status}) => {
         txHash = txHash.toString();
-        console.log("sendTransaction tx %s status: %s", txHash, status.type);
-        if (status.isInBlock || status.isFinalized) {
+        if (status.isBroadcast) {
+          console.debug("%s sendTransaction tx %s status: %s", this.chain, txHash, status.type);
+          return resolve(txHash);
+        } else if (status.isInBlock || status.isFinalized) {
           let block = status.isInBlock? status.asInBlock : status.asFinalized;
-          console.log("sendTransaction at block %s tx %s", block.toString(), txHash);
+          console.debug("%s block %s tx %s status: %s", this.chain, block.toString(), txHash, status.type);
           return resolve(txHash);
         }
       }).catch(err => {
