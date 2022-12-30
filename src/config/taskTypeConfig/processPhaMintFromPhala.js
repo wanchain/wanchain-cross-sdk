@@ -87,8 +87,8 @@ module.exports = class ProcessPhaMintFromPhala {
 
       // 查询目的链当前blockNumber
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
-      let storemanService = this.m_frameworkService.getService("StoremanService");
-      let taskType = storemanService.getTokenEventType(params.tokenPairID, "MINT");
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let taskType = tokenPairService.getTokenEventType(params.tokenPairID, "MINT");
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,

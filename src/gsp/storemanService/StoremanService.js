@@ -52,16 +52,6 @@ class StoremanService {
         return {maxQuota: "0", minQuota: "0"};
     }
 
-    async getConvertInfo(convertJson) {
-        let cctHandleService = this.m_frameworkService.getService("CCTHandleService");
-        return cctHandleService.getConvertInfo(convertJson);
-    }
-
-    async processTxTask(taskParas, wallet) {
-        let txTaskHandleService = this.m_frameworkService.getService("TxTaskHandleService");
-        return txTaskHandleService.processTxTask(taskParas, wallet);
-    }
-
     async getAccountBalance(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
@@ -127,31 +117,6 @@ class StoremanService {
             console.error("get tokenPair %s type %s address %s balance error: %O", assetPairId, type, addr, err);
             return new BigNumber(0);
         }
-    }
-
-    getTokenPair(tokenPairId) {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        return tokenPairService.getTokenPair(tokenPairId);
-    }
-
-    getTokenEventType(tokenPairId, direction) {
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getTokenEventType(tokenPairId, direction);
-    }
-
-    async updateSmgs() {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        return tokenPairService.updateSmgs();
-    }
-
-    getAssetLogo(name, protocol) {
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getAssetLogo(name, protocol);
-    }
-
-    getChainLogo(chainType) {
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getChainLogo(chainType);
     }
 
     async getXrpTokenTrustLine(tokenAccount, userAccount) {

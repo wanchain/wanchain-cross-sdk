@@ -35,6 +35,9 @@ class WanBridge extends EventEmitter {
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
+    this.tokenPairService = this._service.getService("TokenPairService");
+    this.txTaskHandleService = this._service.getService("TxTaskHandleService");
+    this.cctHandleService = this._service.getService("CCTHandleService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
@@ -55,7 +58,7 @@ class WanBridge extends EventEmitter {
     let curTime = tool.getCurTimestamp(true);
     if (curTime >= smg.endTime) {
       console.log("SDK: getSmgInfo, smg %s timeout", smg.id);
-      await this.storemanService.updateSmgs();
+      await this.tokenPairService.updateSmgs();
       smgs = this.stores.assetPairs.smgList;
       smg = smgs[this.smgIndex % smgs.length];
       changed = true; // optimize for mainnet getQuota performance issue
@@ -286,11 +289,11 @@ class WanBridge extends EventEmitter {
   }
 
   getAssetLogo(name, protocol) {
-    return this.storemanService.getAssetLogo(name, protocol);
+    return this.tokenPairService.getAssetLogo(name, protocol);
   }
 
   getChainLogo(chainType) {
-    return this.storemanService.getChainLogo(chainType);
+    return this.tokenPairService.getChainLogo(chainType);
   }
 
   _onStoremanInitilized(success) {

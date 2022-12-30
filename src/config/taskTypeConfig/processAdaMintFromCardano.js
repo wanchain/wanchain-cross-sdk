@@ -45,8 +45,8 @@ module.exports = class ProcessAdaMintFromCardano {
       utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
       // this.showUtxos(utxos);
 
-      let storemanService = this.m_frameworkService.getService("StoremanService");
-      let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
       let output = {
         address: wasm.Address.from_bech32(params.crossScAddr),
