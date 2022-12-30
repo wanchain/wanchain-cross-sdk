@@ -247,9 +247,9 @@ function getCoinSymbol(chainType, chainName) {
   }
 }
 
-function parseFee(fee, amount, unit, decimals, options) {
+function parseFee(fee, amount, unit, options) {
   options = Object.assign({formatWithDecimals: true}, options);
-  let result = networkFee = new BigNumber(0), tmp;
+  let result = networkFee = new BigNumber(0), decimals = 0, tmp;
   if (fee.networkFee.unit === unit) {
     tmp = new BigNumber(fee.networkFee.value);
     if (fee.networkFee.isRatio) {
@@ -264,6 +264,7 @@ function parseFee(fee, amount, unit, decimals, options) {
     if ((!options.feeType) || (options.feeType === "networkFee")) {
       result = result.plus(networkFee);
     }
+    decimals = fee.networkFee.decimals;
   }
   if ((fee.operateFee.unit === unit) && ((!options.feeType) || (options.feeType === "operateFee"))) {
     tmp = new BigNumber(fee.operateFee.value);
@@ -276,6 +277,7 @@ function parseFee(fee, amount, unit, decimals, options) {
       }
     }
     result = result.plus(tmp);
+    decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
     return result.toFixed();

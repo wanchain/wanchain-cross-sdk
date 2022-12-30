@@ -12,7 +12,7 @@ module.exports = class MintAdaFromCardano {
     let webStores = this.m_frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals, {formatWithDecimals: false});
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,

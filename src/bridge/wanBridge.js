@@ -152,8 +152,8 @@ class WanBridge extends EventEmitter {
     let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction, options);
     let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max}
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: operateFee.decimals}
     };
     console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %O, result: %O", assetPair.assetPairId, direction, options, fee);
     return fee;
@@ -314,7 +314,7 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType, ccTask.decimals));
+    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType));
     if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the fee";
       console.error({taskId, errInfo});
@@ -367,7 +367,7 @@ class WanBridge extends EventEmitter {
     if (ccTask.protocol === "Erc20") {
       let sentAmount = ccTask.sentAmount || ccTask.amount;
       let expected = new BigNumber(sentAmount);
-      let fee = tool.parseFee(ccTask.fee, expected, ccTask.assetType, ccTask.decimals);
+      let fee = tool.parseFee(ccTask.fee, expected, ccTask.assetType);
       expected = expected.minus(fee).toFixed();
       if (taskRedeemHash.value) {
         receivedAmount = new BigNumber(taskRedeemHash.value).div(Math.pow(10, ccTask.toDecimals)).toFixed();
@@ -387,18 +387,38 @@ class WanBridge extends EventEmitter {
   }
 
   _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
-    let feeType;
-    if (taskFee.networkFee.unit === assetType) {
-      feeType = "networkFee";
-    } else { // if (taskFee.operateFee.unit === assetType)
-      feeType = "operateFee";
-    }
-    let fee = new BigNumber(sentAmount).minus(receivedAmount);
-    if (taskFee[feeType].isRatio) {
-      fee = fee.div(sentAmount);
-    }
     let records = this.stores.crossChainTaskRecords;
-    records.updateTaskFee(taskId, feeType, fee.toFixed());
+    let fee = new BigNumber(sentAmount).minus(receivedAmount).toFixed();
+    let feeType = "", candidateFeeType = ""; // prefer to update exist fee
+    if (taskFee.networkFee.unit === assetType) {
+      candidateFeeType = "networkFee";
+      if (taskFee.networkFee.value !== "0") {
+        feeType = "networkFee";
+      }
+    }
+    if (taskFee.operateFee.unit === assetType) {
+      candidateFeeType = candidateFeeType || "operateFee";
+      if (taskFee.operateFee.value !== "0") {
+        feeType = feeType || "operateFee";
+      }
+    }
+    feeType = feeType || candidateFeeType;
+    if (feeType) {
+      if (feeType === "networkFee") {
+        records.updateTaskFee(taskId, "networkFee", fee, true);
+        if (taskFee.operateFee.unit === assetType) {
+          records.updateTaskFee(taskId, "operateFee", "0", true);
+        }
+      } else {
+        records.updateTaskFee(taskId, "operateFee", fee, true);
+        if (taskFee.networkFee.unit === assetType) {
+          records.updateTaskFee(taskId, "networkFee", "0", true);
+        }
+      }
+      console.debug("SDK: update task %d fee: %s%s", taskId, fee, assetType);
+    } else {
+      console.error("SDK: can't update task %d fee: %s%s", taskId, fee, assetType);
+    }
   }
 
   _onNetworkFee(taskNetworkFee) {

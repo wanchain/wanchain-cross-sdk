@@ -62,11 +62,14 @@ class CrossChainTaskRecords {
     return isLockTx;
   }
 
-  updateTaskFee(ccTaskId, type, value) {
+  updateTaskFee(ccTaskId, type, value, rectify = false) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
       console.debug("task %d update %s fee: %s->%s", ccTaskId, type, ccTask.fee[type].value, value);
       ccTask.fee[type].value = value;
+      if (rectify) {
+        ccTask.fee[type].isRatio = false;
+      }
     } else {
       console.error("task %d fee data is damaged", ccTaskId);
     }

@@ -151,7 +151,7 @@ class BridgeTask {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction, options);
     if (isErc20) {
       let unit = this._assetPair.assetType;
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let fee = tool.parseFee(this._fee, this._amount, unit);
       if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
         console.error("Amount is too small to pay the fee: %s %s", fee, unit);
         return "Amount is too small to pay the fee";
@@ -178,7 +178,7 @@ class BridgeTask {
       if (amount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
       }
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let fee = tool.parseFee(this._fee, this._amount, unit);
       let expectedReceivedValue = amount.minus(fee);
       if (this._quota.minQuota > 0) {
         if (expectedReceivedValue.lt(this._quota.minQuota)) {
@@ -239,8 +239,7 @@ class BridgeTask {
       requiredAsset = 0;
       this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
-      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
-      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
+      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit));
       requiredAsset = this._amount;
       this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
@@ -267,7 +266,7 @@ class BridgeTask {
       let isReleaseCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
       if (isReleaseCoin) {
         let unit = this._assetPair.assetType;
-        let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+        let fee = tool.parseFee(this._fee, this._amount, unit);
         estimateBalance = estimateBalance.plus(this._amount).minus(fee);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {

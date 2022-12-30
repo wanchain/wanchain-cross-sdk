@@ -16,7 +16,7 @@ module.exports = class MintXrpFromRipple {
         value = value.multipliedBy(Math.pow(10, tokenPair.fromDecimals));
       }
       value = value.toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
