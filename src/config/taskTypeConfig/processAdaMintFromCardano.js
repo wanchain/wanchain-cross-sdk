@@ -1,6 +1,5 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const tool = require("../../utils/tool.js");
 
@@ -26,8 +25,6 @@ const TX_TYPE = {
   smgDebt:    5,
   Invalid:    -1
 };
-
-const ToAccountLen = 42; // with '0x'
 
 module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
@@ -200,23 +197,17 @@ module.exports = class ProcessAdaMintFromCardano {
   }
 
   buildUserLockData(tokenPairID, toAccount, smgID) {
-    tokenPairID = Number(tokenPairID);
-    if ((tokenPairID !== NaN) && (toAccount.length === ToAccountLen)) {
-      let data = {
-        5718350: { // define a special label, which is SLIP-0044 Wanchain Coin type
-          type: TX_TYPE.UserLock,
-          tokenPairID,
-          toAccount,
-          smgID
-        }
-      };
-      // console.debug("nami buildUserLockData: %O", data);
-      data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
-      return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
-    } else {
-      console.error("buildUserLockMetaData parameter invalid");
-      return null;
-    }
+    let data = {
+      1: {
+        type: TX_TYPE.UserLock,
+        tokenPairID: Number(tokenPairID),
+        toAccount,
+        smgID
+      }
+    };
+    // console.debug("nami buildUserLockData: %O", data);
+    data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
+    return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
 
   genPlutusData() { // just dummy data
