@@ -145,6 +145,7 @@ module.exports = class ProcessAdaMintFromCardano {
       minUtxo: '1000000', // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
       poolDeposit: p.pool_deposit,
       keyDeposit: p.key_deposit,
+      coinsPerUtxoByte: p.coins_per_utxo_byte || p.coinsPerUtxoByte,
       coinsPerUtxoWord: p.coins_per_utxo_word,
       maxValSize: p.max_val_size,
       priceMem: p.price_mem,

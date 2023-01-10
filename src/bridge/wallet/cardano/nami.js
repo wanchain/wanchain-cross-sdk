@@ -38,8 +38,8 @@ class Nami {
       let balance = await this.cardano.getBalance();
       return wasm.Value.from_bytes(Buffer.from(balance, 'hex')).coin().to_str(); // TODO: sub token locked coin
     } else {
-      console.error("%s is not used address", addr);
-      throw new Error("Not used address");
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
     }
   }  
 
@@ -88,7 +88,7 @@ class Nami {
   
     const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
     .coins_per_utxo_byte(
-      wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
+      wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte)
     )
     .fee_algo(
       wasm.LinearFee.new(
