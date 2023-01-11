@@ -163,7 +163,7 @@ class StoremanService {
       if (options.tokenIds) {
         return this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
       } else {
-        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip);
+        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip, options.includeUri);
       }
     }
 
@@ -226,7 +226,7 @@ class StoremanService {
       return result;
     }
 
-    async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri = true) {
+    async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri) {
       limit = parseInt(limit || 10);
       skip = parseInt(skip || 0);
       const query = {
@@ -252,13 +252,13 @@ class StoremanService {
       tokens.forEach(v => {
         let id = v.tokenId; // hex with 0x
         result.push({id, balance: v.value});
-        if (includeUri) {
-          let call = {
+        if (includeUri !== false) {
+          console.log("includeUri");
+          uriCalls.push({
             target: tokenAddr,
             call: [uriIf, id],
             returns: [[id]]
-          }
-          uriCalls.push(call);
+          });
         }
       })
       if (uriCalls.length) {
@@ -275,7 +275,7 @@ class StoremanService {
     async getErc1155Balance(chain, owner, token) {
       let balance = 0, skip = 0;
       for ( ; ; ) {
-        let result = await this.getNftInfo("Erc1155", chain, token, owner, 1000, skip, false);
+        let result = await this.getNftInfo("Erc1155", chain, token, owner, {limit: 1000, skip, includeUri: false});
         let bal = result.length;
         balance += bal;
         if (bal < 1000) {
