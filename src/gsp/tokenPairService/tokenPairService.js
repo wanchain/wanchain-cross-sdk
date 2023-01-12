@@ -308,29 +308,33 @@ class TokenPairService {
         }
 
         // 2 根据一般规律处理普通tokenPair
-        // 2.1 MINT
+        // 2.1 MINT direction
         if (fromChainInfo.mintFromChainHandle) {
-            // mintFromChainHandle该配置项只适用于其他链向WAN/ETH跨链的tokenPair
-            // 20210208 目前BTC/XRP均需配置,其他链跨向WAN/ETH的coin均需配置
+            // 20210208 mintFromChainHandle只适用于非EVM链向EVM跨链,包括coin和token(暂不涉及)
             tokenPair.ccType["MINT"] = fromChainInfo.mintFromChainHandle;
         } else {
-            // ETH <-> WAN 祖先链为ETH/WAN
-            if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
-                if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-                    // WanCoin->ETH EthCoin->WAN
-                    tokenPair.ccType["MINT"] = "MintCoin";
-                } else {
-                    // token WAN <-> ETH
-                    tokenPair.ccType["MINT"] = "MintErc20";
-                }
-            } else {
-                // 祖先链是其他链的coin或token,在非祖先链之间转移,双向都是userBurn
+            // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
+            if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
+                // coin
+                tokenPair.ccType["MINT"] = "MintCoin";
+            } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
+                // orig token
+                tokenPair.ccType["MINT"] = "MintErc20";
+            } else { // 祖先链是其他链的token
                 tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
             }
         }
 
-        // 2.2 BURN
-        tokenPair.ccType["BURN"] = this.getTokenBurnHandler(tokenPair, "BURN");
+        // 2.2 BURN direction
+        if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
+            // cross coin between ETH layer 2
+            tokenPair.ccType["BURN"] = "MintCoin";
+        } else if (tokenPair.toChainID === tokenPair.ancestorChainID) {
+            // orig token, should not be configured like this
+            tokenPair.ccType["BURN"] = "MintErc20";
+        } else { // 祖先链是其他链的token
+            tokenPair.ccType["BURN"] = this.getTokenBurnHandler(tokenPair, "BURN");
+        }
     }
 
     // for internal call

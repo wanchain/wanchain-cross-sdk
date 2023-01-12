@@ -59,48 +59,31 @@ class StoremanService {
             if (!tokenPair) {
                 return new BigNumber(0);
             }
-            let balance, decimals, kaChainInfo = null;
+            let balance, decimals;
+            let chainType = (type === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
+            let kaChainInfo = (type === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
             let wallet = options.wallet; // third party wallet is required
-            if (options.isCoin) {
-                if (type === "MINT") {
-                    if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.fromChainType)) {
-                        balance = await wallet.getBalance(addr);
-                    } else {
-                        balance = await this.m_iwanBCConnector.getBalance(tokenPair.fromChainType, addr);
-                    }
-                    kaChainInfo = tokenPair.fromScInfo;
-                    decimals = tokenPair.fromScInfo.chainDecimals;
-                } else if (type === "BURN") {
-                    if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.toChainType)) {
-                        balance = await wallet.getBalance(addr);
-                    } else {
-                        balance = await this.m_iwanBCConnector.getBalance(tokenPair.toChainType, addr);
-                    }
-                    decimals = tokenPair.toScInfo.chainDecimals;
+            if (options.isCoin) { // isCoin is internal use only
+                decimals = (type === "MINT")? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
+                if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                    balance = await wallet.getBalance(addr);
+                } else {
+                    balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                 }
             } else {
-                if (type === "MINT") {
-                    if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-                        // COIN
-                        if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.fromChainType)) {
-                            balance = await wallet.getBalance(addr);
-                        } else {
-                            balance = await this.m_iwanBCConnector.getBalance(tokenPair.fromChainType, addr);
-                        }
-                        kaChainInfo = tokenPair.fromScInfo;
-                    } else if (tokenPair.fromAccountType === "Erc1155") {
-                        balance = await this.getErc1155Balance(tokenPair.fromChainType, addr, tokenPair.fromAccount);
+                decimals = (type === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
+                let tokenAccount = (type === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+                let tokenType = (type === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+                if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                        balance = await wallet.getBalance(addr);
                     } else {
-                        balance = await this.m_iwanBCConnector.getTokenBalance(tokenPair.fromChainType, addr, tokenPair.fromAccount);
+                        balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                     }
-                    decimals = tokenPair.fromDecimals;
-                } else if (type === "BURN") {
-                    if (tokenPair.toAccountType === "Erc1155") {
-                        balance = await this.getErc1155Balance(tokenPair.toChainType, addr, tokenPair.toAccount);
-                    } else {
-                        balance = await this.m_iwanBCConnector.getTokenBalance(tokenPair.toChainType, addr, tokenPair.toAccount);
-                    }
-                    decimals = tokenPair.toDecimals;
+                } else if (tokenType === "Erc1155") {
+                    balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
+                } else {
+                    balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
                 }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
@@ -138,7 +121,7 @@ class StoremanService {
       if (options.tokenIds) {
         return this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
       } else {
-        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip);
+        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip, options.includeUri);
       }
     }
 
@@ -201,7 +184,7 @@ class StoremanService {
       return result;
     }
 
-    async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri = true) {
+    async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri) {
       limit = parseInt(limit || 10);
       skip = parseInt(skip || 0);
       const query = {
@@ -227,13 +210,13 @@ class StoremanService {
       tokens.forEach(v => {
         let id = v.tokenId; // hex with 0x
         result.push({id, balance: v.value});
-        if (includeUri) {
-          let call = {
+        if (includeUri !== false) {
+          console.log("includeUri");
+          uriCalls.push({
             target: tokenAddr,
             call: [uriIf, id],
             returns: [[id]]
-          }
-          uriCalls.push(call);
+          });
         }
       })
       if (uriCalls.length) {
@@ -250,7 +233,7 @@ class StoremanService {
     async getErc1155Balance(chain, owner, token) {
       let balance = 0, skip = 0;
       for ( ; ; ) {
-        let result = await this.getNftInfo("Erc1155", chain, token, owner, 1000, skip, false);
+        let result = await this.getNftInfo("Erc1155", chain, token, owner, {limit: 1000, skip, includeUri: false});
         let bal = result.length;
         balance += bal;
         if (bal < 1000) {
