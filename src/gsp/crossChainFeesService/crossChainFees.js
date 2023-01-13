@@ -50,10 +50,17 @@ module.exports = class crossChainFees {
         let fee = await iwanBCConnector.estimateCrossChainNetworkFee(src.chainType, target.chainType, {tokenPairID: tokenPairId, batchSize: options.batchSize});
         // console.debug("estimateNetworkFee %s->%s raw: %O", src.chainType, target.chainType, fee);
         let feeBN = new BigNumber(fee.value);
+        // ETH maybe has different symbos on layer2 chains, it leads networkFee unit problem, should use ancestorSymbol as unit
+        let unit, tokenAccount = (direction === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+        if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
+          unit = tokenPair.ancestorSymbol;
+        } else {
+          unit = tool.getCoinSymbol(src.chainType, src.chainName);
+        }
         return {
             fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, src.chainDecimals)).toFixed(),
             isRatio: fee.isPercent,
-            unit: tool.getCoinSymbol(src.chainType, src.chainName),
+            unit,
             min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, src.chainDecimals)).toFixed(),
             max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, src.chainDecimals)).toFixed(),
             decimals: Number(src.chainDecimals)
