@@ -280,7 +280,7 @@ function parseFee(fee, amount, unit, options) {
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return result.toFixed();
+    return new BigNumber(result.toFixed(decimals)).toFixed();
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0);
   }
