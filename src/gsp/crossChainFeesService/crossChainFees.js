@@ -57,13 +57,14 @@ module.exports = class crossChainFees {
         } else {
           unit = tool.getCoinSymbol(src.chainType, src.chainName);
         }
+        let decimals = src.chainDecimals;
         return {
-            fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, src.chainDecimals)).toFixed(),
+            fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
             isRatio: fee.isPercent,
             unit,
-            min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, src.chainDecimals)).toFixed(),
-            max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, src.chainDecimals)).toFixed(),
-            decimals: Number(src.chainDecimals)
+            min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
+            max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
+            decimals: Number(decimals)
         };
     }
 };
