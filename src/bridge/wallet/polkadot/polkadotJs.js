@@ -14,7 +14,7 @@ const DefaultProvider = {
 }
 
 class Polkadot {
-  constructor(type, provider, chain) {
+  constructor(type, provider, chain = "DOT") {
     this.type = type;
     this.chain = chain;
     if (typeof(provider) === "string") {
