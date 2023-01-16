@@ -130,7 +130,7 @@
       "chainId": "2147484262",
       "chainType": "OETH",
       "chainName": "Optimism",
-      "crossScAddr": "0x....................................",
+      "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
@@ -183,6 +183,20 @@
       }
     },
     {
+      "chainId": "1073741830",
+      "chainType": "FX",
+      "chainName": "Function X",
+      "crossScAddr": "0x",
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 90001,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
       "chainId": "2147483843",
       "chainType": "TRX",
       "chainName": "Tron",
@@ -191,6 +205,21 @@
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 6,
       "MaskChainId": 0,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2147484458",
+      "chainType": "ASTR",
+      "chainName": "Astar",
+      "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 592,
+      "minReserved": 0.0001,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -298,9 +327,20 @@
       }
     },
     {
+      "chainId": "1073741831",
+      "chainType": "PHA",
+      "chainName": "Phala",
+      "mintFromChainHandle": "MintDotFromPolkaHandle",
+      "chainDecimals": 12,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
       "chainId": "2147485463",
       "chainType": "ADA",
       "chainName": "Cardano",
+      "crossScAddr": "",
       "mintFromChainHandle": "MintAdaFromCardano",
       "chainDecimals": 6,
       "TxScanInfo": {
@@ -320,7 +360,7 @@
       "comment": "Ethereum native VEE <-> Avalanche VEE pool",
       "mintHandle": "MintErc20",
       "burnHandle": "BurnErc20ProxyToken",
-      "toNativeToken": "0x...................................."
+      "toNativeToken": "0x"
     },
     {
       "id": "178",
@@ -330,5 +370,6 @@
       "toNativeToken": "0xBeA4928632e482A0A1241B38f596a311Ad7b98B1"
     }
   ],
-  "LockTxTimeout": 86400000
+  "LockTxTimeout": 86400000,
+  "crossConfigAddress": "0x"
 }

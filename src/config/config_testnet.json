@@ -198,7 +198,7 @@
     {
       "chainId": "2147484458",
       "chainType": "ASTR",
-      "chainName": "ShiBuya",
+      "chainName": "Shibuya",
       "crossScAddr": "0x0758fe272Ab2DeDcd182B84D3e3F9310F21a4153",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
