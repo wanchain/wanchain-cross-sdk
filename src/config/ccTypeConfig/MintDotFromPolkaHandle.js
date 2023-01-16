@@ -3,6 +3,11 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
+const TaskTypes = {
+  DOT: "ProcessDotMintFromPolka",
+  PHA: "ProcessPhaMintFromPhala"
+};
+
 module.exports = class MintDotFromPolkaHandle {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
@@ -12,7 +17,7 @@ module.exports = class MintDotFromPolkaHandle {
     let webStores = this.m_frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals, false);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType: tokenPair.toChainType,
@@ -21,9 +26,11 @@ module.exports = class MintDotFromPolkaHandle {
         storemanGroupGpk: convert.storemanGroupGpk,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessDotMintFromPolka",
+        taskType: TaskTypes[tokenPair.fromChainType],
         fee,
-        fromAddr: convert.fromAddr
+        fromAddr: convert.fromAddr,
+        fromChainID: tokenPair.fromChainID, // for Phala
+        toChainID: tokenPair.toChainID      // for Phala
       };
       console.debug("MintDotFromPolkaHandle params: %O", params);
       let ret = [

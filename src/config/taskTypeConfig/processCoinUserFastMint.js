@@ -16,7 +16,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txData, crossValue = new BigNumber(params.value).minus(params.fee);
+            let txData, crossValue = new BigNumber(params.value).minus(params.networkFee);
             if (wallet.generateUserLockData) { // wallet custumized
               txData = await wallet.generateUserLockData(params.crossScAddr,
                 params.storemanGroupId,
@@ -43,10 +43,13 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
 
     // virtual function
     async getConvertInfoForCheck(stepData) {
-        let storemanService = this.m_frameworkService.getService("StoremanService");
+        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         let params = stepData.params;
-        let tokenPair = storemanService.getTokenPair(params.tokenPairID);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(tokenPair.toChainType);
+        let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+        let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
+        let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+        let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
+        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
         let obj = {
             needCheck: true,
             checkInfo: {
@@ -56,9 +59,9 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 smgID: params.storemanGroupId,
                 tokenPairID: params.tokenPairID,
                 value: new BigNumber(params.value).minus(params.fee),
-                chain: tokenPair.toChainType,
+                chain: checkChainType,
                 fromBlockNumber: blockNumber,
-                taskType: "MINT"
+                taskType
             }
         };
         return obj;

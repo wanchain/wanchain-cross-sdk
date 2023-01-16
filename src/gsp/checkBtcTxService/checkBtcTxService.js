@@ -7,7 +7,7 @@ const bitcoin = require('bitcoinjs-lib');
 module.exports = class CheckBtcTxService {
     constructor(chainType = "BTC") {
         this.chainType = chainType;
-        this.serviceName = "Check" + this.chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "TxService";
+        this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "TxService";
         this.checkOtas = [];
     }
 

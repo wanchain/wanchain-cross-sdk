@@ -194,6 +194,21 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147484458",
+      "chainType": "ASTR",
+      "chainName": "Shibuya",
+      "crossScAddr": "0x0758fe272Ab2DeDcd182B84D3e3F9310F21a4153",
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 81,
+      "minReserved": 0.0001,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -298,9 +313,20 @@
       }
     },
     {
+      "chainId": "1073741831",
+      "chainType": "PHA",
+      "chainName": "Rhala",
+      "mintFromChainHandle": "MintDotFromPolkaHandle",
+      "chainDecimals": 12,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
       "chainId": "2147485463",
       "chainType": "ADA",
       "chainName": "Cardano",
+      "crossScAddr": "addr_test1wqvk30vqxcs5mgmda4pdnwa5p820qucnthjl08wjn9we0ycxn6ygm",
       "mintFromChainHandle": "MintAdaFromCardano",
       "chainDecimals": 6,
       "TxScanInfo": {
@@ -330,5 +356,6 @@
       "toNativeToken": "0xfda7a6d11fdd32f18e8d8d9ce1e97a9575141875"
     }
   ],
-  "LockTxTimeout": 86400000
+  "LockTxTimeout": 86400000,
+  "crossConfigAddress": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D"
 }

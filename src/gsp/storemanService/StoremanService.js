@@ -4,7 +4,7 @@ const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
 
-const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA"]; // TRX has self wallet but also be supported by rpc 
+const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA"]; // TRX has self wallet but also be supported by rpc
 
 class StoremanService {
     constructor() {
@@ -35,21 +35,11 @@ class StoremanService {
                 let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
                 let minQuota = new BigNumber(quota[0].minQuota).div(Math.pow(10, parseInt(decimals)));
                 return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
-            }            
+            }
         } catch (err) {
             console.error("getStroremanGroupQuotaInfo error: %O", err);
         }
         return {maxQuota: "0", minQuota: "0"};
-    }
-
-    async getConvertInfo(convertJson) {
-        let cctHandleService = this.m_frameworkService.getService("CCTHandleService");
-        return cctHandleService.getConvertInfo(convertJson);
-    }
-
-    async processTxTask(taskParas, wallet) {
-        let txTaskHandleService = this.m_frameworkService.getService("TxTaskHandleService");
-        return txTaskHandleService.processTxTask(taskParas, wallet);
     }
 
     async getAccountBalance(assetPairId, type, addr, options = {}) {
@@ -59,48 +49,31 @@ class StoremanService {
             if (!tokenPair) {
                 return new BigNumber(0);
             }
-            let balance, decimals, kaChainInfo = null;
+            let balance, decimals;
+            let chainType = (type === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
+            let kaChainInfo = (type === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
             let wallet = options.wallet; // third party wallet is required
-            if (options.isCoin) {
-                if (type === "MINT") {
-                    if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.fromChainType)) {
-                        balance = await wallet.getBalance(addr);
-                    } else {
-                        balance = await this.m_iwanBCConnector.getBalance(tokenPair.fromChainType, addr);
-                    }
-                    kaChainInfo = tokenPair.fromScInfo;
-                    decimals = tokenPair.fromScInfo.chainDecimals;
-                } else if (type === "BURN") {
-                    if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.toChainType)) {
-                        balance = await wallet.getBalance(addr);
-                    } else {
-                        balance = await this.m_iwanBCConnector.getBalance(tokenPair.toChainType, addr);
-                    }
-                    decimals = tokenPair.toScInfo.chainDecimals;
+            if (options.isCoin) { // isCoin is internal use only
+                decimals = (type === "MINT")? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
+                if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                    balance = await wallet.getBalance(addr);
+                } else {
+                    balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                 }
             } else {
-                if (type === "MINT") {
-                    if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-                        // COIN
-                        if (SELF_WALLET_BALANCE_CHAINS.includes(tokenPair.fromChainType)) {
-                            balance = await wallet.getBalance(addr);
-                        } else {
-                            balance = await this.m_iwanBCConnector.getBalance(tokenPair.fromChainType, addr);
-                        }
-                        kaChainInfo = tokenPair.fromScInfo;
-                    } else if (tokenPair.fromAccountType === "Erc1155") {
-                        balance = await this.getErc1155Balance(tokenPair.fromChainType, addr, tokenPair.fromAccount);
+                decimals = (type === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
+                let tokenAccount = (type === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+                let tokenType = (type === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+                if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                        balance = await wallet.getBalance(addr);
                     } else {
-                        balance = await this.m_iwanBCConnector.getTokenBalance(tokenPair.fromChainType, addr, tokenPair.fromAccount);
+                        balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                     }
-                    decimals = tokenPair.fromDecimals;
-                } else if (type === "BURN") {
-                    if (tokenPair.toAccountType === "Erc1155") {
-                        balance = await this.getErc1155Balance(tokenPair.toChainType, addr, tokenPair.toAccount);
-                    } else {
-                        balance = await this.m_iwanBCConnector.getTokenBalance(tokenPair.toChainType, addr, tokenPair.toAccount);
-                    }
-                    decimals = tokenPair.toDecimals;
+                } else if (tokenType === "Erc1155") {
+                    balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
+                } else {
+                    balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
                 }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
@@ -117,31 +90,6 @@ class StoremanService {
             console.error("get tokenPair %s type %s address %s balance error: %O", assetPairId, type, addr, err);
             return new BigNumber(0);
         }
-    }
-
-    getTokenPair(tokenPairId) {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        return tokenPairService.getTokenPair(tokenPairId);
-    }
-
-    getTokenEventType(tokenPairId, direction) {
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getTokenEventType(tokenPairId, direction);
-    }
-
-    async updateSmgs() {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        return tokenPairService.updateSmgs();
-    }
-
-    getAssetLogo(name, protocol) {
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getAssetLogo(name, protocol);
-    }
-
-    getChainLogo(chainType) {
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      return tokenPairService.getChainLogo(chainType);
     }
 
     async getXrpTokenTrustLine(tokenAccount, userAccount) {

@@ -358,12 +358,19 @@ class ApiInstance extends WsInstance {
   * }]
   *
   */
-  getUTXO(chainType, minconf, maxconf, address, callback) {
+  getUTXO(chainType, minconf, maxconf, address, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getUTXO';
-    let params = { chainType: chainType, minconf: minconf, maxconf: maxconf, address: address };
+    let params = { chainType: chainType, minconf: minconf, maxconf: maxconf, address: address, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -1712,12 +1719,19 @@ class ApiInstance extends WsInstance {
     }]
   *
   */
-  getTransByAddress(chainType, address, callback) {
+  getTransByAddress(chainType, address, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getTransByAddress';
-    let params = { chainType: chainType, address: address };
+    let params = { chainType: chainType, address: address, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -2875,12 +2889,16 @@ class ApiInstance extends WsInstance {
   *   }
   *
   */
-  getAccountInfo(chainType, address, callback) {
+  getAccountInfo(chainType, address, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getAccountInfo';
-    let params = { chainType: chainType, address:address };
+    let params = { chainType: chainType, address:address, ...options };
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -6953,6 +6971,52 @@ class ApiInstance extends WsInstance {
     });
   }
 
+  getRegisteredChainLogo(options, callback) {
+    let method = 'getRegisteredChainLogo';
+    let params = {};
+
+    if (typeof (options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    params = utils.newJson(options);
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getRegisteredMultiChainOrigToken(options, callback) {
+    let method = 'getRegisteredMultiChainOrigToken';
+    let params = {};
+
+    if (typeof (options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    params = utils.newJson(options);
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
   // ################### open storeman api ###################
 
     /**
@@ -7394,63 +7458,6 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMultiStoremanInfo';
     let params = {wkAddr: wkAddr};
-
-    return utils.promiseOrCallback(callback, cb => {
-      this._request(method, params, (err, result) => {
-        if (err) {
-          return cb(err);
-        }
-        return cb(null, result);
-      });
-    });
-  }
-
-    /**
-   *
-   * @apiName getStoremanConf
-   * @apiGroup CrossChain
-   * @api {CONNECT} /ws/v3/YOUR-API-KEY getStoremanConf
-   * @apiVersion 1.2.1
-   * @apiDescription Get the conf info of one certain storeman, include the info about backupCount, standaloneWeight, delegatorDeposit and delegationMulti.
-   * <br><br><strong>Returns:</strong>
-   * <br><font color=&#39;blue&#39;>«Promise,undefined»</font> Returns undefined if used with callback or a promise otherwise.
-   *
-   * @apiParam {function} [callback] Optional, the callback will receive two parameters:
-   * <br>&nbsp;&nbsp;<code>err</code> - If an error occurred.
-   * <br>&nbsp;&nbsp;<code>result</code> - The saved result.
-   *
-   * @apiParamExample {string} JSON-RPC over websocket
-   * {"jsonrpc":"2.0","method":"getStoremanConf","params":{},"id":1}
-   *
-  * @apiExample {nodejs} Example callback usage:
-  *   const ApiInstance = require('iwan-sdk');
-   *   let apiTest = new ApiInstance(YOUR-API-KEY, YOUR-SECRET-KEY);
-   *   apiTest.getStoremanConf((err, result) => {
-   *     console.log("Result is ", result);
-   *     apiTest.close();
-   *   });
-   *
-  * @apiExample {nodejs} Example promise usage:
-  *   const ApiInstance = require('iwan-sdk');
-   *   let apiTest = new ApiInstance(YOUR-API-KEY, YOUR-SECRET-KEY);
-   *   let result = await apiTest.getStoremanConf();
-   *   console.log("Result is ", result);
-   *   apiTest.close();
-   *
-   * @apiSuccessExample {json} Successful Response
-   * {
-      "backupCount": "3",
-      "standaloneWeight": "1500",
-      "DelegationMulti": "10"
-    }
-   *
-   */
-  getStoremanConf(options, callback) {
-    if (callback) {
-      callback = utils.wrapCallback(callback);
-    }
-    let method = 'getStoremanConf';
-    let params = {...options};
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -8657,52 +8664,6 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenPairsHash';
     let params = { ...options };
-
-    return utils.promiseOrCallback(callback, cb => {
-      this._request(method, params, (err, result) => {
-        if (err) {
-          return cb(err);
-        }
-        return cb(null, result);
-      });
-    });
-  }
-
-  getRegisteredChainLogo(options, callback) {
-    let method = 'getRegisteredChainLogo';
-    let params = {};
-
-    if (typeof (options) === "function") {
-      callback = options;
-      options = {};
-    }
-    if (callback) {
-      callback = utils.wrapCallback(callback);
-    }
-    params = utils.newJson(options);
-
-    return utils.promiseOrCallback(callback, cb => {
-      this._request(method, params, (err, result) => {
-        if (err) {
-          return cb(err);
-        }
-        return cb(null, result);
-      });
-    });
-  }
-
-  getRegisteredMultiChainOrigToken(options, callback) {
-    let method = 'getRegisteredMultiChainOrigToken';
-    let params = {};
-
-    if (typeof (options) === "function") {
-      callback = options;
-      options = {};
-    }
-    if (callback) {
-      callback = utils.wrapCallback(callback);
-    }
-    params = utils.newJson(options);
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {

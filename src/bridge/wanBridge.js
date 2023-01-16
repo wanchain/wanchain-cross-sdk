@@ -27,7 +27,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2211161808", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2301161828", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -35,6 +35,9 @@ class WanBridge extends EventEmitter {
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
     this.globalConstant = this._service.getService("GlobalConstant");
+    this.tokenPairService = this._service.getService("TokenPairService");
+    this.txTaskHandleService = this._service.getService("TxTaskHandleService");
+    this.cctHandleService = this._service.getService("CCTHandleService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
@@ -55,7 +58,7 @@ class WanBridge extends EventEmitter {
     let curTime = tool.getCurTimestamp(true);
     if (curTime >= smg.endTime) {
       console.log("SDK: getSmgInfo, smg %s timeout", smg.id);
-      await this.storemanService.updateSmgs();
+      await this.tokenPairService.updateSmgs();
       smgs = this.stores.assetPairs.smgList;
       smg = smgs[this.smgIndex % smgs.length];
       changed = true; // optimize for mainnet getQuota performance issue
@@ -152,8 +155,8 @@ class WanBridge extends EventEmitter {
     let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
     let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction, options);
     let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio}
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals}
     };
     console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %O, result: %O", assetPair.assetPairId, direction, options, fee);
     return fee;
@@ -178,7 +181,7 @@ class WanBridge extends EventEmitter {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, account: %s, result: is token account", assetPair.assetPairId, direction, account);
       return false;
     }
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -190,8 +193,8 @@ class WanBridge extends EventEmitter {
       return tool.isValidDogeAddress(account, this.network);
     } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
-    } else if ("DOT" === chainType) {
-      return tool.isValidDotAddress(account, this.network);
+    } else if (["DOT", "PHA"].includes(chainType)) {
+      return tool.isValidPolkadotAddress(account, chainType, this.network);
     } else if ("ADA" === chainType) {
       return tool.isValidAdaAddress(account, this.network);
     } else if ("XDC" === chainType) {
@@ -286,11 +289,11 @@ class WanBridge extends EventEmitter {
   }
 
   getAssetLogo(name, protocol) {
-    return this.storemanService.getAssetLogo(name, protocol);
+    return this.tokenPairService.getAssetLogo(name, protocol);
   }
 
   getChainLogo(chainType) {
-    return this.storemanService.getChainLogo(chainType);
+    return this.tokenPairService.getChainLogo(chainType);
   }
 
   _onStoremanInitilized(success) {
@@ -314,7 +317,7 @@ class WanBridge extends EventEmitter {
     if (!ccTask) {
       return;
     }
-    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType, ccTask.decimals));
+    let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType));
     if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the fee";
       console.error({taskId, errInfo});
@@ -365,9 +368,18 @@ class WanBridge extends EventEmitter {
     // received amount, TODO: get actual value from chain
     let receivedAmount;
     if (ccTask.protocol === "Erc20") {
-      receivedAmount = new BigNumber(ccTask.sentAmount || ccTask.amount);
-      let fee = tool.parseFee(ccTask.fee, receivedAmount, ccTask.assetType, ccTask.decimals);
-      receivedAmount = receivedAmount.minus(fee).toFixed();
+      let sentAmount = ccTask.sentAmount || ccTask.amount;
+      let expected = new BigNumber(sentAmount);
+      let fee = tool.parseFee(ccTask.fee, expected, ccTask.assetType);
+      expected = expected.minus(fee).toFixed();
+      if (taskRedeemHash.value) {
+        receivedAmount = new BigNumber(taskRedeemHash.value).div(Math.pow(10, ccTask.toDecimals)).toFixed();
+        if (receivedAmount !== expected) {
+          this._updateFee(taskId, ccTask.fee, ccTask.assetType, sentAmount, receivedAmount);
+        }
+      } else {
+        receivedAmount = expected;
+      }
     } else {
       receivedAmount = ccTask.amount;
     }
@@ -377,6 +389,41 @@ class WanBridge extends EventEmitter {
     this.emit("redeem", {taskId, txHash});
   }
 
+  _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
+    let records = this.stores.crossChainTaskRecords;
+    let fee = new BigNumber(sentAmount).minus(receivedAmount).toFixed();
+    let feeType = "", candidateFeeType = ""; // prefer to update exist fee
+    if (taskFee.networkFee.unit === assetType) {
+      candidateFeeType = "networkFee";
+      if (taskFee.networkFee.value !== "0") {
+        feeType = "networkFee";
+      }
+    }
+    if (taskFee.operateFee.unit === assetType) {
+      candidateFeeType = candidateFeeType || "operateFee";
+      if (taskFee.operateFee.value !== "0") {
+        feeType = feeType || "operateFee";
+      }
+    }
+    feeType = feeType || candidateFeeType;
+    if (feeType) {
+      if (feeType === "networkFee") {
+        records.updateTaskFee(taskId, "networkFee", fee, true);
+        if (taskFee.operateFee.unit === assetType) {
+          records.updateTaskFee(taskId, "operateFee", "0", true);
+        }
+      } else {
+        records.updateTaskFee(taskId, "operateFee", fee, true);
+        if (taskFee.networkFee.unit === assetType) {
+          records.updateTaskFee(taskId, "networkFee", "0", true);
+        }
+      }
+      console.debug("SDK: update task %d fee: %s%s", taskId, fee, assetType);
+    } else {
+      console.error("SDK: can't update task %d fee: %s%s", taskId, fee, assetType);
+    }
+  }
+
   _onNetworkFee(taskNetworkFee) {
     console.log("_onNetworkFee: %O", taskNetworkFee);
     let records = this.stores.crossChainTaskRecords;
@@ -384,7 +431,7 @@ class WanBridge extends EventEmitter {
     let networkFee = new BigNumber(taskNetworkFee.apiServerNetworkFee).toFixed();
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      records.setTaskNetworkFee(taskId, networkFee);
+      records.updateTaskFee(taskId, "networkFee", networkFee);
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }

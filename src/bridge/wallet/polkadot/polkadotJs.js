@@ -1,17 +1,27 @@
 const { ApiPromise, WsProvider } = require('@polkadot/api');
 const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
-const { PolkadotSS58Format } = require('../../../utils/tool.js');
+const { getPolkadotSS58Format } = require('../../../utils/tool.js');
 const BigNumber = require('bignumber.js');
 
+const DefaultProvider = {
+  DOT: {
+    mainnet: "wss://rpc.polkadot.io",
+    testnet: "wss://westend-rpc.polkadot.io"
+  },
+  PHA: {
+    testnet: "wss://rhala-api.phala.network/ws"
+  }
+}
+
 class Polkadot {
-  constructor(type, provider) {
+  constructor(type, provider, chain = "DOT") {
     this.type = type;
+    this.chain = chain;
     if (typeof(provider) === "string") {
-      if (provider === "mainnet") {
-        provider = "wss://rpc.polkadot.io";
-      } else  if (provider === "testnet") {
-        provider = "wss://westend-rpc.polkadot.io";
+      if (["mainnet", "testnet"].includes(provider)) {
+        provider = DefaultProvider[chain][provider];
       }
+      console.log("new %s polkadot.js wallet, provider: %s", chain, provider);
       provider = new WsProvider(provider);
     }
     this.api = new ApiPromise({provider});
@@ -26,7 +36,7 @@ class Polkadot {
   async getAccounts(network) {
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
-      let ss58Format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
+      let ss58Format = getPolkadotSS58Format(this.chain, network);
       let accounts = await web3Accounts({ss58Format});
       return accounts.map(a => a.address);
     } else {
@@ -42,21 +52,23 @@ class Polkadot {
   }
 
   async sendTransaction(txs, sender) {
-    await this.getApi();
-    let fromInjector = await web3FromAddress(sender);
-    let blockInfo = await this.api.rpc.chain.getBlock();
-    let blockNumber = blockInfo.block.header.number;
-    let blockHash = await this.api.rpc.chain.getBlockHash(blockNumber.unwrap());
-    let options = {};
-    options.signer = fromInjector.signer;
-    options.blockHash = blockHash.toHex();
-    options.era = 64;
-    let txHash = await this.api.tx.utility.batchAll(txs).signAndSend(sender, options);
-    if (txHash.txHash) { // strangely, local dapp directly returns txHash, but vercel dapp returns a composite object
-      txHash = txHash.txHash;
-    }
-    console.debug("polkadotJs sendTransaction txHash: %s, %O", typeof(txHash), txHash);
-    return txHash.toHex();
+    return new Promise(async (resolve, reject) => {
+      await this.getApi();
+      let injector = await web3FromAddress(sender);
+      this.api.tx.utility.batchAll(txs).signAndSend(sender, {signer: injector.signer}, ({txHash, status}) => {
+        txHash = txHash.toString();
+        if (status.isBroadcast) {
+          console.debug("%s sendTransaction tx %s status: %s", this.chain, txHash, status.type);
+          return resolve(txHash);
+        } else if (status.isInBlock || status.isFinalized) {
+          let block = status.isInBlock? status.asInBlock : status.asFinalized;
+          console.debug("%s block %s tx %s status: %s", this.chain, block.toString(), txHash, status.type);
+          return resolve(txHash);
+        }
+      }).catch(err => {
+        return reject(err);
+      });
+    })
   }
 
   // customized function

@@ -47,21 +47,21 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
     // virtual function
     async getConvertInfoForCheck(stepData) {
         let params = stepData.params;
-        let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+        let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
         let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
         let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
         let blockNumber;
         if (checkChainType === "XRP") {
           blockNumber = await this.m_iwanBCConnector.getLedgerVersion(checkChainType);
-        } else if (["DOT", "ADA"].includes(checkChainType)) {
+        } else if (["DOT", "ADA", "PHA"].includes(checkChainType)) {
           blockNumber = 0;
           // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
         } else {
           blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
         }
         // exception: burn legency EOS from ethereum to wanchain is "BURN"
-        let taskType = storemanService.getTokenEventType(params.tokenPairID, direction);
+        let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
         let checker = {
           needCheck: true,
           checkInfo: {

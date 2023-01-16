@@ -15,8 +15,8 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
       if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
-      let stroemanService = this.m_frameworkService.getService("StoremanService");
-      let tokenPair = stroemanService.getTokenPair(params.tokenPairID);
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let nativeToken, poolToken, chainInfo;
       if (params.scChainType === tokenPair.fromChainType) { // MINT
         nativeToken = tokenPair.fromNativeToken;
@@ -48,8 +48,8 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
   // virtual function
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
-    let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+    let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+    let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
     let chainType = (params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
     let nativeToken = (params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;

@@ -139,9 +139,9 @@ class BridgeTask {
   }
 
   async _initToWallet() {
-    if (this._toChainInfo.chainType === "DOT") {
+    if (["DOT", "PHA"].includes(this._toChainInfo.chainType)) {
       let provider = this._bridge.network;
-      this._toWallet = new Wallet("polkadot{.js}", provider);
+      this._toWallet = new Wallet("polkadot{.js}", provider, this._toChainInfo.chainType);
     }
   }
 
@@ -151,7 +151,7 @@ class BridgeTask {
     this._fee = await this._bridge.estimateFee(this._assetPair, this._direction, options);
     if (isErc20) {
       let unit = this._assetPair.assetType;
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let fee = tool.parseFee(this._fee, this._amount, unit);
       if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
         console.error("Amount is too small to pay the fee: %s %s", fee, unit);
         return "Amount is too small to pay the fee";
@@ -178,7 +178,7 @@ class BridgeTask {
       if (amount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
       }
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let fee = tool.parseFee(this._fee, this._amount, unit);
       let expectedReceivedValue = amount.minus(fee);
       if (this._quota.minQuota > 0) {
         if (expectedReceivedValue.lt(this._quota.minQuota)) {
@@ -239,8 +239,7 @@ class BridgeTask {
       requiredAsset = 0;
       this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
-      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
-      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
+      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit));
       requiredAsset = this._amount;
       this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
@@ -267,7 +266,7 @@ class BridgeTask {
       let isReleaseCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
       if (isReleaseCoin) {
         let unit = this._assetPair.assetType;
-        let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+        let fee = tool.parseFee(this._fee, this._amount, unit);
         estimateBalance = estimateBalance.plus(this._amount).minus(fee);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {
@@ -315,7 +314,7 @@ class BridgeTask {
       wallet: this._wallet
     }; 
     // console.debug("checkTaskSteps: %O", convert);
-    let stepInfo = await this._bridge.storemanService.getConvertInfo(convert);
+    let stepInfo = await this._bridge.cctHandleService.getConvertInfo(convert);
     // console.debug("getConvertInfo: %O", stepInfo);
     if (stepInfo.stepNum > 0) {
       this._task.setTaskData({stepNums: stepInfo.stepNum});
@@ -339,7 +338,7 @@ class BridgeTask {
         }
         if (executedStep != curStep) {
           console.debug("bridgeTask _parseTaskStatus step %s at %s ms", curStep, tool.getCurTimestamp());
-          await this._bridge.storemanService.processTxTask(taskStep, this._wallet);
+          await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
           executedStep = curStep;
         } else {
           await tool.sleep(5000);
@@ -421,8 +420,8 @@ class BridgeTask {
     return xrpAddr;
   }
 
-  _getSmgPolkaAddress() {
-    let format = ("testnet" === this._bridge.network)? tool.PolkadotSS58Format.westend : tool.PolkadotSS58Format.polkadot;
+  _getSmgPolkaAddress(chain) {
+    let format = tool.getPolkadotSS58Format(chain, this._bridge.network);
     let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);
@@ -434,8 +433,8 @@ class BridgeTask {
   _getSmgAddress(chainType) {
     if ("XRP" === chainType) {
       return this._getSmgXrpClassicAddress();
-    } else if ("DOT" === chainType) {
-      return this._getSmgPolkaAddress();
+    } else if (["DOT", "PHA"].includes(chainType)) {
+      return this._getSmgPolkaAddress(chainType);
     } else {
       throw new Error("Unknown " + chainType + " smg address");
     }

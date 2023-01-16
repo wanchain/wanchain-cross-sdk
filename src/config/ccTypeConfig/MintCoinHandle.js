@@ -15,23 +15,28 @@ module.exports = class MintCoinHandle {
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
     this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
     this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
-
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
-    let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals, false);
+    let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let fromChainType = (convert.convertType === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
+    let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+    let fromScInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+    let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
+    let networkFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false, feeType: "networkFee"});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
-      scChainType: tokenPair.fromChainType,
-      crossScAddr: tokenPair.fromScInfo.crossScAddr,
-      gasPrice: tokenPair.fromScInfo.gasPrice, // undefined, get from chain dynamiclly
-      gasLimit: tokenPair.fromScInfo.crossGasLimit, // for tron is feeLimit
+      scChainType: fromChainType,
+      crossScAddr: fromScInfo.crossScAddr,
+      gasPrice: fromScInfo.gasPrice, // undefined, get from chain dynamiclly
+      gasLimit: fromScInfo.crossGasLimit, // for tron is feeLimit
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
-      toAddr: convert.toAddr, // for readability
+      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
+      toAddr: convert.toAddr, // only for readability
       taskType: "ProcessCoinUserFastMint",
-      fee
+      fee,
+      networkFee
     };
     console.debug("MintCoinHandle params: %O", params);
     params.chainId = await convert.wallet.getChainId();

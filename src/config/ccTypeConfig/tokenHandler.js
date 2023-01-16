@@ -105,8 +105,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -139,8 +139,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -177,7 +177,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let result = true;
     if (chainInfo.chainType !== "TRX") {
       let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-      let fee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
+      let fee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
       result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
     }
     if (result) {

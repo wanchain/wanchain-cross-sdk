@@ -38,8 +38,8 @@ class Nami {
       let balance = await this.cardano.getBalance();
       return wasm.Value.from_bytes(Buffer.from(balance, 'hex')).coin().to_str(); // TODO: sub token locked coin
     } else {
-      console.error("%s is not used address", addr);
-      throw new Error("Not used address");
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
     }
   }  
 
@@ -68,7 +68,7 @@ class Nami {
     return count;
   }
   
-  async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData) {
+  async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData) {
     const totalAssets = await this.multiAssetCount(
       outputs.get(0).amount().multiasset()
     );
@@ -86,17 +86,31 @@ class Nami {
     );
     const inputs = selection.input;
   
-    let txBuilder = wasm.TransactionBuilder.new(
+    const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
+    .coins_per_utxo_byte(
+      wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte)
+    )
+    .fee_algo(
       wasm.LinearFee.new(
         wasm.BigNum.from_str(protocolParameters.linearFee.minFeeA),
         wasm.BigNum.from_str(protocolParameters.linearFee.minFeeB)
-      ),
-      wasm.BigNum.from_str(protocolParameters.minUtxo),
-      wasm.BigNum.from_str(protocolParameters.poolDeposit),
-      wasm.BigNum.from_str(protocolParameters.keyDeposit),
-      protocolParameters.maxValSize,
-      protocolParameters.maxTxSize
-    );
+      )
+    )
+    .key_deposit(wasm.BigNum.from_str(protocolParameters.keyDeposit))
+    .pool_deposit(
+      wasm.BigNum.from_str(protocolParameters.poolDeposit)
+    )
+    .max_tx_size(protocolParameters.maxTxSize)
+    .max_value_size(protocolParameters.maxValSize)
+    .ex_unit_prices(wasm.ExUnitPrices.new(
+      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
+      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
+    ))
+    // .collateral_percentage(protocolParameters.collateralPercentage)
+    // .max_collateral_inputs(protocolParameters.maxCollateralInputs)
+    .build();
+
+    let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
   
     for (let i = 0; i < inputs.length; i++) {
       const utxo = inputs[i];
@@ -106,8 +120,12 @@ class Nami {
         utxo.output().amount()
       );
     }
-  
-    txBuilder.add_output(outputs.get(0));
+
+    let output = outputs.get(0);
+    if (plutusData) {
+      output.set_plutus_data(plutusData);
+    }
+    txBuilder.add_output(output);
   
     if (auxiliaryData) txBuilder.set_auxiliary_data(auxiliaryData);
   
