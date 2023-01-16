@@ -66,7 +66,6 @@ class Polkadot {
           return resolve(txHash);
         }
       }).catch(err => {
-        console.log("sendTransaction2 failed: %O", err);
         return reject(err);
       });
     })
