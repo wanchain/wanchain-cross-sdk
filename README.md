@@ -4,7 +4,7 @@ wanchain-cross-sdk
 SDK for executing cross-chain transactions based on WanBridge.
 
 ## Installation
-Use NPM or Yarn to install the package:
+Use NPM or Yarn to install the package, require Node.js 16:
 ```bash
 npm install --save wanchain-cross-sdk
 ```
@@ -160,12 +160,14 @@ try {
   // for polkadot, you can call wallet.getAccounts(network) to get all accounts and then select one as fromAccount
   let fromAccount = "sender-address-on-from-chain";
 
-  // input toAccount and amount manully, the amount format of different token types is as follows
+  // input toAccount and amount, the amount format of different token types is as follows
   // Erc20: number
-  // Erc721: {tokenId: number, name: string}
-  // Erc721: {tokenId: number, name: string, name, amount: number}
+  // Erc721: [{tokenId: number, name: string}]
+  // Erc1155: [{tokenId: number, name: string, amount: number}]
+
+  // take Erc20 token as an example
   let toAccount = 'receiver-address-on-to-chain';
-  let amount = new BigNumber(0.1);
+  let amount = 0.1;
 
   // check to-address format
   let validTo = bridge.validateToAccount(assetPair, "mint", toAccount);
@@ -175,20 +177,30 @@ try {
 
   // check asset balance
   let balance = await bridge.getAccountAsset(assetPair, "mint", fromAccount);
-  if (amount.gt(balance)) {
+  if (amount > balance) {
     throw "Insufficient balance";
   }
 
-  // check storeman group quota
+  /* the bridge fee includes networkFee (unit is the chain coin symbol) and operateFee (unit is the assetType):    
+    {
+      networkFee: {value, unit, isRatio, min, max, decimals},
+      operateFee: {value, unit, isRatio, min, max, decimals}
+    }
+    if isRatio is false, "value" is the fixed fee, otherwise "value" is the fee ratio, and the total fee is between "min" and "max".
+    function parseFee() is a reference implementation to calculate fee.
+  */
+  let feeOptions = (assetPair.protocol === 'Erc20')? {} : {batchSize: amount.length};
+  let fee = await bridge.estimateFee(assetPair, "mint", feeOptions);
+  let networkFee = parseFee(fee, amount, assetPair.assetType, {feeType: "networkFee"});
+
+  // use net amount to check min crosschain value and max quota
+  let netAmount = amount - networkFee;
   let quota = await bridge.getQuota(assetPair, "mint");
-  if (amount.lt(quota.minQuota)) {
+  if (netAmount < quota.minQuota) {
     throw "Less than minValue";
-  } else if (amount.gt(quota.maxQuota)) {
+  } else if (netAmount > quota.maxQuota) {
     throw "Exceed maxQuota";
   }
-
-  // if the user accepts the fee, create a task
-  let fee = await bridge.estimateFee(assetPair, "mint");
 
   // create a task
   let task = await bridge.createTask(assetPair, 'mint', amount, fromAccount, toAccount, wallet);
@@ -212,6 +224,40 @@ try {
     "Not owner"
     "Unknown error"
   */
+}
+
+function parseFee(fee, amount, unit, options) {
+  let result = networkFee = new BigNumber(0), decimals = 0, tmp;
+  if (fee.networkFee.unit === unit) {
+    tmp = new BigNumber(fee.networkFee.value);
+    if (fee.networkFee.isRatio) {
+      tmp = tmp.times(amount);
+      if ((fee.networkFee.min != 0) && (tmp.lt(fee.networkFee.min))) {
+        tmp = fee.networkFee.min;
+      } else if ((fee.networkFee.max != 0) && (tmp.gt(fee.networkFee.max))) {
+        tmp = fee.networkFee.max;
+      }
+    }
+    networkFee = tmp;
+    if ((!options.feeType) || (options.feeType === "networkFee")) {
+      result = result.plus(networkFee);
+    }
+    decimals = fee.networkFee.decimals;
+  }
+  if ((fee.operateFee.unit === unit) && ((!options.feeType) || (options.feeType === "operateFee"))) {
+    tmp = new BigNumber(fee.operateFee.value);
+    if (fee.operateFee.isRatio) {
+      tmp = tmp.times(new BigNumber(amount).minus(networkFee));
+      if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
+        tmp = fee.operateFee.min;
+      } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
+        tmp = fee.operateFee.max;
+      }
+    }
+    result = result.plus(tmp);
+    decimals = fee.operateFee.decimals;
+  }
+  return new BigNumber(result.toFixed(decimals)).toFixed();
 }
 ```
 The tasks will be automatically scheduled, once it is successfully completed, the "redeem" event will be emitted, if it fails, the "error" event will be emitted.
