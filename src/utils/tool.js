@@ -375,6 +375,20 @@ function getPolkadotSS58Format(chain, network) {
   }
 }
 
+function getErrMsg(err, defaultMsg) {
+  if (typeof(err) === "string") {
+    return err;
+  }
+  if (err.message && (typeof(err.message) === "string")) {
+    return err.message;
+  }
+  let msg = err.toString();
+  if (msg && (msg[0] !== '[') && (msg[msg.length-1] !== ']')) { // "[object Object]"
+    return msg;
+  }
+  return defaultMsg;
+}
+
 module.exports = {
   PolkadotSS58Format,
   getCurTimestamp,
@@ -401,5 +415,6 @@ module.exports = {
   parseXrpTokenPairAccount,
   validateXrpTokenAmount,
   parseTokenPairSymbol,
-  getPolkadotSS58Format
+  getPolkadotSS58Format,
+  getErrMsg
 }

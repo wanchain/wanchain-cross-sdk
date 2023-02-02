@@ -1,6 +1,7 @@
 'use strict';
 
 const BigNumber = require("bignumber.js");
+const tool = require("../../utils/tool.js");
 const configAbi = require("../abi/crossConfig.json");
 
 module.exports = class ProcessPhaMintFromPhala {
@@ -80,7 +81,7 @@ module.exports = class ProcessPhaMintFromPhala {
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
         }
         return;
       }
@@ -103,7 +104,7 @@ module.exports = class ProcessPhaMintFromPhala {
       await checkPhaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessPhaMintFromPhala error: %O", err);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 
