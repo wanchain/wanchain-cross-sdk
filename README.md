@@ -192,11 +192,11 @@ try {
   let fee = await bridge.estimateFee(assetPair, "mint", feeOptions);
   let networkFee = parseFee(fee, amount, assetPair.assetType, {feeType: "networkFee"});
 
-  // use net amount to check min crosschain value and max quota
+  // use agent amount to check min crosschain value and max quota, which include agentFee, exclude networkFee
   let netAmount = amount - networkFee;
   let quota = await bridge.getQuota(assetPair, "mint");
   if (netAmount < quota.minQuota) {
-    throw "Less than minValue";
+    throw "Amount is too small";
   } else if (netAmount > quota.maxQuota) {
     throw "Exceed maxQuota";
   }
@@ -213,7 +213,7 @@ try {
     "Invalid wallet"
     "Amount is too small to pay the bridge fee"
     "Storeman unavailable"
-    "Less than minValue"
+    "Amount is too small"
     "Exceed maxQuota"
     "Amount is too small to activate storeman account"
     "Insufficient balance"

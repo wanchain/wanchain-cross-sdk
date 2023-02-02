@@ -174,17 +174,11 @@ class BridgeTask {
     if (this._smg.changed) { // optimize for mainnet getQuota performance issue
       this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._assetPair.assetType, this._quota);
-      let amount = new BigNumber(this._amount);
-      if (amount.gt(this._quota.maxQuota)) {
+      let networkFee = tool.parseFee(this._fee, this._amount, unit, {feeType: "networkFee"});
+      let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
+      if (agentAmount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
-      }
-      let fee = tool.parseFee(this._fee, this._amount, unit);
-      let expectedReceivedValue = amount.minus(fee);
-      if (this._quota.minQuota > 0) {
-        if (expectedReceivedValue.lt(this._quota.minQuota)) {
-          return "Less than minValue";
-        }
-      } else if (expectedReceivedValue.lte(0)) {
+      } else if (agentAmount.lt(this._quota.minQuota)) {
         return "Amount is too small";
       }
     }
