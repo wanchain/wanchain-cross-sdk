@@ -202,7 +202,7 @@ class BridgeTask {
       if (estimateBalance.lt(chainInfo.minReserved)) {
         if (isLockCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
-          console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), unit);
+          console.error("Amount is too small to activate storeman account, at least %s %s", diff.toFixed(), unit);
           return "Amount is too small to activate storeman account";
         } else {
           return "Storeman account is inactive";
@@ -272,7 +272,7 @@ class BridgeTask {
       if (estimateBalance.lt(chainInfo.minReserved)) {
         if (isReleaseCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(balance);
-          console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+          console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
           return "Amount is too small to activate recipient account";
         } else {
           return "Recipient account is inactive";

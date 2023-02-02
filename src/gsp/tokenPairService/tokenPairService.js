@@ -63,7 +63,7 @@ class TokenPairService {
             workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
             return workingList;
         } else {
-            throw new Error("Smg unavailable");
+            throw new Error("Storeman unavailable");
         }
     }
 
