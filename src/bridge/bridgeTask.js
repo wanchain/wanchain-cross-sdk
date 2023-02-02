@@ -153,8 +153,8 @@ class BridgeTask {
       let unit = this._assetPair.assetType;
       let fee = tool.parseFee(this._fee, this._amount, unit);
       if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
-        console.error("Amount is too small to pay the fee: %s %s", fee, unit);
-        return "Amount is too small to pay the fee";
+        console.error("Amount is too small to pay the bridge fee: %s %s", fee, unit);
+        return "Amount is too small to pay the bridge fee";
       }
     }
     return "";

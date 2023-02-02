@@ -319,7 +319,7 @@ class WanBridge extends EventEmitter {
     }
     let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType));
     if (fee.gte(value)) {
-      let errInfo = "Amount is too small to pay the fee";
+      let errInfo = "Amount is too small to pay the bridge fee";
       console.error({taskId, errInfo});
       records.modifyTradeTaskStatus(taskId, "Failed", errInfo);
       this.emit("error", {taskId, reason: errInfo});
