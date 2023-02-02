@@ -181,7 +181,7 @@ try {
     throw "Insufficient balance";
   }
 
-  /* the bridge fee includes networkFee (unit is the chain coin symbol) and operateFee (unit is the assetType):    
+  /* the bridge fee includes networkFee (unit is the chain coin symbol) and operateFee (unit is the assetType):
     {
       networkFee: {value, unit, isRatio, min, max, decimals},
       operateFee: {value, unit, isRatio, min, max, decimals}
