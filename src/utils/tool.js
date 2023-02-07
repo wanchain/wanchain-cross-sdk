@@ -252,7 +252,7 @@ function parseFee(fee, amount, unit, options) {
   let result = networkFee = new BigNumber(0), decimals = 0, tmp;
   if (fee.networkFee.unit === unit) {
     tmp = new BigNumber(fee.networkFee.value);
-    if (fee.networkFee.isRatio) {
+    if (tmp.gt(0) && fee.networkFee.isRatio) {
       tmp = tmp.times(amount);
       if ((fee.networkFee.min != 0) && (tmp.lt(fee.networkFee.min))) {
         tmp = fee.networkFee.min;
@@ -268,7 +268,7 @@ function parseFee(fee, amount, unit, options) {
   }
   if ((fee.operateFee.unit === unit) && ((!options.feeType) || (options.feeType === "operateFee"))) {
     tmp = new BigNumber(fee.operateFee.value);
-    if (fee.operateFee.isRatio) {
+    if (tmp.gt(0) && fee.operateFee.isRatio) {
       tmp = tmp.times(new BigNumber(amount).minus(networkFee));
       if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
         tmp = fee.operateFee.min;
