@@ -184,7 +184,7 @@ class BridgeTask {
     }
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    if (chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin need to check smg balance
+    if ((!chainInfo.crossScAddr) && chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin on not-sc-chain need to check smg balance
       let smgAddr = this._getSmgAddress(fromChainType);
       let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
@@ -429,7 +429,7 @@ class BridgeTask {
       return this._getSmgXrpClassicAddress();
     } else if (["DOT", "PHA"].includes(chainType)) {
       return this._getSmgPolkaAddress(chainType);
-    } else {
+    } else { // only for not-sc-chain to check smg account, other chains should not call this function
       throw new Error("Unknown " + chainType + " smg address");
     }
   }
