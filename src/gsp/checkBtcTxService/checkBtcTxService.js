@@ -37,11 +37,11 @@ module.exports = class CheckBtcTxService {
       let tokenPairService = this.m_frameworkService.getService("TokenPairService");
       let taskType = tokenPairService.getTokenEventType(obj.tokenPairId, "MINT");
         let tmpObj = {
-            "ccTaskId": obj.ccTaskId,
-            "oneTimeAddr": obj.oneTimeAddr,
-            "chain": obj.chainType,
-            "fromBlockNumber": obj.fromBlockNumber,
-            "taskType": "MINT"
+            ccTaskId: obj.ccTaskId,
+            oneTimeAddr: obj.oneTimeAddr,
+            chain: obj.chainType,
+            fromBlockNumber: obj.fromBlockNumber,
+            taskType
         };
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.save(this.serviceName, obj.ccTaskId, tmpObj);
