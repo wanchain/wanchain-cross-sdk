@@ -65,10 +65,8 @@ class WanBridge extends EventEmitter {
     return Object.assign({}, smg, {changed});
   }
 
-  async checkWallet(assetPair, direction, wallet) {
-    console.debug("SDK: checkWallet, pair: %s, direction: %s, wallet: %s", assetPair.assetPairId, direction, wallet? wallet.type : undefined);
-    direction = this._unifyDirection(direction);
-    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
+  async checkWallet(chainType, wallet) {
+    console.debug("SDK: checkWallet, chainType: %s, wallet: %s", chainType, wallet? wallet.type : undefined);
     if (this._isThirdPartyWallet(chainType)) {
       return true;
     } else {
@@ -149,20 +147,20 @@ class WanBridge extends EventEmitter {
     return balance;
   }
 
-  async getAccountBalance(chainType, assetType, account, options = {}) {
+  async getAccountBalance(assetType, chainType, account, options = {}) {
     // it is more easier to find a assetpair to call getAccountAsset than directly call getBalance
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let assetPair = assetPairList[i];
       // do not compare assetType because avalance BTC.a assetType is still BTC, it is converted by frontend
-      if ((assetPair.fromChainType === chainType) && (assetPair.fromSymbol === assetType)) {
+      if ((assetPair.fromSymbol === assetType) && (assetPair.fromChainType === chainType)) {
         return this.getAccountAsset(assetPair, "MINT", account, options);
       }
-      if ((assetPair.toChainType === chainType) && (assetPair.toSymbol === assetType)) {
+      if ((assetPair.toSymbol === assetType) && (assetPair.toChainType === chainType)) {
         return this.getAccountAsset(assetPair, "BURN", account, options);
       }
     }
-    console.debug("SDK: getAccountBalance, no matched assetPair for %s %s", chainType, assetType);
+    console.debug("SDK: getAccountBalance, no matched assetPair for %s@%s", assetType, chainType);
     return "0";
   }
 

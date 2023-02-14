@@ -151,7 +151,7 @@ try {
   let wallet = new Wallet("MetaMask", metaMaskWallet);
 
   // check wallet network
-  let checkWallet = await bridge.checkWallet(assetPair, "mint", wallet);
+  let checkWallet = await bridge.checkWallet(assetPair.fromChainType, wallet);
   if (checkWallet === false) {
     throw "Invalid wallet or network";
   }
@@ -175,7 +175,7 @@ try {
   }
 
   // check asset balance
-  let balance = await bridge.getAccountAsset(assetPair, "mint", fromAccount);
+  let balance = await bridge.getAccountBalance(assetPair.assetType, assetPair.fromChainType, fromAccount);
   if (amount > balance) {
     throw "Insufficient balance";
   }

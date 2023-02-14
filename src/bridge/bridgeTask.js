@@ -65,7 +65,7 @@ class BridgeTask {
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
     // check
-    let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
+    let validWallet = await this._bridge.checkWallet(this._fromChainInfo.chainType, this._wallet);
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
