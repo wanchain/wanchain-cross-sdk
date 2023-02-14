@@ -227,7 +227,7 @@
     {
       "chainId": "2147484625",
       "chainType": "TLOS",
-      "chainName": "Telos EVM",
+      "chainName": "Telos",
       "crossScAddr": "0x",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
