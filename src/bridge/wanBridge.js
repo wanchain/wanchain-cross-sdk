@@ -42,7 +42,6 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
-    this.eventService.addEventListener("NetworkFee", this._onNetworkFee.bind(this)); // for BTC/LTC/DOGE to update network fee got from api server
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
     await this._service.start();
   }
@@ -142,12 +141,29 @@ class WanBridge extends EventEmitter {
 
   async getAccountAsset(assetPair, direction, account, options = {}) {
     direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, direction, account, options);
+    let balance = await this.storemanService.getAccountAsset(assetPair.assetPairId, direction, account, options);
     balance = balance.toFixed();
     console.debug("SDK: getAccountAsset, pair: %s, direction: %s, account: %s, options: %O, result: %s", assetPair.assetPairId, direction, account,
                   {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.type : undefined},
                   balance);
     return balance;
+  }
+
+  async getAccountBalance(chainType, assetType, account, options = {}) {
+    // it is more easier to find a assetpair to call getAccountAsset than directly call getBalance
+    let assetPairList = this.stores.assetPairs.assetPairList;
+    for (let i = 0; i < assetPairList.length; i++) {
+      let assetPair = assetPairList[i];
+      // do not compare assetType because avalance BTC.a assetType is still BTC, it is converted by frontend
+      if ((assetPair.fromChainType === chainType) && (assetPair.fromSymbol === assetType)) {
+        return this.getAccountAsset(assetPair, "MINT", account, options);
+      }
+      if ((assetPair.toChainType === chainType) && (assetPair.toSymbol === assetType)) {
+        return this.getAccountAsset(assetPair, "BURN", account, options);
+      }
+    }
+    console.debug("SDK: getAccountBalance, no matched assetPair for %s %s", chainType, assetType);
+    return "0";
   }
 
   async estimateFee(assetPair, direction, options = {}) {
@@ -421,18 +437,6 @@ class WanBridge extends EventEmitter {
       console.debug("SDK: update task %d fee: %s%s", taskId, fee, assetType);
     } else {
       console.error("SDK: can't update task %d fee: %s%s", taskId, fee, assetType);
-    }
-  }
-
-  _onNetworkFee(taskNetworkFee) {
-    console.log("_onNetworkFee: %O", taskNetworkFee);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskNetworkFee.ccTaskId;
-    let networkFee = new BigNumber(taskNetworkFee.apiServerNetworkFee).toFixed();
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (ccTask) {
-      records.updateTaskFee(taskId, "networkFee", networkFee);
-      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }
 

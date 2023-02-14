@@ -52,7 +52,7 @@ class StoremanService {
         return {maxQuota: "0", minQuota: "0"};
     }
 
-    async getAccountBalance(assetPairId, type, addr, options = {}) {
+    async getAccountAsset(assetPairId, type, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let tokenPair = tokenPairService.getTokenPair(assetPairId);
@@ -62,11 +62,10 @@ class StoremanService {
             let balance, decimals;
             let chainType = (type === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
             let kaChainInfo = (type === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-            let wallet = options.wallet; // third party wallet is required
             if (options.isCoin) { // isCoin is internal use only
                 decimals = (type === "MINT")? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
                 if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-                    balance = await wallet.getBalance(addr);
+                    balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                 } else {
                     balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                 }
@@ -76,7 +75,7 @@ class StoremanService {
                 let tokenType = (type === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
                 if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-                        balance = await wallet.getBalance(addr);
+                        balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                     }

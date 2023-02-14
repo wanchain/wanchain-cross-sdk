@@ -34,6 +34,8 @@ module.exports = class CheckBtcTxService {
     }
 
     async addOTAInfo(obj) {
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let taskType = tokenPairService.getTokenEventType(obj.tokenPairId, "MINT");
         let tmpObj = {
             "ccTaskId": obj.ccTaskId,
             "oneTimeAddr": obj.oneTimeAddr,

@@ -106,7 +106,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol), {formatWithDecimals: false});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -140,7 +140,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol), {formatWithDecimals: false});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
