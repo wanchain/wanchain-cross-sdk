@@ -27,7 +27,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302141502", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302141845", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -152,12 +152,15 @@ class WanBridge extends EventEmitter {
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let assetPair = assetPairList[i];
-      // do not compare assetType because avalance BTC.a assetType is still BTC, it is converted by frontend
-      if ((assetPair.fromSymbol === assetType) && (assetPair.fromChainType === chainType)) {
-        return this.getAccountAsset(assetPair, "MINT", account, options);
-      }
-      if ((assetPair.toSymbol === assetType) && (assetPair.toChainType === chainType)) {
-        return this.getAccountAsset(assetPair, "BURN", account, options);
+      // avalance BTC.a assetType is still BTC, it is converted by frontend
+      let ancestorSymbol = (assetPair.assetPairId === "41")? "BTC.a" : assetPair.assetType;
+      if (ancestorSymbol === assetType) {
+        if (assetPair.fromChainType === chainType) {
+          return this.getAccountAsset(assetPair, "MINT", account, options);
+        }
+        if (assetPair.toChainType === chainType) {
+          return this.getAccountAsset(assetPair, "BURN", account, options);
+        }
       }
     }
     console.debug("SDK: getAccountBalance, no matched assetPair for %s@%s", assetType, chainType);
