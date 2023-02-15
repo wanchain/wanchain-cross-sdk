@@ -145,8 +145,8 @@ class WanBridge extends EventEmitter {
     if (assetPair) {
       let chainType = this.tokenPairService.getChainType(chainName);
       balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, chainType, account, options);
+      balance = balance.toFixed();
     }
-    balance = balance.toFixed();
     console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O, result: %s", assetType, chainName, account,
                   {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.type : undefined},
                   balance);
