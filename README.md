@@ -41,19 +41,19 @@ bridge.on("ready", assetPairs => {
   /* the bridge is initialized successfully and is ready for cross-chain, you can filter assetPairs by asset and chain type as needed.
     assetPairs example: [
       {
-        assetPairId: "39",
-        assetType: "AVAX",
+        assetPairId: "1",
+        assetType: "ETH",
         protocol: "Erc20",
-        ancestorChainName: "Avalanche C-Chain",
-        fromChainName: "Avalanche C-Chain",
-        toChainName: "Wanchain",
-        fromSymbol: "AVAX",
-        toSymbol: "wanAVAX",
+        ancestorChainName: "Ethereum",
+        fromSymbol: "ETH",
+        toSymbol: "wanETH",
         decimals: "18",
         fromDecimals: "18",
         toDecimals: "18",
+        fromChainName: "Ethereum",
+        toChainName: "Wanchain",
         fromAccount: "0x0000000000000000000000000000000000000000",
-        toAccount: "0xc8f5b26589392fde84ee0482e2b5a77dfbe943fc"
+        toAccount: "0x48344649b9611a891987b2db33faada3ac1d05ec"
       },
       ......
     ]

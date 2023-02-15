@@ -205,7 +205,7 @@ class WanBridge extends EventEmitter {
     } else if ("TRX" === chainType) {
       return tool.isValidTrxAddress(account);
     } else {
-      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: unsupported chain %s", chainName, account, chainName);
+      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: unsupported chain", chainName, account);
       return false;
     }
   }
