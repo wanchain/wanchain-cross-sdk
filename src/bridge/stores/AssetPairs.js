@@ -27,15 +27,12 @@ class AssetPairs {
           assetPairId: pair.id,
           assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol), // the ancestory symbol for this token
           protocol: pair.toAccountType || "Erc20", // token protocol: Erc20, Erc721, Erc1155
-          ancestorChainType: pair.ancestorChainType, // ancestor Chain Type
           ancestorChainName: pair.ancestorChainName, // ancestor Chain Name
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain
           toSymbol: pair.toSymbol,           // token symbol for toChain
           decimals: pair.decimals,           // effective decimals
           fromDecimals: pair.fromDecimals,   // from token decimals
           toDecimals: pair.toDecimals,       // to token decimals
-          fromChainType: pair.fromChainType, // from Chain Type
-          toChainType: pair.toChainType,     // to Chain Type
           fromChainName: pair.fromChainName, // from Chain Name
           toChainName: pair.toChainName,     // to Chain Name
           fromAccount: pair.fromAccount,     // from Chain token account

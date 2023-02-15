@@ -15,7 +15,7 @@ class TokenPairService {
         this.storageService = null; // init after token pair service
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
-        this.chainName2Type = new Map(); // inernal use chainType and fromtend use chainName
+        this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
     }
 
     async init(frameworkService) {
