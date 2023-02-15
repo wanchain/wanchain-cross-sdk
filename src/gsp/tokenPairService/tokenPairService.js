@@ -15,6 +15,7 @@ class TokenPairService {
         this.storageService = null; // init after token pair service
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
+        this.chainName2Type = new Map(); // inernal use chainType and fromtend use chainName
     }
 
     async init(frameworkService) {
@@ -258,6 +259,7 @@ class TokenPairService {
         if (ancestorChainInfo && tokenPair.fromScInfo && tokenPair.toScInfo) {
             tokenPair.ancestorChainType = ancestorChainInfo.chainType;
             tokenPair.ancestorChainName = ancestorChainInfo.chainName;
+            this.chainName2Type.set(tokenPair.ancestorChainName, tokenPair.ancestorChainType);
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.decimals = (Number(tokenPair.fromDecimals) < Number(tokenPair.toDecimals))? tokenPair.fromDecimals : tokenPair.toDecimals;
@@ -279,12 +281,14 @@ class TokenPairService {
     updateTokenPairFromChainInfo(tokenPair) {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
+        this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
     }
 
     updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
+        this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
         tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol)
     }
 
@@ -375,6 +379,10 @@ class TokenPairService {
     async updateSmgs() {
         let smgList = await this.getSmgs();
         this.webStores.assetPairs.setAssetPairs(undefined, smgList);
+    }
+
+    getChainType(chainName) {
+      return this.chainName2Type.get(chainName);
     }
 };
 

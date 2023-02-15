@@ -4,24 +4,24 @@ const { getPolkadotSS58Format } = require('../../../utils/tool.js');
 const BigNumber = require('bignumber.js');
 
 const DefaultProvider = {
-  DOT: {
+  Polkadot: {
     mainnet: "wss://rpc.polkadot.io",
     testnet: "wss://westend-rpc.polkadot.io"
   },
-  PHA: {
+  Phala: {
     testnet: "wss://rhala-api.phala.network/ws"
   }
 }
 
 class Polkadot {
-  constructor(type, provider, chain = "DOT") {
+  constructor(type, provider, chainName = "Polkadot") {
     this.type = type;
-    this.chain = chain;
+    this.chain = chainName;
     if (typeof(provider) === "string") {
       if (["mainnet", "testnet"].includes(provider)) {
-        provider = DefaultProvider[chain][provider];
+        provider = DefaultProvider[chainName][provider];
       }
-      console.log("new %s polkadot.js wallet, provider: %s", chain, provider);
+      console.log("new %s polkadot.js wallet, provider: %s", chainName, provider);
       provider = new WsProvider(provider);
     }
     this.api = new ApiPromise({provider});

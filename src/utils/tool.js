@@ -366,9 +366,9 @@ function parseTokenPairSymbol(chain, symbol) {
 }
 
 function getPolkadotSS58Format(chain, network) {
-  if (chain === "DOT") {
+  if (["DOT", "Polkadot"].includes(chain)) {
     return (network === "mainnet")? PolkadotSS58Format.polkadot : PolkadotSS58Format.westend;
-  } else if (chain === "PHA") {
+  } else if (["PHA", "Phala"].includes(chain)) {
     return (network === "mainnet")? PolkadotSS58Format.phala : PolkadotSS58Format.phala;
   } else {
     throw new Error("unsupported polkadot chain " + chain);

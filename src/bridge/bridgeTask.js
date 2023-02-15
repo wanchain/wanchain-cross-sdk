@@ -34,13 +34,13 @@ class BridgeTask {
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
       decimals: assetPair.fromDecimals,
-      chainType: assetPair.fromChainType,
+      chainType: bridge.tokenPairService.getChainType(assetPair.fromChainName),
       chainName: assetPair.fromChainName
     };
     let toChainInfo = {
       symbol: assetPair.toSymbol,
       decimals: assetPair.toDecimals,
-      chainType: assetPair.toChainType,
+      chainType: bridge.tokenPairService.getChainType(assetPair.toChainName),
       chainName: assetPair.toChainName
     };
     if (this._direction == 'MINT') {
@@ -65,7 +65,7 @@ class BridgeTask {
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
     // check
-    let validWallet = await this._bridge.checkWallet(this._fromChainInfo.chainType, this._wallet);
+    let validWallet = await this._bridge.checkWallet(this._fromChainInfo.chainName, this._wallet);
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
@@ -186,7 +186,7 @@ class BridgeTask {
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
     if ((!chainInfo.crossScAddr) && chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin on not-sc-chain need to check smg balance
       let smgAddr = this._getSmgAddress(fromChainType);
-      let smgBalance = await this._bridge.storemanService.getAccountAsset(this._assetPair.assetPairId, "MINT", smgAddr, {wallet: this._wallet, isCoin: true});
+      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, fromChainType, smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance;
       let isLockCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
@@ -223,8 +223,9 @@ class BridgeTask {
     if (!this._fromAccount) { // third party wallet
       return "";
     }
-    let coinBalance  = await this._bridge.storemanService.getAccountAsset(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
-    let assetBalance = await this._bridge.storemanService.getAccountAsset(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet});
+    let chainType = this._fromChainInfo.chainType;
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
+    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, chainType, this._fromAccount, {wallet: this._wallet});
     let unit = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
     let requiredCoin = new BigNumber(0);
     let requiredAsset = 0;
@@ -254,7 +255,7 @@ class BridgeTask {
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountAsset(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._toWallet, isCoin: true});
+      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._toChainInfo.chainType, this._toAccount, {wallet: this._toWallet, isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;
       let isReleaseCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance

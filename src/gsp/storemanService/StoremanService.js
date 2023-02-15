@@ -52,27 +52,26 @@ class StoremanService {
         return {maxQuota: "0", minQuota: "0"};
     }
 
-    async getAccountAsset(assetPairId, type, addr, options = {}) {
+    async getAccountBalance(assetPairId, chainType, addr, options = {}) {
         try {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let tokenPair = tokenPairService.getTokenPair(assetPairId);
             if (!tokenPair) {
                 return new BigNumber(0);
             }
-            let balance, decimals;
-            let chainType = (type === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
-            let kaChainInfo = (type === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
+            let balance, decimals, direction = (chainType === tokenPair.fromChainType);
+            let kaChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
             if (options.isCoin) { // isCoin is internal use only
-                decimals = (type === "MINT")? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
+                decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
                 if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                     balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                 } else {
                     balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                 }
             } else {
-                decimals = (type === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-                let tokenAccount = (type === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-                let tokenType = (type === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+                decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
+                let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+                let tokenType = direction? tokenPair.fromAccountType : tokenPair.toAccountType;
                 if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                         balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
@@ -96,7 +95,7 @@ class StoremanService {
             }
             return balance;
         } catch (err) {
-            console.error("get tokenPair %s type %s address %s balance error: %O", assetPairId, type, addr, err);
+            console.error("get tokenPair %s %s address %s balance error: %O", assetPairId, chainType, addr, err);
             return new BigNumber(0);
         }
     }

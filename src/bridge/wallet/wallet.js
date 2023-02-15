@@ -12,7 +12,7 @@ if (typeof(window) !== "undefined") {
 }
 
 class Wallet {
-  constructor(type, provider, chain) {
+  constructor(type, provider, chainName) {
     if (!provider) {
       throw new Error("Invalid provider");
     }
@@ -29,7 +29,7 @@ class Wallet {
       return new Web3Wallet(type, provider); // do not check, developer himself ensures correctness
     } else if (type === "polkadot{.js}") {
       if (runInBrowser) { // only browser
-        return new Polkadot(type, provider, chain);
+        return new Polkadot(type, provider, chainName);
       }
     } else if (type === "Nami") {
       if (runInBrowser) { // only browser

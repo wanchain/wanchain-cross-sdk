@@ -318,7 +318,7 @@
     {
       "chainId": "2147484002",
       "chainType": "DOT",
-      "chainName": "PolkaTestnet",
+      "chainName": "Polkadot",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "chainDecimals": 12,
       "minReserved": 0.01,
@@ -329,7 +329,7 @@
     {
       "chainId": "1073741831",
       "chainType": "PHA",
-      "chainName": "Rhala",
+      "chainName": "Phala",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "chainDecimals": 12,
       "TxScanInfo": {

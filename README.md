@@ -44,17 +44,14 @@ bridge.on("ready", assetPairs => {
         assetPairId: "39",
         assetType: "AVAX",
         protocol: "Erc20",
-        ancestorChainType: "AVAX",
         ancestorChainName: "Avalanche C-Chain",
+        fromChainName: "Avalanche C-Chain",
+        toChainName: "Wanchain",
         fromSymbol: "AVAX",
         toSymbol: "wanAVAX",
         decimals: "18",
         fromDecimals: "18",
         toDecimals: "18",
-        fromChainType: "AVAX",
-        toChainType: "WAN",
-        fromChainName: "Avalanche C-Chain",
-        toChainName: "Wanchain",
         fromAccount: "0x0000000000000000000000000000000000000000",
         toAccount: "0xc8f5b26589392fde84ee0482e2b5a77dfbe943fc"
       },
@@ -151,7 +148,7 @@ try {
   let wallet = new Wallet("MetaMask", metaMaskWallet);
 
   // check wallet network
-  let checkWallet = await bridge.checkWallet(assetPair.fromChainType, wallet);
+  let checkWallet = await bridge.checkWallet(assetPair.fromChainName, wallet);
   if (checkWallet === false) {
     throw "Invalid wallet or network";
   }
@@ -169,13 +166,13 @@ try {
   let amount = 0.1;
 
   // check to-address format
-  let validTo = bridge.validateToAccount(assetPair, "mint", toAccount);
+  let validTo = bridge.validateToAccount(assetPair.toChainName, toAccount);
   if (validTo === false) {
     throw "Invalid to-address";
   }
 
   // check asset balance
-  let balance = await bridge.getAccountBalance(assetPair.assetType, assetPair.fromChainType, fromAccount);
+  let balance = await bridge.getAccountBalance(assetPair.assetType, assetPair.fromChainName, fromAccount);
   if (amount > balance) {
     throw "Insufficient balance";
   }

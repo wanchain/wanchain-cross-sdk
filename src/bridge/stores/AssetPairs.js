@@ -20,7 +20,7 @@ class AssetPairs {
       }
     });
     if (assetPairs) { // maybe only update smgs
-      let pairList = assetPairs.map(pair => {
+      let pairList = assetPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
         this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount));
         this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount));
         return {
@@ -52,9 +52,9 @@ class AssetPairs {
     } else if (a.assetType > b.assetType) {
         return 1;
     }
-    if (a.fromChainType < b.fromChainType) {
+    if (a.fromChainName < b.fromChainName) {
         return -1;
-    } else if (a.fromChainType > b.fromChainType) {
+    } else if (a.fromChainName > b.fromChainName) {
         return 1;
     }
     if (a.toChainName < b.toChainName) {

@@ -27,7 +27,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302141845", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302151206", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -65,8 +65,9 @@ class WanBridge extends EventEmitter {
     return Object.assign({}, smg, {changed});
   }
 
-  async checkWallet(chainType, wallet) {
-    console.debug("SDK: checkWallet, chainType: %s, wallet: %s", chainType, wallet? wallet.type : undefined);
+  async checkWallet(chainName, wallet) {
+    console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.type : undefined);
+    let chainType = this.tokenPairService.getChainType(chainName);
     if (this._isThirdPartyWallet(chainType)) {
       return true;
     } else {
@@ -93,20 +94,21 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: createTask, direction: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms, assetPair: %O",
                   direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainName = (direction === "MINT")? assetPair.fromChainName : assetPair.toChainName;
+    let fromChainType = this.tokenPairService.getChainType(fromChainName);
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
       fromAccount = "";
     } else if (fromAccount) {
-      let tmpDirection = (direction === "MINT")? "BURN" : "MINT";
-      if (!this.validateToAccount(assetPair, tmpDirection, fromAccount)) {
+      if (!this.validateToAccount(fromChainName, fromAccount)) {
         throw new Error("Invalid fromAccount");
       }
     } else {
       throw new Error("Missing fromAccount");
     }
     // check toAccount
-    if (!(toAccount && this.validateToAccount(assetPair, direction, toAccount))) {
+    let toChainName = (fromChainName === assetPair.fromChainName)? assetPair.toChainName : assetPair.fromChainName;
+    if (!(toAccount && this.validateToAccount(toChainName, toAccount))) {
       throw new Error("Invalid toAccount");
     }
     // check wallet
@@ -137,34 +139,18 @@ class WanBridge extends EventEmitter {
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
-  async getAccountAsset(assetPair, direction, account, options = {}) {
-    direction = this._unifyDirection(direction);
-    let balance = await this.storemanService.getAccountAsset(assetPair.assetPairId, direction, account, options);
+  async getAccountBalance(assetType, chainName, account, options = {}) {
+    let balance = "0";
+    let assetPair = this._getAssetPair(assetType, chainName);
+    if (assetPair) {
+      let chainType = this.tokenPairService.getChainType(chainName);
+      balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, chainType, account, options);
+    }
     balance = balance.toFixed();
-    console.debug("SDK: getAccountAsset, pair: %s, direction: %s, account: %s, options: %O, result: %s", assetPair.assetPairId, direction, account,
+    console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O, result: %s", assetType, chainName, account,
                   {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.type : undefined},
                   balance);
     return balance;
-  }
-
-  async getAccountBalance(assetType, chainType, account, options = {}) {
-    // it is more easier to find a assetpair to call getAccountAsset than directly call getBalance
-    let assetPairList = this.stores.assetPairs.assetPairList;
-    for (let i = 0; i < assetPairList.length; i++) {
-      let assetPair = assetPairList[i];
-      // avalance BTC.a assetType is still BTC, it is converted by frontend
-      let ancestorSymbol = (assetPair.assetPairId === "41")? "BTC.a" : assetPair.assetType;
-      if (ancestorSymbol === assetType) {
-        if (assetPair.fromChainType === chainType) {
-          return this.getAccountAsset(assetPair, "MINT", account, options);
-        }
-        if (assetPair.toChainType === chainType) {
-          return this.getAccountAsset(assetPair, "BURN", account, options);
-        }
-      }
-    }
-    console.debug("SDK: getAccountBalance, no matched assetPair for %s@%s", assetType, chainType);
-    return "0";
   }
 
   async estimateFee(assetPair, direction, options = {}) {
@@ -184,18 +170,18 @@ class WanBridge extends EventEmitter {
       return {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "1"};
     }
     direction = this._unifyDirection(direction);
-    let fromChainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
+    let fromChainName = (direction === "MINT")? assetPair.fromChainName : assetPair.toChainName;
+    let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let smg = await this.getSmgInfo();
     let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
     console.debug("SDK: getQuota, pair: %s, direction: %s, smg: %s, result: %O", assetPair.assetPairId, direction, smg.id, quota);
     return quota;
   }
 
-  validateToAccount(assetPair, direction, account) {
-    direction = this._unifyDirection(direction);
-    let chainType = (direction === "MINT")? assetPair.toChainType : assetPair.fromChainType;
+  validateToAccount(chainName, account) {
+    let chainType = this.tokenPairService.getChainType(chainName);
     if (this.stores.assetPairs.isTokenAccount(chainType, account)) {
-      console.error("SDK: validateToAccount, pair: %s, direction: %s, account: %s, result: is token account", assetPair.assetPairId, direction, account);
+      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: is token account", chainName, account);
       return false;
     }
     if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS"].includes(chainType)) {
@@ -219,7 +205,7 @@ class WanBridge extends EventEmitter {
     } else if ("TRX" === chainType) {
       return tool.isValidTrxAddress(account);
     } else {
-      console.error("SDK: validateToAccount, pair: %s, direction: %s, result: unsupported chain %s", assetPair.assetPairId, direction, chainType);
+      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: unsupported chain %s", chainName, account, chainName);
       return false;
     }
   }
@@ -228,13 +214,15 @@ class WanBridge extends EventEmitter {
     return tool.validateXrpTokenAmount(amount);
   }
 
-  async getNftInfo(assetPair, direction, account, options) {
-    direction = this._unifyDirection(direction);
-    let chainType = (direction === "MINT")? assetPair.fromChainType : assetPair.toChainType;
-    let token = (direction === "MINT")? assetPair.fromAccount : assetPair.toAccount;
-    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
-    console.debug("SDK: getNftInfo, pair: %s, direction: %s, account: %s, chain: %s, asset: %s, options: %O, result: %O",
-                  assetPair.assetPairId, direction, account, chainType, assetPair.assetType, options, infos);
+  async getNftInfo(assetType, chainName, account, options) {
+    let infos = [];
+    let assetPair = this._getAssetPair(assetType, chainName);
+    if (assetPair) {
+      let token = (chainName === assetPair.fromChainName)? assetPair.fromAccount : assetPair.toAccount;
+      let chainType = this.tokenPairService.getChainType(chainName);
+      infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
+    }
+    console.debug("SDK: getNftInfo, assetType: %s, chainName: %s, account: %s, options: %O, result: %O", assetType, chainName, account, options, infos);
     return infos;
   }
 
@@ -309,14 +297,15 @@ class WanBridge extends EventEmitter {
     return this.tokenPairService.getAssetLogo(name, protocol);
   }
 
-  getChainLogo(chainType) {
+  getChainLogo(chainName) {
+    let chainType = this.tokenPairService.getChainType(chainName);
     return this.tokenPairService.getChainLogo(chainType);
   }
 
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
-      this.emit("ready", assetPairList);
+      this.emit("ready", assetPairList.map(v => Object.assign({}, v)));
       console.debug("WanBridge is ready for %d assetPairs and %d smgs", assetPairList.length, this.stores.assetPairs.smgList.length);
     } else {
       this.emit("error", {reason: "Failed to initialize storeman"});
@@ -476,6 +465,25 @@ class WanBridge extends EventEmitter {
 
   _isThirdPartyWallet(chainType) {
     return THIRD_PARTY_WALLET_CHAINS.includes(chainType);
+  }
+
+  _getAssetPair(assetType, chainName) {
+    let assetPairList = this.stores.assetPairs.assetPairList;
+    for (let i = 0; i < assetPairList.length; i++) {
+      let pair = assetPairList[i];
+      // avalance BTC.a assetType is still BTC, it is converted by frontend
+      let ancestorSymbol = (pair.assetPairId === "41")? "BTC.a" : pair.assetType;
+      if (ancestorSymbol === assetType) {
+        if (pair.fromChainName === chainName) {
+          return pair;
+        }
+        if (pair.toChainName === chainName) {
+          return pair;
+        }
+      }
+    }
+    console.error("SDK: _getAssetPair, no matched assetPair for %s@%s", assetType, chainName);
+    return null;
   }
 }
 
