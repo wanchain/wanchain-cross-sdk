@@ -477,7 +477,7 @@ class WanBridge extends EventEmitter {
         }
       }
     }
-    console.error("SDK: _getAssetPair, no matched %s assetPair for %s@%-%s", protocol, assetType, fromChainName, toChainName);
+    console.error("SDK: _getAssetPair, no matched %s assetPair for %s@%s-%s", protocol, assetType, fromChainName, toChainName);
     return null;
   }
 }
