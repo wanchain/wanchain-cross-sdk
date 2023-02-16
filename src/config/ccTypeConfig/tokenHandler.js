@@ -42,7 +42,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       scChainType: chainInfo.chainType,
       erc20Addr: tokenSc,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20ApproveGasLimit,
+      gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: chainInfo.crossScAddr,
       taskType: "ProcessErc20Approve"
@@ -76,7 +76,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   async buildErc721Approve(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-    let value = convert.value; // [tokenId] or [{tokenId, amount}]
+    let value = convert.value; // [tokenId, name] or [{tokenId, name, amount}]
     let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, chainInfo.crossScAddr);
     if (approved === false) {
       let params = {
@@ -85,7 +85,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         scChainType: chainInfo.chainType,
         tokenAddr: tokenSc,
         gasPrice: chainInfo.gasPrice,
-        gasLimit: chainInfo.erc20ApproveGasLimit,
+        gasLimit: chainInfo.approveGasLimit,
         value,
         operator: chainInfo.crossScAddr,
         taskType: "ProcessErc721Approve"
@@ -105,15 +105,15 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol), {formatWithDecimals: false});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20FastMintGasLimit,
+      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -139,15 +139,15 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol), {formatWithDecimals: false});
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20FastBurnGasLimit,
+      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -177,7 +177,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let result = true;
     if (chainInfo.chainType !== "TRX") {
       let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-      let fee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
+      let fee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
       result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
     }
     if (result) {
@@ -194,5 +194,13 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         errCode: this.globalConstant.ERR_INSUFFICIENT_GAS
       };
     }
+  }
+
+  getCrossTxGasLimit(chainInfo, tokenType, value) {
+    let gasLimit = chainInfo.crossGasLimit;
+    if ((tokenType !== "Erc20") && (value.length > 1)) {
+      gasLimit = gasLimit + gasLimit * 0.2 * (value.length - 1);
+    }
+    return parseInt(gasLimit);
   }
 }

@@ -73,17 +73,10 @@ module.exports = class ProcessMintBtcFromBitcoin {
     try {
       let p2sh = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
       // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, p2sh.address);
-      if (p2sh.address === "") {
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
+      if (p2sh.address) {
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: p2sh.address, randomId: p2sh.randomId});
       } else {
-        // networkfee
-        let eventService = this.m_frameworkService.getService("EventService");
-        let obj = {
-          "ccTaskId": params.ccTaskId,
-          "apiServerNetworkFee": p2sh.apiServerNetworkFee
-        };
-        await eventService.emitEvent("NetworkFee", obj);
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: p2sh.address, randomId: p2sh.randomId}); // networkfee
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
     } catch (err) {
       console.error("%s err: %O", processorName, err);
@@ -97,7 +90,6 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
       let configService = this.m_frameworkService.getService("ConfigService");
       let apiServerConfig = await configService.getGlobalConfig("apiServer");
-
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType(fromChainType);
       let network = networks[fromChainType][chainInfo.NETWORK];
@@ -138,7 +130,6 @@ module.exports = class ProcessMintBtcFromBitcoin {
         await checkTxService.addOTAInfo(data);
         return {
           address: p2sh,
-          apiServerNetworkFee: ret.data.apiServerNetworkFee,
           randomId
         };
       } else {

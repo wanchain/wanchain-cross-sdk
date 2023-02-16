@@ -75,7 +75,7 @@ module.exports = class ProcessDotMintFromPolka {
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           console.error("polkadot sendTransaction error: %O", err);
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
         }
         return;
       }
@@ -97,7 +97,7 @@ module.exports = class ProcessDotMintFromPolka {
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessDotMintFromPolka error: %O", err);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 

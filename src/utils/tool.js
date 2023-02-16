@@ -14,14 +14,15 @@ if (typeof(window) !== "undefined") {
 
 // self define to reduce imported package size
 const PolkadotSS58Format = {
-	polkadot: 0,
-	kusama: 2,
-	westend: 42,
-	substrate: 42,
+  polkadot: 0,
+  kusama: 2,
+  phala: 30,
+  westend: 42,
+  substrate: 42,
 };
 
 const web3 = new Web3();
-const tronweb = new TronWeb("https://api.nileex.io", "https://api.nileex.io", "https://api.nileex.io");
+const tronweb = new TronWeb({fullHost: "https://api.nileex.io"});
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -133,14 +134,14 @@ function isValidXrpAddress(address) {
   return valid;
 }
 
-function isValidDotAddress(account, network) {  
+function isValidPolkadotAddress(account, chain, network) {
   try {
-    let format = ("testnet" === network)? PolkadotSS58Format.westend : PolkadotSS58Format.polkadot;
+    let format = getPolkadotSS58Format(chain, network);
     let addr = encodeAddress(account, format);
-    console.log("DOT %s account %s formatted to %s", network, account, addr);
+    console.log("polkadot %s %s account %s formatted to %s", chain, network, account, addr);
     return (account === addr);
   } catch(err) {
-    console.log("DOT %s account %s is invalid: %s", network, account, err);
+    console.log("polkadot %s %s account %s is invalid: %s", chain, network, account, err);
     return false;
   }
 }
@@ -246,27 +247,43 @@ function getCoinSymbol(chainType, chainName) {
   }
 }
 
-function parseFee(fee, amount, unit, decimals, formatWithDecimals = true) {
-  let result = new BigNumber(0), tmp;
-  decimals = Number(decimals);
-  if (fee.operateFee.unit === unit) {
-    tmp = new BigNumber(fee.operateFee.value);
-    if (fee.operateFee.isRatio) {
-      tmp = tmp.times(amount).toFixed(decimals);
-    }
-    result = result.plus(tmp);
-  }
+function parseFee(fee, amount, unit, options) {
+  options = Object.assign({formatWithDecimals: true}, options);
+  let result = networkFee = new BigNumber(0), decimals = 0, tmp;
   if (fee.networkFee.unit === unit) {
     tmp = new BigNumber(fee.networkFee.value);
-    if (fee.networkFee.isRatio) {
-      tmp = tmp.times(amount).toFixed(decimals);
+    if (tmp.gt(0) && fee.networkFee.isRatio) {
+      tmp = tmp.times(amount);
+      if ((fee.networkFee.min != 0) && (tmp.lt(fee.networkFee.min))) {
+        tmp = fee.networkFee.min;
+      } else if ((fee.networkFee.max != 0) && (tmp.gt(fee.networkFee.max))) {
+        tmp = fee.networkFee.max;
+      }
+    }
+    networkFee = tmp;
+    if ((!options.feeType) || (options.feeType === "networkFee")) {
+      result = result.plus(networkFee);
+    }
+    decimals = fee.networkFee.decimals;
+  }
+  if ((fee.operateFee.unit === unit) && ((!options.feeType) || (options.feeType === "operateFee"))) {
+    tmp = new BigNumber(fee.operateFee.value);
+    if (tmp.gt(0) && fee.operateFee.isRatio) {
+      tmp = tmp.times(new BigNumber(amount).minus(networkFee));
+      if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
+        tmp = fee.operateFee.min;
+      } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
+        tmp = fee.operateFee.max;
+      }
     }
     result = result.plus(tmp);
+    decimals = fee.operateFee.decimals;
   }
-  if (!formatWithDecimals) {
-    result = result.multipliedBy(Math.pow(10, decimals));
+  if (options.formatWithDecimals) {
+    return new BigNumber(result.toFixed(decimals)).toFixed();
+  } else {
+    return result.times(Math.pow(10, decimals)).toFixed(0);
   }
-  return result.toFixed();
 }
 
 function sha256(str) {
@@ -348,6 +365,30 @@ function parseTokenPairSymbol(chain, symbol) {
   }
 }
 
+function getPolkadotSS58Format(chain, network) {
+  if (["DOT", "Polkadot"].includes(chain)) {
+    return (network === "mainnet")? PolkadotSS58Format.polkadot : PolkadotSS58Format.westend;
+  } else if (["PHA", "Phala"].includes(chain)) {
+    return (network === "mainnet")? PolkadotSS58Format.phala : PolkadotSS58Format.phala;
+  } else {
+    throw new Error("unsupported polkadot chain " + chain);
+  }
+}
+
+function getErrMsg(err, defaultMsg) {
+  if (typeof(err) === "string") {
+    return err;
+  }
+  if (err.message && (typeof(err.message) === "string")) {
+    return err.message;
+  }
+  let msg = err.toString();
+  if (msg && (msg[0] !== '[') && (msg[msg.length-1] !== ']')) { // "[object Object]"
+    return msg;
+  }
+  return defaultMsg;
+}
+
 module.exports = {
   PolkadotSS58Format,
   getCurTimestamp,
@@ -362,7 +403,7 @@ module.exports = {
   isValidLtcAddress,
   isValidDogeAddress,
   isValidXrpAddress,
-  isValidDotAddress,
+  isValidPolkadotAddress,
   isValidAdaAddress,
   isValidXdcAddress,
   isValidTrxAddress,
@@ -373,5 +414,7 @@ module.exports = {
   cmpAddress,
   parseXrpTokenPairAccount,
   validateXrpTokenAmount,
-  parseTokenPairSymbol
+  parseTokenPairSymbol,
+  getPolkadotSS58Format,
+  getErrMsg
 }

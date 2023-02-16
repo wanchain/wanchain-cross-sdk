@@ -7,7 +7,7 @@ const bitcoin = require('bitcoinjs-lib');
 module.exports = class CheckBtcTxService {
     constructor(chainType = "BTC") {
         this.chainType = chainType;
-        this.serviceName = "Check" + this.chainType.charAt(0).toUpperCase() + this.chainType.substr(1).toLowerCase() + "TxService";
+        this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "TxService";
         this.checkOtas = [];
     }
 
@@ -15,7 +15,6 @@ module.exports = class CheckBtcTxService {
         this.m_frameworkService = frameworkService;
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_eventService = frameworkService.getService("EventService");
-        this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
 
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
@@ -35,12 +34,14 @@ module.exports = class CheckBtcTxService {
     }
 
     async addOTAInfo(obj) {
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let taskType = tokenPairService.getTokenEventType(obj.tokenPairId, "MINT");
         let tmpObj = {
-            "ccTaskId": obj.ccTaskId,
-            "oneTimeAddr": obj.oneTimeAddr,
-            "chain": obj.chainType,
-            "fromBlockNumber": obj.fromBlockNumber,
-            "taskType": "MINT"
+            ccTaskId: obj.ccTaskId,
+            oneTimeAddr: obj.oneTimeAddr,
+            chain: obj.chainType,
+            fromBlockNumber: obj.fromBlockNumber,
+            taskType
         };
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.save(this.serviceName, obj.ccTaskId, tmpObj);
@@ -97,22 +98,4 @@ module.exports = class CheckBtcTxService {
             }
         }
     }
-
-    async onDeleteTask(ccTaskId) {
-        try {
-            for (let idx = 0; idx < this.checkOtas.length; ++idx) {
-                let obj = this.checkOtas[idx];
-                if (obj.ccTaskId === ccTaskId) {
-                    this.checkOtas.splice(idx, 1);
-                    let storageService = this.m_frameworkService.getService("StorageService");
-                    await storageService.delete(this.serviceName, obj.ccTaskId);
-                    break;
-                }
-            }
-        }
-        catch (err) {
-            console.log("%s onDeleteTask err: %O", this.serviceName, err);
-        }
-    }
 }
-

@@ -1,8 +1,7 @@
 'use strict';
-let BigNumber = require("bignumber.js");
 
+const BigNumber = require("bignumber.js");
 const axios = require("axios");
-
 
 module.exports = class ProcessXrpMintFromRipple {
   constructor(frameworkService) {
@@ -13,15 +12,12 @@ module.exports = class ProcessXrpMintFromRipple {
     let WebStores = this.m_frameworkService.getService("WebStores");
     let params = stepData.params;
     try {
-      let tagInfo = await this.getTagId(stepData, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
-      //console.log("ProcessXrpMintFromRipple finishStep:", params.ccTaskId, stepData.stepIndex, tagInfo);
-      if (tagInfo.tagId === 0) {
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
-        return;
+      let tagId = await this.getTagId(stepData, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
+      if (tagId) {
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", tagId);
       } else {
-        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", tagInfo.tagId);
+        WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
-      return;
     } catch (err) {
       console.error("ProcessXrpMintFromRipple process error: %O", err);
       WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
@@ -55,22 +51,14 @@ module.exports = class ProcessXrpMintFromRipple {
         let checkXrpTxService = this.m_frameworkService.getService("CheckXrpTxService");
         await checkXrpTxService.addTagInfo(data);
         // 添加apiServer端获取的networkFee
-        return {
-          tagId: ret.data.tagId,
-          apiServerNetworkFee: ret.data.apiServerNetworkFee
-        };
+        return ret.data.tagId;
       } else {
         console.error("ProcessXrpMintFromRipple getTagId, url: %s data: %O, result: %O", url, data, ret);
-        return {
-          "tagId": 0
-        };
+        return 0;
       }
-    }
-    catch (err) {
-      console.log("getTagId err:", err);
-      return {
-        "tagId": 0
-      };
+    } catch (err) {
+      console.error("ProcessXrpMintFromRipple getTagId error: %O", err);
+      return 0;
     }
   }
 };

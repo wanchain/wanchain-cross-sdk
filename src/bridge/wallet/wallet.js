@@ -12,11 +12,10 @@ if (typeof(window) !== "undefined") {
 }
 
 class Wallet {
-  constructor(type, provider) {
+  constructor(type, provider, chainName) {
     if (!provider) {
       throw new Error("Invalid provider");
     }
-    this.type = type;
     console.debug("SDK: new Wallet type %s", type);
     if (["MetaMask", "WanMask", "WalletConnect", "WanWallet", "XDCPay", "OKXWallet", "CLVWallet"].includes(type)) {
       if (runInBrowser) { // only browser
@@ -30,7 +29,7 @@ class Wallet {
       return new Web3Wallet(type, provider); // do not check, developer himself ensures correctness
     } else if (type === "polkadot{.js}") {
       if (runInBrowser) { // only browser
-        return new Polkadot(type, provider);
+        return new Polkadot(type, provider, chainName);
       }
     } else if (type === "Nami") {
       if (runInBrowser) { // only browser

@@ -1,6 +1,5 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const tool = require("../../utils/tool.js");
 
@@ -10,7 +9,7 @@ const tool = require("../../utils/tool.js");
     type: 1,             // number
     tokenPairID: 1,      // number
     toAccount: 0x...,    // string
-    fee: 10              // number
+    smgID: 0x...         // string
   }
   smgRelease:
   {
@@ -27,8 +26,6 @@ const TX_TYPE = {
   Invalid:    -1
 };
 
-const ToAccountLen = 42; // with '0x'
-
 module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
@@ -40,19 +37,16 @@ module.exports = class ProcessAdaMintFromCardano {
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
-      let storemanGroupAddr = "addr_test1qz3ga6xtwkxn2aevf8jv0ygpq3cpseen68mcuz2fqe3lu0s9ag8xf2vwvdxtt6su2pn6h7rlnnnsqweavyqgd2ru3l3q09lq9e"; // smg address is manual specified
-      console.debug("ProcessAdaMintFromCardano storemanGroupAddr: %s", storemanGroupAddr);
-
       let protocolParameters = await this.initTx();
       let utxos = await wallet.cardano.getUtxos();
       utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
       // this.showUtxos(utxos);
 
-      let storemanService = this.m_frameworkService.getService("StoremanService");
-      let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
       let output = {
-        address: wasm.Address.from_bech32(storemanGroupAddr),
+        address: wasm.Address.from_bech32(params.crossScAddr),
         amount: [
           {
             unit: 'lovelace',
@@ -75,30 +69,27 @@ module.exports = class ProcessAdaMintFromCardano {
         // console.debug({minAda});
         output.amount[0].quantity = minAda;
       }
-      console.log("output.amount: %O", output.amount);
+      // console.log("output.amount: %O", output.amount);
       let outputs = wasm.TransactionOutputs.new();
       outputs.add(
         wasm.TransactionOutput.new(
-          wasm.Address.from_bech32(storemanGroupAddr),
+          wasm.Address.from_bech32(params.crossScAddr),
           this.assetsToValue(output.amount)
         )
       );
 
-      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
+      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
       let auxiliaryData = wasm.AuxiliaryData.new();
       auxiliaryData.set_metadata(metaData);
 
+      let plutusData = this.genPlutusData();
+
       let tx;
       try {
-        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData);
+        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData);
       } catch (err) {
         console.error("ProcessAdaMintFromCardano buildTx error: %O", err);
-        if (err === "Insufficient input in transaction") {
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
-        } else {
-          err = (typeof(err) === "string")? err : undefined;
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err || "Failed to send transaction");
-        }
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
         return;
       }
 
@@ -112,7 +103,7 @@ module.exports = class ProcessAdaMintFromCardano {
         if (err.code === 2) { // info: "User declined to sign the transaction."
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
         }
         return;
       }
@@ -134,7 +125,7 @@ module.exports = class ProcessAdaMintFromCardano {
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessAdaMintFromCardano error: %O", err);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", err.message || "Failed to send transaction");
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 
@@ -149,6 +140,7 @@ module.exports = class ProcessAdaMintFromCardano {
       minUtxo: '1000000', // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
       poolDeposit: p.pool_deposit,
       keyDeposit: p.key_deposit,
+      coinsPerUtxoByte: p.coins_per_utxo_byte,
       coinsPerUtxoWord: p.coins_per_utxo_word,
       maxValSize: p.max_val_size,
       priceMem: p.price_mem,
@@ -200,24 +192,29 @@ module.exports = class ProcessAdaMintFromCardano {
     ).to_str();
   }
 
-  buildUserLockData(tokenPairID, toAccount, fee) {
-    tokenPairID = Number(tokenPairID);
-    if ((tokenPairID !== NaN) && (toAccount.length === ToAccountLen)) {
-      let data = {
-        5718350: { // define a special label, which is SLIP-0044 Wanchain Coin type
-          type: TX_TYPE.UserLock,
-          tokenPairID,
-          toAccount,
-          fee: Number(new BigNumber(fee).toFixed())
-        }
-      };
-      // console.debug("nami buildUserLockData: %O", data);
-      data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
-      return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
-    } else {
-      console.error("buildUserLockMetaData parameter invalid");
-      return null;
-    }
+  buildUserLockData(tokenPairID, toAccount, smgID) {
+    let data = {
+      1: {
+        type: TX_TYPE.UserLock,
+        tokenPairID: Number(tokenPairID),
+        toAccount,
+        smgID
+      }
+    };
+    // console.debug("nami buildUserLockData: %O", data);
+    data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
+    return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
+  }
+
+  genPlutusData() { // just dummy data
+    let ls = wasm.PlutusList.new();
+    ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
+    return wasm.PlutusData.new_constr_plutus_data(
+        wasm.ConstrPlutusData.new(
+            wasm.BigNum.from_str('0'),
+            ls
+        )
+    )
   }
 
   showUtxos(utxos) {

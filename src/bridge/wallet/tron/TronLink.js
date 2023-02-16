@@ -3,11 +3,9 @@ const tool = require("../../../utils/tool");
 
 const TxResource = {
   approveBandwidth: 345,
-  approveEnergy: 22495,
-  lockBandwidth: 480,
-  lockEnergy: 43267, // TRX: 17202, Token: 43267
-  burnBandwidth: 571,
-  burnEnergy: 41505,
+  approveEnergy: 49799,
+  crossBandwidth: 571, // userLock TRX: 481, userLock TRX: 475, userBurn: 571
+  crossEnergy: 59948, // userLock TRX: 19,458, userLock token: 59,948, userBurn: 41,826
 }
 
 class TronLink {
@@ -17,6 +15,7 @@ class TronLink {
     }
     this.type = type;
     this.tronWeb = window.tronWeb;
+    this.tronLink = window.tronLink; // chrome v3.22.0 and later inject tronLink object
   }
 
   // standard function
@@ -26,12 +25,15 @@ class TronLink {
   }
 
   async getAccounts(network) {
-    if (this.tronWeb && this.tronWeb.defaultAddress) {
-      let accounts = [this.tronWeb.defaultAddress.base58];
-      return accounts;
+    if (this.tronLink) {
+      // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject
+      await this.tronLink.request({method: 'tron_requestAccounts'});
+    }
+    if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
+      return [this.tronWeb.defaultAddress.base58];
     } else {
-      console.error("%s not installed or not allowed", this.type);
-      throw new Error("Not installed or not allowed");
+      console.error("%s not installed or locked", this.type);
+      throw new Error("Not installed or locked");
     }
   }
 
@@ -49,7 +51,7 @@ class TronLink {
   // customized function
 
   async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, extInfo) {
-    let feeLimit = await this.getFeeLimit("lock");
+    let feeLimit = await this.getFeeLimit("cross");
     let options = {
       feeLimit,
       callValue: new BigNumber(extInfo.coinValue).toFixed(), // tx coin value
@@ -83,7 +85,7 @@ class TronLink {
   }
 
   async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, extInfo) {
-    let feeLimit = await this.getFeeLimit("burn");
+    let feeLimit = await this.getFeeLimit("cross");
     let options = {
       feeLimit,
       callValue: new BigNumber(extInfo.coinValue).toFixed(), // tx coin value
@@ -107,7 +109,7 @@ class TronLink {
     // console.debug({chainParas});
     let bandwidthFee = new BigNumber(chainParas.find(v => v.key === 'getTransactionFee').value).times(TxResource[action + "Bandwidth"]);
     let energeFee = new BigNumber(chainParas.find(v => v.key === 'getEnergyFee').value).times(TxResource[action + "Energy"]);
-    return bandwidthFee.plus(energeFee).times(1.2).toFixed();
+    return bandwidthFee.plus(energeFee).times(1.5).toFixed();
   }
 }
 

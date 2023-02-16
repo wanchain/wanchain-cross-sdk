@@ -175,7 +175,7 @@ class IWanBCConnector {
     }
 
     async getStoremanGroupQuota(chainType, groupId, symbol, targetChainType) {
-        let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol, targetChainType);
+        let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol, {targetChainType});
         return ret;
     }
 
@@ -237,6 +237,10 @@ class IWanBCConnector {
 
     async getTrustLines(address, options) {
       return this.apiClient.getTrustLines("XRP", address, options);
+    }
+
+    async getRegisteredSubgraph(options) {
+      return this.apiClient.getRegisteredSubgraph(options);
     }
 };
 

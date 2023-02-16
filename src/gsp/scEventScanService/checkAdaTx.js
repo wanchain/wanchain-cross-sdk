@@ -19,26 +19,6 @@ module.exports = class CheckAdaTx {
 
     this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
     this.m_eventService = this.m_frameworkService.getService("EventService");
-    this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
-  }
-
-  async onDeleteTask(ccTaskId) {
-    try {
-      let ary = this.m_CheckAry;
-      for (let idx = 0; idx < ary.length; ++idx) {
-        let obj = ary[idx];
-        if (obj.ccTaskId === ccTaskId) {
-          ary.splice(idx, 1);
-          let storageService = this.m_frameworkService.getService("StorageService");
-          storageService.delete("ScEventScanService", obj.uniqueID);
-          return true;
-        }
-      }
-      return false;
-    } catch (err) {
-      console.error("deleteTaskById error: %O", err);
-      return false;
-    }
   }
 
   async add(obj) {
@@ -68,7 +48,8 @@ module.exports = class CheckAdaTx {
         let ret = await axios.get(txUrl);
         console.debug("CheckAdaTx %s: %O", txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
-          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.txHash, toAccount: ret.data.data.toAddr});
+          let data = ret.data.data;
+          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount: data.toAddr, value: data.value});
           let storageService = this.m_frameworkService.getService("StorageService");
           storageService.delete("ScEventScanService", obj.uniqueID);
           this.m_CheckAry.splice(index, 1);
@@ -79,7 +60,3 @@ module.exports = class CheckAdaTx {
     }
   }
 };
-
-
-
-

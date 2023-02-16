@@ -19,7 +19,7 @@ module.exports = class MintBtcFromBitcoinHandle {
     let handleName = handleNames[tokenPair.fromChainType];
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, tokenPair.fromDecimals);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType: tokenPair.fromChainType,

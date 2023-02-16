@@ -43,7 +43,7 @@ module.exports = class BurnErc20ProxyToken {
       scChainType: chainInfo.chainType,
       erc20Addr: nativeToken,// token Addr
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20ApproveGasLimit,
+      gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: poolToken,// poolAddr
       taskType: "ProcessErc20Approve"
@@ -73,15 +73,15 @@ module.exports = class BurnErc20ProxyToken {
 
     // function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)  
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, chainInfo.chainDecimals, false);
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, decimals, false);
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol), {formatWithDecimals: false});
     let userFastBurnParas = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
       gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.erc20FastBurnGasLimit,
+      gasLimit: chainInfo.crossGasLimit,
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value: value,

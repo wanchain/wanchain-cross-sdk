@@ -12,7 +12,7 @@ const Wallet = require("./wallet/wallet.js");
 const util = require('util');
 
 // consistant with crosschain contract
-const MAX_NFT_BATCH_SIZE = 20;
+const MAX_NFT_BATCH_SIZE = 10;
 
 class BridgeTask {
   constructor(bridge, assetPair, direction, fromAccount, toAccount, amount, wallet) {
@@ -34,13 +34,13 @@ class BridgeTask {
     let fromChainInfo = {
       symbol: assetPair.fromSymbol,
       decimals: assetPair.fromDecimals,
-      chainType: assetPair.fromChainType,
+      chainType: bridge.tokenPairService.getChainType(assetPair.fromChainName),
       chainName: assetPair.fromChainName
     };
     let toChainInfo = {
       symbol: assetPair.toSymbol,
       decimals: assetPair.toDecimals,
-      chainType: assetPair.toChainType,
+      chainType: bridge.tokenPairService.getChainType(assetPair.toChainName),
       chainName: assetPair.toChainName
     };
     if (this._direction == 'MINT') {
@@ -65,7 +65,7 @@ class BridgeTask {
   async init() {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
     // check
-    let validWallet = await this._bridge.checkWallet(this._assetPair, this._direction, this._wallet);
+    let validWallet = await this._bridge.checkWallet(this._fromChainInfo.chainName, this._wallet);
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
@@ -92,7 +92,6 @@ class BridgeTask {
     let taskData = {
       assetPairId: assetPair.assetPairId,
       assetType: assetPair.assetType,
-      decimals: assetPair.decimals,
       protocol: assetPair.protocol,
       direction: this._direction,
       amount: this._amount,
@@ -139,22 +138,26 @@ class BridgeTask {
   }
 
   async _initToWallet() {
-    if (this._toChainInfo.chainType === "DOT") {
+    if (["DOT", "PHA"].includes(this._toChainInfo.chainType)) {
       let provider = this._bridge.network;
-      this._toWallet = new Wallet("polkadot{.js}", provider);
+      this._toWallet = new Wallet("polkadot{.js}", provider, this._toChainInfo.chainType);
     }
   }
 
   async _checkFee() {
+    let options = {protocol: this._assetPair.protocol};
     let isErc20 = (this._assetPair.protocol === "Erc20");
-    let options = isErc20? {} : {batchSize: this._amount.length};
-    this._fee = await this._bridge.estimateFee(this._assetPair, this._direction, options);
+    if (!isErc20) {
+      options.batchSize = this._amount.length;
+    }
+    let assetType = (this._assetPair.assetPairId === "41")? "BTC.a" : this._assetPair.assetType; // avalance BTC.a
+    this._fee = await this._bridge.estimateFee(assetType, this._fromChainInfo.chainName, this._toChainInfo.chainName, options);
     if (isErc20) {
       let unit = this._assetPair.assetType;
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+      let fee = tool.parseFee(this._fee, this._amount, unit);
       if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
-        console.error("Amount is too small to pay the fee: %s %s", fee, unit);
-        return "Amount is too small to pay the fee";
+        console.error("Amount is too small to pay the bridge fee: %s %s", fee, unit);
+        return "Amount is too small to pay the bridge fee";
       }
     }
     return "";
@@ -174,25 +177,19 @@ class BridgeTask {
     if (this._smg.changed) { // optimize for mainnet getQuota performance issue
       this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._assetPair.assetType, this._quota);
-      let amount = new BigNumber(this._amount);
-      if (amount.gt(this._quota.maxQuota)) {
+      let networkFee = tool.parseFee(this._fee, this._amount, unit, {feeType: "networkFee"});
+      let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
+      if (agentAmount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
-      }
-      let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
-      let expectedReceivedValue = amount.minus(fee);
-      if (this._quota.minQuota > 0) {
-        if (expectedReceivedValue.lt(this._quota.minQuota)) {
-          return "Less than minValue";
-        }
-      } else if (expectedReceivedValue.lte(0)) {
+      } else if (agentAmount.lt(this._quota.minQuota)) {
         return "Amount is too small";
       }
     }
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    if (chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin need to check smg balance
+    if ((!chainInfo.crossScAddr) && chainInfo.minReserved && (this._direction === "MINT") && (this._assetPair.fromAccount == 0)) { // only mint coin on not-sc-chain need to check smg balance
       let smgAddr = this._getSmgAddress(fromChainType);
-      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", smgAddr, {wallet: this._wallet, isCoin: true});
+      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, fromChainType, smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance;
       let isLockCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
@@ -202,7 +199,7 @@ class BridgeTask {
       if (estimateBalance.lt(chainInfo.minReserved)) {
         if (isLockCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
-          console.error("Amount is too small to activate smg, at least %s %s", diff.toFixed(), unit);
+          console.error("Amount is too small to activate storeman account, at least %s %s", diff.toFixed(), unit);
           return "Amount is too small to activate storeman account";
         } else {
           return "Storeman account is inactive";
@@ -229,8 +226,9 @@ class BridgeTask {
     if (!this._fromAccount) { // third party wallet
       return "";
     }
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
-    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._direction, this._fromAccount, {wallet: this._wallet});
+    let chainType = this._fromChainInfo.chainType;
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
+    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, chainType, this._fromAccount, {wallet: this._wallet});
     let unit = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
     let requiredCoin = new BigNumber(0);
     let requiredAsset = 0;
@@ -239,8 +237,7 @@ class BridgeTask {
       requiredAsset = 0;
       this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
-      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
-      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit, chainInfo.chainDecimals));
+      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit));
       requiredAsset = this._amount;
       this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
@@ -261,19 +258,19 @@ class BridgeTask {
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
     if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, "MINT", this._toAccount, {wallet: this._toWallet, isCoin: true});
+      let balance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, this._toChainInfo.chainType, this._toAccount, {wallet: this._toWallet, isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;
       let isReleaseCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
       if (isReleaseCoin) {
         let unit = this._assetPair.assetType;
-        let fee = tool.parseFee(this._fee, this._amount, unit, this._assetPair.decimals);
+        let fee = tool.parseFee(this._fee, this._amount, unit);
         estimateBalance = estimateBalance.plus(this._amount).minus(fee);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {
         if (isReleaseCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(balance);
-          console.error("Amount is too small to activate toAccount, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
+          console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
           return "Amount is too small to activate recipient account";
         } else {
           return "Recipient account is inactive";
@@ -315,7 +312,7 @@ class BridgeTask {
       wallet: this._wallet
     }; 
     // console.debug("checkTaskSteps: %O", convert);
-    let stepInfo = await this._bridge.storemanService.getConvertInfo(convert);
+    let stepInfo = await this._bridge.cctHandleService.getConvertInfo(convert);
     // console.debug("getConvertInfo: %O", stepInfo);
     if (stepInfo.stepNum > 0) {
       this._task.setTaskData({stepNums: stepInfo.stepNum});
@@ -339,7 +336,7 @@ class BridgeTask {
         }
         if (executedStep != curStep) {
           console.debug("bridgeTask _parseTaskStatus step %s at %s ms", curStep, tool.getCurTimestamp());
-          await this._bridge.storemanService.processTxTask(taskStep, this._wallet);
+          await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
           executedStep = curStep;
         } else {
           await tool.sleep(5000);
@@ -421,8 +418,8 @@ class BridgeTask {
     return xrpAddr;
   }
 
-  _getSmgPolkaAddress() {
-    let format = ("testnet" === this._bridge.network)? tool.PolkadotSS58Format.westend : tool.PolkadotSS58Format.polkadot;
+  _getSmgPolkaAddress(chain) {
+    let format = tool.getPolkadotSS58Format(chain, this._bridge.network);
     let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);
@@ -434,9 +431,9 @@ class BridgeTask {
   _getSmgAddress(chainType) {
     if ("XRP" === chainType) {
       return this._getSmgXrpClassicAddress();
-    } else if ("DOT" === chainType) {
-      return this._getSmgPolkaAddress();
-    } else {
+    } else if (["DOT", "PHA"].includes(chainType)) {
+      return this._getSmgPolkaAddress(chainType);
+    } else { // only for not-sc-chain to check smg account, other chains should not call this function
       throw new Error("Unknown " + chainType + " smg address");
     }
   }

@@ -1,7 +1,10 @@
 'use strict';
 
+const tool = require("../../utils/tool.js");
+
 let WalletRejects = [
-  "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay
+  "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 1
+  "Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 2
   "Confirmation declined by user", // TronLink
 ]
 
@@ -52,7 +55,7 @@ module.exports = class ProcessBase {
           result = "Rejected";
         } else {
           result = "Failed";
-          errInfo = "Failed to send transaction";
+          errInfo = tool.getErrMsg(err, "Failed to send transaction");
         }
         this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", result, errInfo);
         console.error("task %s sendTransactionData error: %O", params.ccTaskId, err);

@@ -17,7 +17,6 @@ class CrossChainTask {
       fromAccount: '', // the from account
       toAccount: '', // the to account
       amount: '',  // convert amount
-      decimals: 0, // effective decimals
       fromDecimals: 0, // from token decimals
       toDecimals: 0, // to token decimals
       sentAmount: '', // actually sent amount

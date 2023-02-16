@@ -16,27 +16,6 @@ module.exports = class CheckXrpTx {
         let chainInfo = await chainInfoService.getChainInfoByType(chainType);
         this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
         this.m_eventService = this.m_frameworkService.getService("EventService");
-        this.m_eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
-    }
-
-    async onDeleteTask(ccTaskId) {
-        try {
-            let ary = this.m_CheckAry;
-            for (let idx = 0; idx < ary.length; ++idx) {
-                let obj = ary[idx];
-                if (obj.ccTaskId === ccTaskId) {
-                    ary.splice(idx, 1);
-                    let storageService = this.m_frameworkService.getService("StorageService");
-                    storageService.delete("ScEventScanService", obj.uniqueID);
-                    return true;
-                }
-            }
-            return false;
-        }
-        catch (err) {
-            console.log("deleteTaskById err:", err);
-            return false;
-        }
     }
 
     async add(obj) {
@@ -80,15 +59,13 @@ module.exports = class CheckXrpTx {
                 let txUrl = url + obj.uniqueID;
                 let ret = await axios.get(txUrl);
                 console.debug("checkXrpTx %s ret.data: %O", txUrl, ret.data);
-                if (ret.data.success === true) {
-                    if (ret.data.data) {
-                        // found
-                        let eventService = this.m_frameworkService.getService("EventService");
-                        await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: ret.data.data.xrpHash, toAccount: ret.data.data.xrpAddr});
-                        let storageService = this.m_frameworkService.getService("StorageService");
-                        await storageService.delete("ScEventScanService", obj.uniqueID);
-                        this.m_CheckAry.splice(index, 1);
-                    }
+                if (ret.data.success && ret.data.data) {
+                    let eventService = this.m_frameworkService.getService("EventService");
+                    let data = ret.data.data;
+                    await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.xrpHash, toAccount: data.xrpAddr, value: data.value});
+                    let storageService = this.m_frameworkService.getService("StorageService");
+                    await storageService.delete("ScEventScanService", obj.uniqueID);
+                    this.m_CheckAry.splice(index, 1);
                 }
             }
         }
@@ -97,7 +74,3 @@ module.exports = class CheckXrpTx {
         }
     }
 };
-
-
-
-

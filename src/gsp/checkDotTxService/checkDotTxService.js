@@ -3,7 +3,9 @@
 const axios = require("axios");
 
 module.exports = class CheckDotTxService {
-    constructor() {
+    constructor(chainType = "DOT") {
+        this.chainType = chainType;
+        this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "TxService";
         this.checkArray = [];
     }
 
@@ -12,7 +14,6 @@ module.exports = class CheckDotTxService {
         this.taskService = frameworkService.getService("TaskService");
         this.webStores = frameworkService.getService("WebStores");
         this.eventService = frameworkService.getService("EventService");
-        this.eventService.addEventListener("deleteTask", this.onDeleteTask.bind(this));
     }
 
     async loadTradeTask(tasks) {
@@ -24,13 +25,13 @@ module.exports = class CheckDotTxService {
         let apiServerConfig = await configService.getGlobalConfig("apiServer");
         this.apiServerUrl = apiServerConfig.url;
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoByType("DOT");
+        let chainInfo = await chainInfoService.getChainInfoByType(this.chainType);
         this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "");
     }
 
     async addTask(task) {
         let storageService = this.frameworkService.getService("StorageService");
-        await storageService.save("CheckDotTxService", task.ccTaskId, task);
+        await storageService.save(this.serviceName, task.ccTaskId, task);
         this.checkArray.unshift(task);
         //console.debug("addTask:", task, "checkArray:", this.checkArray);
     }
@@ -40,14 +41,14 @@ module.exports = class CheckDotTxService {
             // console.log("this.checkArray:", this.checkArray);
             let storageService = this.frameworkService.getService("StorageService");
             let count = this.checkArray.length;
-            let url = this.apiServerUrl + "/api/dot/queryTxInfoBySmgPbkHash/";
+            let url = this.apiServerUrl + "/api/" + this.chainType.toLowerCase() + "/queryTxInfoBySmgPbkHash/";
             for (let idx = 0; idx < count; ++idx) {
                 let index = count - idx - 1;
                 let task = this.checkArray[index];
                 try {
                     let queryUrl = url + task.smgPublicKey + "/" + task.txHash;
                     let ret = await axios.get(queryUrl);
-                    console.debug("CheckDotTxService %s: %O", queryUrl, ret.data);
+                    console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
                     if (ret.data.success && ret.data.data) {
                       task.uniqueID = ret.data.data.hashX;
                       await this.eventService.emitEvent("TaskStepResult", {
@@ -58,32 +59,15 @@ module.exports = class CheckDotTxService {
                       });
                       let scEventScanService = this.frameworkService.getService("ScEventScanService");
                       await scEventScanService.add(task);
-                      await storageService.delete("CheckDotTxService", task.ccTaskId);
+                      await storageService.delete(this.serviceName, task.ccTaskId);
                       this.checkArray.splice(index, 1);
                     }
                 } catch (err) {
-                    console.error("CheckDotTxService runTask error: %O", err);
+                    console.error("%s runTask error: %O", this.serviceName, err);
                 }
             }
         } catch (err) {
-            console.error("CheckDotTxService error: %O", err);
-        }
-    }
-
-    async onDeleteTask(ccTaskId) {
-        try {
-            for (let idx = 0; idx < this.checkArray.length; ++idx) {
-                let task = this.checkArray[idx];
-                if (task.ccTaskId === ccTaskId) {
-                    this.checkArray.splice(idx, 1);
-                    let storageService = this.frameworkService.getService("StorageService");
-                    await storageService.delete("CheckDotTxService", task.ccTaskId);
-                    break;
-                }
-            }
-        } catch (err) {
-            console.error("CheckDotTxService onDeleteTask error: %O", err);
+            console.error("%s error: %O", this.serviceName, err);
         }
     }
 }
-

@@ -1,5 +1,6 @@
 'use strict';
 
+const tool = require("../../utils/tool.js");
 const ProcessBase = require("./processBase.js");
 
 module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
@@ -15,8 +16,8 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
       if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
-      let stroemanService = this.m_frameworkService.getService("StoremanService");
-      let tokenPair = stroemanService.getTokenPair(params.tokenPairID);
+      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let nativeToken, poolToken, chainInfo;
       if (params.scChainType === tokenPair.fromChainType) { // MINT
         nativeToken = tokenPair.fromNativeToken;
@@ -41,15 +42,15 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 
   // virtual function
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
-    let storemanService = this.m_frameworkService.getService("StoremanService");
-    let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+    let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+    let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
     let chainType = (params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
     let nativeToken = (params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;

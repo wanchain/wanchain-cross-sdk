@@ -1,5 +1,6 @@
 'use strict';
 
+const tool = require("../../utils/tool.js");
 const ProcessBase = require("./processBase.js");
 
 module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
@@ -40,28 +41,28 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessErc20UserFastBurn error: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to send transaction");
+            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
 
     // virtual function
     async getConvertInfoForCheck(stepData) {
         let params = stepData.params;
-        let storemanService = this.m_frameworkService.getService("StoremanService");
-        let tokenPair = storemanService.getTokenPair(params.tokenPairID);
+        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+        let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
         let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
         let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
         let blockNumber;
         if (checkChainType === "XRP") {
           blockNumber = await this.m_iwanBCConnector.getLedgerVersion(checkChainType);
-        } else if (["DOT", "ADA"].includes(checkChainType)) {
+        } else if (["DOT", "ADA", "PHA"].includes(checkChainType)) {
           blockNumber = 0;
           // console.log("getConvertInfoForCheck DOT/ADA blockNumber");
         } else {
           blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
         }
         // exception: burn legency EOS from ethereum to wanchain is "BURN"
-        let taskType = storemanService.getTokenEventType(params.tokenPairID, direction);
+        let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
         let checker = {
           needCheck: true,
           checkInfo: {

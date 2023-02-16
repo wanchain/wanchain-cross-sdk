@@ -277,7 +277,7 @@ const CoinSelection = {
       let minAmount = wasm.Value.new(
         wasm.min_ada_required(
           change,
-          // false,
+          false,
           wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
         )
       );
@@ -662,7 +662,7 @@ function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO) {
     let minAmount = wasm.Value.new(
       wasm.min_ada_required(
         cumulatedAmount,
-        // false,
+        false,
         wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
       )
     );
