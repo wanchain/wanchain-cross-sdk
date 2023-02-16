@@ -30,7 +30,6 @@ class AssetPairs {
           ancestorChainName: pair.ancestorChainName, // ancestor Chain Name
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain
           toSymbol: pair.toSymbol,           // token symbol for toChain
-          decimals: pair.decimals,           // effective decimals
           fromDecimals: pair.fromDecimals,   // from token decimals
           toDecimals: pair.toDecimals,       // to token decimals
           fromChainName: pair.fromChainName, // from Chain Name

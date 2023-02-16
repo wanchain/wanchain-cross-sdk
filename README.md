@@ -47,7 +47,6 @@ bridge.on("ready", assetPairs => {
         ancestorChainName: "Ethereum",
         fromSymbol: "ETH",
         toSymbol: "wanETH",
-        decimals: "18",
         fromDecimals: "18",
         toDecimals: "18",
         fromChainName: "Ethereum",

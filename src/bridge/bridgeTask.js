@@ -92,7 +92,6 @@ class BridgeTask {
     let taskData = {
       assetPairId: assetPair.assetPairId,
       assetType: assetPair.assetType,
-      decimals: assetPair.decimals,
       protocol: assetPair.protocol,
       direction: this._direction,
       amount: this._amount,
@@ -146,9 +145,13 @@ class BridgeTask {
   }
 
   async _checkFee() {
+    let options = {protocol: this._assetPair.protocol};
     let isErc20 = (this._assetPair.protocol === "Erc20");
-    let options = isErc20? {} : {batchSize: this._amount.length};
-    this._fee = await this._bridge.estimateFee(this._assetPair, this._direction, options);
+    if (!isErc20) {
+      options.batchSize = this._amount.length;
+    }
+    let assetType = (this._assetPair.assetPairId === "41")? "BTC.a" : this._assetPair.assetType; // avalance BTC.a
+    this._fee = await this._bridge.estimateFee(assetType, this._fromChainInfo.chainName, this._toChainInfo.chainName, options);
     if (isErc20) {
       let unit = this._assetPair.assetType;
       let fee = tool.parseFee(this._fee, this._amount, unit);

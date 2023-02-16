@@ -90,11 +90,13 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  async createTask(assetPair, direction, amount, fromAccount, toAccount, wallet = null) {
-    console.debug("SDK: createTask, direction: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms, assetPair: %O",
-                  direction, amount, fromAccount, toAccount, wallet? wallet.type : undefined, tool.getCurTimestamp(), assetPair);
-    direction = this._unifyDirection(direction);
-    let fromChainName = (direction === "MINT")? assetPair.fromChainName : assetPair.toChainName;
+  async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
+    console.debug("SDK: createTask, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
+                  assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options.wallet? options.wallet.type : undefined, tool.getCurTimestamp());
+    let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
+    if (!assetPair) {
+      throw new Error("Asset pair not exist");
+    }
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
@@ -107,19 +109,18 @@ class WanBridge extends EventEmitter {
       throw new Error("Missing fromAccount");
     }
     // check toAccount
-    let toChainName = (fromChainName === assetPair.fromChainName)? assetPair.toChainName : assetPair.fromChainName;
     if (!(toAccount && this.validateToAccount(toChainName, toAccount))) {
       throw new Error("Invalid toAccount");
     }
     // check wallet
+    let wallet = options.wallet;
     if (this._isThirdPartyWallet(fromChainType)) {
       wallet = null;
-    } else if (wallet) {
-      wallet = this._unifyWallet(wallet);
-    } else {
+    } else if (!wallet) {
       throw new Error("Missing wallet");
     }
     // create task
+    let direction = (fromChainName === assetPair.fromChainName)? "MINT" : "BURN";
     let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount, wallet);
     await task.init();
     await task.start();
@@ -141,7 +142,7 @@ class WanBridge extends EventEmitter {
 
   async getAccountBalance(assetType, chainName, account, options = {}) {
     let balance = "0";
-    let assetPair = this._getAssetPair(assetType, chainName);
+    let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
     if (assetPair) {
       let chainType = this.tokenPairService.getChainType(chainName);
       balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, chainType, account, options);
@@ -153,28 +154,37 @@ class WanBridge extends EventEmitter {
     return balance;
   }
 
-  async estimateFee(assetPair, direction, options = {}) {
-    direction = this._unifyDirection(direction);
-    let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, direction);
-    let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, direction, options);
-    let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals}
-    };
-    console.debug("SDK: estimateFee, pair: %s, direction: %s, options: %O, result: %O", assetPair.assetPairId, direction, options, fee);
+  async estimateFee(assetType, fromChainName, toChainName, options = {}) {
+    let fee = null; // no default value
+    let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
+    if (assetPair) {
+      let fromChainType = this.tokenPairService.getChainType(fromChainName);
+      let toChainType = this.tokenPairService.getChainType(toChainName);
+      let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, fromChainType, toChainType);
+      let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, fromChainType, toChainType, options);
+      fee = {
+        operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
+        networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals}
+      };
+    }
+    console.debug("SDK: estimateFee, assetType: %s, fromChainName: %s, toChainName: %s, options: %O, result: %O", assetType, fromChainName, toChainName, options, fee);
     return fee;
   }
 
-  async getQuota(assetPair, direction) {
-    if (assetPair.protocol !== "Erc20") {
-      return {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "1"};
+  async getQuota(assetType, fromChainName, toChainName, options = {}) {
+    let quota = {maxQuota: "0", minQuota: "0"};
+    let protocol = options.protocol || "Erc20";
+    if (protocol === "Erc20") {
+      let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
+      if (assetPair) {
+        let fromChainType = this.tokenPairService.getChainType(fromChainName);
+        let smg = await this.getSmgInfo();
+        quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
+      }
+    } else {
+      quota.maxQuota = MAX_NFT_BATCH_SIZE.toString();
     }
-    direction = this._unifyDirection(direction);
-    let fromChainName = (direction === "MINT")? assetPair.fromChainName : assetPair.toChainName;
-    let fromChainType = this.tokenPairService.getChainType(fromChainName);
-    let smg = await this.getSmgInfo();
-    let quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
-    console.debug("SDK: getQuota, pair: %s, direction: %s, smg: %s, result: %O", assetPair.assetPairId, direction, smg.id, quota);
+    console.debug("SDK: getQuota, assetType: %s, fromChainName: %s, toChainName: %s, options: %O, result: %O", assetType, fromChainName, toChainName, options, quota);
     return quota;
   }
 
@@ -216,7 +226,7 @@ class WanBridge extends EventEmitter {
 
   async getNftInfo(assetType, chainName, account, options) {
     let infos = [];
-    let assetPair = this._getAssetPair(assetType, chainName);
+    let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
     if (assetPair) {
       let token = (chainName === assetPair.fromChainName)? assetPair.fromAccount : assetPair.toAccount;
       let chainType = this.tokenPairService.getChainType(chainName);
@@ -242,13 +252,11 @@ class WanBridge extends EventEmitter {
           timestamp: task.ccTaskId,
           asset: task.assetType,
           protocol: task.protocol,
-          direction: task.convertType,
           fromSymbol: task.fromSymbol,
           toSymbol: task.toSymbol,          
           fromChain: task.fromChainName,
           toChain: task.toChainName,
           amount: task.sentAmount || task.amount,
-          decimals: task.decimals,
           fromDecimals: task.fromDecimals,
           toDecimals: task.toDecimals,
           receivedAmount: task.receivedAmount,
@@ -451,38 +459,25 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _unifyDirection(direction) {
-    direction = direction.toUpperCase();
-    if (!["MINT", "BURN"].includes(direction)) {
-      throw new Error("Invalid direction, must be MINT or BURN");
-    }
-    return direction;
-  }
-
-  _unifyWallet(wallet) { // TODO
-    return wallet;
-  }
-
   _isThirdPartyWallet(chainType) {
     return THIRD_PARTY_WALLET_CHAINS.includes(chainType);
   }
 
-  _getAssetPair(assetType, chainName) {
+  _getAssetPair(assetType, fromChainName, toChainName, options = {}) {
+    let protocol = options.protocol || "Erc20";
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let pair = assetPairList[i];
       // avalance BTC.a assetType is still BTC, it is converted by frontend
       let ancestorSymbol = (pair.assetPairId === "41")? "BTC.a" : pair.assetType;
-      if (ancestorSymbol === assetType) {
-        if (pair.fromChainName === chainName) {
-          return pair;
-        }
-        if (pair.toChainName === chainName) {
+      if ((ancestorSymbol === assetType) && (pair.protocol === protocol)) {
+        // if fromChainName and toChainName are the same, find any one of related pairs
+        if ([pair.fromChainName, pair.toChainName].includes(fromChainName) && [pair.fromChainName, pair.toChainName].includes(toChainName)) {
           return pair;
         }
       }
     }
-    console.error("SDK: _getAssetPair, no matched assetPair for %s@%s", assetType, chainName);
+    console.error("SDK: _getAssetPair, no matched %s assetPair for %s@%-%s", protocol, assetType, fromChainName, toChainName);
     return null;
   }
 }

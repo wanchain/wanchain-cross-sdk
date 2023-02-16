@@ -233,15 +233,13 @@ class TokenPairService {
     }
 
     getAssetLogo(name, protocol) {
-      let ps = protocol? [protocol.toLowerCase()] : ["erc20", "erc721", "erc1155"];
-      for (let i = 0; i < ps.length; i++) {
-        let key = name + "_" + ps[i];
-        let logo = this.assetLogo.get(key);
-        if (logo) {
-          return logo;
-        }
+      protocol = protocol? protocol.toLowerCase() : "erc20";
+      let key = name + "_" + protocol;
+      let logo = this.assetLogo.get(key);
+      if (!logo) {
+        logo = {data: new Identicon(crypto.createHash('md5').update(key).digest('hex')).toString(), type: "png"};
       }
-      return {data: new Identicon(crypto.createHash('md5').update(ps[0]).digest('hex')).toString(), type: "png"};
+      return logo;
     }
 
     getChainLogo(chainType) {
@@ -262,7 +260,6 @@ class TokenPairService {
             this.chainName2Type.set(tokenPair.ancestorChainName, tokenPair.ancestorChainType);
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
-            tokenPair.decimals = (Number(tokenPair.fromDecimals) < Number(tokenPair.toDecimals))? tokenPair.fromDecimals : tokenPair.toDecimals;
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);

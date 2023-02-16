@@ -3,9 +3,9 @@ const tool = require("../../../utils/tool");
 
 const TxResource = {
   approveBandwidth: 345,
-  approveEnergy: 22677,
-  crossBandwidth: 571, // mint: 480, burn: 571
-  crossEnergy: 59948, // mint TRX: 17202, mint token: 59948, burn: 41505
+  approveEnergy: 49799,
+  crossBandwidth: 571, // userLock TRX: 481, userLock TRX: 475, userBurn: 571
+  crossEnergy: 59948, // userLock TRX: 19,458, userLock token: 59,948, userBurn: 41,826
 }
 
 class TronLink {
@@ -109,7 +109,7 @@ class TronLink {
     // console.debug({chainParas});
     let bandwidthFee = new BigNumber(chainParas.find(v => v.key === 'getTransactionFee').value).times(TxResource[action + "Bandwidth"]);
     let energeFee = new BigNumber(chainParas.find(v => v.key === 'getEnergyFee').value).times(TxResource[action + "Energy"]);
-    return bandwidthFee.plus(energeFee).times(1.2).toFixed();
+    return bandwidthFee.plus(energeFee).times(1.5).toFixed();
   }
 }
 
