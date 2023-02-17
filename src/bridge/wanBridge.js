@@ -27,7 +27,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302161550", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302171420", this.network, this.isTestMode, this.smgIndex);
     await this._service.init(this.network, this.stores, iwanAuth);
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -42,7 +42,6 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
-    this.eventService.addEventListener("NetworkFee", this._onNetworkFee.bind(this)); // for BTC/LTC/DOGE to update network fee got from api server
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
     await this._service.start();
   }
@@ -181,7 +180,7 @@ class WanBridge extends EventEmitter {
       console.error("SDK: validateToAccount, pair: %s, direction: %s, account: %s, result: is token account", assetPair.assetPairId, direction, account);
       return false;
     }
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR"].includes(chainType)) {
+    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -421,18 +420,6 @@ class WanBridge extends EventEmitter {
       console.debug("SDK: update task %d fee: %s%s", taskId, fee, assetType);
     } else {
       console.error("SDK: can't update task %d fee: %s%s", taskId, fee, assetType);
-    }
-  }
-
-  _onNetworkFee(taskNetworkFee) {
-    console.log("_onNetworkFee: %O", taskNetworkFee);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskNetworkFee.ccTaskId;
-    let networkFee = new BigNumber(taskNetworkFee.apiServerNetworkFee).toFixed();
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (ccTask) {
-      records.updateTaskFee(taskId, "networkFee", networkFee);
-      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }
 

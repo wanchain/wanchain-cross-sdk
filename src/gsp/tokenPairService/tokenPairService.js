@@ -148,6 +148,7 @@ class TokenPairService {
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
+        // xrp token ancestorSymbol keep original format for iwan api
         let symbol = tool.parseTokenPairSymbol(tp.ancestorChainID, tp.ancestorSymbol);
         assetMap.set(symbol + "_" + tp.toAccountType.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });

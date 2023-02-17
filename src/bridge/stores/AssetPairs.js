@@ -25,7 +25,7 @@ class AssetPairs {
         this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount));
         return {
           assetPairId: pair.id,
-          assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol),    // the ancestory symbol for this token
+          assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol), // the ancestory symbol for this token
           protocol: pair.toAccountType || "Erc20", // token protocol: Erc20, Erc721, Erc1155
           ancestorChainType: pair.ancestorChainType, // ancestor Chain Type
           ancestorChainName: pair.ancestorChainName, // ancestor Chain Name
@@ -52,9 +52,9 @@ class AssetPairs {
     } else if (a.assetType > b.assetType) {
         return 1;
     }
-    if (a.fromChainType < b.fromChainType) {
+    if (a.fromChainName < b.fromChainName) {
         return -1;
-    } else if (a.fromChainType > b.fromChainType) {
+    } else if (a.fromChainName > b.fromChainName) {
         return 1;
     }
     if (a.toChainName < b.toChainName) {

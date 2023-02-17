@@ -209,6 +209,20 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147484625",
+      "chainType": "TLOS",
+      "chainName": "Telos",
+      "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
+      "crossGasLimit": 350000,
+      "approveGasLimit": 75000,
+      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "chainDecimals": 18,
+      "MaskChainId": 41,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -304,7 +318,7 @@
     {
       "chainId": "2147484002",
       "chainType": "DOT",
-      "chainName": "PolkaTestnet",
+      "chainName": "Polkadot",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "chainDecimals": 12,
       "minReserved": 0.01,
@@ -315,7 +329,7 @@
     {
       "chainId": "1073741831",
       "chainType": "PHA",
-      "chainName": "Rhala",
+      "chainName": "Phala",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "chainDecimals": 12,
       "TxScanInfo": {

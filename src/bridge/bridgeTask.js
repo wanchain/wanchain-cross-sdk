@@ -98,6 +98,7 @@ class BridgeTask {
       amount: this._amount,
       fromAccount: this._fromAccount,
       toAccount: this._toAccount,
+      fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
       toSymbol: this._toChainInfo.symbol,
@@ -105,8 +106,6 @@ class BridgeTask {
       toDecimals: this._toChainInfo.decimals,
       fromChainType: this._fromChainInfo.chainType,
       toChainType: this._toChainInfo.chainType,
-      fromChainName: this._fromChainInfo.chainName,
-      toChainName: this._toChainInfo.chainName,
       isOtaTx: !this._wallet,
       fee: this._fee,
       smg: this._smg
