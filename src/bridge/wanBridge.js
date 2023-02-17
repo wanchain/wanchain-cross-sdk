@@ -468,9 +468,7 @@ class WanBridge extends EventEmitter {
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let pair = assetPairList[i];
-      // avalance BTC.a assetType is still BTC, it is converted by frontend
-      let ancestorSymbol = (pair.assetPairId === "41")? "BTC.a" : pair.assetType;
-      if ((ancestorSymbol === assetType) && (pair.protocol === protocol)) {
+      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol)) {
         // if fromChainName and toChainName are the same, find any one of related pairs
         if ([pair.fromChainName, pair.toChainName].includes(fromChainName) && [pair.fromChainName, pair.toChainName].includes(toChainName)) {
           return pair;
