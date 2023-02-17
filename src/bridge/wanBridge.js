@@ -251,6 +251,7 @@ class WanBridge extends EventEmitter {
           pairId: task.assetPairId,
           timestamp: task.ccTaskId,
           asset: task.assetType,
+          assetAlias: task.assetAlias,
           protocol: task.protocol,
           fromSymbol: task.fromSymbol,
           toSymbol: task.toSymbol,          

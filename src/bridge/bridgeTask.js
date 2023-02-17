@@ -91,6 +91,7 @@ class BridgeTask {
     let taskData = {
       assetPairId: this._assetPair.assetPairId,
       assetType: this._assetPair.assetType,
+      assetAlias: this._assetPair.assetAlias,
       protocol: this._assetPair.protocol,
       direction: this._direction,
       amount: this._amount,
