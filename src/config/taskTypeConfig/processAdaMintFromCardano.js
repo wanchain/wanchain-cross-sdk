@@ -100,7 +100,7 @@ module.exports = class ProcessAdaMintFromCardano {
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       } catch (err) {
         console.error("ProcessAdaMintFromCardano sendTransaction error: %O", err);
-        if (err.code === 2) { // info: "User declined to sign the transaction."
+        if (err.info === "User declined to sign the transaction.") { // code 2 include other errors
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
         } else {
           webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
