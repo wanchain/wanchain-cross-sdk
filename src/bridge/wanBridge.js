@@ -251,7 +251,6 @@ class WanBridge extends EventEmitter {
           pairId: task.assetPairId,
           timestamp: task.ccTaskId,
           asset: task.assetType,
-          assetAlias: task.assetAlias,
           protocol: task.protocol,
           fromSymbol: task.fromSymbol,
           toSymbol: task.toSymbol,          
@@ -271,6 +270,9 @@ class WanBridge extends EventEmitter {
           status: task.status,
           errInfo: task.errInfo
         };
+        if (task.assetAlias) {
+          item.assetAlias = task.assetAlias;
+        }
         history.push(item);
         if (taskId !== undefined) { // only get one
           break;
