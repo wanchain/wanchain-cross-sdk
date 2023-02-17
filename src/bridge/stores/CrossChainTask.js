@@ -5,6 +5,7 @@ class CrossChainTask {
       ccTaskId: taskId, // the unique id for convert task
       assetPairId: '', // the token pair id of this convert task
       assetType: '', // the token ancestorySymbol
+      assetAlias: '', // alias of assetType
       protocol: '', // token protocol, erc20 or erc721
       convertType: '', // the value is "MINT" or "BURN", used by web server 
       fromSymbol: '', // fromChain token symbol

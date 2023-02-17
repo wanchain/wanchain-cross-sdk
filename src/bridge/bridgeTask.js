@@ -88,15 +88,16 @@ class BridgeTask {
     }
 
     // set task data
-    let assetPair = this._assetPair;
     let taskData = {
-      assetPairId: assetPair.assetPairId,
-      assetType: assetPair.assetType,
-      protocol: assetPair.protocol,
+      assetPairId: this._assetPair.assetPairId,
+      assetType: this._assetPair.assetType,
+      assetAlias: this._assetPair.assetAlias,
+      protocol: this._assetPair.protocol,
       direction: this._direction,
       amount: this._amount,
       fromAccount: this._fromAccount,
       toAccount: this._toAccount,
+      fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
       toSymbol: this._toChainInfo.symbol,
@@ -104,8 +105,6 @@ class BridgeTask {
       toDecimals: this._toChainInfo.decimals,
       fromChainType: this._fromChainInfo.chainType,
       toChainType: this._toChainInfo.chainType,
-      fromChainName: this._fromChainInfo.chainName,
-      toChainName: this._toChainInfo.chainName,
       isOtaTx: !this._wallet,
       fee: this._fee,
       smg: this._smg
@@ -150,13 +149,12 @@ class BridgeTask {
     if (!isErc20) {
       options.batchSize = this._amount.length;
     }
-    let assetType = (this._assetPair.assetPairId === "41")? "BTC.a" : this._assetPair.assetType; // avalance BTC.a
-    this._fee = await this._bridge.estimateFee(assetType, this._fromChainInfo.chainName, this._toChainInfo.chainName, options);
+    // should use assetAlias as assetType to call bridge external api
+    this._fee = await this._bridge.estimateFee((this._assetPair.assetAlias || this._assetPair.assetType), this._fromChainInfo.chainName, this._toChainInfo.chainName, options);
     if (isErc20) {
-      let unit = this._assetPair.assetType;
-      let fee = tool.parseFee(this._fee, this._amount, unit);
+      let fee = tool.parseFee(this._fee, this._amount, this._assetPair.assetType);
       if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
-        console.error("Amount is too small to pay the bridge fee: %s %s", fee, unit);
+        console.error("Amount is too small to pay the bridge fee: %s %s", fee, this._assetPair.assetType);
         return "Amount is too small to pay the bridge fee";
       }
     }
@@ -173,11 +171,10 @@ class BridgeTask {
     }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    let unit = this._assetPair.assetType;
     if (this._smg.changed) { // optimize for mainnet getQuota performance issue
       this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._assetPair.assetPairId, this._smg.id);
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._assetPair.assetType, this._quota);
-      let networkFee = tool.parseFee(this._fee, this._amount, unit, {feeType: "networkFee"});
+      let networkFee = tool.parseFee(this._fee, this._amount, this._assetPair.assetType, {feeType: "networkFee"});
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
       if (agentAmount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
@@ -199,7 +196,7 @@ class BridgeTask {
       if (estimateBalance.lt(chainInfo.minReserved)) {
         if (isLockCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
-          console.error("Amount is too small to activate storeman account, at least %s %s", diff.toFixed(), unit);
+          console.error("Amount is too small to activate storeman account, at least %s %s", diff.toFixed(), this._assetPair.assetType);
           return "Amount is too small to activate storeman account";
         } else {
           return "Storeman account is inactive";
@@ -229,15 +226,15 @@ class BridgeTask {
     let chainType = this._fromChainInfo.chainType;
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._assetPair.assetPairId, chainType, this._fromAccount, {wallet: this._wallet});
-    let unit = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
+    let coinSymbol = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
     let requiredCoin = new BigNumber(0);
     let requiredAsset = 0;
-    if (this._assetPair.assetType === unit) { // asset is coin
+    if (this._assetPair.assetType === coinSymbol) { // asset is coin
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
       this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
-      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, unit));
+      requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
       this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
@@ -263,8 +260,7 @@ class BridgeTask {
       let estimateBalance = balance;
       let isReleaseCoin = (this._assetPair.fromAccount == 0); // only release coin would change balance
       if (isReleaseCoin) {
-        let unit = this._assetPair.assetType;
-        let fee = tool.parseFee(this._fee, this._amount, unit);
+        let fee = tool.parseFee(this._fee, this._amount, this._assetPair.assetType);
         estimateBalance = estimateBalance.plus(this._amount).minus(fee);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {

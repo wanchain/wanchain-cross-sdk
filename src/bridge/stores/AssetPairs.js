@@ -23,7 +23,7 @@ class AssetPairs {
       let pairList = assetPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
         this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount));
         this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount));
-        return {
+        let assetPair = {
           assetPairId: pair.id,
           assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol), // the ancestory symbol for this token
           protocol: pair.toAccountType || "Erc20", // token protocol: Erc20, Erc721, Erc1155
@@ -36,7 +36,12 @@ class AssetPairs {
           toChainName: pair.toChainName,     // to Chain Name
           fromAccount: pair.fromAccount,     // from Chain token account
           toAccount: pair.toAccount,         // to Chain token account
+        };
+        // special treatment for migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
+        if (pair.id === "41") {
+          assetPair.assetAlias = "BTC.a";
         }
+        return assetPair;
       });
       this.assetPairList = pairList.sort(this.sortBy);
     }
