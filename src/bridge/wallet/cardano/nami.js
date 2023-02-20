@@ -85,6 +85,7 @@ class Nami {
       20 + totalAssets
     );
     const inputs = selection.input;
+    console.debug("nami wallet select %d inputs", inputs.length);
   
     const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
     .coins_per_utxo_byte(
