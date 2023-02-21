@@ -2,6 +2,8 @@
 
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const tool = require("../../utils/tool.js");
+const crypto = require('crypto');
+const BigNumber = require("bignumber.js");
 
 /* metadata format:
   userLock:
@@ -78,15 +80,13 @@ module.exports = class ProcessAdaMintFromCardano {
         )
       );
 
-      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
+      let {meta, plutus} = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
       let auxiliaryData = wasm.AuxiliaryData.new();
-      auxiliaryData.set_metadata(metaData);
-
-      let plutusData = this.genPlutusData();
+      auxiliaryData.set_metadata(meta);
 
       let tx;
       try {
-        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData);
+        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData, plutus);
       } catch (err) {
         console.error("ProcessAdaMintFromCardano buildTx error: %O", err);
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
@@ -193,27 +193,29 @@ module.exports = class ProcessAdaMintFromCardano {
   }
 
   buildUserLockData(tokenPairID, toAccount, smgID) {
-    let data = {
-      1: {
-        type: TX_TYPE.UserLock,
-        tokenPairID: Number(tokenPairID),
-        toAccount,
-        smgID
-      }
+    let content = {
+      type: TX_TYPE.UserLock,
+      tokenPairID: Number(tokenPairID),
+      toAccount,
+      smgID
     };
-    // console.debug("nami buildUserLockData: %O", data);
-    data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
-    return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
+    // console.debug("nami buildUserLockData: %O", content);
+    let data = wasm.encode_json_str_to_metadatum(JSON.stringify({1: content}), wasm.MetadataJsonSchema.BasicConversions);
+    let meta = wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
+    let plutus = this.genPlutusData(content);
+    return {meta, plutus};
   }
 
-  genPlutusData() { // just dummy data
+  genPlutusData(content) { // just dummy data
+    let hashValue = new BigNumber(crypto.createHash('sha256').update(JSON.stringify(content)).digest('hex'), 16).toFixed();
     let ls = wasm.PlutusList.new();
-    ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
+    ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str(hashValue)));
+    console.log(ls)
     return wasm.PlutusData.new_constr_plutus_data(
-        wasm.ConstrPlutusData.new(
-            wasm.BigNum.from_str('0'),
-            ls
-        )
+      wasm.ConstrPlutusData.new(
+          wasm.BigNum.from_str('0'),
+          ls
+      )
     )
   }
 
