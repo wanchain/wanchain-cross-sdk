@@ -54,8 +54,8 @@ module.exports = class ConfigService {
       }
       extensions.forEach((ext, i) => {
         if (ext.getChains && ext.getSymbols) {
-          let names = ext.getName();
-          let symbols = ext.getSymbol();
+          let names = ext.getNames();
+          let symbols = ext.getSymbols();
           if (names && symbols && (names.length === symbols.length)) {
             symbols.forEach((symbol, i) => {
               this.extensions.set(symbol, ext);
