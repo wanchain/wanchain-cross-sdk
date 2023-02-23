@@ -29,6 +29,7 @@ module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.iwan = frameworkService.getService("iWanConnectorService");
+    let configService = frameworkService.getService("ConfigService");
     let extension = configService.getExtension("ADA");
     this.wasm = extension.wasm;
   }
