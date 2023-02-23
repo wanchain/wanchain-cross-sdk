@@ -54,12 +54,12 @@ module.exports = class ConfigService {
       }
       extensions.forEach((ext, i) => {
         if (ext.getChains && ext.getSymbols) {
-          let names = ext.getNames();
+          let chains = ext.getChains();
           let symbols = ext.getSymbols();
-          if (names && symbols && (names.length === symbols.length)) {
+          if (chains && symbols && (chains.length === symbols.length)) {
             symbols.forEach((symbol, i) => {
               this.extensions.set(symbol, ext);
-              console.debug("register %s(%s) extension", names[i], symbol);
+              console.debug("register %s(%s) extension", chains[i], symbol);
             })
             return;
           }
