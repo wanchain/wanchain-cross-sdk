@@ -15,7 +15,7 @@ const DefaultProvider = {
 
 class PolkadotJs {
   constructor(provider, chain = "Polkadot") {
-    this.name = "PolkadotJs";
+    this.name = "polkadot{.js}";
     this.chain = chain; // Polkadot, Phala
     if (typeof(provider) === "string") {
       if (["mainnet", "testnet"].includes(provider)) {

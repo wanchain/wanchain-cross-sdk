@@ -9,11 +9,11 @@ const TxResource = {
 }
 
 class TronLink {
-  constructor(type, provider) {
+  constructor(provider) {
+    this.name = "TronLink";
     if (!['mainnet', 'testnet', 'nile'].includes(provider)) {
       throw new Error("Invalid provider, should be 'mainnet', 'testnet' or 'nile'");
     }
-    this.type = type;
     this.tronWeb = window.tronWeb;
     this.tronLink = window.tronLink; // chrome v3.22.0 and later inject tronLink object
   }
@@ -32,7 +32,7 @@ class TronLink {
     if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
       return [this.tronWeb.defaultAddress.base58];
     } else {
-      console.error("%s not installed or locked", this.type);
+      console.error("%s not installed or locked", this.name);
       throw new Error("Not installed or locked");
     }
   }
