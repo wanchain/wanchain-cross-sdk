@@ -3,12 +3,8 @@ const keypairs = require('ripple-keypairs');
 const elliptic = require('elliptic');
 const Secp256k1 = elliptic.ec('secp256k1');
 const xrpAddrCodec = require('ripple-address-codec');
-const polkaUtil = require("@polkadot/util");
-const polkaUtilCrypto = require("@polkadot/util-crypto");
-const { Keyring } = require('@polkadot/api');
 const CrossChainTask = require('./stores/CrossChainTask');
 const BigNumber = require("bignumber.js");
-const Wallet = require("./wallet/wallet.js");
 const util = require('util');
 
 // consistant with crosschain contract
@@ -137,9 +133,11 @@ class BridgeTask {
   }
 
   async _initToWallet() {
-    if (["DOT", "PHA"].includes(this._toChainInfo.chainType)) {
+    let chainType = this._toChainInfo.chainType;
+    if (["DOT", "PHA"].includes(chainType)) {
       let provider = this._bridge.network;
-      this._toWallet = new Wallet("polkadot{.js}", provider, this._toChainInfo.chainType);
+      let extension = this._bridge.configService.getExtension(chainType);
+      this._toWallet = new extension.PolkadotJsWallet(provider, this._toChainInfo.chainName);
     }
   }
 
@@ -415,7 +413,9 @@ class BridgeTask {
   }
 
   _getSmgPolkaAddress(chain) {
-    let format = tool.getPolkadotSS58Format(chain, this._bridge.network);
+    let extension = this._bridge.configService.getExtension("DOT");
+    let {tool, polkaUtil, polkaUtilCrypto, Keyring} = extension;
+    let format = tool.getSS58Format(chain, this._bridge.network);
     let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
     const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
     const hash = polkaUtilCrypto.blake2AsU8a(compressed);

@@ -8,7 +8,7 @@ class AssetPairs {
     this.tokens = new Set(); // not need to be classified by chain
   }
 
-  setAssetPairs(assetPairs, smgs) {
+  setAssetPairs(assetPairs, smgs, configService = null) {
     this.smgList = smgs.map(smg => {
       return {
         id: smg.groupId,
@@ -21,8 +21,8 @@ class AssetPairs {
     });
     if (assetPairs) { // maybe only update smgs
       let pairList = assetPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
-        this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount));
-        this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount));
+        this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService));
+        this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount, configService));
         let assetPair = {
           assetPairId: pair.id,
           assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol), // the ancestory symbol for this token
@@ -70,18 +70,18 @@ class AssetPairs {
     return ((this.assetPairList.length > 0) && (this.smgList.length > 0));
   }
 
-  getTokenAccount(chain, account) {
+  getTokenAccount(chainType, account, configService) {
     let native;
-    if (chain === "XRP") {
+    if (chainType === "XRP") {
       native = tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
     } else {
-      native = tool.getStandardAddressInfo(chain, account).native;
+      native = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
     return native.toLowerCase();
   }
 
-  isTokenAccount(chain, account) {
-    let checkAccount = tool.getStandardAddressInfo(chain, account).native.toLowerCase();
+  isTokenAccount(chainType, account, extension) {
+    let checkAccount = tool.getStandardAddressInfo(chainType, account, extension).native.toLowerCase();
     return this.tokens.has(checkAccount);
   }
 }

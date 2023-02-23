@@ -1,28 +1,11 @@
 const wanUtil = require('wanchain-util');
 const ethUtil = require('ethereumjs-util');
-const { encodeAddress } = require('@polkadot/keyring');
 const WAValidator = require('multicoin-address-validator');
 const BigNumber = require('bignumber.js');
 const crypto = require('crypto');
 const Web3 = require('web3');
-const TronWeb = require('tronweb');
-
-let wasm = null;
-if (typeof(window) !== "undefined") {
-  wasm = require("@emurgo/cardano-serialization-lib-asmjs");
-}
-
-// self define to reduce imported package size
-const PolkadotSS58Format = {
-  polkadot: 0,
-  kusama: 2,
-  phala: 30,
-  westend: 42,
-  substrate: 42,
-};
 
 const web3 = new Web3();
-const tronweb = new TronWeb({fullHost: "https://api.nileex.io"});
 
 function getCurTimestamp(toSecond = false) {
   let ts = new Date().getTime();
@@ -134,64 +117,11 @@ function isValidXrpAddress(address) {
   return valid;
 }
 
-function isValidPolkadotAddress(account, chain, network) {
-  try {
-    let format = getPolkadotSS58Format(chain, network);
-    let addr = encodeAddress(account, format);
-    console.log("polkadot %s %s account %s formatted to %s", chain, network, account, addr);
-    return (account === addr);
-  } catch(err) {
-    console.log("polkadot %s %s account %s is invalid: %s", chain, network, account, err);
-    return false;
-  }
-}
-
-function bytesAddressToBinary(bytes) {
-  return bytes.reduce((str, byte) => str + byte.toString(2).padStart(8, '0'), '');
-}
-
-// WAValidator can not valid testnet address
-function isValidAdaAddress(address, network) {
-  const networkId = (network === "testnet")? 0 : 1;
-  try {
-    let addr = wasm.ByronAddress.from_base58(address);
-    console.debug("%s is ADA Byron base58 address", address);
-    return (addr.network_id() === networkId);
-  } catch (e) {
-    console.debug("%s is not ADA Byron base58 address: %O", address, e);
-  }
-  try {
-    let addr = wasm.Address.from_bech32(address);
-    try {
-      let byronAddr = wasm.ByronAddress.from_address(addr);
-      if (byronAddr) {
-        console.debug("%s is ADA Byron bech32 address", address);
-      }
-      return (byronAddr.network_id() === networkId); // byronAddr is undefined to throw error
-    } catch (e) {
-      let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-      console.log("%s is Shelly type %s address", address, prefix);
-      if (parseInt(prefix, 2) > 7) {
-        return false;
-      }
-      return (addr.network_id() === networkId);
-    }
-  } catch (e) {
-    console.debug("%s is not ADA bech32 address: %O", address, e);
-  }
-  return false;
-}
-
 function isValidXdcAddress(address) {
   if (isValidEthAddress(address)) {
     return true;
   }
   return ((address.substr(0, 3) === "xdc") && isValidEthAddress("0x" + address.substr(3)));
-}
-
-function isValidTrxAddress(address) {
-  let valid = WAValidator.validate(address, 'TRX');
-  return valid;
 }
 
 function getXdcAddressInfo(address) {
@@ -206,29 +136,11 @@ function getXdcAddressInfo(address) {
   return {native, evm};
 }
 
-function getTrxAddressInfo(address) {
-  let native, evm;
-  if (/^0x[0-9a-fA-F]{40}$/.test(address)) { // standard evm address
-    evm = address;
-    tronweb.setAddress("41" + address.substr(2));
-    native = tronweb.defaultAddress.base58;
-  } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
-    evm = "0x" + address;
-    tronweb.setAddress("41" + address);
-    native = tronweb.defaultAddress.base58;
-  } else if (tronweb.isAddress(address)) {
-    tronweb.setAddress(address);
-    evm = "0x" + tronweb.defaultAddress.hex.substr(2);
-    native = tronweb.defaultAddress.base58;
-  }
-  return {native, evm};
-}
-
-function getStandardAddressInfo(chainType, address) {
+function getStandardAddressInfo(chainType, address, extension = null) {
   if (chainType === "XDC") {
     return getXdcAddressInfo(address);
-  } else if (chainType === "TRX") {
-    return getTrxAddressInfo(address);
+  } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) {
+    return extension.tool.getStandardAddressInfo(address);
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
     return {native: address, evm: address};
   } else {
@@ -365,16 +277,6 @@ function parseTokenPairSymbol(chain, symbol) {
   }
 }
 
-function getPolkadotSS58Format(chain, network) {
-  if (["DOT", "Polkadot"].includes(chain)) {
-    return (network === "mainnet")? PolkadotSS58Format.polkadot : PolkadotSS58Format.westend;
-  } else if (["PHA", "Phala"].includes(chain)) {
-    return (network === "mainnet")? PolkadotSS58Format.phala : PolkadotSS58Format.phala;
-  } else {
-    throw new Error("unsupported polkadot chain " + chain);
-  }
-}
-
 function getErrMsg(err, defaultMsg) {
   if (typeof(err) === "string") {
     return err;
@@ -390,7 +292,6 @@ function getErrMsg(err, defaultMsg) {
 }
 
 module.exports = {
-  PolkadotSS58Format,
   getCurTimestamp,
   checkTimeout,
   sleep,
@@ -403,10 +304,7 @@ module.exports = {
   isValidLtcAddress,
   isValidDogeAddress,
   isValidXrpAddress,
-  isValidPolkadotAddress,
-  isValidAdaAddress,
   isValidXdcAddress,
-  isValidTrxAddress,
   getStandardAddressInfo,
   getCoinSymbol,
   parseFee,
@@ -415,6 +313,5 @@ module.exports = {
   parseXrpTokenPairAccount,
   validateXrpTokenAmount,
   parseTokenPairSymbol,
-  getPolkadotSS58Format,
   getErrMsg
 }

@@ -10,9 +10,10 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     this.frameworkService = frameworkService;
     this.webStores = frameworkService.getService("WebStores");
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
-    this.utilService = this.frameworkService.getService("UtilService");
-    this.uiStrService = this.frameworkService.getService("UIStrService");
-    this.globalConstant = this.frameworkService.getService("GlobalConstant");
+    this.utilService = frameworkService.getService("UtilService");
+    this.uiStrService = frameworkService.getService("UIStrService");
+    this.globalConstant = frameworkService.getService("GlobalConstant");
+    this.configService = frameworkService.getService("ConfigService");
   }
 
   async process(tokenPair, convert) {  
@@ -117,7 +118,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessErc20UserFastMint",
       fee: networkFee,
@@ -151,7 +152,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessErc20UserFastBurn",
       fee: networkFee,

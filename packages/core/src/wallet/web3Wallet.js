@@ -2,6 +2,7 @@ const Web3 = require("web3");
 
 class Web3Wallet {
   constructor(provider, type = "MetaMask") {
+    this.name = "Web3";
     this.web3 = new Web3(provider);
     this.type = type; // the type is not mandatory, many web3-compatible wallets are slightly different, can be handled differently according to the type
   }

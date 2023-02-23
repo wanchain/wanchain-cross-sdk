@@ -1,7 +1,7 @@
 {
-  "name": "wanchain-cross-sdk-polkadot",
+  "name": "wanchain-cross-sdk-tron",
   "version": "0.0.1",
-  "description": "Wanchain Cross-Chain SDK polkadot extension",
+  "description": "Wanchain Cross-Chain SDK tron extension",
   "repository": "git+https://github.com/wanchain/wanchain-cross-sdk.git",
   "license": "MIT",
   "engines": {
@@ -12,10 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@polkadot/extension-dapp": "0.44.8",
-    "@polkadot/api": "9.13.6",
-    "@polkadot/util": "10.3.1",
-    "@polkadot/util-crypto": "10.3.1",
+    "tronweb": "4.4.0",
     "bignumber.js": "^9.1.1"
   }
 }

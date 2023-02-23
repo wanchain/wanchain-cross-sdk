@@ -1,7 +1,15 @@
-const WanBridge = require('./src/bridge/wanBridge');
-const Web3Wallet = require('./src/wallet/web3Wallet');
+const PolkadotJsWallet = require("./src/wallet/polkadotJs");
+const tool = require("./src/tool");
+const util = require("@polkadot/util");
+const utilCrypto = require("@polkadot/util-crypto");
+const { Keyring } = require("@polkadot/api");
 
 module.exports = {
-  WanBridge,
-  Web3Wallet
+  getChains: () => ["Polkadot", "Phala"],
+  getSymbols: () => ["DOT", "PHA"],
+  PolkadotJsWallet,
+  tool,
+  util,
+  utilCrypto,
+  Keyring,
 };

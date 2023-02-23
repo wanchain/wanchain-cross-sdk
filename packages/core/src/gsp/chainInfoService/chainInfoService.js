@@ -2,8 +2,6 @@
 
 module.exports = class ChainInfoService {
   constructor() {
-    this.m_wanInfo = {};
-    this.m_ethInfo = {};
     this.m_mapChainIdObj = new Map();   // chainId - > chainInfo
     this.m_mapChainNameObj = new Map();  // chainName - > chainInfo
     this.m_mapChainTypeObj = new Map();  // chainType - > chainInfo

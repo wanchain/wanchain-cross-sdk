@@ -1,7 +1,6 @@
 'use strict';
 
 const _ = require('lodash');
-const ConfigServiceInterface = require("./configServiceInterface");
 
 const config = {
   "mainnet": require("../../config/config_mainnet.json"),
@@ -14,15 +13,16 @@ const abis = {
   "erc721": require("../../config/abi/erc721.json")
 }
 
-module.exports = class ConfigService extends ConfigServiceInterface {
+module.exports = class ConfigService {
     constructor() {
-        super();
+        this.extensions = new Map();
     }
 
-    async init(network) {
+    async init(network, extensions) {
         this.network = network;
-        this.m_confgJson = config[network];
-        // console.log(this.m_confgJson);
+        this.curConfig = config[network];
+        // console.debug(this.curConfig);
+        this._initExtensions(extensions);
     }
 
     getNetwork() {
@@ -33,14 +33,38 @@ module.exports = class ConfigService extends ConfigServiceInterface {
         return abis[contractName];
     }
 
+    getExtension(chainType) {
+      return this.extensions.get(chainType);
+    }
+
     async getConfig(serviceName, propertyPath) {
         let fullPropertyPath = serviceName;
         if (propertyPath && propertyPath !== '.') fullPropertyPath = fullPropertyPath + '.' + propertyPath;
-        let ret = _.get(this.m_confgJson, fullPropertyPath);
+        let ret = _.get(this.curConfig, fullPropertyPath);
         return ret;
     }
 
     async getGlobalConfig(name) {
-        return _.get(this.m_confgJson, name);
+        return _.get(this.curConfig, name);
+    }
+
+    _initExtensions(extensions) {
+      if (!Array.isArray(extensions)) {
+        extensions = [extensions];
+      }
+      extensions.forEach((ext, i) => {
+        if (ext.getChains && ext.getSymbols) {
+          let names = ext.getName();
+          let symbols = ext.getSymbol();
+          if (names && symbols && (names.length === symbols.length)) {
+            symbols.forEach((symbol, i) => {
+              this.extensions.set(symbol, ext);
+              console.debug("register %s(%s) extension", names[i], symbol);
+            })
+            return;
+          }
+        }
+        throw new Error("Extension " + i + " is invalid");
+      });
     }
 }

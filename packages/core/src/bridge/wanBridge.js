@@ -13,22 +13,23 @@ const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 const MAX_NFT_BATCH_SIZE = 10;
 
 class WanBridge extends EventEmitter {
-  constructor(network = "testnet", isTestMode = false, smgIndex = 0) { // smgIndex is for testing only
+  constructor(network = "testnet", options = {}) {
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
-    this.isTestMode = isTestMode;
-    this.smgIndex = smgIndex;
+    this.isTestMode = options.isTestMode || false; // for dev
+    this.smgIndex = options.smgIndex || 0;         // for dev
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
       crossChainTaskSteps: new CrossChainTaskSteps()
     };
-    this._service = new StartService(isTestMode);
   }
 
-  async init(iwanAuth) {
+  async init(iwanAuth, options) {
     console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302171918", this.network, this.isTestMode, this.smgIndex);
-    await this._service.init(this.network, this.stores, iwanAuth);
+    this._service = new StartService(this.isTestMode);
+    await this._service.init(this.network, this.stores, iwanAuth, options.extensions || []);
+    this.configService = this._service.getService("ConfigService");
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
     this.storageService = this._service.getService("StorageService");
@@ -190,11 +191,14 @@ class WanBridge extends EventEmitter {
 
   validateToAccount(chainName, account) {
     let chainType = this.tokenPairService.getChainType(chainName);
-    if (this.stores.assetPairs.isTokenAccount(chainType, account)) {
+    let extension = this.configService.getExtension(chainType);
+    if (this.stores.assetPairs.isTokenAccount(chainType, account, extension)) {
       console.error("SDK: validateToAccount, chainName: %s, account: %s, result: is token account", chainName, account);
       return false;
     }
-    if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS"].includes(chainType)) {
+    if (extension && extension.tool && extension.tool.validateAddress) {
+      return extension.tool.validateAddress(account, this.network, chainType);
+    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -206,14 +210,8 @@ class WanBridge extends EventEmitter {
       return tool.isValidDogeAddress(account, this.network);
     } else if ("XRP" === chainType) {
       return tool.isValidXrpAddress(account);
-    } else if (["DOT", "PHA"].includes(chainType)) {
-      return tool.isValidPolkadotAddress(account, chainType, this.network);
-    } else if ("ADA" === chainType) {
-      return tool.isValidAdaAddress(account, this.network);
     } else if ("XDC" === chainType) {
       return tool.isValidXdcAddress(account);
-    } else if ("TRX" === chainType) {
-      return tool.isValidTrxAddress(account);
     } else {
       console.error("SDK: validateToAccount, chainName: %s, account: %s, result: unsupported chain", chainName, account);
       return false;
@@ -373,8 +371,9 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
-      let expectedToAccount = tool.getStandardAddressInfo(ccTask.toChainType, ccTask.toAccount).native;
-      let actualToAccount = tool.getStandardAddressInfo(ccTask.toChainType, taskRedeemHash.toAccount).native;
+      let toChainType = ccTask.toChainType;
+      let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.toAccount, this.configService.getExtension(toChainType)).native;
+      let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
       if (!tool.cmpAddress(expectedToAccount, actualToAccount)) {
         console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
         status = "Error";

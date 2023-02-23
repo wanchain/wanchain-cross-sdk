@@ -5,11 +5,12 @@ const tool = require('../../utils/tool.js');
 
 module.exports = class MintXrpFromRipple {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
+    this.configService = frameworkService.getService("ConfigService");
   }
 
   async process(tokenPair, convert) {
-    let WebStores = this.m_frameworkService.getService("WebStores");
+    let WebStores = this.frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value);
       if (tokenPair.fromAccount == 0) { // token ignore decimals
@@ -19,10 +20,11 @@ module.exports = class MintXrpFromRipple {
       // neither apiServer nor storeman agent adopt the fee, the get fee from iwan or config contract,
       // so do not distinguish networkFee and operateFee, and ignore returned fee value of apiServer
       let fee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol("XRP", tokenPair.ancestorSymbol));
+      let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
-        toChainType: tokenPair.toChainType,
-        userAccount: tool.getStandardAddressInfo(tokenPair.toChainType, convert.toAddr).evm,
+        toChainType,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.storemanGroupGpk,

@@ -1,6 +1,5 @@
 'use strict';
 
-const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -28,25 +27,27 @@ const TX_TYPE = {
 
 module.exports = class ProcessAdaMintFromCardano {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
-    this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+    this.frameworkService = frameworkService;
+    this.iwan = frameworkService.getService("iWanConnectorService");
+    let extension = configService.getExtension("ADA");
+    this.wasm = extension.wasm;
   }
 
   async process(stepData, wallet) {
-    let webStores = this.m_frameworkService.getService("WebStores");
+    let webStores = this.frameworkService.getService("WebStores");
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
       let protocolParameters = await this.initTx();
       let utxos = await wallet.cardano.getUtxos();
-      utxos = utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
+      utxos = utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
       // this.showUtxos(utxos);
 
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
       let output = {
-        address: wasm.Address.from_bech32(params.crossScAddr),
+        address: this.wasm.Address.from_bech32(params.crossScAddr),
         amount: [
           {
             unit: 'lovelace',
@@ -62,7 +63,7 @@ module.exports = class ProcessAdaMintFromCardano {
         let outputValue = await this.assetsToValue(output.amount);
         let minAda = this.minAdaRequired(
           outputValue,
-          wasm.BigNum.from_str(
+          this.wasm.BigNum.from_str(
             protocolParameters.minUtxo
           )
         );
@@ -70,16 +71,16 @@ module.exports = class ProcessAdaMintFromCardano {
         output.amount[0].quantity = minAda;
       }
       // console.log("output.amount: %O", output.amount);
-      let outputs = wasm.TransactionOutputs.new();
+      let outputs = this.wasm.TransactionOutputs.new();
       outputs.add(
-        wasm.TransactionOutput.new(
-          wasm.Address.from_bech32(params.crossScAddr),
+        this.wasm.TransactionOutput.new(
+          this.wasm.Address.from_bech32(params.crossScAddr),
           this.assetsToValue(output.amount)
         )
       );
 
       let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
-      let auxiliaryData = wasm.AuxiliaryData.new();
+      let auxiliaryData = this.wasm.AuxiliaryData.new();
       auxiliaryData.set_metadata(metaData);
 
       let plutusData = this.genPlutusData();
@@ -109,7 +110,7 @@ module.exports = class ProcessAdaMintFromCardano {
       }
 
       // check receipt
-      let iwan = this.m_frameworkService.getService("iWanConnectorService");
+      let iwan = this.frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
@@ -121,7 +122,7 @@ module.exports = class ProcessAdaMintFromCardano {
         taskType: "MINT"
       };
 
-      let checkAdaTxService = this.m_frameworkService.getService("CheckAdaTxService");
+      let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessAdaMintFromCardano error: %O", err);
@@ -130,8 +131,8 @@ module.exports = class ProcessAdaMintFromCardano {
   }
 
   async initTx() {
-    let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
-    let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
+    let latestBlock = await this.iwan.getLatestBlock("ADA");
+    let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
     let result = {
       linearFee: {
         minFeeA: p.min_fee_a.toString(),
@@ -153,7 +154,7 @@ module.exports = class ProcessAdaMintFromCardano {
   }
 
   assetsToValue(assets) {
-    let multiAsset = wasm.MultiAsset.new();
+    let multiAsset = this.wasm.MultiAsset.new();
     let lovelace = assets.find((asset) => asset.unit === 'lovelace');
     let policies = [
       ...new Set(
@@ -166,27 +167,27 @@ module.exports = class ProcessAdaMintFromCardano {
       let policyAssets = assets.filter(
         (asset) => asset.unit.slice(0, 56) === policy
       );
-      let assetsValue = wasm.Assets.new();
+      let assetsValue = this.wasm.Assets.new();
       policyAssets.forEach((asset) => {
         assetsValue.insert(
-          wasm.AssetName.new(Buffer.from(asset.unit.slice(56), 'hex')),
-          wasm.BigNum.from_str(asset.quantity)
+          this.wasm.AssetName.new(Buffer.from(asset.unit.slice(56), 'hex')),
+          this.wasm.BigNum.from_str(asset.quantity)
         );
       });
       multiAsset.insert(
-        wasm.ScriptHash.from_bytes(Buffer.from(policy, 'hex')),
+        this.wasm.ScriptHash.from_bytes(Buffer.from(policy, 'hex')),
         assetsValue
       );
     });
-    let value = wasm.Value.new(
-      wasm.BigNum.from_str(lovelace ? lovelace.quantity : '0')
+    let value = this.wasm.Value.new(
+      this.wasm.BigNum.from_str(lovelace ? lovelace.quantity : '0')
     );
     if (assets.length > 1 || !lovelace) value.set_multiasset(multiAsset);
     return value;
   }
 
   minAdaRequired(value, minUtxo) {
-    return wasm.min_ada_required(
+    return this.wasm.min_ada_required(
       value,
       minUtxo
     ).to_str();
@@ -202,16 +203,16 @@ module.exports = class ProcessAdaMintFromCardano {
       }
     };
     // console.debug("nami buildUserLockData: %O", data);
-    data = wasm.encode_json_str_to_metadatum(JSON.stringify(data), wasm.MetadataJsonSchema.BasicConversions);
-    return wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
+    data = this.wasm.encode_json_str_to_metadatum(JSON.stringify(data), this.wasm.MetadataJsonSchema.BasicConversions);
+    return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
 
   genPlutusData() { // just dummy data
-    let ls = wasm.PlutusList.new();
-    ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
-    return wasm.PlutusData.new_constr_plutus_data(
-        wasm.ConstrPlutusData.new(
-            wasm.BigNum.from_str('0'),
+    let ls = this.wasm.PlutusList.new();
+    ls.add(this.wasm.PlutusData.new_integer(this.wasm.BigInt.from_str('1')));
+    return this.wasm.PlutusData.new_constr_plutus_data(
+        this.wasm.ConstrPlutusData.new(
+            this.wasm.BigNum.from_str('0'),
             ls
         )
     )

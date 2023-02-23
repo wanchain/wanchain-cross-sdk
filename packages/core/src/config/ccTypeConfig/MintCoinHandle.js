@@ -5,14 +5,13 @@ const tool = require('../../utils/tool.js');
 
 module.exports = class MintCoinHandle {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
-    this.m_WebStores = frameworkService.getService("WebStores");
-    this.m_taskService = frameworkService.getService("TaskService");
-    this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+    this.frameworkService = frameworkService;
+    this.webStores = frameworkService.getService("WebStores");
+    this.configService = frameworkService.getService("ConfigService");
   }
 
   async process(tokenPair, convert) {
-    this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
+    this.m_uiStrService = this.frameworkService.getService("UIStrService");
     this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
     this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
@@ -32,7 +31,7 @@ module.exports = class MintCoinHandle {
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr).evm,
+      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
       toAddr: convert.toAddr, // only for readability
       taskType: "ProcessCoinUserFastMint",
       fee,
@@ -43,7 +42,7 @@ module.exports = class MintCoinHandle {
     let ret = [
       {name: "userFastMint", stepIndex: 1, title: this.m_strMintTitle, desc: this.m_strMintDesc, params}
     ];
-    this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
+    this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
     return {
       stepNum: ret.length,
       errCode: null

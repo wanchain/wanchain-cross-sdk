@@ -48,7 +48,7 @@ class StartService {
         //console.log("StartService onStoremanServiceInitComplete args: ", args);
     }
 
-    async init(network, stores, iwanAuth) {
+    async init(network, stores, iwanAuth, extensions) {
         try {
             let frameworkService = this.frameworkService;
             frameworkService.registerService("WebStores", stores);
@@ -67,7 +67,7 @@ class StartService {
             this.m_eventService = eventService;
 
             let configService = new ConfigService();
-            await configService.init(network);
+            await configService.init(network, extensions);
             frameworkService.registerService("ConfigService", configService);
 
             let chainInfoService = new ChainInfoService();

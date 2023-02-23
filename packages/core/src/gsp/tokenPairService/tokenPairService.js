@@ -98,7 +98,7 @@ class TokenPairService {
             let ts2 = new Date().getTime();
             console.debug("readAssetPair consume %s/%s ms", ts2 - ts1, ts2 - ts0);
             // console.debug("available tokenPairMap: %O", tokenPairMap.values());
-            this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList);
+            this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList, this.configService);
             this.m_mapTokenPair = tokenPairMap;
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
         } catch (err) {

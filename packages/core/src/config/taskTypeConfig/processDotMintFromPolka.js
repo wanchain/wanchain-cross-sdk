@@ -2,9 +2,6 @@
 
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
-const util = require("@polkadot/util");
-const utilCrypto = require("@polkadot/util-crypto");
-const { Keyring } = require('@polkadot/api');
 
 // memo should like follows
 // memo_Type + memo_Data, Divided Symbols should be '0x'
@@ -26,11 +23,13 @@ const ToAccountLen = 40; // without '0x'
 
 module.exports = class ProcessDotMintFromPolka {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
+    let configService  = frameworkService.getService("ConfigService");
+    this.extension = configService.getExtension("DOT");
   }
 
   async process(stepData, wallet) {
-    let webStores = this.m_frameworkService.getService("WebStores");
+    let webStores = this.frameworkService.getService("WebStores");
     // console.debug("ProcessDotMintFromPolka stepData:", stepData);
     let params = stepData.params;
     try {
@@ -54,7 +53,7 @@ module.exports = class ProcessDotMintFromPolka {
       // 3 check balance >= (value + gasFee + minReserved)
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
-      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+      let chainInfoService = this.frameworkService.getService("ChainInfoService");
       let chainInfo = await chainInfoService.getChainInfoByType("DOT");
       let minReserved = new BigNumber(chainInfo.minReserved);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
@@ -81,7 +80,7 @@ module.exports = class ProcessDotMintFromPolka {
       }
 
       // 查询目的链当前blockNumber
-      let iwan = this.m_frameworkService.getService("iWanConnectorService");
+      let iwan = this.frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
@@ -93,7 +92,7 @@ module.exports = class ProcessDotMintFromPolka {
         taskType: "MINT"
       };
 
-      let checkDotTxService = this.m_frameworkService.getService("CheckDotTxService");
+      let checkDotTxService = this.frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessDotMintFromPolka error: %O", err);
@@ -117,6 +116,7 @@ module.exports = class ProcessDotMintFromPolka {
   }
 
   longPubKeyToAddress(longPubKey, ss58Format = 42) {
+    let {util, utilCrypto, Keyring} = this.extension;
     longPubKey = '0x04' + longPubKey.slice(2);
     const tmp = util.hexToU8a(longPubKey);
     const pubKeyCompress = utilCrypto.secp256k1Compress(tmp);
