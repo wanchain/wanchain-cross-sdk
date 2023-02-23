@@ -5,7 +5,7 @@ function bytesAddressToBinary(bytes) {
 }
 
 // WAValidator can not valid testnet address
-function validateAddress(address, network) {
+function validateAddress(address, network, chain) {
   const networkId = (network === "testnet")? 0 : 1;
   try {
     let addr = wasm.ByronAddress.from_base58(address);

@@ -19,14 +19,14 @@ function getSS58Format(chain, network) {
   }
 }
 
-function validateAddress(account, network, chain) {
+function validateAddress(address, network, chain) {
   try {
     let format = getSS58Format(chain, network);
-    let addr = encodeAddress(account, format);
-    console.log("polkadot %s %s account %s formatted to %s", chain, network, account, addr);
-    return (account === addr);
+    let addr = encodeAddress(address, format);
+    console.log("polkadot %s %s address %s formatted to %s", chain, network, address, addr);
+    return (address === addr);
   } catch(err) {
-    console.log("polkadot %s %s account %s is invalid: %s", chain, network, account, err);
+    console.log("polkadot %s %s address %s is invalid: %s", chain, network, address, err);
     return false;
   }
 }

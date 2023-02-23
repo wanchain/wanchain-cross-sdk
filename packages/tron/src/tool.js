@@ -2,10 +2,10 @@ const TronWeb = require('tronweb');
 
 const tronweb = new TronWeb({fullHost: "https://api.nileex.io"});
 
-function validateAddress(account, network, chain) {
+function validateAddress(address, network, chain) {
   let isValid = tronweb.isAddress(address);
   if (isValid) {
-    return (account.substr(0, 2) !== "41");
+    return (address.substr(0, 2) !== "41");
   } else {
     return false;
   }

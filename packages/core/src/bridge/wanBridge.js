@@ -67,7 +67,7 @@ class WanBridge extends EventEmitter {
   }
 
   async checkWallet(chainName, wallet) {
-    console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.type : undefined);
+    console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.name : undefined);
     let chainType = this.tokenPairService.getChainType(chainName);
     if (this._isThirdPartyWallet(chainType)) {
       return true;
@@ -93,7 +93,7 @@ class WanBridge extends EventEmitter {
 
   async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
     console.debug("SDK: createTask, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
-                  assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options.wallet? options.wallet.type : undefined, tool.getCurTimestamp());
+                  assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options.wallet? options.wallet.name : undefined, tool.getCurTimestamp());
     let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
     if (!assetPair) {
       throw new Error("Asset pair not exist");
@@ -150,7 +150,7 @@ class WanBridge extends EventEmitter {
       balance = balance.toFixed();
     }
     console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O, result: %s", assetType, chainName, account,
-                  {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.type : undefined},
+                  {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.name : undefined},
                   balance);
     return balance;
   }
@@ -197,7 +197,7 @@ class WanBridge extends EventEmitter {
       return false;
     }
     if (extension && extension.tool && extension.tool.validateAddress) {
-      return extension.tool.validateAddress(account, this.network, chainType);
+      return extension.tool.validateAddress(account, this.network, chainName);
     } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
