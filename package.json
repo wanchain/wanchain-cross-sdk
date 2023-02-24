@@ -6,7 +6,7 @@
   "author": "wanchain <techsupport@wanchain.org>",
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=10.0.0"
   },
   "main": "index.js",
   "scripts": {
