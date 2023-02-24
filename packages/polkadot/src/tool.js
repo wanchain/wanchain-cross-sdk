@@ -1,4 +1,6 @@
 const { encodeAddress } = require('@polkadot/keyring');
+const util = require("@polkadot/util");
+const utilCrypto = require("@polkadot/util-crypto");
 
 // self define to reduce imported package size
 const SS58Format = {
@@ -31,7 +33,14 @@ function validateAddress(address, network, chain) {
   }
 }
 
+function gpk2Address(gpk, chain, network) {
+  let compressed = utilCrypto.secp256k1Compress(util.hexToU8a('0x04' + gpk.slice(2)));
+  let format = getSS58Format(chain, network);
+  return encodeAddress(utilCrypto.blake2AsU8a(compressed), format);
+}
+
 module.exports = {
   getSS58Format,
   validateAddress,
+  gpk2Address
 }

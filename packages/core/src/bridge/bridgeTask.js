@@ -412,23 +412,12 @@ class BridgeTask {
     return xrpAddr;
   }
 
-  _getSmgPolkaAddress(chain) {
-    let extension = this._bridge.configService.getExtension("DOT");
-    let {tool, polkaUtil, polkaUtilCrypto, Keyring} = extension;
-    let format = tool.getSS58Format(chain, this._bridge.network);
-    let pubKey = '0x04' + this._secp256k1Gpk.slice(2);
-    const compressed = polkaUtilCrypto.secp256k1Compress(polkaUtil.hexToU8a(pubKey));
-    const hash = polkaUtilCrypto.blake2AsU8a(compressed);
-    const keyring = new Keyring({type: 'ecdsa', ss58Format: format});
-    const smgAddr = keyring.encodeAddress(hash);
-    return smgAddr;
-  }
-
   _getSmgAddress(chainType) {
-    if ("XRP" === chainType) {
+    let extension = this._bridge.configService.getExtension(chainType);
+    if (extension && extension.tool && extension.tool.gpk2Address) {
+      return extension.tool.gpk2Address(this._secp256k1Gpk, chainType, this._bridge.network);
+    } else if ("XRP" === chainType) {
       return this._getSmgXrpClassicAddress();
-    } else if (["DOT", "PHA"].includes(chainType)) {
-      return this._getSmgPolkaAddress(chainType);
     } else { // only for not-sc-chain to check smg account, other chains should not call this function
       throw new Error("Unknown " + chainType + " smg address");
     }

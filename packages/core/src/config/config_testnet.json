@@ -275,7 +275,7 @@
       "chainId": "2147483648",
       "chainType": "BTC",
       "chainName": "Bitcoin",
-      "NETWORK": "testnet",
+      "network": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
       "TxScanInfo": {
@@ -286,7 +286,7 @@
       "chainId": "2147483650",
       "chainType": "LTC",
       "chainName": "Litecoin",
-      "NETWORK": "testnet",
+      "network": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
       "TxScanInfo": {
@@ -297,7 +297,7 @@
       "chainId": "2147483651",
       "chainType": "DOGE",
       "chainName": "Dogecoin",
-      "NETWORK": "testnet",
+      "network": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
       "TxScanInfo": {

@@ -24,8 +24,8 @@ const ToAccountLen = 40; // without '0x'
 module.exports = class ProcessDotMintFromPolka {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    let configService  = frameworkService.getService("ConfigService");
-    this.extension = configService.getExtension("DOT");
+    this.configService  = frameworkService.getService("ConfigService");
+    this.extension = this.configService.getExtension("DOT");
   }
 
   async process(stepData, wallet) {
@@ -39,8 +39,9 @@ module.exports = class ProcessDotMintFromPolka {
       let api = await wallet.getApi();
 
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
-      let storemanGroupAddr = this.longPubKeyToAddress(params.storemanGroupGpk);
-      //console.log("storemanGroupAddr:", storemanGroupAddr);
+      let network = this.configService.getNetwork();
+      let storemanGroupAddr = this.extension.tool.gpk2Address(params.storemanGroupGpk, "Polkadot", network);
+      //console.log({storemanGroupAddr});
 
       // 2 生成交易串
       let txValue = '0x' + new BigNumber(params.value).toString(16);
@@ -113,16 +114,5 @@ module.exports = class ProcessDotMintFromPolka {
       console.error("buildUserlockMemo parameter invalid");
     }
     return memo;
-  }
-
-  longPubKeyToAddress(longPubKey, ss58Format = 42) {
-    let {util, utilCrypto, Keyring} = this.extension;
-    longPubKey = '0x04' + longPubKey.slice(2);
-    const tmp = util.hexToU8a(longPubKey);
-    const pubKeyCompress = utilCrypto.secp256k1Compress(tmp);
-    const hash = utilCrypto.blake2AsU8a(pubKeyCompress);
-    const keyring = new Keyring({type: 'ecdsa', ss58Format: ss58Format});
-    const address = keyring.encodeAddress(hash);
-    return address;
   }
 };
