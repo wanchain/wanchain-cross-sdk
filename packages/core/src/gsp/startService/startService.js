@@ -34,8 +34,7 @@ let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
 let CheckAdaTxService = require("../checkAdaTxService/checkAdaTxService");
 
 class StartService {
-    constructor(isTestMode) {
-        this.isTestMode = isTestMode;
+    constructor() {
         this.frameworkService = new FrameworkService();
     }
 
@@ -48,7 +47,7 @@ class StartService {
         //console.log("StartService onStoremanServiceInitComplete args: ", args);
     }
 
-    async init(network, stores, iwanAuth, extensions) {
+    async init(network, stores, iwanAuth, options) {
         try {
             let frameworkService = this.frameworkService;
             frameworkService.registerService("WebStores", stores);
@@ -67,7 +66,7 @@ class StartService {
             this.m_eventService = eventService;
 
             let configService = new ConfigService();
-            await configService.init(network, extensions);
+            await configService.init(network, options);
             frameworkService.registerService("ConfigService", configService);
 
             let chainInfoService = new ChainInfoService();
@@ -116,8 +115,8 @@ class StartService {
             await storemanService.init(frameworkService);
             frameworkService.registerService("StoremanService", storemanService);
 
-            let tokenPairService = new TokenPairService(this.isTestMode);
-            await tokenPairService.init(frameworkService);
+            let tokenPairService = new TokenPairService();
+            await tokenPairService.init(frameworkService, options);
             frameworkService.registerService("TokenPairService", tokenPairService);
 
             let txGeneratorService = new TxGeneratorService();

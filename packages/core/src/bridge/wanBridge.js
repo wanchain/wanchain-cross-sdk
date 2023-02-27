@@ -13,11 +13,11 @@ const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 const MAX_NFT_BATCH_SIZE = 10;
 
 class WanBridge extends EventEmitter {
-  constructor(network = "testnet", options = {}) {
+  constructor(network = "testnet", options = {}) { // options is only for dev
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
-    this.isTestMode = options.isTestMode || false; // for dev
-    this.smgIndex = options.smgIndex || 0;         // for dev
+    this.isTestMode = options.isTestMode || false;
+    this.smgIndex = options.smgIndex || 0;
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
@@ -27,8 +27,8 @@ class WanBridge extends EventEmitter {
 
   async init(iwanAuth, options) {
     console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302171918", this.network, this.isTestMode, this.smgIndex);
-    this._service = new StartService(this.isTestMode);
-    await this._service.init(this.network, this.stores, iwanAuth, options.extensions || []);
+    this._service = new StartService();
+    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");

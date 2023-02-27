@@ -25,7 +25,7 @@ class AssetPairs {
         this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount, configService));
         let assetPair = {
           assetPairId: pair.id,
-          assetType: tool.parseTokenPairSymbol(pair.ancestorChainID, pair.ancestorSymbol), // the ancestory symbol for this token
+          assetType: pair.readableSymbol,    // the readable ancestory symbol for this token
           protocol: pair.toAccountType || "Erc20", // token protocol: Erc20, Erc721, Erc1155
           ancestorChainName: pair.ancestorChainName, // ancestor Chain Name
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain

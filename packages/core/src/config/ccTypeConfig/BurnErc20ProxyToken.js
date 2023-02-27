@@ -74,7 +74,7 @@ module.exports = class BurnErc20ProxyToken {
     // function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)  
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol), {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
     let userFastBurnParas = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,

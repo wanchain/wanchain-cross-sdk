@@ -17,9 +17,9 @@ module.exports = class MintXrpFromRipple {
         value = value.multipliedBy(Math.pow(10, tokenPair.fromDecimals));
       }
       value = value.toFixed();
-      // neither apiServer nor storeman agent adopt the fee, the get fee from iwan or config contract,
+      // neither apiServer nor storeman agent adopt the fee, they get fee from iwan or config contract,
       // so do not distinguish networkFee and operateFee, and ignore returned fee value of apiServer
-      let fee = tool.parseFee(convert.fee, convert.value, tool.parseTokenPairSymbol("XRP", tokenPair.ancestorSymbol));
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol);
       let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,

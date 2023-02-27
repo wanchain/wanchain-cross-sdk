@@ -27,7 +27,7 @@ module.exports = class crossChainFees {
         return {
             fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
             isRatio: fee.isPercent,
-            unit: tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol),
+            unit: tokenPair.readableSymbol,
             min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
             max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
             decimals: Number(decimals)

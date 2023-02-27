@@ -5,8 +5,7 @@ const Identicon = require('identicon.js');
 const tool = require('../../utils/tool');
 
 class TokenPairService {
-    constructor(isTestMode) {
-        this.isTestMode = isTestMode;
+    constructor() {
         this.m_iwanConnected = false;
         this.m_mapTokenPair = new Map(); // tokenPairId => tokenPair
         this.m_mapTokenPairCfg = new Map(); // tokenPairId => tokenPairConfig
@@ -18,8 +17,11 @@ class TokenPairService {
         this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
     }
 
-    async init(frameworkService) {
+    async init(frameworkService, options) {
         try {
+            this.isTestMode = options.isTestMode || false;
+            this.crossAssets = options.crossAssets || [];
+            this.crossChains = options.crossChains || [];
             this.frameworkService = frameworkService;
             this.iwanBCConnector = frameworkService.getService("iWanConnectorService");
             this.eventService = frameworkService.getService("EventService");
@@ -80,8 +82,10 @@ class TokenPairService {
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
                 if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
-                  tokenPairMap.set(tp.id, tp);
-                  return true;
+                  if (this.checkCustomization(tp)) {
+                    tokenPairMap.set(tp.id, tp);
+                    return true;
+                  }
                 }
               }
               return false;
@@ -105,6 +109,21 @@ class TokenPairService {
             console.error("readAssetPair error: %O", err);
             this.eventService.emitEvent("StoremanServiceInitComplete", false);
         }
+    }
+
+    checkCustomization(tp) {
+      if (this.crossAssets.length && !this.crossAssets.includes(tp.readableSymbol)) {
+        return false;
+      }
+      if (this.crossChains.length) {
+        let chains = [tp.ancestorChainType, tp.ancestorChainName, tp.fromChainType, tp.fromChainName, tp.toChainType, tp.toChainName]; 
+        for (let chain of chains) {
+          if (!this.crossChains.includes(chain)) {
+            return false;
+          }
+        }
+      }
+      return true;
     }
 
     async readTokenpairs(startTime) {
@@ -149,9 +168,7 @@ class TokenPairService {
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
-        // xrp token ancestorSymbol keep original format for iwan api
-        let symbol = tool.parseTokenPairSymbol(tp.ancestorChainID, tp.ancestorSymbol);
-        assetMap.set(symbol + "_" + tp.toAccountType.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
+        assetMap.set(tp.readableSymbol + "_" + tp.toAccountType.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -255,6 +272,8 @@ class TokenPairService {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (ancestorChainInfo && tokenPair.fromScInfo && tokenPair.toScInfo) {
+            // (xrp) ancestorSymbol keep original format for iwan api
+            tokenPair.readableSymbol = tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol);
             tokenPair.ancestorChainType = ancestorChainInfo.chainType;
             tokenPair.ancestorChainName = ancestorChainInfo.chainName;
             this.chainName2Type.set(tokenPair.ancestorChainName, tokenPair.ancestorChainType);

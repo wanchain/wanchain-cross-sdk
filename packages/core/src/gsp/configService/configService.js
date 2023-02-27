@@ -18,11 +18,11 @@ module.exports = class ConfigService {
         this.extensions = new Map();
     }
 
-    async init(network, extensions) {
+    async init(network, options) {
         this.network = network;
         this.curConfig = config[network];
         // console.debug(this.curConfig);
-        this._initExtensions(extensions);
+        this._initExtensions(options.extensions || []);
     }
 
     getNetwork() {
