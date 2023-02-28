@@ -37,7 +37,7 @@ Step 2: Connect the Nami wallet.
 let namiWallet = new CardanoExtension.NamiWallet("testnet");
 ```
 
-Step 4: Select a related asset pair and create cross-chain task.
+Step 3: Select a related asset pair and create cross-chain task.
 
 ```javascript
 let task = await bridge.createTask("ADA", 'Cardano', "Wanchain", 10, "cardano-address", "wanchain-address", {wallet: namiWallet});

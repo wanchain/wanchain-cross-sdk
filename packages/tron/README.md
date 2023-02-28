@@ -37,7 +37,7 @@ Step 2: Connect the TronLink wallet.
 let tronLinkWallet = new TronExtension.TronLinkWallet("testnet");
 ```
 
-Step 4: Select a related asset pair and create cross-chain task.
+Step 3: Select a related asset pair and create cross-chain task.
 
 ```javascript
 let task = await bridge.createTask("TRX", 'Tron', "Wanchain", 10, "tron-address", "wanchain-address", {wallet: tronLinkWallet});

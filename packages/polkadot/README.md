@@ -37,7 +37,7 @@ Step 2: Connect the polkadot{.js} wallet.
 let polkadotJsWallet = new PolkadotExtension.PolkadotJsWallet("testnet");
 ```
 
-Step 4: Select a related asset pair and create cross-chain task.
+Step 3: Select a related asset pair and create cross-chain task.
 
 ```javascript
 // NOTE that testnt asset symbol is WND, and mainnet is DOT
