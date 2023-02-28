@@ -22,6 +22,7 @@ class TokenPairService {
             this.isTestMode = options.isTestMode || false;
             this.crossAssets = options.crossAssets || [];
             this.crossChains = options.crossChains || [];
+            this.crossProtocols = options.crossProtocols || [];
             this.frameworkService = frameworkService;
             this.iwanBCConnector = frameworkService.getService("iWanConnectorService");
             this.eventService = frameworkService.getService("EventService");
@@ -112,6 +113,9 @@ class TokenPairService {
     }
 
     checkCustomization(tp) {
+      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.fromAccountType)) {
+        return false;
+      }
       if (this.crossAssets.length && !this.crossAssets.includes(tp.readableSymbol)) {
         return false;
       }
