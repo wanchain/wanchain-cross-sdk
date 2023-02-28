@@ -44,18 +44,17 @@ function bytes2Hex(bytes) {
 }
 
 function ascii2letter(asciiStr) {
-  let len = asciiStr.length;
+  let str = hexStrip0x(asciiStr.trim());
+  let len = str.length;
   if (len % 2 != 0) {
-      return '';
+     return '';
   }
   let letterStr = [];
   for (var i = 0; i < len; i = i + 2) {
-      let tmp = asciiStr.substr(i, 2);
-      if (tmp != '00') {
-        letterStr.push(String.fromCharCode(parseInt(tmp, 16)));
-      } else { // invalid ascii
-        return '';
-      }
+    let tmp = str.substr(i, 2);
+    if (tmp !== '00') {
+      letterStr.push(String.fromCharCode(parseInt(tmp, 16)));
+    }
   }
   return letterStr.join('');
 }

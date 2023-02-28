@@ -12,6 +12,7 @@ class AssetPairs {
     this.smgList = smgs.map(smg => {
       return {
         id: smg.groupId,
+        name: tool.ascii2letter(smg.groupId),
         gpk1: smg.gpk1,
         gpk2: smg.gpk2,
         curve1: smg.curve1,

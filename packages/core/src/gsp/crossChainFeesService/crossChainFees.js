@@ -15,7 +15,7 @@ module.exports = class crossChainFees {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
-            throw new Error("iWan is unavailable");
+            throw new Error("iWan unavailable");
         }
         let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
         let fee = await iwanBCConnector.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId});
@@ -41,7 +41,7 @@ module.exports = class crossChainFees {
         let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
         let connected = await iwanBCConnector.isConnected();
         if (connected === false) {
-            throw new Error("iWan is unavailable");
+            throw new Error("iWan unavailable");
         }
         let direction = (fromChainType === tokenPair.fromScInfo.chainType);
         let fromChainName = direction? tokenPair.fromScInfo.chainName : tokenPair.toScInfo.chainName;

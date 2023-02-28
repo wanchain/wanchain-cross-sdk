@@ -54,12 +54,12 @@ class TokenPairService {
         console.debug("getSmgs %d consume %s ms", smgList.length, ts - startTime);
         let workingList = [];
         for (let i = 0; i < smgList.length; i++) {
-            let group = smgList[i];
+            let smg = smgList[i];
             let curTime = new Date().getTime();
-            let startTime = group.startTime * 1000;
-            let endTime = group.endTime * 1000;
-            if ((group.status == 5) && (curTime > startTime) && (curTime < endTime)) {
-                workingList.push(group);
+            let startTime = smg.startTime * 1000;
+            let endTime = smg.endTime * 1000;
+            if ((smg.status == 5) && (curTime > startTime) && (curTime < endTime)) {
+                workingList.push(smg);
             }
         }
         if (workingList.length > 0) {

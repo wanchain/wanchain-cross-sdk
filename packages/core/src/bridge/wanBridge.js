@@ -17,7 +17,7 @@ class WanBridge extends EventEmitter {
     super();
     this.network = (network == "mainnet")? "mainnet" : "testnet";
     this.isTestMode = options.isTestMode || false;
-    this.smgIndex = options.smgIndex || 0;
+    this.smgName = options.smgName || "";
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
@@ -26,7 +26,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgIndex: %s, ver: 2302171918", this.network, this.isTestMode, this.smgIndex);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2302171918", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -53,17 +53,41 @@ class WanBridge extends EventEmitter {
 
   async getSmgInfo() {
     let changed = false;
-    let smgs = this.stores.assetPairs.smgList;
-    let smg = smgs[this.smgIndex % smgs.length];
+    let smg = this.selectSmg();
     let curTime = tool.getCurTimestamp(true);
     if (curTime >= smg.endTime) {
-      console.log("SDK: getSmgInfo, smg %s timeout", smg.id);
+      console.log("SDK: getSmgInfo, smg %s(%s) timeout", smg.name, smg.id);
       await this.tokenPairService.updateSmgs();
-      smgs = this.stores.assetPairs.smgList;
-      smg = smgs[this.smgIndex % smgs.length];
+      smg = this.selectSmg();
       changed = true; // optimize for mainnet getQuota performance issue
     }
     return Object.assign({}, smg, {changed});
+  }
+
+  selectSmg() {
+    let smgs = this.stores.assetPairs.smgList;
+    if (smgs.length) {
+      if (this.network === "mainnet") {
+        return smgs[0]; // mainnet has only 1 smg
+      }
+      let specifiedSmg = null, defaultSmg = null;
+      for (let smg of smgs) {
+        if (smg.name === this.smgName) {
+          specifiedSmg = smg;
+          break;
+        } else if ((!defaultSmg) && (smg.name.indexOf("testnet") === 0)) {
+          defaultSmg = smg;
+        }
+      }
+      if (this.smgName) {
+        if (specifiedSmg) {
+          return specifiedSmg;
+        }
+      } else if (defaultSmg) {
+        return defaultSmg;
+      }
+    }
+    throw new Error("Storeman " + (this.smgName || this.network) + " unavailable");
   }
 
   async checkWallet(chainName, wallet) {
