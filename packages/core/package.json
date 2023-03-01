@@ -1,8 +1,11 @@
 {
-  "name": "wanchain-cross-sdk-core",
-  "version": "0.0.1",
+  "name": "@wandevs/cross-core",
+  "version": "1.0.0",
   "description": "Wanchain Cross-Chain SDK core functions",
-  "repository": "git+https://github.com/wanchain/wanchain-cross-sdk.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wanchain/wanchain-cross-sdk.git"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=12.0.0"
@@ -26,5 +29,15 @@
     "identicon.js": "^2.3.3",
     "urql": "3.0.3",
     "graphql": "16.6.0"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
+  },
+  "homepage": "https://github.com/wanchain/wanchain-cross-sdk#readme",
+  "author": "wandevs",
+  "keywords": [
+    "WanBridge",
+    "cross-chain",
+    "core"
+  ]
 }
