@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
     };
   }
 
-  async init(iwanAuth, options) {
+  async init(iwanAuth, options = {}) {
     console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2302171918", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
@@ -246,7 +246,7 @@ class WanBridge extends EventEmitter {
     return tool.validateXrpTokenAmount(amount);
   }
 
-  async getNftInfo(assetType, chainName, account, options) {
+  async getNftInfo(assetType, chainName, account, options = {}) {
     let infos = [];
     let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
     if (assetPair) {
@@ -258,16 +258,11 @@ class WanBridge extends EventEmitter {
     return infos;
   }
 
-  getHistory(options) {
-    let taskId = undefined, protocol = undefined;
-    if (options) {
-      taskId = options.taskId;
-      protocol = options.protocol;
-    }
+  getHistory(options = {}) {
     let history = [];
     let records = this.stores.crossChainTaskRecords;
     for (let [id, task] of records.ccTaskRecords) {
-      if (((taskId === undefined) || (taskId == id)) && ((protocol === undefined) || (protocol === task.protocol))) {
+      if (((options.taskId === undefined) || (options.taskId == id)) && ((options.protocol === undefined) || (options.protocol === task.protocol))) {
         let item = {
           taskId: task.ccTaskId,
           pairId: task.assetPairId,
@@ -296,7 +291,7 @@ class WanBridge extends EventEmitter {
           item.assetAlias = task.assetAlias;
         }
         history.push(item);
-        if (taskId !== undefined) { // only get one
+        if (options.taskId !== undefined) { // only get one
           break;
         }
       }
@@ -305,16 +300,11 @@ class WanBridge extends EventEmitter {
     return history;
   }
 
-  async deleteHistory(options) {
-    let taskId = undefined, protocol = undefined;
-    if (options) {
-      taskId = options.taskId;
-      protocol = options.protocol;
-    }
+  async deleteHistory(options = {}) {
     let count = 0;
     let records = this.stores.crossChainTaskRecords;
     let ids = Array.from(records.ccTaskRecords.values())
-      .filter(v => (((taskId === undefined) || (taskId == v.ccTaskId)) && ((protocol === undefined) || (protocol === v.protocol))))
+      .filter(v => (((options.taskId === undefined) || (options.taskId == v.ccTaskId)) && ((options.protocol === undefined) || (options.protocol === v.protocol))))
       .map(v => v.ccTaskId);
     for (let i = 0; i < ids.length; i++) {
       let id = ids[i];
