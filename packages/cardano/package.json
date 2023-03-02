@@ -1,0 +1,31 @@
+{
+  "name": "@wandevs/cross-cardano",
+  "version": "1.0.0",
+  "description": "Wanchain Cross-Chain SDK cardano extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wanchain/wanchain-cross-sdk.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@emurgo/cardano-serialization-lib-asmjs": "11.1.1"
+  },
+  "bugs": {
+    "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
+  },
+  "homepage": "https://github.com/wanchain/wanchain-cross-sdk#readme",
+  "author": "wandevs",
+  "keywords": [
+    "WanBridge",
+    "cross-chain",
+    "cardano",
+    "extension"
+  ]
+}

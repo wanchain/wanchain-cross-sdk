@@ -1,7 +1,14 @@
-const WanBridge = require('./src/bridge/wanBridge');
-const Wallet = require('./src/bridge/wallet/wallet');
+const {WanBridge, Web3Wallet} = require('./packages/core');
+
+// extensions
+const CardanoExtension = require('./packages/cardano');
+const PolkadotExtension = require('./packages/polkadot');
+const TronExtension = require('./packages/tron');
 
 module.exports = {
   WanBridge,
-  Wallet
+  Web3Wallet,
+  CardanoExtension,
+  PolkadotExtension,
+  TronExtension
 };

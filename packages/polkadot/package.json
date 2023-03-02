@@ -1,0 +1,35 @@
+{
+  "name": "@wandevs/cross-polkadot",
+  "version": "1.0.0",
+  "description": "Wanchain Cross-Chain SDK polkadot extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wanchain/wanchain-cross-sdk.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@polkadot/extension-dapp": "0.44.8",
+    "@polkadot/api": "9.13.6",
+    "@polkadot/util": "10.3.1",
+    "@polkadot/util-crypto": "10.3.1",
+    "bignumber.js": "^9.1.1"
+  },
+  "bugs": {
+    "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
+  },
+  "homepage": "https://github.com/wanchain/wanchain-cross-sdk#readme",
+  "author": "wandevs",
+  "keywords": [
+    "WanBridge",
+    "cross-chain",
+    "polkadot",
+    "extension"
+  ]
+}
