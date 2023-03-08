@@ -228,12 +228,12 @@
       "chainId": "2147484625",
       "chainType": "TLOS",
       "chainName": "Telos",
-      "crossScAddr": "0x",
+      "crossScAddr": "0x201E5dE97DFc46aAce142B2009332c524c9D8D82",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
-      "MaskChainId": 41,
+      "MaskChainId": 40,
       "ScScanInfo": {
         "taskInterval": 15000
       }
