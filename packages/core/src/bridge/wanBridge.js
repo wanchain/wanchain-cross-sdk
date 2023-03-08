@@ -119,9 +119,6 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: createTask, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
                   assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options.wallet? options.wallet.name : undefined, tool.getCurTimestamp());
     let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
-    if (!assetPair) {
-      throw new Error("Asset pair not exist");
-    }
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
@@ -166,50 +163,44 @@ class WanBridge extends EventEmitter {
   }
 
   async getAccountBalance(assetType, chainName, account, options = {}) {
-    let balance = "0";
+    console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account,
+                  {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.name : undefined});
     let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
-    if (assetPair) {
-      let chainType = this.tokenPairService.getChainType(chainName);
-      balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, chainType, account, options);
-      balance = balance.toFixed();
-    }
-    console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O, result: %s", assetType, chainName, account,
-                  {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.name : undefined},
-                  balance);
+    let chainType = this.tokenPairService.getChainType(chainName);
+    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, chainType, account, options);
+    balance = balance.toFixed();
+    console.debug("SDK: getAccountBalance, result: %s", balance);
     return balance;
   }
 
   async estimateFee(assetType, fromChainName, toChainName, options = {}) {
-    let fee = null; // no default value
+    console.debug("SDK: estimateFee, assetType: %s, fromChainName: %s, toChainName: %s, options: %O", assetType, fromChainName, toChainName, options);
     let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
-    if (assetPair) {
-      let fromChainType = this.tokenPairService.getChainType(fromChainName);
-      let toChainType = this.tokenPairService.getChainType(toChainName);
-      let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, fromChainType, toChainType);
-      let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, fromChainType, toChainType, options);
-      fee = {
-        operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
-        networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals}
-      };
-    }
-    console.debug("SDK: estimateFee, assetType: %s, fromChainName: %s, toChainName: %s, options: %O, result: %O", assetType, fromChainName, toChainName, options, fee);
+    let fromChainType = this.tokenPairService.getChainType(fromChainName);
+    let toChainType = this.tokenPairService.getChainType(toChainName);
+    let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, fromChainType, toChainType);
+    let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, fromChainType, toChainType, options);
+    let fee = {
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals}
+    };
+    console.debug("SDK: estimateFee, result: %O", fee);
     return fee;
   }
 
   async getQuota(assetType, fromChainName, toChainName, options = {}) {
-    let quota = {maxQuota: "0", minQuota: "0"};
+    console.debug("SDK: getQuota, assetType: %s, fromChainName: %s, toChainName: %s, options: %O", assetType, fromChainName, toChainName, options);
+    let quota;
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
-      if (assetPair) {
-        let fromChainType = this.tokenPairService.getChainType(fromChainName);
-        let smg = await this.getSmgInfo();
-        quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
-      }
+      let fromChainType = this.tokenPairService.getChainType(fromChainName);
+      let smg = await this.getSmgInfo();
+      quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
     } else {
-      quota.maxQuota = MAX_NFT_BATCH_SIZE.toString();
+      quota = {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0"};
     }
-    console.debug("SDK: getQuota, assetType: %s, fromChainName: %s, toChainName: %s, options: %O, result: %O", assetType, fromChainName, toChainName, options, quota);
+    console.debug("SDK: getQuota, result: %O", quota);
     return quota;
   }
 
@@ -247,14 +238,12 @@ class WanBridge extends EventEmitter {
   }
 
   async getNftInfo(assetType, chainName, account, options = {}) {
-    let infos = [];
+    console.debug("SDK: getNftInfo, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account, options);
     let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
-    if (assetPair) {
-      let token = (chainName === assetPair.fromChainName)? assetPair.fromAccount : assetPair.toAccount;
-      let chainType = this.tokenPairService.getChainType(chainName);
-      infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
-    }
-    console.debug("SDK: getNftInfo, assetType: %s, chainName: %s, account: %s, options: %O, result: %O", assetType, chainName, account, options, infos);
+    let token = (chainName === assetPair.fromChainName)? assetPair.fromAccount : assetPair.toAccount;
+    let chainType = this.tokenPairService.getChainType(chainName);
+    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
+    console.debug("SDK: getNftInfo, result: %O", infos);
     return infos;
   }
 
@@ -491,8 +480,7 @@ class WanBridge extends EventEmitter {
         }
       }
     }
-    console.error("SDK: _getAssetPair, no matched %s assetPair for %s@%s-%s", protocol, assetType, fromChainName, toChainName);
-    return null;
+    throw new Error("Asset pair not exist");
   }
 }
 
