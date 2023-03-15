@@ -340,7 +340,7 @@
       "chainId": "2147485463",
       "chainType": "ADA",
       "chainName": "Cardano",
-      "crossScAddr": "addr_test1wqvk30vqxcs5mgmda4pdnwa5p820qucnthjl08wjn9we0ycxn6ygm",
+      "crossScAddr": "addr_test1wp4v5rfz32tzkdthxhn4zvy5m4qexa8ghxlasv606y400ucjsz3lc",
       "mintFromChainHandle": "MintAdaFromCardano",
       "chainDecimals": 6,
       "TxScanInfo": {
