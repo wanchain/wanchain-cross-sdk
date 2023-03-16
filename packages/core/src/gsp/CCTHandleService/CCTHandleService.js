@@ -1,6 +1,6 @@
 "use strict";
 
-let ccTypeConfigJson = require("../../config/ccTypeConfig/ccTypeConfig.js");
+let ccTypeConfig = require("../../config/ccTypeConfig/ccTypeConfig.js");
 
 module.exports = class CCTHandleService {
     constructor() {
@@ -10,9 +10,8 @@ module.exports = class CCTHandleService {
     async init(frameworkService) {
         try {
             this.m_frameworkService = frameworkService;
-
-            for (let idx = 0; idx < ccTypeConfigJson.ccTypeCfg.length; ++idx) {
-                let obj = ccTypeConfigJson.ccTypeCfg[idx];
+            for (let idx = 0; idx < ccTypeConfig.length; ++idx) {
+                let obj = ccTypeConfig[idx];
                 this.m_mapCCTypeToHandler.set(obj.name, obj.handle);
             }
         }
@@ -48,7 +47,5 @@ module.exports = class CCTHandleService {
     async addCCTHandle(ccType, CCTHandle) {
         this.m_mapCCTypeToHandler.set(ccType, CCTHandle);
     }
-
-
 };
 

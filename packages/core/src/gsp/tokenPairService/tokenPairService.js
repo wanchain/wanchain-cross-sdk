@@ -337,21 +337,21 @@ class TokenPairService {
         if (fromChainInfo.mintFromChainHandle) {
             // 20210208 mintFromChainHandle只适用于非EVM链向EVM跨链,包括coin和token(暂不涉及)
             tokenPair.ccType["MINT"] = fromChainInfo.mintFromChainHandle;
-        } else {
-            // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
-            if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-                // coin
-                tokenPair.ccType["MINT"] = "MintCoin";
-            } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
-                // orig token
-                tokenPair.ccType["MINT"] = "MintErc20";
-            } else { // 祖先链是其他链的token
-                tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
-            }
+        } else if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
+            // coin
+            tokenPair.ccType["MINT"] = "MintCoin";
+        } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
+            // orig token
+            tokenPair.ccType["MINT"] = "MintErc20";
+        } else { // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
+            tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
         }
 
         // 2.2 BURN direction
-        if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
+        if (fromChainInfo.burnFromChainHandle) {
+            // burn token from non-EVM chain, such as Cardano
+            tokenPair.ccType["BURN"] = fromChainInfo.burnFromChainHandle;
+        } else if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
             // cross coin between ETH layer 2
             tokenPair.ccType["BURN"] = "MintCoin";
         } else if (tokenPair.toChainID === tokenPair.ancestorChainID) {

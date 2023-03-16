@@ -3,16 +3,16 @@
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
-  userLock:
+  userBurn:
   {
-    type: 1,             // number
+    type: 8,             // number
     tokenPairID: 1,      // number
     toAccount: 0x...,    // string
     smgID: 0x...         // string
   }
-  smgRelease:
+  smgMint:
   {
-    type: 2,             // number
+    type: 9,             // number
     tokenPairID: 1,      // number
     uniqueId: 0x...      // string
   }
@@ -29,12 +29,12 @@ const TX_TYPE = {
   Invalid:   -1
 };
 
-module.exports = class ProcessAdaMintFromCardano {
+module.exports = class ProcessBurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
+    this.iwan = frameworkService.getService("iWanConnectorService");
     let configService = frameworkService.getService("ConfigService");
     let extension = configService.getExtension("ADA");
-    this.tool = extension.tool;
     this.wasm = extension.wasm;
   }
 
@@ -43,10 +43,10 @@ module.exports = class ProcessAdaMintFromCardano {
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
-      let storemanService = this.frameworkService.getService("StoremanService");
-      let epochParameters = await storemanService.getCardanoEpochParameters();
-      let utxos = await wallet.getUtxos();
-      this.tool.showUtxos(utxos);
+      let protocolParameters = await this.initTx();
+      let utxos = await wallet.cardano.getUtxos();
+      utxos = utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
+      // this.showUtxos(utxos);
 
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
@@ -62,14 +62,14 @@ module.exports = class ProcessAdaMintFromCardano {
       };
       if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
         output.amount.push({
-          unit: tool.hexStrip0x(tokenPair.fromAccount), // policyId(28 bytes) + name
+          unit: tool.hexStrip0x(tokenPair.fromAccount), // policyId(56) + name
           quantity: params.value
         });
-        let outputValue = this.tool.assetsToValue(output.amount);
-        let minAda = this.tool.minAdaRequired(
+        let outputValue = await this.assetsToValue(output.amount);
+        let minAda = this.minAdaRequired(
           outputValue,
           this.wasm.BigNum.from_str(
-            epochParameters.minUtxo
+            protocolParameters.minUtxo
           )
         );
         // console.debug({minAda});
@@ -80,7 +80,7 @@ module.exports = class ProcessAdaMintFromCardano {
       outputs.add(
         this.wasm.TransactionOutput.new(
           this.wasm.Address.from_bech32(params.crossScAddr),
-          this.tool.assetsToValue(output.amount)
+          this.assetsToValue(output.amount)
         )
       );
 
@@ -88,11 +88,11 @@ module.exports = class ProcessAdaMintFromCardano {
       let auxiliaryData = this.wasm.AuxiliaryData.new();
       auxiliaryData.set_metadata(metaData);
 
-      let plutusData = this.tool.genPlutusData();
+      let plutusData = this.genPlutusData();
 
       let tx;
       try {
-        tx = await this.buildTx(params.fromAddr, utxos, outputs, epochParameters, auxiliaryData, plutusData);
+        tx = await wallet.buildTx(params.fromAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData);
       } catch (err) {
         console.error("ProcessAdaMintFromCardano buildTx error: %O", err);
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
@@ -135,6 +135,69 @@ module.exports = class ProcessAdaMintFromCardano {
     }
   }
 
+  async initTx() {
+    let latestBlock = await this.iwan.getLatestBlock("ADA");
+    let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
+    let result = {
+      linearFee: {
+        minFeeA: p.min_fee_a.toString(),
+        minFeeB: p.min_fee_b.toString(),
+      },
+      minUtxo: '1000000', // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+      poolDeposit: p.pool_deposit,
+      keyDeposit: p.key_deposit,
+      coinsPerUtxoByte: p.coins_per_utxo_byte,
+      coinsPerUtxoWord: p.coins_per_utxo_word,
+      maxValSize: p.max_val_size,
+      priceMem: p.price_mem,
+      priceStep: p.price_step,
+      maxTxSize: parseInt(p.max_tx_size),
+      slot: parseInt(latestBlock.slot),
+    };
+    console.debug("ProcessAdaMintFromCardano initTx: %O", result);
+    return result;
+  }
+
+  assetsToValue(assets) {
+    let multiAsset = this.wasm.MultiAsset.new();
+    let lovelace = assets.find((asset) => asset.unit === 'lovelace');
+    let policies = [
+      ...new Set(
+        assets
+          .filter((asset) => asset.unit !== 'lovelace')
+          .map((asset) => asset.unit.slice(0, 56))
+      ),
+    ];
+    policies.forEach((policy) => {
+      let policyAssets = assets.filter(
+        (asset) => asset.unit.slice(0, 56) === policy
+      );
+      let assetsValue = this.wasm.Assets.new();
+      policyAssets.forEach((asset) => {
+        assetsValue.insert(
+          this.wasm.AssetName.new(Buffer.from(asset.unit.slice(56), 'hex')),
+          this.wasm.BigNum.from_str(asset.quantity)
+        );
+      });
+      multiAsset.insert(
+        this.wasm.ScriptHash.from_bytes(Buffer.from(policy, 'hex')),
+        assetsValue
+      );
+    });
+    let value = this.wasm.Value.new(
+      this.wasm.BigNum.from_str(lovelace ? lovelace.quantity : '0')
+    );
+    if (assets.length > 1 || !lovelace) value.set_multiasset(multiAsset);
+    return value;
+  }
+
+  minAdaRequired(value, minUtxo) {
+    return this.wasm.min_ada_required(
+      value,
+      minUtxo
+    ).to_str();
+  }
+
   buildUserLockData(tokenPairID, toAccount, smgID) {
     let data = {
       1: {
@@ -149,65 +212,14 @@ module.exports = class ProcessAdaMintFromCardano {
     return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
 
-  async buildTx(paymentAddr, utxos, outputs, epochParameters, auxiliaryData, plutusData) {
-    const inputs = await this.tool.selectUtxos(utxos, outputs, epochParameters);
-    console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-
-    const wasm = this.wasm;
-    const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
-    .coins_per_utxo_byte(
-      wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte)
+  genPlutusData() { // just dummy data
+    let ls = this.wasm.PlutusList.new();
+    ls.add(this.wasm.PlutusData.new_integer(this.wasm.BigInt.from_str('1')));
+    return this.wasm.PlutusData.new_constr_plutus_data(
+        this.wasm.ConstrPlutusData.new(
+            this.wasm.BigNum.from_str('0'),
+            ls
+        )
     )
-    .fee_algo(
-      wasm.LinearFee.new(
-        wasm.BigNum.from_str(epochParameters.linearFee.minFeeA),
-        wasm.BigNum.from_str(epochParameters.linearFee.minFeeB)
-      )
-    )
-    .key_deposit(wasm.BigNum.from_str(epochParameters.keyDeposit))
-    .pool_deposit(
-      wasm.BigNum.from_str(epochParameters.poolDeposit)
-    )
-    .max_tx_size(epochParameters.maxTxSize)
-    .max_value_size(epochParameters.maxValSize)
-    .ex_unit_prices(wasm.ExUnitPrices.new(
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
-    ))
-    // .collateral_percentage(epochParameters.collateralPercentage)
-    // .max_collateral_inputs(epochParameters.maxCollateralInputs)
-    .build();
-
-    let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
-  
-    for (let i = 0; i < inputs.length; i++) {
-      const utxo = inputs[i];
-      txBuilder.add_input(
-        utxo.output().address(),
-        utxo.input(),
-        utxo.output().amount()
-      );
-    }
-
-    let output = outputs.get(0);
-    if (plutusData) {
-      output.set_plutus_data(plutusData);
-    }
-    txBuilder.add_output(output);
-  
-    if (auxiliaryData) txBuilder.set_auxiliary_data(auxiliaryData);
-  
-    txBuilder.set_ttl(epochParameters.slot + (3600 * 2)); // 2h from current slot
-    txBuilder.add_change_if_needed(
-      wasm.Address.from_bech32(paymentAddr)
-    );
-  
-    const transaction = wasm.Transaction.new(
-      txBuilder.build(),
-      wasm.TransactionWitnessSet.new(),
-      auxiliaryData
-    );
-  
-    return transaction;
   }
 };

@@ -242,6 +242,29 @@ class StoremanService {
       }
       return balance;
     }
+
+    async getCardanoEpochParameters() {
+      let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
+      let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
+      let epochParameters = {
+        linearFee: {
+          minFeeA: p.min_fee_a.toString(),
+          minFeeB: p.min_fee_b.toString(),
+        },
+        minUtxo: '1000000', // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+        poolDeposit: p.pool_deposit,
+        keyDeposit: p.key_deposit,
+        coinsPerUtxoByte: p.coins_per_utxo_byte,
+        coinsPerUtxoWord: p.coins_per_utxo_word,
+        maxValSize: p.max_val_size,
+        priceMem: p.price_mem,
+        priceStep: p.price_step,
+        maxTxSize: parseInt(p.max_tx_size),
+        slot: parseInt(latestBlock.slot),
+      };
+      console.debug("getCardanoEpochParameters: %O", epochParameters);
+      return epochParameters;
+    }
 };
 
 module.exports = StoremanService;
