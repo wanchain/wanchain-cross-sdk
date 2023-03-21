@@ -73,6 +73,7 @@ function assetsToValue(assets) {
 function minAdaRequired(value, minUtxo) {
   return wasm.min_ada_required(
     value,
+    false,
     minUtxo
   ).to_str();
 }
@@ -121,7 +122,7 @@ function genPlutusData() { // just dummy data
   )
 }
 
-function showUtxos(utxos) {
+function showUtxos(utxos, title = "") {
   let outs = [];
   utxos.map(utxo => {
     let o = utxo.output();
@@ -135,13 +136,13 @@ function showUtxos(utxos) {
         let names = assets.keys();
         for (let j = 0; j < names.len(); j++) {
           let name = names.get(j);
-          tokens.push({script: tool.bytes2Hex(script.to_bytes()), name: name.name().toString(), value: assets.get(name).to_str()})
+          tokens.push({name: name.name().toString(), value: assets.get(name).to_str()})
         }
       }
     }
     outs.push({to: o.address().to_bech32(), coin: o.amount().coin().to_str(), tokens});
   });
-  console.debug("utxos output: %O", outs);
+  console.debug("%s utxos output: %O", title, outs);
 }
 
 module.exports = {

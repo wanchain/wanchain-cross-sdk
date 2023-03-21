@@ -81,7 +81,11 @@ class StoremanService {
                 } else if (tokenType === "Erc1155") {
                     balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
                 } else {
-                    balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                        balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
+                    } else {
+                        balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                    }
                 }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
@@ -264,6 +268,12 @@ class StoremanService {
       };
       console.debug("getCardanoEpochParameters: %O", epochParameters);
       return epochParameters;
+    }
+
+    async getCardanoCostModelParameters() {
+      let p = await this.m_iwanBCConnector.getCostModelParameters("ADA", {epochID: "latest"});
+      console.debug("getCardanoCostModelParameters: %O", p);
+      return p;
     }
 };
 

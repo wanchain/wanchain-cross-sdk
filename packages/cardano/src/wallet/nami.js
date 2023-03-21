@@ -27,11 +27,24 @@ class Nami {
     }
   }
 
-  async getBalance(addr) { // TODO: support token
+  async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       let balance = await this.cardano.getBalance();
-      return wasm.Value.from_bytes(Buffer.from(balance, 'hex')).coin().to_str(); // TODO: sub token locked coin
+      let value = wasm.Value.from_bytes(Buffer.from(balance, 'hex'));
+      if (tokenId) {
+        let multiAsset = value.multiasset();
+        if (multiAsset) {
+          let [policyId, assetName] = tokenId.split(".");
+          // is it api bug that balance has a additional "51" prefix?
+          let amount = multiAsset.get_asset(wasm.ScriptHash.from_hex(policyId), wasm.AssetName.from_hex("51" + assetName));
+          return amount.to_str();
+        } else {
+          return "0";
+        }
+      } else { // coin
+        return value.coin().to_str(); // TODO: sub token locked coin
+      }
     } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");

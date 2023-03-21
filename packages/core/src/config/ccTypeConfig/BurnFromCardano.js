@@ -5,13 +5,13 @@ const tool = require("../../utils/tool.js");
 
 module.exports = class BurnFromCardano {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
   }
 
   async process(tokenPair, convert) {
-    let webStores = this.m_frameworkService.getService("WebStores");
+    let webStores = this.frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals)).toFixed();
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals)).toFixed(0);
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
       let params = {

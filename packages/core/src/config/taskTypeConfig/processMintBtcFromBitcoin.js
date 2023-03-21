@@ -89,9 +89,9 @@ module.exports = class ProcessMintBtcFromBitcoin {
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
       let configService = this.m_frameworkService.getService("ConfigService");
-      let apiServerConfig = await configService.getGlobalConfig("apiServer");
+      let apiServerConfig = configService.getGlobalConfig("apiServer");
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType(fromChainType);
+      let chainInfo = chainInfoService.getChainInfoByType(fromChainType);
       let network = networks[fromChainType][chainInfo.network];
 
       const randomId = '0x' + crypto.randomBytes(32).toString('hex');

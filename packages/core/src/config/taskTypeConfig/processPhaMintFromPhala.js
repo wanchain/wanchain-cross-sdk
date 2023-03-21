@@ -13,7 +13,7 @@ module.exports = class ProcessPhaMintFromPhala {
     // console.debug("ProcessPhaMintFromPhala stepData:", stepData);
     let webStores = this.m_frameworkService.getService("WebStores");
     let configService = this.m_frameworkService.getService("ConfigService");
-    let configScAddr = await configService.getGlobalConfig("crossConfigAddress");
+    let configScAddr = configService.getGlobalConfig("crossConfigAddress");
     let iwan = this.m_frameworkService.getService("iWanConnectorService");
     let params = stepData.params;
 
@@ -61,7 +61,7 @@ module.exports = class ProcessPhaMintFromPhala {
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType("PHA");
+      let chainInfo = chainInfoService.getChainInfoByType("PHA");
       let minReserved = new BigNumber(chainInfo.minReserved || 0);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);

@@ -93,7 +93,7 @@ class StartService {
             await checkiwanSpeed.init(frameworkService);
             frameworkService.registerService("CheckiWanSpeed", checkiwanSpeed);
 
-            let iWanOption = await configService.getConfig("iWanConnectorService", "iWanOption");
+            let iWanOption = configService.getConfig("iWanConnectorService", "iWanOption");
             Object.assign(iWanOption, iwanAuth);
             let iwanBCConnector = new IWanBCConnector(iWanOption);
             await iwanBCConnector.init(frameworkService);

@@ -22,10 +22,10 @@ module.exports = class CheckDotTxService {
 
     async start() {
         let configService = this.frameworkService.getService("ConfigService");
-        let apiServerConfig = await configService.getGlobalConfig("apiServer");
+        let apiServerConfig = configService.getGlobalConfig("apiServer");
         this.apiServerUrl = apiServerConfig.url;
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoByType(this.chainType);
+        let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
         this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "");
     }
 

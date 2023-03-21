@@ -29,7 +29,7 @@ module.exports = class ProcessXrpMintFromRipple {
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
       let configService = this.m_frameworkService.getService("ConfigService");
-      let apiServerConfig = await configService.getGlobalConfig("apiServer");
+      let apiServerConfig = configService.getGlobalConfig("apiServer");
 
       let url = apiServerConfig.url + "/api/xrp/addTagInfo";
       // save p2sh 和id 到apiServer

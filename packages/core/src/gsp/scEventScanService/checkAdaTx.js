@@ -12,10 +12,10 @@ module.exports = class CheckAdaTx {
     this.m_taskService = this.m_frameworkService.getService("TaskService");
 
     this.m_configService = this.m_frameworkService.getService("ConfigService");
-    this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
+    this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
 
     let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-    let chainInfo = await chainInfoService.getChainInfoByType(chainType);
+    let chainInfo = chainInfoService.getChainInfoByType(chainType);
 
     this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
     this.m_eventService = this.m_frameworkService.getService("EventService");
