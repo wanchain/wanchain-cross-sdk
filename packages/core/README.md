@@ -49,7 +49,9 @@ bridge.on("ready", assetPairs => {
         fromChainName: "Ethereum",
         toChainName: "Wanchain",
         fromAccount: "0x0000000000000000000000000000000000000000",
-        toAccount: "0x48344649b9611a891987b2db33faada3ac1d05ec"
+        toAccount: "0x48344649b9611a891987b2db33faada3ac1d05ec",
+        fromIsNative: true,
+        toIsNative: false,
       },
       ......
     ]
