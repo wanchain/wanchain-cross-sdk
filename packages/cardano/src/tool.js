@@ -136,7 +136,7 @@ function showUtxos(utxos, title = "") {
         let names = assets.keys();
         for (let j = 0; j < names.len(); j++) {
           let name = names.get(j);
-          tokens.push({name: name.name().toString(), value: assets.get(name).to_str()})
+          tokens.push({name: name.to_hex(), value: assets.get(name).to_str()})
         }
       }
     }
