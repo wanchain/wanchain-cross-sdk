@@ -1,4 +1,4 @@
-const wasm = require("@emurgo/cardano-serialization-lib-nodejs");
+const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
 
 function bytesAddressToBinary(bytes) {

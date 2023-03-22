@@ -1,6 +1,6 @@
 const NamiWallet = require("./src/wallet/nami");
 const tool = require("./src/tool");
-const wasm = require("@emurgo/cardano-serialization-lib-nodejs");
+const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 
 module.exports = {
   getChains: () => ["Cardano"],

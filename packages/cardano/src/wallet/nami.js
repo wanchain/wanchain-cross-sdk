@@ -1,4 +1,4 @@
-const wasm = require("@emurgo/cardano-serialization-lib-nodejs");
+const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 
 class Nami {
   constructor(provider) {
