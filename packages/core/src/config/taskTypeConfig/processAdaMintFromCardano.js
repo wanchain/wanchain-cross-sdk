@@ -59,7 +59,7 @@ module.exports = class ProcessAdaMintFromCardano {
       };
       if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
         output.amount.push({
-          unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.fromAccount)).replace(/\.\}/g, ""), // policyId(28 bytes) + "." + name
+          unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.fromAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
           quantity: params.value
         });
         let outputValue = this.tool.assetsToValue(output.amount);

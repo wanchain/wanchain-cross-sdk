@@ -303,13 +303,27 @@ class TokenPairService {
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
+        tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
     }
 
     updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
-        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol)
+        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol);
+        tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
+    }
+
+    checkNativeToken(ancestorChainType, chainType, tokenAccount) {
+      if (ancestorChainType === chainType) { // coin or orig token
+        return true;
+      }
+      let key = chainType + "-" + tokenAccount;
+      let origToken = this.multiChainOrigToken.get(key);
+      if (origToken) { // multichain orig token
+        return true;
+      }
+      return false;
     }
 
     updateTokenPairCcHandle(tokenPair) {
