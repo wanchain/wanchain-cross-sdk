@@ -1,6 +1,10 @@
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
 
+function getWasm() {
+  return wasm;
+}
+
 function bytesAddressToBinary(bytes) {
   return bytes.reduce((str, byte) => str + byte.toString(2).padStart(8, '0'), '');
 }
@@ -106,7 +110,7 @@ async function selectUtxos(utxos, outputs, protocolParameters) {
   const selection = await CoinSelection.randomImprove(
     utxos,
     outputs,
-    20 + totalAssets
+    10, // 20 + totalAssets
   );
   return selection.input;
 }
@@ -123,29 +127,17 @@ function genPlutusData() { // just dummy data
 }
 
 function showUtxos(utxos, title = "") {
-  let outs = [];
-  utxos.map(utxo => {
-    let o = utxo.output();
-    let tokens = [];
-    let ma = o.amount().multiasset();
-    if (ma) {
-      let scripts = ma.keys();
-      for (let i = 0; i < scripts.len(); i++) {
-        let script = scripts.get(i);
-        let assets = ma.get(script);
-        let names = assets.keys();
-        for (let j = 0; j < names.len(); j++) {
-          let name = names.get(j);
-          tokens.push({name: name.to_hex(), value: assets.get(name).to_str()})
-        }
-      }
+  utxos.map((utxo, i) => {
+    if (typeof(utxo) === "string") {
+      utxo = wasm.TransactionUnspentOutput.from_hex(utxo);
     }
-    outs.push({to: o.address().to_bech32(), coin: o.amount().coin().to_str(), tokens});
+    let amount = utxo.output().amount();
+    console.debug("%s utxo %d amount: %O", title, i, amount.to_js_value());
   });
-  console.debug("%s utxos output: %O", title, outs);
 }
 
 module.exports = {
+  getWasm,
   validateAddress,
   assetsToValue,
   minAdaRequired,

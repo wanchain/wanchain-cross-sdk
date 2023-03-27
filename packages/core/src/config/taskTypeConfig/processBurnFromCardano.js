@@ -36,7 +36,7 @@ module.exports = class ProcessBurnFromCardano {
     let configService = frameworkService.getService("ConfigService");
     let extension = configService.getExtension("ADA");
     this.tool = extension.tool;
-    this.wasm = extension.wasm;
+    this.wasm = extension.tool.getWasm();
   }
 
   async process(stepData, wallet) {

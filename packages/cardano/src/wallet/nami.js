@@ -36,7 +36,6 @@ class Nami {
         let multiAsset = value.multiasset();
         if (multiAsset) {
           let [policyId, assetName] = tokenId.split(".");
-          // is it api bug that balance has a additional "51" prefix?
           let amount = multiAsset.get_asset(wasm.ScriptHash.from_hex(policyId), wasm.AssetName.from_hex("51" + assetName));
           return amount.to_str();
         } else {
@@ -63,7 +62,7 @@ class Nami {
 
   async getUtxos() {
     let utxos = await this.cardano.getUtxos();
-    return utxos.map(utxo => wasm.TransactionUnspentOutput.from_bytes(Buffer.from(utxo, 'hex')));
+    return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 

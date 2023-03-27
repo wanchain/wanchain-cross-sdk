@@ -1,5 +1,6 @@
 'use strict';
 
+const axios = require("axios");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -34,9 +35,11 @@ module.exports = class ProcessAdaMintFromCardano {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
     let configService = frameworkService.getService("ConfigService");
+    let apiServerConfig = configService.getGlobalConfig("apiServer");
+    this.apiServerUrl = apiServerConfig.url;
     let extension = configService.getExtension("ADA");
     this.tool = extension.tool;
-    this.wasm = extension.wasm;
+    this.wasm = extension.tool.getWasm();
   }
 
   async process(stepData, wallet) {
@@ -81,10 +84,11 @@ module.exports = class ProcessAdaMintFromCardano {
         )
       );
 
-      let utxos = await wallet.getUtxos();
+      let utxos = await wallet.getUtxos(); // hex
       this.tool.showUtxos(utxos, "all");
-      const inputs = await this.tool.selectUtxos(utxos, outputs, epochParameters);
-      console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
+      let selected = await this.selectUtxos(utxos, outputs, epochParameters);
+      let inputs = selected.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
+      console.debug("ProcessAdaMintFromCardano select %d inputs from utxos", inputs.length);
       this.tool.showUtxos(inputs, "selected");
 
       let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
@@ -117,6 +121,27 @@ module.exports = class ProcessAdaMintFromCardano {
       } else {
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
+    }
+  }
+
+  async selectUtxos(hexUtxos, outputs, epochParameters) {
+    let url = this.apiServerUrl + "/api/adaHelper/selectUtxos";
+    let hexOutputs = [];
+    for (let i = 0; i < outputs.len(); i ++) {
+      hexOutputs.push(outputs.get(i).to_hex());
+    }
+    let protocolParameters = {
+      coinsPerUtxoWord: epochParameters.coinsPerUtxoWord,
+      linearFee: epochParameters.linearFee,
+      maxTxSize: epochParameters.maxTxSize
+    }
+    try {
+      let ret = await axios.post(url, {hexUtxos, hexOutputs, protocolParameters});
+      console.debug("ProcessAdaMintFromCardano selectUtxos %s: %O", url, ret.data);
+      return ret.data || [];
+    } catch (err) {
+      console.error("ProcessAdaMintFromCardano selectUtxos error: %O", err);
+      return [];
     }
   }
 
