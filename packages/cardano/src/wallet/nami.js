@@ -31,13 +31,17 @@ class Nami {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       let balance = await this.cardano.getBalance();
-      let value = wasm.Value.from_bytes(Buffer.from(balance, 'hex'));
+      let value = wasm.Value.from_hex(balance);
       if (tokenId) {
+        let [policyId, assetName] = tokenId.split(".");
         let multiAsset = value.multiasset();
-        if (multiAsset) {
-          let [policyId, assetName] = tokenId.split(".");
-          let amount = multiAsset.get_asset(wasm.ScriptHash.from_hex(policyId), wasm.AssetName.from_hex("51" + assetName));
-          return amount.to_str();
+        if (multiAsset && multiAsset.len()) {
+          let ma = multiAsset.to_js_value();
+          let policy = ma.get(policyId);
+          if (policy) {
+            let value = policy.get(assetName);
+            return value || "0";
+          }
         } else {
           return "0";
         }
@@ -63,6 +67,11 @@ class Nami {
   async getUtxos() {
     let utxos = await this.cardano.getUtxos();
     return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
+  }
+
+  async getCollateral() {
+    let utxos = await this.cardano.getCollateral();
+    return utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 

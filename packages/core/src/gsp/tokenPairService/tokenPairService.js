@@ -328,6 +328,7 @@ class TokenPairService {
 
     updateTokenPairCcHandle(tokenPair) {
         let fromChainInfo = tokenPair.fromScInfo;
+        let toChainInfo = tokenPair.toScInfo;
         tokenPair.ccType = {};
 
         // 1 1.1 最细粒度:tokenPair级别,根据tokenId配置处理特殊tokenPair的MINT/BURN
@@ -362,9 +363,9 @@ class TokenPairService {
         }
 
         // 2.2 BURN direction
-        if (fromChainInfo.burnFromChainHandle) {
+        if (toChainInfo.burnFromChainHandle) {
             // burn token from non-EVM chain, such as Cardano
-            tokenPair.ccType["BURN"] = fromChainInfo.burnFromChainHandle;
+            tokenPair.ccType["BURN"] = toChainInfo.burnFromChainHandle;
         } else if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
             // cross coin between ETH layer 2
             tokenPair.ccType["BURN"] = "MintCoin";

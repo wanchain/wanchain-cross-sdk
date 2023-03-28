@@ -342,7 +342,7 @@
       "chainName": "Cardano",
       "crossScAddr": "addr_test1wp4v5rfz32tzkdthxhn4zvy5m4qexa8ghxlasv606y400ucjsz3lc",
       "mintFromChainHandle": "MintAdaFromCardano",
-      "burnFromChainHandle": "BurnTokenFromCardano",
+      "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
       "tokenScript": {
         "txHash": "e9a1763850dbbe292354818c7e67901c7d609ca5722d90bc7f2df91f1d87fc1c",

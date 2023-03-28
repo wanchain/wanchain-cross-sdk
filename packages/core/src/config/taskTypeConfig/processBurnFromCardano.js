@@ -1,5 +1,6 @@
 'use strict';
 
+const axios = require("axios");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -32,8 +33,10 @@ const TX_TYPE = {
 module.exports = class ProcessBurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.storemanService = this.frameworkService.getService("StoremanService");
+    this.storemanService = frameworkService.getService("StoremanService");
     let configService = frameworkService.getService("ConfigService");
+    let apiServerConfig = configService.getGlobalConfig("apiServer");
+    this.apiServerUrl = apiServerConfig.url;
     let extension = configService.getExtension("ADA");
     this.tool = extension.tool;
     this.wasm = extension.tool.getWasm();
@@ -43,7 +46,7 @@ module.exports = class ProcessBurnFromCardano {
     let webStores = this.frameworkService.getService("WebStores");
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
-    try {      
+    try {
       let epochParameters = await this.storemanService.getCardanoEpochParameters();
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
@@ -58,7 +61,7 @@ module.exports = class ProcessBurnFromCardano {
       };      
       // for token, to construct multiassets and calculate minAda to lock
       output.amount.push({
-        unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.toAccount)).replace(/\.\}/g, ""), // policyId(28 bytes) + "." + name
+        unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.toAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
         quantity: params.value
       });
       let outputValue = this.tool.assetsToValue(output.amount);
@@ -79,15 +82,16 @@ module.exports = class ProcessBurnFromCardano {
           this.tool.assetsToValue(output.amount)
         )
       );
-
-      let utxos = await wallet.getUtxos();
-      const inputs = await this.tool.selectUtxos(utxos, outputs, epochParameters);
+      let utxos = await wallet.getUtxos(); // hex
+      // this.tool.showUtxos(utxos, "all");
+      let selected = await this.selectUtxos(utxos, outputs, epochParameters);
+      let inputs = selected.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      this.tool.showUtxos(inputs);
+      // this.tool.showUtxos(inputs, "cc selected");
 
       let metaData = await this.buildUserBurnData(params.tokenPairID, params.userAccount, params.storemanGroupId);
       let mintBuilder = this.buildMint(tool.ascii2letter(tool.hexStrip0x(tokenPair.toAccount)), params.value);
-      let collateralBuilder = await this.buildCollateral(utxos, params.crossScAddr, epochParameters);
+      let collateralBuilder = await this.buildCollateral(wallet);
 
       let tx = await this.buildTx(params.fromAddr, inputs, outputs, epochParameters, metaData, mintBuilder, collateralBuilder);
 
@@ -111,7 +115,7 @@ module.exports = class ProcessBurnFromCardano {
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
-      console.error("ProcessAdaMintFromCardano error: %O", err);
+      console.error("ProcessBurnFromCardano error: %O", err);
       if (err.info === "User declined to sign the transaction.") { // code 2 include other errors
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
@@ -120,10 +124,31 @@ module.exports = class ProcessBurnFromCardano {
     }
   }
 
+  async selectUtxos(hexUtxos, outputs, epochParameters) {
+    let url = this.apiServerUrl + "/api/adaHelper/selectUtxos";
+    let hexOutputs = [];
+    for (let i = 0; i < outputs.len(); i ++) {
+      hexOutputs.push(outputs.get(i).to_hex());
+    }
+    let protocolParameters = {
+      coinsPerUtxoWord: epochParameters.coinsPerUtxoWord,
+      linearFee: epochParameters.linearFee,
+      maxTxSize: epochParameters.maxTxSize
+    }
+    try {
+      let ret = await axios.post(url, {hexUtxos, hexOutputs, protocolParameters});
+      console.debug("ProcessBurnFromCardano selectUtxos %s: %O", url, ret.data);
+      return ret.data || [];
+    } catch (err) {
+      console.error("ProcessBurnFromCardano selectUtxos error: %O", err);
+      return [];
+    }
+  }
+
   buildUserBurnData(tokenPairID, toAccount, smgID) {
     let data = {
       1: {
-        type: TX_TYPE.UserBurn,
+        type: TX_TYPE.userBurn,
         tokenPairID: Number(tokenPairID),
         toAccount,
         smgID
@@ -140,40 +165,29 @@ module.exports = class ProcessBurnFromCardano {
 
     const v1 = this.wasm.CostModel.new();
     let index = 0;
-    for (const key in costModels[`plutus:v1`]) {
-        v1.set(index, this.wasm.Int.new_i32(costModels[`plutus:v1`][key]));
+    for (let key in costModels['plutus:v1']) {
+        v1.set(index, this.wasm.Int.new_i32(costModels['plutus:v1'][key]));
         index++;
     }
 
     const v2 = this.wasm.CostModel.new();
     index = 0;
-    for (const key in costModels[`plutus:v2`]) {
-        v2.set(index, this.wasm.Int.new_i32(costModels[`plutus:v2`][key]));
+    for (let key in costModels['plutus:v2']) {
+        v2.set(index, this.wasm.Int.new_i32(costModels['plutus:v2'][key]));
         index++;
     }
     let result = this.wasm.Costmdls.new();
     result.insert(this.wasm.Language.new_plutus_v1(), v1);
     result.insert(this.wasm.Language.new_plutus_v2(), v2);
+    console.log("buildCostModels: %O", result.to_js_value());
     return result;
   }
 
-  async buildCollateral(utxos, to, epochParameters) {
-    const amount = [
-      {
-        unit: 'lovelace',
-        quantity: '5000000'
-      }
-    ];
-    const outputs = this.wasm.TransactionOutputs.new();
-    outputs.add(
-      this.wasm.TransactionOutput.new(
-        this.wasm.Address.from_bech32(to),
-        this.tool.assetsToValue(amount)
-      )
-    );
-    const inputs = await this.tool.selectUtxos(utxos, outputs, epochParameters);
+  async buildCollateral(wallet) {
+    const utxos = await wallet.getCollateral();
+    console.debug("buildCollateral get %d utxos", utxos.length);
     const builder = this.wasm.TxInputsBuilder.new();
-    for (let utxo of inputs) {
+    for (let utxo of utxos) {
       builder.add_input(
         utxo.output().address(),
         utxo.input(),
@@ -192,7 +206,7 @@ module.exports = class ProcessBurnFromCardano {
       chainInfo.tokenScript.index
     );
     const tokenScript = wasm.PlutusScript.from_bytes_v2(Buffer.from(chainInfo.tokenScript.cborHex, 'hex'));
-    const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input_with_lang_ver(tokenScript.script().hash(), scriptRefInput, wasm.Language.new_plutus_v2());
+    const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input_with_lang_ver(tokenScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2());
 
     const exUnitsMint = wasm.ExUnits.new(
       wasm.BigNum.from_str("2136910"),  //(EX_UNIT_A),//TODO----->903197
@@ -248,7 +262,7 @@ module.exports = class ProcessBurnFromCardano {
       );
     }
 
-    let auxiliaryData = this.wasm.AuxiliaryData.new();
+    let auxiliaryData = wasm.AuxiliaryData.new();
     auxiliaryData.set_metadata(metaData);
     txBuilder.set_auxiliary_data(auxiliaryData);
 
@@ -261,20 +275,25 @@ module.exports = class ProcessBurnFromCardano {
     let costModels = await this.buildCostModels();
     txBuilder.calc_script_data_hash(costModels);
 
+    let selfAddress = wasm.Address.from_bech32(paymentAddr);
+
     txBuilder.set_collateral(collateralBuilder);
-    txBuilder.set_total_collateral_and_return(txBuilder.min_fee().checked_mul(this.wasm.BigNum.from_str('2')), paymentAddr);
+    console.log("set_total_collateral_and_return")
+    txBuilder.set_total_collateral_and_return(txBuilder.min_fee().checked_mul(this.wasm.BigNum.from_str('2')), selfAddress);
 
     txBuilder.set_ttl(epochParameters.slot + (3600 * 2)); // 2h from current slot
-    txBuilder.add_change_if_needed(
-      wasm.Address.from_bech32(paymentAddr)
-    );
 
+    console.log("add_change_if_needed")
+    txBuilder.add_change_if_needed(selfAddress);
+
+    console.log("wasm.Transaction.new")
     const transaction = wasm.Transaction.new(
       txBuilder.build(),
       wasm.TransactionWitnessSet.new(),
       auxiliaryData
     );
   
+    console.log("transaction: %O", transaction.to_js_value())
     return transaction;
   }
 };

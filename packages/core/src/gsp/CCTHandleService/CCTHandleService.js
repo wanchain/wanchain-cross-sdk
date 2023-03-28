@@ -36,7 +36,7 @@ module.exports = class CCTHandleService {
             let stepInfo = await handler.process(tokenPair, convertJson);
             return stepInfo;
         } catch (err) {
-            console.log("getConvertInfo err:", err);
+            console.log("getConvertInfo error: %O", err);
             return {
                 stepNum: 0,
                 // errCode: globalConstant.ERR_OTHER_UNKNOWN_ERR

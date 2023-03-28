@@ -85,11 +85,11 @@ module.exports = class ProcessAdaMintFromCardano {
       );
 
       let utxos = await wallet.getUtxos(); // hex
-      this.tool.showUtxos(utxos, "all");
+      // this.tool.showUtxos(utxos, "all");
       let selected = await this.selectUtxos(utxos, outputs, epochParameters);
       let inputs = selected.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
-      console.debug("ProcessAdaMintFromCardano select %d inputs from utxos", inputs.length);
-      this.tool.showUtxos(inputs, "selected");
+      console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
+      // this.tool.showUtxos(inputs, "selected");
 
       let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
 
