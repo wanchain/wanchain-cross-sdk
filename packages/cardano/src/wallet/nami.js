@@ -1,9 +1,4 @@
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
-const CoinSelection = require("./coinSelection");
-
-const TX = {
-  invalid_hereafter: 3600 * 2, // 2h from current slot
-};
 
 class Nami {
   constructor(provider) {
@@ -32,116 +27,55 @@ class Nami {
     }
   }
 
-  async getBalance(addr) { // TODO: support token
+  async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       let balance = await this.cardano.getBalance();
-      return wasm.Value.from_bytes(Buffer.from(balance, 'hex')).coin().to_str(); // TODO: sub token locked coin
+      let value = wasm.Value.from_hex(balance);
+      if (tokenId) {
+        let [policyId, assetName] = tokenId.split(".");
+        let multiAsset = value.multiasset();
+        if (multiAsset && multiAsset.len()) {
+          let ma = multiAsset.to_js_value();
+          let policy = ma.get(policyId);
+          if (policy) {
+            let value = policy.get(assetName);
+            return value || "0";
+          }
+        } else {
+          return "0";
+        }
+      } else { // coin
+        return value.coin().to_str(); // TODO: sub token locked coin
+      }
     } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
     }
-  }  
+  }
 
   async sendTransaction(tx, sender) {
-    let witnessSet = await this.cardano.signTx(Buffer.from(tx.to_bytes(), 'hex').toString('hex'));
-    witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet, "hex"));
+    let witnessSet = await this.cardano.signTx(tx.to_hex());
+    witnessSet = wasm.TransactionWitnessSet.from_hex(witnessSet);
+    let redeemers = tx.witness_set().redeemers();
+    if (redeemers) {
+      witnessSet.set_redeemers(redeemers);
+    }
     let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
-    let txHash = await this.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
+    let txHash = await this.cardano.submitTx(transaction.to_hex());
     return txHash;
   }
 
   // customized function
 
-  async multiAssetCount(multiAsset) {
-    if (!multiAsset) return 0;
-    let count = 0;
-    const policies = multiAsset.keys();
-    for (let j = 0; j < multiAsset.len(); j++) {
-      const policy = policies.get(j);
-      const policyAssets = multiAsset.get(policy);
-      const assetNames = policyAssets.keys();
-      for (let k = 0; k < assetNames.len(); k++) {
-        count++;
-      }
-    }
-    return count;
+  async getUtxos() {
+    let utxos = await this.cardano.getUtxos();
+    return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
   }
-  
-  async buildTx(paymentAddr, utxos, outputs, protocolParameters, auxiliaryData, plutusData) {
-    const totalAssets = await this.multiAssetCount(
-      outputs.get(0).amount().multiasset()
-    );
-    console.log({CoinSelection, protocolParameters})
-    CoinSelection.setProtocolParameters(
-      protocolParameters.coinsPerUtxoWord,
-      protocolParameters.linearFee.minFeeA,
-      protocolParameters.linearFee.minFeeB,
-      protocolParameters.maxTxSize.toString()
-    );
-    const selection = await CoinSelection.randomImprove(
-      utxos,
-      outputs,
-      20 + totalAssets
-    );
-    const inputs = selection.input;
-    console.debug("nami wallet select %d inputs", inputs.length);
-  
-    const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
-    .coins_per_utxo_byte(
-      wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte)
-    )
-    .fee_algo(
-      wasm.LinearFee.new(
-        wasm.BigNum.from_str(protocolParameters.linearFee.minFeeA),
-        wasm.BigNum.from_str(protocolParameters.linearFee.minFeeB)
-      )
-    )
-    .key_deposit(wasm.BigNum.from_str(protocolParameters.keyDeposit))
-    .pool_deposit(
-      wasm.BigNum.from_str(protocolParameters.poolDeposit)
-    )
-    .max_tx_size(protocolParameters.maxTxSize)
-    .max_value_size(protocolParameters.maxValSize)
-    .ex_unit_prices(wasm.ExUnitPrices.new(
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
-    ))
-    // .collateral_percentage(protocolParameters.collateralPercentage)
-    // .max_collateral_inputs(protocolParameters.maxCollateralInputs)
-    .build();
 
-    let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
-  
-    for (let i = 0; i < inputs.length; i++) {
-      const utxo = inputs[i];
-      txBuilder.add_input(
-        utxo.output().address(),
-        utxo.input(),
-        utxo.output().amount()
-      );
-    }
-
-    let output = outputs.get(0);
-    if (plutusData) {
-      output.set_plutus_data(plutusData);
-    }
-    txBuilder.add_output(output);
-  
-    if (auxiliaryData) txBuilder.set_auxiliary_data(auxiliaryData);
-  
-    txBuilder.set_ttl(protocolParameters.slot + TX.invalid_hereafter);
-    txBuilder.add_change_if_needed(
-      wasm.Address.from_bech32(paymentAddr)
-    );
-  
-    const transaction = wasm.Transaction.new(
-      txBuilder.build(),
-      wasm.TransactionWitnessSet.new(),
-      auxiliaryData
-    );
-  
-    return transaction;
+  async getCollateral() {
+    let utxos = await this.cardano.getCollateral();
+    return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 

@@ -81,7 +81,11 @@ class StoremanService {
                 } else if (tokenType === "Erc1155") {
                     balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
                 } else {
-                    balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                        balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
+                    } else {
+                        balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                    }
                 }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
@@ -241,6 +245,35 @@ class StoremanService {
         }
       }
       return balance;
+    }
+
+    async getCardanoEpochParameters() {
+      let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
+      let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
+      let epochParameters = {
+        linearFee: {
+          minFeeA: p.min_fee_a.toString(),
+          minFeeB: p.min_fee_b.toString(),
+        },
+        minUtxo: '1000000', // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+        poolDeposit: p.pool_deposit,
+        keyDeposit: p.key_deposit,
+        coinsPerUtxoByte: p.coins_per_utxo_byte,
+        coinsPerUtxoWord: p.coins_per_utxo_word,
+        maxValSize: p.max_val_size,
+        priceMem: p.price_mem,
+        priceStep: p.price_step,
+        maxTxSize: parseInt(p.max_tx_size),
+        slot: parseInt(latestBlock.slot),
+      };
+      console.debug("getCardanoEpochParameters: %O", epochParameters);
+      return epochParameters;
+    }
+
+    async getCardanoCostModelParameters() {
+      let p = await this.m_iwanBCConnector.getCostModelParameters("ADA", {epochID: "latest"});
+      console.debug("getCardanoCostModelParameters: %O", p);
+      return p;
     }
 };
 

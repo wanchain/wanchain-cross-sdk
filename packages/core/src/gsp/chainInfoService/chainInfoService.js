@@ -11,7 +11,7 @@ module.exports = class ChainInfoService {
   async init(frameworkService) {
     this.m_frameworkService = frameworkService;
     let configService = frameworkService.getService("ConfigService");
-    let chainsInfo = await configService.getGlobalConfig("StoremanService");
+    let chainsInfo = configService.getGlobalConfig("StoremanService");
     // console.log("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];
@@ -23,7 +23,7 @@ module.exports = class ChainInfoService {
       }
     }
 
-    let noEthChainInfo = await configService.getGlobalConfig("noEthChainInfo");
+    let noEthChainInfo = configService.getGlobalConfig("noEthChainInfo");
     for (let idx = 0; idx < noEthChainInfo.length; ++idx) {
       let obj = noEthChainInfo[idx];
       this.m_mapChainIdObj.set(obj.chainId, obj);

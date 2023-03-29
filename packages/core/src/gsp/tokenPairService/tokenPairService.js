@@ -14,6 +14,7 @@ class TokenPairService {
         this.storageService = null; // init after token pair service
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
+        this.tokenIssuer = new Map();
         this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
     }
 
@@ -78,7 +79,8 @@ class TokenPairService {
             let tokenPairMap = new Map();
             let [tokenPairs] = await Promise.all([
               this.readTokenpairs(ts0),
-              this.readMultiChainOrigToken(ts0)
+              this.readMultiChainOrigToken(ts0),
+              this.readTokenIssuer(ts0)
             ]);
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
@@ -164,6 +166,18 @@ class TokenPairService {
       this.multiChainOrigToken = map;
       let ts = new Date().getTime();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
+    }
+
+    async readTokenIssuer(startTime) {
+      let tokenIssuers = await this.iwanBCConnector.getRegisteredTokenIssuer();
+      let map = new Map();
+      tokenIssuers.forEach(t => {
+        let key = t.chainType + "-" + t.tokenScAddr;
+        map.set(key, t.issuer);
+      })
+      this.tokenIssuer = map;
+      let ts = new Date().getTime();
+      console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
     }
 
     async readAssetLogos(tokenPairs, startTime) {
@@ -304,6 +318,7 @@ class TokenPairService {
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
         tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
+        tokenPair.fromIssuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount) || "";
     }
 
     updateTokenPairToChainInfo(tokenPair) {
@@ -312,6 +327,7 @@ class TokenPairService {
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
         tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol);
         tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
+        tokenPair.toIssuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount) || "";
     }
 
     checkNativeToken(ancestorChainType, chainType, tokenAccount) {
@@ -328,6 +344,7 @@ class TokenPairService {
 
     updateTokenPairCcHandle(tokenPair) {
         let fromChainInfo = tokenPair.fromScInfo;
+        let toChainInfo = tokenPair.toScInfo;
         tokenPair.ccType = {};
 
         // 1 1.1 最细粒度:tokenPair级别,根据tokenId配置处理特殊tokenPair的MINT/BURN
@@ -351,21 +368,21 @@ class TokenPairService {
         if (fromChainInfo.mintFromChainHandle) {
             // 20210208 mintFromChainHandle只适用于非EVM链向EVM跨链,包括coin和token(暂不涉及)
             tokenPair.ccType["MINT"] = fromChainInfo.mintFromChainHandle;
-        } else {
-            // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
-            if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-                // coin
-                tokenPair.ccType["MINT"] = "MintCoin";
-            } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
-                // orig token
-                tokenPair.ccType["MINT"] = "MintErc20";
-            } else { // 祖先链是其他链的token
-                tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
-            }
+        } else if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
+            // coin
+            tokenPair.ccType["MINT"] = "MintCoin";
+        } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
+            // orig token
+            tokenPair.ccType["MINT"] = "MintErc20";
+        } else { // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
+            tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
         }
 
         // 2.2 BURN direction
-        if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
+        if (toChainInfo.burnFromChainHandle) {
+            // burn token from non-EVM chain, such as Cardano
+            tokenPair.ccType["BURN"] = toChainInfo.burnFromChainHandle;
+        } else if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
             // cross coin between ETH layer 2
             tokenPair.ccType["BURN"] = "MintCoin";
         } else if (tokenPair.toChainID === tokenPair.ancestorChainID) {

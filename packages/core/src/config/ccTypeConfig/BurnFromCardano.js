@@ -3,7 +3,7 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
-module.exports = class MintAdaFromCardano {
+module.exports = class BurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
   }
@@ -11,25 +11,25 @@ module.exports = class MintAdaFromCardano {
   async process(tokenPair, convert) {
     let webStores = this.frameworkService.getService("WebStores");
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals)).toFixed(0);
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
       let params = {
         ccTaskId: convert.ccTaskId,
-        toChainType: tokenPair.toChainType,
-        crossScAddr: tokenPair.fromScInfo.crossScAddr,
+        toChainType: tokenPair.fromChainType,
+        crossScAddr: tokenPair.toScInfo.crossScAddr,
         userAccount: convert.toAddr,
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.storemanGroupGpk,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessAdaMintFromCardano",
+        taskType: "ProcessBurnFromCardano",
         fee,
         fromAddr: convert.fromAddr
       };
-      console.debug("Mint %s FromCardano params: %O", tokenPair.readableSymbol, params);
+      console.debug("Burn %s FromCardano params: %O", tokenPair.readableSymbol, params);
       let ret = [
-        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: "userFastBurn", stepIndex: 1, title: "BurnTitle", desc: "BurnDesc", params}
       ];
       webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
       return {
@@ -37,7 +37,7 @@ module.exports = class MintAdaFromCardano {
         errCode: null
       };
     } catch (err) {
-      console.error("Mint %s FromCardano error: %O", tokenPair.readableSymbol, err);
+      console.error("Burn %s FromCardano error: %O", tokenPair.readableSymbol, err);
       webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {
         stepNum: 0,

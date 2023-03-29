@@ -37,14 +37,14 @@ module.exports = class ConfigService {
       return this.extensions.get(chainType);
     }
 
-    async getConfig(serviceName, propertyPath) {
+    getConfig(serviceName, propertyPath) {
         let fullPropertyPath = serviceName;
         if (propertyPath && propertyPath !== '.') fullPropertyPath = fullPropertyPath + '.' + propertyPath;
         let ret = _.get(this.curConfig, fullPropertyPath);
         return ret;
     }
 
-    async getGlobalConfig(name) {
+    getGlobalConfig(name) {
         return _.get(this.curConfig, name);
     }
 

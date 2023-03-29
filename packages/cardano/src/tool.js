@@ -1,4 +1,9 @@
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
+const CoinSelection = require("./coinSelection");
+
+function getWasm() {
+  return wasm;
+}
 
 function bytesAddressToBinary(bytes) {
   return bytes.reduce((str, byte) => str + byte.toString(2).padStart(8, '0'), '');
@@ -36,6 +41,108 @@ function validateAddress(address, network, chain) {
   return false;
 }
 
+function assetsToValue(assets) {
+  let multiAsset = wasm.MultiAsset.new();
+  let lovelace = assets.find((asset) => asset.unit === 'lovelace');
+  let policies = [
+    ...new Set(
+      assets
+        .filter((asset) => asset.unit !== 'lovelace')
+        .map((asset) => asset.unit.slice(0, 56))
+    ),
+  ];
+  policies.forEach((policy) => {
+    let policyAssets = assets.filter(
+      (asset) => asset.unit.slice(0, 56) === policy
+    );
+    let assetsValue = wasm.Assets.new();
+    policyAssets.forEach((asset) => {
+      assetsValue.insert(
+        wasm.AssetName.new(Buffer.from(asset.unit.slice(56), 'hex')),
+        wasm.BigNum.from_str(asset.quantity)
+      );
+    });
+    multiAsset.insert(
+      wasm.ScriptHash.from_bytes(Buffer.from(policy, 'hex')),
+      assetsValue
+    );
+  });
+  let value = wasm.Value.new(
+    wasm.BigNum.from_str(lovelace ? lovelace.quantity : '0')
+  );
+  if (assets.length > 1 || !lovelace) value.set_multiasset(multiAsset);
+  return value;
+}
+
+function minAdaRequired(value, minUtxo) {
+  return wasm.min_ada_required(
+    value,
+    false,
+    minUtxo
+  ).to_str();
+}
+
+function multiAssetCount(multiAsset) {
+  if (!multiAsset) return 0;
+  let count = 0;
+  const policies = multiAsset.keys();
+  for (let j = 0; j < multiAsset.len(); j++) {
+    const policy = policies.get(j);
+    const policyAssets = multiAsset.get(policy);
+    const assetNames = policyAssets.keys();
+    for (let k = 0; k < assetNames.len(); k++) {
+      count++;
+    }
+  }
+  return count;
+}
+
+async function selectUtxos(utxos, outputs, protocolParameters) {
+  const totalAssets = multiAssetCount(
+    outputs.get(0).amount().multiasset()
+  );
+  CoinSelection.setProtocolParameters(
+    protocolParameters.coinsPerUtxoWord,
+    protocolParameters.linearFee.minFeeA,
+    protocolParameters.linearFee.minFeeB,
+    protocolParameters.maxTxSize.toString()
+  );
+  const selection = await CoinSelection.randomImprove(
+    utxos,
+    outputs,
+    10, // 20 + totalAssets
+  );
+  return selection.input;
+}
+
+function genPlutusData() { // just dummy data
+  let ls = wasm.PlutusList.new();
+  ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
+  return wasm.PlutusData.new_constr_plutus_data(
+      wasm.ConstrPlutusData.new(
+          wasm.BigNum.from_str('0'),
+          ls
+      )
+  )
+}
+
+function showUtxos(utxos, title = "") {
+  utxos.map((utxo, i) => {
+    if (typeof(utxo) === "string") {
+      utxo = wasm.TransactionUnspentOutput.from_hex(utxo);
+    }
+    let amount = utxo.output().amount();
+    console.debug("%s utxo %d amount: %O", title, i, amount.to_js_value());
+  });
+}
+
 module.exports = {
+  getWasm,
   validateAddress,
+  assetsToValue,
+  minAdaRequired,
+  multiAssetCount,
+  selectUtxos,
+  genPlutusData,
+  showUtxos
 }

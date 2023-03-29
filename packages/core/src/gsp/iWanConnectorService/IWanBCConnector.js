@@ -219,6 +219,10 @@ class IWanBCConnector {
         return this.apiClient.getEpochParameters(chainType, options);
     }
 
+    async getCostModelParameters(chainType, options) {
+      return this.apiClient.getCostModelParameters(chainType, options);
+    }
+
     async getRegisteredTokenLogo(chainType, options) {
       return this.apiClient.getRegisteredTokenLogo(chainType, options);
     }
@@ -241,6 +245,10 @@ class IWanBCConnector {
 
     async getRegisteredSubgraph(options) {
       return this.apiClient.getRegisteredSubgraph(options);
+    }
+
+    async getRegisteredTokenIssuer(options) {
+      return this.apiClient.getRegisteredTokenIssuer(options);
     }
 };
 

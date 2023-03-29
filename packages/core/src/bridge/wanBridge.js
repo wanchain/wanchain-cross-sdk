@@ -26,7 +26,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2303211645", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2303281935", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -68,22 +68,20 @@ class WanBridge extends EventEmitter {
     let smgs = this.stores.assetPairs.smgList;
     if (smgs.length) {
       if (this.network === "mainnet") {
-        return smgs[0]; // mainnet has only 1 smg
+        return smgs[0]; // mainnet has only 1 smg, and do not support specify group
       }
-      let specifiedSmg = null, defaultSmg = null;
+      let requiredSmg = this.smgName || "testnet"; // default find a testnet group
+      let defaultSmg = null;
       for (let smg of smgs) {
-        if (smg.name === this.smgName) {
-          specifiedSmg = smg;
-          break;
-        } else if ((!defaultSmg) && (smg.name.indexOf("testnet") === 0)) {
-          defaultSmg = smg;
+        if (smg.name === requiredSmg) { // specific group
+          return smg;
+        } else if ((!defaultSmg) && ["testnet", "dev"].includes(requiredSmg)) { // group type
+          if (smg.name.indexOf(requiredSmg) === 0) {
+            defaultSmg = smg;
+          }
         }
       }
-      if (this.smgName) {
-        if (specifiedSmg) {
-          return specifiedSmg;
-        }
-      } else if (defaultSmg) {
+      if (defaultSmg) {
         return defaultSmg;
       }
     }

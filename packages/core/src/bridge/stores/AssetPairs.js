@@ -39,6 +39,8 @@ class AssetPairs {
           toAccount: pair.toAccount,         // to Chain token account
           fromIsNative: pair.fromIsNative,   // is fromAccount is coin or native token
           toIsNative: pair.toIsNative,       // is toAccount is coin or native token
+          fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
+          toIssuer: pair.toIssuer            // issuer of toAccount, only for xFlow
         };
         // special treatment for migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         if (pair.id === "41") {

@@ -10,8 +10,8 @@ module.exports = class TxTaskHandleService {
         try {
             this.m_frameworkService = frameworkService;
 
-            for (let idx = 0; idx < taskTypeConfig.taskTypeCfg.length; ++idx) {
-                let obj = taskTypeConfig.taskTypeCfg[idx];
+            for (let idx = 0; idx < taskTypeConfig.length; ++idx) {
+                let obj = taskTypeConfig[idx];
                 this.m_mapTaskTypeToHandler.set(obj.name, obj.handle);
             }
         }
