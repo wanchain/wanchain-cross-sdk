@@ -52,13 +52,17 @@ class Nami {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
     }
-  }  
+  }
 
   async sendTransaction(tx, sender) {
-    let witnessSet = await this.cardano.signTx(Buffer.from(tx.to_bytes(), 'hex').toString('hex'));
-    witnessSet = wasm.TransactionWitnessSet.from_bytes(Buffer.from(witnessSet, "hex"));
+    let witnessSet = await this.cardano.signTx(tx.to_hex());
+    witnessSet = wasm.TransactionWitnessSet.from_hex(witnessSet);
+    let redeemers = tx.witness_set().redeemers();
+    if (redeemers) {
+      witnessSet.set_redeemers(redeemers);
+    }
     let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
-    let txHash = await this.cardano.submitTx(Buffer.from(transaction.to_bytes(), 'hex').toString('hex'));
+    let txHash = await this.cardano.submitTx(transaction.to_hex());
     return txHash;
   }
 
@@ -71,7 +75,7 @@ class Nami {
 
   async getCollateral() {
     let utxos = await this.cardano.getCollateral();
-    return utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 

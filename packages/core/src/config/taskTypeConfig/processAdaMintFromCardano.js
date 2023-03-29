@@ -208,12 +208,7 @@ module.exports = class ProcessAdaMintFromCardano {
       wasm.Address.from_bech32(paymentAddr)
     );
 
-    const transaction = wasm.Transaction.new(
-      txBuilder.build(),
-      wasm.TransactionWitnessSet.new(),
-      auxiliaryData
-    );
-  
+    const transaction = txBuilder.build_tx();
     return transaction;
   }
 };

@@ -246,6 +246,10 @@ class IWanBCConnector {
     async getRegisteredSubgraph(options) {
       return this.apiClient.getRegisteredSubgraph(options);
     }
+
+    async getRegisteredTokenIssuer(options) {
+      return this.apiClient.getRegisteredTokenIssuer(options);
+    }
 };
 
 module.exports = IWanBCConnector;
