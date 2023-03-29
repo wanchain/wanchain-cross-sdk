@@ -14,6 +14,7 @@ class TokenPairService {
         this.storageService = null; // init after token pair service
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
+        this.tokenIssuer = new Map();
         this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
     }
 
@@ -78,7 +79,8 @@ class TokenPairService {
             let tokenPairMap = new Map();
             let [tokenPairs] = await Promise.all([
               this.readTokenpairs(ts0),
-              this.readMultiChainOrigToken(ts0)
+              this.readMultiChainOrigToken(ts0),
+              this.readTokenIssuer(ts0)
             ]);
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
@@ -164,6 +166,18 @@ class TokenPairService {
       this.multiChainOrigToken = map;
       let ts = new Date().getTime();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
+    }
+
+    async readTokenIssuer(startTime) {
+      let tokenIssuers = await this.iwanBCConnector.getRegisteredTokenIssuer();
+      let map = new Map();
+      tokenIssuers.forEach(t => {
+        let key = t.chainType + "-" + t.tokenScAddr;
+        map.set(key, t.issuer);
+      })
+      this.tokenIssuer = map;
+      let ts = new Date().getTime();
+      console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
     }
 
     async readAssetLogos(tokenPairs, startTime) {
@@ -304,6 +318,7 @@ class TokenPairService {
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
         tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
+        tokenPair.fromIssuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount) || "";
     }
 
     updateTokenPairToChainInfo(tokenPair) {
@@ -312,6 +327,7 @@ class TokenPairService {
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
         tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol);
         tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
+        tokenPair.toIssuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount) || "";
     }
 
     checkNativeToken(ancestorChainType, chainType, tokenAccount) {

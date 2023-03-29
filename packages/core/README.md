@@ -52,6 +52,8 @@ bridge.on("ready", assetPairs => {
         toAccount: "0x48344649b9611a891987b2db33faada3ac1d05ec",
         fromIsNative: true,
         toIsNative: false,
+        fromIssuer: pair.fromIssuer,
+        toIssuer: pair.toIssuer
       },
       ......
     ]

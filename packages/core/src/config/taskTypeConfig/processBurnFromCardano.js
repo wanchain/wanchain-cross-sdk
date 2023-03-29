@@ -98,7 +98,7 @@ module.exports = class ProcessBurnFromCardano {
         smgId: params.storemanGroupId,
         value: params.value,
         from: params.fromAddr,
-        to: params.crossScAddr
+        to: params.userAccount
       };
       let collateralUtxos = await wallet.getCollateral();
       let costModelParas = await this.storemanService.getCardanoCostModelParameters();
