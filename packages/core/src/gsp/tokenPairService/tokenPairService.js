@@ -318,7 +318,13 @@ class TokenPairService {
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
         tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
-        tokenPair.fromIssuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount) || "";
+        let issuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount);
+        if (issuer) {
+          tokenPair.fromIssuer = {
+            issuer: issuer.issuer || "",
+            isNativeCoin: issuer.isNativeCoin || false
+          };
+        }
     }
 
     updateTokenPairToChainInfo(tokenPair) {
@@ -327,7 +333,13 @@ class TokenPairService {
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
         tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol);
         tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
-        tokenPair.toIssuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount) || "";
+        let issuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount);
+        if (issuer) {
+          tokenPair.toIssuer = {
+            issuer: issuer.issuer || "",
+            isNativeCoin: issuer.isNativeCoin || false
+          };
+        }
     }
 
     checkNativeToken(ancestorChainType, chainType, tokenAccount) {
