@@ -173,7 +173,7 @@ class TokenPairService {
       let map = new Map();
       tokenIssuers.forEach(t => {
         let key = t.chainType + "-" + t.tokenScAddr;
-        map.set(key, t.issuer);
+        map.set(key, t);
       })
       this.tokenIssuer = map;
       let ts = new Date().getTime();
