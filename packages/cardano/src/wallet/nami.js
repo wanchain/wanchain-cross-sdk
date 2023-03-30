@@ -42,9 +42,8 @@ class Nami {
             let value = policy.get(assetName);
             return value || "0";
           }
-        } else {
-          return "0";
         }
+        return "0";
       } else { // coin
         return value.coin().to_str(); // TODO: sub token locked coin
       }
