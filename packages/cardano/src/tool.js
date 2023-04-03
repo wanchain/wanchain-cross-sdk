@@ -74,12 +74,17 @@ function assetsToValue(assets) {
   return value;
 }
 
-function minAdaRequired(value, minUtxo) {
-  return wasm.min_ada_required(
+function minAdaRequired(value, coinsPerUtxoWord, minUtxo) {
+  let minAda = wasm.min_ada_required(
     value,
     false,
-    minUtxo
+    coinsPerUtxoWord
   ).to_str();
+  if (Number(minAda) > Number(minUtxo)) {
+    return minAda;
+  } else {
+    return minUtxo;
+  }
 }
 
 function multiAssetCount(multiAsset) {

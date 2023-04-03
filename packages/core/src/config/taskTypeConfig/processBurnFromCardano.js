@@ -73,8 +73,9 @@ module.exports = class ProcessBurnFromCardano {
       let minAda = this.tool.minAdaRequired(
         outputValue,
         this.wasm.BigNum.from_str(
-          epochParameters.minUtxo
-        )
+          epochParameters.coinsPerUtxoWord
+        ),
+        epochParameters.minUtxo
       );
       // console.debug({minAda});
       output.amount[0].quantity = minAda;
