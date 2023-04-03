@@ -120,7 +120,7 @@ module.exports = class ProcessBurnFromCardano {
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
-        taskType: "MINT"
+        taskType: "BURN"
       };
 
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
