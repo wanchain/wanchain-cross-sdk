@@ -97,7 +97,7 @@ module.exports = class ProcessAdaMintFromCardano {
       console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       // this.tool.showUtxos(inputs, "selected");
 
-      let metaData = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.storemanGroupId);
+      let metaData = await this.buildMetadata(params.tokenPairID, params.userAccount, params.storemanGroupId);
 
       let tx = this.buildTx(params.fromAddr, inputs, txOutput, epochParameters, metaData);
       console.debug("ProcessAdaMintFromCardano tx: %O", tx.to_json());
@@ -149,7 +149,7 @@ module.exports = class ProcessAdaMintFromCardano {
     }
   }
 
-  buildUserLockData(tokenPairID, toAccount, smgID) {
+  buildMetadata(tokenPairID, toAccount, smgID) {
     let data = {
       1: {
         type: TX_TYPE.userLock,
@@ -158,7 +158,7 @@ module.exports = class ProcessAdaMintFromCardano {
         smgID
       }
     };
-    // console.debug("ProcessAdaMintFromCardano buildUserLockData: %O", data);
+    // console.debug("ProcessAdaMintFromCardano buildMetadata: %O", data);
     data = this.wasm.encode_json_str_to_metadatum(JSON.stringify(data), this.wasm.MetadataJsonSchema.BasicConversions);
     return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }

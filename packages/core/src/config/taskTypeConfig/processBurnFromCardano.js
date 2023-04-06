@@ -174,7 +174,7 @@ module.exports = class ProcessBurnFromCardano {
     }
   }
 
-  buildUserBurnData(tokenPairID, toAccount, smgID) {
+  buildMetadata(tokenPairID, toAccount, smgID) {
     let data = {
       1: {
         type: TX_TYPE.userBurn,
@@ -183,7 +183,7 @@ module.exports = class ProcessBurnFromCardano {
         smgID
       }
     };
-    // console.debug("ProcessBurnFromCardano buildUserBurnData: %O", data);
+    // console.debug("ProcessBurnFromCardano buildMetadata: %O", data);
     data = this.wasm.encode_json_str_to_metadatum(JSON.stringify(data), this.wasm.MetadataJsonSchema.BasicConversions);
     return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
