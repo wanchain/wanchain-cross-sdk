@@ -1,4 +1,5 @@
 const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
+const tool = require("../tool.js");
 
 class Nami {
   constructor(provider) {
@@ -34,16 +35,7 @@ class Nami {
       let value = wasm.Value.from_hex(balance);
       if (tokenId) {
         let [policyId, assetName] = tokenId.split(".");
-        let multiAsset = value.multiasset();
-        if (multiAsset && multiAsset.len()) {
-          let ma = multiAsset.to_js_value();
-          let policy = ma.get(policyId);
-          if (policy) {
-            let value = policy.get(assetName);
-            return value || "0";
-          }
-        }
-        return "0";
+        return tool.getAssetBalance(value.multiasset(), policyId, assetName);
       } else { // coin
         return value.coin().to_str(); // TODO: sub token locked coin
       }
@@ -67,14 +59,29 @@ class Nami {
 
   // customized function
 
-  async getUtxos() {
+  async getUtxos(tokenId) {
     let utxos = await this.cardano.getUtxos();
     return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
+    // return utxos.filter(v => {
+    //   let utxo = wasm.TransactionUnspentOutput.from_hex(v);
+    //   let multiAsset = utxo.output().amount().multiasset();
+    //   let totalAssets = tool.multiAssetCount(multiAsset);
+    //   if (totalAssets === 0) {
+    //     return true; // all tx need ADA utxo
+    //   }
+    //   if (tokenId) { // token
+    //     let [policyId, assetName] = tokenId.split(".");
+    //     if ((totalAssets === 1) && (tool.getAssetBalance(multiAsset, policyId, assetName) != 0)) {
+    //       return true;
+    //     }
+    //   }
+    //   return false;
+    // })
   }
 
   async getCollateral() {
     let utxos = await this.cardano.getCollateral();
-    return utxos; // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos.slice(0, 3); // utxos.map(utxo => wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 

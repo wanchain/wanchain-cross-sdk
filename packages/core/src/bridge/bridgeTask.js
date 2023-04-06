@@ -248,7 +248,7 @@ class BridgeTask {
     }
     if ((chainType === "ADA") && (this._direction === "BURN")) { // check ADA collateral
       let collateral = await this._wallet.getCollateral();
-      if (!(collateral && collateral.length)) {
+      if (collateral.length === 0) {
         return this._bridge.globalConstant.ERR_NO_COLLATERAL;
       }
     }

@@ -49,7 +49,6 @@ module.exports = class ProcessBurnFromCardano {
     try {
       let epochParameters = await this.storemanService.getCardanoEpochParameters();
       // fix FeeTooSmallUTxO
-      epochParameters.coinsPerUtxoWord = (epochParameters.coinsPerUtxoWord * 2).toString();
       epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA * 2).toString();
       epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB * 2).toString();
 
@@ -65,35 +64,38 @@ module.exports = class ProcessBurnFromCardano {
         ]
       };      
       // for token, to construct multiassets and calculate minAda to lock
+      let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenPair.toAccount));
       output.amount.push({
-        unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.toAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
+        unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
         quantity: params.value
       });
-      let outputValue = this.tool.assetsToValue(output.amount);
-      let minAda = this.tool.minAdaRequired(
-        outputValue,
-        this.wasm.BigNum.from_str(
-          epochParameters.coinsPerUtxoWord
-        ),
-        epochParameters.minUtxo
+
+      let tempOutput = this.wasm.TransactionOutput.new(
+        this.wasm.Address.from_bech32(params.crossScAddr),
+        this.tool.assetsToValue(output.amount)
       );
-      // console.debug({minAda});
+      let minAda = this.tool.minAdaRequired(tempOutput, epochParameters.coinsPerUtxoByte);
+      console.debug({minAda});
       output.amount[0].quantity = minAda;
 
-      // console.log("output.amount: %O", output.amount);
-      let outputs = this.wasm.TransactionOutputs.new();
-      outputs.add(
-        this.wasm.TransactionOutput.new(
-          this.wasm.Address.from_bech32(params.crossScAddr),
-          this.tool.assetsToValue(output.amount)
-        )
+      let txOutput = this.wasm.TransactionOutput.new(
+        this.wasm.Address.from_bech32(params.crossScAddr),
+        this.tool.assetsToValue(output.amount)
       );
-      let utxos = await wallet.getUtxos(); // hex
+
+      let utxos = await wallet.getUtxos(tokenId); // hex
       // this.tool.showUtxos(utxos, "all");
-      let selected = await this.selectUtxos(utxos, outputs, epochParameters);
+      if (utxos.length === 0) {
+        throw new Error("No utxo available");
+      }
+
+      let selected = await this.selectUtxos(utxos, txOutput, epochParameters);
+      if (selected.length === 0) {
+        throw new Error("Not enough utxo available");
+      }
       let inputs = selected; // selected.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      // this.tool.showUtxos(inputs, "cc selected");
+      // this.tool.showUtxos(inputs, "selected");
 
       let ccInfo = {
         smgId: params.storemanGroupId,
@@ -105,7 +107,8 @@ module.exports = class ProcessBurnFromCardano {
       let costModelParas = await this.storemanService.getCardanoCostModelParameters();
       let hexTx = await this.buildBurnTx(tokenPair, ccInfo, inputs, collateralUtxos, epochParameters, costModelParas.costModels);
       let tx = this.wasm.Transaction.from_hex(hexTx);
-      console.log("ProcessBurnFromCardano tx: %O", tx.to_json())
+      console.debug("ProcessBurnFromCardano tx: %O", tx.to_json());
+
       // sign and send
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
       webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
@@ -135,12 +138,9 @@ module.exports = class ProcessBurnFromCardano {
     }
   }
 
-  async selectUtxos(hexUtxos, outputs, epochParameters) {
+  async selectUtxos(hexUtxos, output, epochParameters) {
     let url = this.apiServerUrl + "/api/adaHelper/selectUtxos";
-    let hexOutputs = [];
-    for (let i = 0; i < outputs.len(); i ++) {
-      hexOutputs.push(outputs.get(i).to_hex());
-    }
+    let hexOutputs = [output.to_hex()];
     let protocolParameters = {
       coinsPerUtxoWord: epochParameters.coinsPerUtxoWord,
       linearFee: epochParameters.linearFee,

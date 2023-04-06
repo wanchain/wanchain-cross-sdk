@@ -74,48 +74,50 @@ function assetsToValue(assets) {
   return value;
 }
 
-function minAdaRequired(value, coinsPerUtxoWord, minUtxo) {
-  let minAda = wasm.min_ada_required(
-    value,
-    false,
-    coinsPerUtxoWord
-  ).to_str();
-  if (Number(minAda) > Number(minUtxo)) {
-    return minAda;
-  } else {
-    return minUtxo;
-  }
+// Neither min_ada_required nor min_ada_for_output can calculate correct value
+function minAdaRequired(output, coinsPerUtxoByte) {
+  return ((160 + output.to_bytes().byteLength) * coinsPerUtxoByte).toString();
 }
 
 function multiAssetCount(multiAsset) {
   if (!multiAsset) return 0;
   let count = 0;
   const policies = multiAsset.keys();
-  for (let j = 0; j < multiAsset.len(); j++) {
+  for (let j = 0; j < policies.len(); j++) {
     const policy = policies.get(j);
     const policyAssets = multiAsset.get(policy);
     const assetNames = policyAssets.keys();
-    for (let k = 0; k < assetNames.len(); k++) {
-      count++;
-    }
+    count += assetNames.len();
   }
   return count;
 }
 
-async function selectUtxos(utxos, outputs, protocolParameters) {
-  const totalAssets = multiAssetCount(
-    outputs.get(0).amount().multiasset()
-  );
+function getAssetBalance(multiAsset, policyId, name) {
+  if (multiAsset && multiAsset.len()) {
+    let ma = multiAsset.to_js_value();
+    let policy = ma.get(policyId);
+    if (policy) {
+      let value = policy.get(name);
+      return value || "0";
+    }
+  }
+  return "0";
+}
+
+async function selectUtxos(utxos, output, protocolParameters) {
+  const totalAssets = multiAssetCount(output.amount().multiasset());
   CoinSelection.setProtocolParameters(
     protocolParameters.coinsPerUtxoWord,
     protocolParameters.linearFee.minFeeA,
     protocolParameters.linearFee.minFeeB,
     protocolParameters.maxTxSize.toString()
   );
+  const outputs = wasm.TransactionOutputs.new();
+  outputs.add(output); // adapt to CoinSelection api
   const selection = await CoinSelection.randomImprove(
     utxos,
     outputs,
-    10, // 20 + totalAssets
+    20 + totalAssets
   );
   return selection.input;
 }
@@ -147,6 +149,7 @@ module.exports = {
   assetsToValue,
   minAdaRequired,
   multiAssetCount,
+  getAssetBalance,
   selectUtxos,
   genPlutusData,
   showUtxos
