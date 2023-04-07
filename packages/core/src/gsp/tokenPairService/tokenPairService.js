@@ -14,6 +14,7 @@ class TokenPairService {
         this.storageService = null; // init after token pair service
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
+        this.tokenIssuer = new Map();
         this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
     }
 
@@ -78,7 +79,8 @@ class TokenPairService {
             let tokenPairMap = new Map();
             let [tokenPairs] = await Promise.all([
               this.readTokenpairs(ts0),
-              this.readMultiChainOrigToken(ts0)
+              this.readMultiChainOrigToken(ts0),
+              this.readTokenIssuer(ts0)
             ]);
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
@@ -164,6 +166,18 @@ class TokenPairService {
       this.multiChainOrigToken = map;
       let ts = new Date().getTime();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
+    }
+
+    async readTokenIssuer(startTime) {
+      let tokenIssuers = await this.iwanBCConnector.getRegisteredTokenIssuer();
+      let map = new Map();
+      tokenIssuers.forEach(t => {
+        let key = t.chainType + "-" + t.tokenScAddr;
+        map.set(key, t);
+      })
+      this.tokenIssuer = map;
+      let ts = new Date().getTime();
+      console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
     }
 
     async readAssetLogos(tokenPairs, startTime) {
@@ -303,13 +317,41 @@ class TokenPairService {
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
+        tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
+        let issuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount);
+        if (issuer) {
+          tokenPair.fromIssuer = {
+            issuer: issuer.issuer || "",
+            isNativeCoin: issuer.isNativeCoin || false
+          };
+        }
     }
 
     updateTokenPairToChainInfo(tokenPair) {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
-        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol)
+        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol);
+        tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
+        let issuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount);
+        if (issuer) {
+          tokenPair.toIssuer = {
+            issuer: issuer.issuer || "",
+            isNativeCoin: issuer.isNativeCoin || false
+          };
+        }
+    }
+
+    checkNativeToken(ancestorChainType, chainType, tokenAccount) {
+      if (ancestorChainType === chainType) { // coin or orig token
+        return true;
+      }
+      let key = chainType + "-" + tokenAccount;
+      let origToken = this.multiChainOrigToken.get(key);
+      if (origToken) { // multichain orig token
+        return true;
+      }
+      return false;
     }
 
     updateTokenPairCcHandle(tokenPair) {

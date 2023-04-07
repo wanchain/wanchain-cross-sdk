@@ -1,5 +1,7 @@
 const tool = require("../../utils/tool");
 
+const BASE_COIN_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 class AssetPairs {
 
   constructor() {
@@ -22,8 +24,10 @@ class AssetPairs {
     });
     if (assetPairs) { // maybe only update smgs
       let pairList = assetPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
-        this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService));
-        this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount, configService));
+        let fromTokenAccount = this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService);
+        let toTokenAccount = this.getTokenAccount(pair.toChainType, pair.toAccount, configService);
+        this.tokens.add(fromTokenAccount.toLowerCase());
+        this.tokens.add(toTokenAccount.toLowerCase());
         let assetPair = {
           assetPairId: pair.id,
           assetType: pair.readableSymbol,    // the readable ancestory symbol for this token
@@ -35,8 +39,14 @@ class AssetPairs {
           toDecimals: pair.toDecimals,       // to token decimals
           fromChainName: pair.fromChainName, // from Chain Name
           toChainName: pair.toChainName,     // to Chain Name
-          fromAccount: pair.fromAccount,     // from Chain token account
-          toAccount: pair.toAccount,         // to Chain token account
+          // from Chain token account, coin is BASE_COIN_ADDRESS, otherwise is native format
+          fromAccount: (pair.fromAccount === BASE_COIN_ADDRESS)? pair.fromAccount : fromTokenAccount,
+          // to Chain token account
+          toAccount: (pair.toAccount === BASE_COIN_ADDRESS)? pair.toAccount : toTokenAccount,
+          fromIsNative: pair.fromIsNative,   // is fromAccount is coin or native token
+          toIsNative: pair.toIsNative,       // is toAccount is coin or native token
+          fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
+          toIssuer: pair.toIssuer            // issuer of toAccount, only for xFlow
         };
         // special treatment for migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         if (pair.id === "41") {
@@ -78,7 +88,7 @@ class AssetPairs {
     } else {
       native = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
-    return native.toLowerCase();
+    return native;
   }
 
   isTokenAccount(chainType, account, extension) {
