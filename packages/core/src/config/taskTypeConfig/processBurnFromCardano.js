@@ -83,30 +83,23 @@ module.exports = class ProcessBurnFromCardano {
         this.tool.assetsToValue(output.amount)
       );
 
-      let utxos = await wallet.getUtxos(tokenId); // hex
+      let utxos = await wallet.getUtxos(); // hex
       // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
         throw new Error("No utxo available");
       }
 
-      let selected = await this.selectUtxos(utxos, txOutput, epochParameters);
-      if (selected.length === 0) {
+      let inputs = this.tool.selectUtxos(utxos, txOutput, epochParameters);
+      if (inputs.length === 0) {
         throw new Error("Not enough utxo available");
       }
-      let inputs = selected; // selected.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      // this.tool.showUtxos(inputs, "selected");
+      // this.tool.showUtxos(inputs, "inputs");
 
-      let ccInfo = {
-        smgId: params.storemanGroupId,
-        value: params.value,
-        from: params.fromAddr,
-        to: params.userAccount
-      };
-      let collateralUtxos = await wallet.getCollateral();
-      let costModelParas = await this.storemanService.getCardanoCostModelParameters();
-      let hexTx = await this.buildBurnTx(tokenPair, ccInfo, inputs, collateralUtxos, epochParameters, costModelParas.costModels);
-      let tx = this.wasm.Transaction.from_hex(hexTx);
+      let metaData = this.buildMetadata(params.tokenPairID, params.userAccount, params.storemanGroupId);
+      let mintBuilder = this.buildMint(tokenId, params.value);
+      let collateralBuilder = await this.buildCollateral(wallet);
+      let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder);
       console.debug("ProcessBurnFromCardano tx: %O", tx.to_json());
 
       // sign and send
@@ -135,42 +128,6 @@ module.exports = class ProcessBurnFromCardano {
       } else {
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
-    }
-  }
-
-  async selectUtxos(hexUtxos, output, epochParameters) {
-    let url = this.apiServerUrl + "/api/adaHelper/selectUtxos";
-    let hexOutputs = [output.to_hex()];
-    let protocolParameters = {
-      coinsPerUtxoWord: epochParameters.coinsPerUtxoWord,
-      linearFee: epochParameters.linearFee,
-      maxTxSize: epochParameters.maxTxSize
-    }
-    try {
-      let ret = await axios.post(url, {hexUtxos, hexOutputs, protocolParameters});
-      console.debug("ProcessBurnFromCardano selectUtxos %s: %O", url, ret.data);
-      return ret.data || [];
-    } catch (err) {
-      console.error("ProcessBurnFromCardano selectUtxos %s error: %O", url, err);
-      return [];
-    }
-  }
-
-  async buildBurnTx(tokenPair, ccInfo, assetUtxos, collateralUtxos, epochParameters, costModels) {
-    let url = this.apiServerUrl + "/api/adaHelper/buildBurnTx";
-    let tp = {
-      id: tokenPair.id,
-      toAccount: tokenPair.toAccount
-    };
-    try {
-      let paras = {tokenPair: tp, ccInfo, assetUtxos, collateralUtxos, epochParameters, costModels};
-      console.log("buildBurnTx paras: %O", paras);
-      let ret = await axios.post(url, paras);
-      console.debug("ProcessBurnFromCardano buildTx %s: %s", url, ret.data);
-      return ret.data || "";
-    } catch (err) {
-      console.error("ProcessBurnFromCardano buildTx %s error: %O", url, err);
-      return "";
     }
   }
 
@@ -305,7 +262,7 @@ module.exports = class ProcessBurnFromCardano {
     txBuilder.set_collateral(collateralBuilder);
     txBuilder.set_total_collateral_and_return(txBuilder.min_fee().checked_mul(this.wasm.BigNum.from_str('2')), selfAddress);
 
-    txBuilder.set_ttl(epochParameters.slot + (3600 * 2)); // 2h from current slot
+    txBuilder.set_ttl(epochParameters.slot + (3600 * 6)); // 6h from current slot
     txBuilder.add_change_if_needed(selfAddress);
 
     const transaction = txBuilder.build_tx();

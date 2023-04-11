@@ -109,7 +109,7 @@ function getAssetBalance(multiAsset, policyId, name) {
   return "0";
 }
 
-async function selectUtxos(utxos, output, protocolParameters) {
+function selectUtxos(utxos, output, protocolParameters) {
   const totalAssets = multiAssetCount(output.amount().multiasset());
   CoinSelection.setProtocolParameters(
     protocolParameters.coinsPerUtxoWord,
@@ -119,7 +119,7 @@ async function selectUtxos(utxos, output, protocolParameters) {
   );
   const outputs = wasm.TransactionOutputs.new();
   outputs.add(output); // adapt to CoinSelection api
-  const selection = await CoinSelection.randomImprove(
+  const selection = CoinSelection.randomImprove(
     utxos,
     outputs,
     20 + totalAssets

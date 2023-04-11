@@ -60,29 +60,14 @@ class Nami {
 
   // customized function
 
-  async getUtxos(tokenId) {
+  async getUtxos() {
     let utxos = await this.cardano.getUtxos();
-    return utxos; // utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
-    // return utxos.filter(v => {
-    //   let utxo = this.wasm.TransactionUnspentOutput.from_hex(v);
-    //   let multiAsset = utxo.output().amount().multiasset();
-    //   let totalAssets = tool.multiAssetCount(multiAsset);
-    //   if (totalAssets === 0) {
-    //     return true; // all tx need ADA utxo
-    //   }
-    //   if (tokenId) { // token
-    //     let [policyId, assetName] = tokenId.split(".");
-    //     if ((totalAssets === 1) && (tool.getAssetBalance(multiAsset, policyId, assetName) != 0)) {
-    //       return true;
-    //     }
-    //   }
-    //   return false;
-    // })
+    return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 
   async getCollateral() {
     let utxos = await this.cardano.getCollateral();
-    return utxos.slice(0, 3); // utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 

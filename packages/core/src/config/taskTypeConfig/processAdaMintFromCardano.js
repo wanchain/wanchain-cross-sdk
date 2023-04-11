@@ -62,11 +62,9 @@ module.exports = class ProcessAdaMintFromCardano {
           }
         ]
       };
-      let tokenId = "";
       if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
-        tokenId = tool.ascii2letter(tool.hexStrip0x(tokenPair.fromAccount));
         output.amount.push({
-          unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
+          unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.fromAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
           quantity: params.value
         });
         let tempOutput = this.wasm.TransactionOutput.new(
@@ -83,19 +81,17 @@ module.exports = class ProcessAdaMintFromCardano {
         this.tool.assetsToValue(output.amount)
       );
 
-      let utxos = await wallet.getUtxos(tokenId); // hex
+      let utxos = await wallet.getUtxos(); // hex
       // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
         throw new Error("No utxo available");
       }
-
-      let selected = await this.selectUtxos(utxos, txOutput, epochParameters);
-      if (selected.length === 0) {
+      let inputs = this.tool.selectUtxos(utxos, txOutput, epochParameters);
+      if (inputs.length === 0) {
         throw new Error("Not enough utxo available");
       }
-      let inputs = selected.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      // this.tool.showUtxos(inputs, "selected");
+      // this.tool.showUtxos(inputs, "inputs");
 
       let metaData = await this.buildMetadata(params.tokenPairID, params.userAccount, params.storemanGroupId);
 
@@ -128,24 +124,6 @@ module.exports = class ProcessAdaMintFromCardano {
       } else {
         webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
-    }
-  }
-
-  async selectUtxos(hexUtxos, output, epochParameters) {
-    let url = this.apiServerUrl + "/api/adaHelper/selectUtxos";
-    let hexOutputs = [output.to_hex()];
-    let protocolParameters = {
-      coinsPerUtxoWord: epochParameters.coinsPerUtxoWord,
-      linearFee: epochParameters.linearFee,
-      maxTxSize: epochParameters.maxTxSize
-    }
-    try {
-      let ret = await axios.post(url, {hexUtxos, hexOutputs, protocolParameters});
-      console.debug("ProcessAdaMintFromCardano selectUtxos %s: %O", url, ret.data);
-      return ret.data || [];
-    } catch (err) {
-      console.error("ProcessAdaMintFromCardano selectUtxos %s error: %O", url, err);
-      return [];
     }
   }
 
@@ -206,7 +184,7 @@ module.exports = class ProcessAdaMintFromCardano {
     output.set_plutus_data(this.tool.genPlutusData());
     txBuilder.add_output(output);
 
-    txBuilder.set_ttl(epochParameters.slot + (3600 * 2)); // 2h from current slot
+    txBuilder.set_ttl(epochParameters.slot + (3600 * 6)); // 6h from current slot
     txBuilder.add_change_if_needed(
       wasm.Address.from_bech32(paymentAddr)
     );
