@@ -22,7 +22,7 @@ module.exports = class ConfigService {
         this.network = network;
         this.curConfig = config[network];
         // console.debug(this.curConfig);
-        this._initExtensions(options.extensions || []);
+        await this._initExtensions(options.extensions || []);
     }
 
     getNetwork() {
@@ -48,15 +48,18 @@ module.exports = class ConfigService {
         return _.get(this.curConfig, name);
     }
 
-    _initExtensions(extensions) {
+    async _initExtensions(extensions) {
       if (!Array.isArray(extensions)) {
         extensions = [extensions];
       }
-      extensions.forEach((ext, i) => {
+      await Promise.all(extensions.map(async (ext, i) => {
         if (ext.getChains && ext.getSymbols) {
           let chains = ext.getChains();
           let symbols = ext.getSymbols();
           if (chains && symbols && (chains.length === symbols.length)) {
+            if (ext.init) {
+              await ext.init();
+            }
             symbols.forEach((symbol, i) => {
               this.extensions.set(symbol, ext);
               console.debug("register %s(%s) extension", chains[i], symbol);
@@ -65,6 +68,6 @@ module.exports = class ConfigService {
           }
         }
         throw new Error("Extension " + i + " is invalid");
-      });
+      }));
     }
 }
