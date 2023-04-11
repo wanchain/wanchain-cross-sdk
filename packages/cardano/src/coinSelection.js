@@ -1,4 +1,4 @@
-const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
+let wasm = null;
 
 /**
  * BerryPool implementation of the __Random-Improve__ coin selection algorithm.
@@ -196,6 +196,9 @@ let protocolParameters = null;
  * @module src/lib/CoinSelection
  */
 const CoinSelection = {
+  setWasm: (_wasm) => {
+    wasm = _wasm;
+  },
   /**
    * Set protocol parameters required by the algorithm
    * @param {string} coinsPerUtxoWord

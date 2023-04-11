@@ -1,5 +1,10 @@
-const wasm = require("@emurgo/cardano-serialization-lib-asmjs");
 const CoinSelection = require("./coinSelection");
+
+let wasm = null;
+
+function setWasm(_wasm) {
+  wasm = _wasm;
+}
 
 function getWasm() {
   return wasm;
@@ -144,6 +149,7 @@ function showUtxos(utxos, title = "") {
 }
 
 module.exports = {
+  setWasm,
   getWasm,
   validateAddress,
   assetsToValue,
