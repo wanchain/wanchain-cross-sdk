@@ -30,11 +30,11 @@ module.exports = class ProcessBase {
   }
 
   async sendTransactionData(stepData, txData, wallet) {
+    console.log("processBase sendTransactionData stepData:", stepData);
+    let params = stepData.params;
     try {
-      console.log("processBase sendTransactionData stepData:", stepData);
       let uiStrService = this.m_frameworkService.getService("UIStrService");
       let strFailed = uiStrService.getStrByName("Failed");
-      let params = stepData.params;
 
       let accountAry = await wallet.getAccounts();
       let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
@@ -44,23 +44,8 @@ module.exports = class ProcessBase {
         return;
       }
 
-      let txHash = "";
-      try {
-        txHash = await wallet.sendTransaction(txData);
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      } catch (err) {
-        // console.debug({err, str: err.toString()});
-        let result, errInfo = "";
-        if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
-          result = "Rejected";
-        } else {
-          result = "Failed";
-          errInfo = tool.getErrMsg(err, "Failed to send transaction");
-        }
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", result, errInfo);
-        console.error("task %s sendTransactionData error: %O", params.ccTaskId, err);
-        return;
-      }
+      let txHash = await wallet.sendTransaction(txData);
+      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let convertCheckInfo = await this.getConvertInfoForCheck(stepData);
       let obj = {
@@ -73,7 +58,12 @@ module.exports = class ProcessBase {
       let checkTxReceiptService = this.m_frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(obj);
     } catch (err) {
-      console.error("ProcessBase sendTransactionData err:", err);
+      if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected", "");
+      } else {
+        console.error("ProcessBase sendTransactionData error:", err);
+        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      }
     }
   }
 

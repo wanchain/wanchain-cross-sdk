@@ -66,19 +66,8 @@ module.exports = class ProcessDotMintFromPolka {
       }
 
       // 5 签名并发送
-      let txHash;
-      try {
-        txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      } catch (err) {
-        if (err.message === "Cancelled") {
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-        } else {
-          console.error("polkadot sendTransaction error: %O", err);
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
-        }
-        return;
-      }
+      let txHash = await wallet.sendTransaction(txs, params.fromAddr);
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // 查询目的链当前blockNumber
       let iwan = this.frameworkService.getService("iWanConnectorService");
@@ -96,8 +85,12 @@ module.exports = class ProcessDotMintFromPolka {
       let checkDotTxService = this.frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
-      console.error("ProcessDotMintFromPolka error: %O", err);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      if (err.message === "Cancelled") {
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+      } else {
+        console.error("ProcessDotMintFromPolka error: %O", err);
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      }
     }
   }
 

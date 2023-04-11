@@ -1,5 +1,6 @@
 const wasm = require("./src/wasm");
 const NamiWallet = require("./src/wallet/nami");
+const YoroiWallet = require("./src/wallet/yoroi");
 const tool = require("./src/tool");
 const CoinSelection = require("./src/coinSelection");
 
@@ -14,6 +15,7 @@ module.exports = {
   getChains: () => ["Cardano"],
   getSymbols: () => ["ADA"],
   NamiWallet,
+  YoroiWallet,
   tool,
   init
 };
