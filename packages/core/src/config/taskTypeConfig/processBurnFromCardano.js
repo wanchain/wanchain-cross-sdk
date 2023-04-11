@@ -1,6 +1,5 @@
 'use strict';
 
-const axios = require("axios");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -93,7 +92,7 @@ module.exports = class ProcessBurnFromCardano {
       if (inputs.length === 0) {
         throw new Error("Not enough utxo available");
       }
-      console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
+      console.debug("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       // this.tool.showUtxos(inputs, "inputs");
 
       let metaData = this.buildMetadata(params.tokenPairID, params.userAccount, params.storemanGroupId);
