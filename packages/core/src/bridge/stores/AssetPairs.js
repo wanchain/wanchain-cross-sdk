@@ -1,7 +1,5 @@
 const tool = require("../../utils/tool");
 
-const BASE_COIN_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 class AssetPairs {
 
   constructor() {
@@ -10,7 +8,7 @@ class AssetPairs {
     this.tokens = new Set(); // not need to be classified by chain
   }
 
-  setAssetPairs(assetPairs, smgs, configService = null) {
+  setAssetPairs(tokenPairs, smgs, configService = null) {
     this.smgList = smgs.map(smg => {
       return {
         id: smg.groupId,
@@ -22,12 +20,10 @@ class AssetPairs {
         endTime: smg.endTime
       }
     });
-    if (assetPairs) { // maybe only update smgs
-      let pairList = assetPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
-        let fromTokenAccount = this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService);
-        let toTokenAccount = this.getTokenAccount(pair.toChainType, pair.toAccount, configService);
-        this.tokens.add(fromTokenAccount.toLowerCase());
-        this.tokens.add(toTokenAccount.toLowerCase());
+    if (tokenPairs) { // maybe only update smgs
+      let pairList = tokenPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
+        this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService).toLowerCase());
+        this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount, configService).toLowerCase());
         let assetPair = {
           assetPairId: pair.id,
           assetType: pair.readableSymbol,    // the readable ancestory symbol for this token
@@ -39,10 +35,8 @@ class AssetPairs {
           toDecimals: pair.toDecimals,       // to token decimals
           fromChainName: pair.fromChainName, // from Chain Name
           toChainName: pair.toChainName,     // to Chain Name
-          // from Chain token account, coin is BASE_COIN_ADDRESS, otherwise is native format
-          fromAccount: (pair.fromAccount === BASE_COIN_ADDRESS)? pair.fromAccount : fromTokenAccount,
-          // to Chain token account
-          toAccount: (pair.toAccount === BASE_COIN_ADDRESS)? pair.toAccount : toTokenAccount,
+          fromAccount: pair.fromAccount,
+          toAccount: pair.toAccount,
           fromIsNative: pair.fromIsNative,   // is fromAccount is coin or native token
           toIsNative: pair.toIsNative,       // is toAccount is coin or native token
           fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
@@ -82,13 +76,11 @@ class AssetPairs {
   }
 
   getTokenAccount(chainType, account, configService) {
-    let native;
     if (chainType === "XRP") {
-      native = tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
-    } else {
-      native = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
+      return tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
+    } else { // ADA chain is policyId.name, not address
+      return tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
-    return native;
   }
 
   isTokenAccount(chainType, account, extension) {

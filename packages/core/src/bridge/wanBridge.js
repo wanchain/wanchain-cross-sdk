@@ -26,7 +26,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304061212", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304111640", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -312,6 +312,22 @@ class WanBridge extends EventEmitter {
   getChainLogo(chainName) {
     let chainType = this.tokenPairService.getChainType(chainName);
     return this.tokenPairService.getChainLogo(chainType);
+  }
+
+  formatTokenAccount(chainName, tokenAccount) {
+    let chainType = this.tokenPairService.getChainType(chainName);
+    if (tokenAccount === "0x0000000000000000000000000000000000000000") {
+      return chainType;
+    }
+    if (chainType === "XRP") {
+      return tool.parseXrpTokenPairAccount(tokenAccount, true).join("."); // name.issuer
+    } else if (chainType === "ADA") {
+      let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+      let [policyId, name] = tokenInfo.split(".");
+      return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+    } else {
+      return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
+    }
   }
 
   _onStoremanInitilized(success) {
