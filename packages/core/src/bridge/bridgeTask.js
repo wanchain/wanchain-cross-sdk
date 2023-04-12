@@ -46,6 +46,8 @@ class BridgeTask {
       this._fromChainInfo = toChainInfo;
       this._toChainInfo = fromChainInfo;
     }
+    // internal call need unformated fromAccount
+    this._fromTokenAccount = bridge.tokenPairService.getTokenPair(assetPair.assetPairId).fromAccount;
     // smg info
     this._smg = null;
     this._secp256k1Gpk = '';
@@ -207,9 +209,9 @@ class BridgeTask {
         return "Amount out of range";
       }
       let smgAddr = this._getSmgAddress(fromChainType);
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, smgAddr);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._fromTokenAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
+        let token = tool.parseXrpTokenPairAccount(this._assetPair._fromTokenAccount, true).join(".");
         console.debug("Storeman has no trust line for %s: smg=%s, liquidity=%s", token, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
         return "The XRPL token crosschain is being activated. Please try again later";
       }
@@ -282,9 +284,9 @@ class BridgeTask {
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._assetPair.fromAccount, this._toAccount);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._fromTokenAccount, this._toAccount);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(this._assetPair.fromAccount, true).join(".");
+        let token = tool.parseXrpTokenPairAccount(this._fromTokenAccount, true).join(".");
         let reason = line? "Liquidity is not enough" : "No trust line";
         let msg = util.format("%s for %s", reason, token);
         console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
