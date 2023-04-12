@@ -53,7 +53,10 @@ function ascii2letter(asciiStr) {
   for (var i = 0; i < len; i = i + 2) {
     let tmp = str.substr(i, 2);
     if (tmp !== '00') {
-      letterStr.push(String.fromCharCode(parseInt(tmp, 16)));
+      let char = String.fromCharCode(parseInt(tmp, 16));
+      if (char !== '\x00') {
+        letterStr.push(char);
+      }
     }
   }
   return letterStr.join('');
