@@ -25,7 +25,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   }
 
   async buildApproveSteps(steps, tokenPair, convert) {
-    if (["Erc721", "Erc1155"].includes(tokenPair.toAccountType)) {
+    if (["Erc721", "Erc1155"].includes(tokenPair.protocol)) {
       return this.buildErc721Approve(steps, tokenPair, convert);
     } else { // defalut Erc20
       return this.buildErc20Approve(steps, tokenPair, convert);
@@ -103,7 +103,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
-    let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+    let tokenType = tokenPair.protocol;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
@@ -137,7 +137,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
-    let tokenType = (convert.convertType === "MINT")? tokenPair.fromAccountType : tokenPair.toAccountType;
+    let tokenType = tokenPair.protocol;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});

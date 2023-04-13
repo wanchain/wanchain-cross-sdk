@@ -71,14 +71,13 @@ class StoremanService {
             } else {
                 decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
                 let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-                let tokenType = direction? tokenPair.fromAccountType : tokenPair.toAccountType;
                 if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                         balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                     }
-                } else if (tokenType === "Erc1155") {
+                } else if (tokenPair.protocol === "Erc1155") {
                     balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
                 } else {
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {

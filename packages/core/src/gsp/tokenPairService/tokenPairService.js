@@ -115,7 +115,7 @@ class TokenPairService {
     }
 
     checkCustomization(tp) {
-      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.fromAccountType)) {
+      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.protocol)) {
         return false;
       }
       if (this.crossAssets.length && !this.crossAssets.includes(tp.readableSymbol)) {
@@ -186,7 +186,7 @@ class TokenPairService {
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
-        assetMap.set(tp.readableSymbol + "_" + tp.toAccountType.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
+        assetMap.set(tp.readableSymbol + "_" + tp.protocol.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -297,6 +297,11 @@ class TokenPairService {
             this.chainName2Type.set(tokenPair.ancestorChainName, tokenPair.ancestorChainType);
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
+            tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
+            // special treatment for migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
+            if (tokenPair.id === "41") {
+              tokenPair.assetAlias = "BTC.a";
+            }
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
@@ -429,13 +434,12 @@ class TokenPairService {
       let tokenPair = this.getTokenPair(tokenPairId);
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
-      let protocol = (direction === "MINT")? tokenPair.toAccountType : tokenPair.fromAccountType;
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken || (tokenAccount === tokenPair.ancestorAccount)) { // original token or coin
-        return (protocol === "Erc20")? "BURN" : "BURNNFT"; // release
+        return (tokenPair.protocol === "Erc20")? "BURN" : "BURNNFT"; // release
       } else {
-        return (protocol === "Erc20")? "MINT" : "MINTNFT";
+        return (tokenPair.protocol === "Erc20")? "MINT" : "MINTNFT";
       }
     }
 

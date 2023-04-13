@@ -27,7 +27,8 @@ class AssetPairs {
         let assetPair = {
           assetPairId: pair.id,
           assetType: pair.readableSymbol,    // the readable ancestory symbol for this token
-          protocol: pair.toAccountType || "Erc20", // token protocol: Erc20, Erc721, Erc1155
+          assetAlias: pair.assetAlias,
+          protocol: pair.protocol,           // token protocol: Erc20, Erc721, Erc1155
           ancestorChainName: pair.ancestorChainName, // ancestor Chain Name
           fromSymbol: pair.fromSymbol,       // token symbol for fromChain
           toSymbol: pair.toSymbol,           // token symbol for toChain
@@ -42,10 +43,6 @@ class AssetPairs {
           fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
           toIssuer: pair.toIssuer            // issuer of toAccount, only for xFlow
         };
-        // special treatment for migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
-        if (pair.id === "41") {
-          assetPair.assetAlias = "BTC.a";
-        }
         return assetPair;
       });
       this.assetPairList = pairList.sort(this.sortBy);

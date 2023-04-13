@@ -19,7 +19,7 @@ module.exports = class crossChainFees {
         }
         let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
         let fee = await iwanBCConnector.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId});
-        if (tokenPair.toAccountType !== "Erc20") {
+        if (tokenPair.protocol !== "Erc20") {
             fee.value = "0";
         }
         // console.debug("estimateOperationFee %s->%s raw: %O", fromChainType, toChainType, fee);
