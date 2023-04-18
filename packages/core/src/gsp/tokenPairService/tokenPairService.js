@@ -288,8 +288,6 @@ class TokenPairService {
     setAssetAlias(tokenPair) { // special treatment for frontend
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
-      } else if (tokenPair.ancestorName === "Djed_testMicroUSD") { // simplify asset name
-        tokenPair.assetAlias = "Djed Test USD";
       }
     }
 
@@ -307,7 +305,7 @@ class TokenPairService {
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (ancestorChainInfo && tokenPair.fromScInfo && tokenPair.toScInfo) {
             // (xrp) ancestorSymbol keep original format for iwan api
-            tokenPair.readableSymbol = tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol);
+            tokenPair.readableSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol));
             tokenPair.ancestorChainType = ancestorChainInfo.chainType;
             tokenPair.ancestorChainName = ancestorChainInfo.chainName;
             this.chainName2Type.set(tokenPair.ancestorChainName, tokenPair.ancestorChainType);
