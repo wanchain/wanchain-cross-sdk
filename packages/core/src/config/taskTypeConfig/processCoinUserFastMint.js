@@ -50,14 +50,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
         let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
         let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
         let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
-        let blockNumber;
-        if (checkChainType === "XRP") {
-          blockNumber = await this.m_iwanBCConnector.getLedgerVersion(checkChainType);
-        } else if (["DOT", "ADA", "PHA"].includes(checkChainType)) {
-          blockNumber = 0;
-        } else {
-          blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
-        }
+        let storemanService = this.m_frameworkService.getService("StoremanService");
+        let blockNumber = await storemanService.getChainBlockNumber(checkChainType);
         let obj = {
             needCheck: true,
             checkInfo: {

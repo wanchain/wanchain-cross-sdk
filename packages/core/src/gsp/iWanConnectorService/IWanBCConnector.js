@@ -66,11 +66,6 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getLedgerVersion(chain) {
-        let ret = await this.apiClient.getLedgerVersion(chain);
-        return ret;
-    }
-
     async getBalance(chain, addr) {
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;

@@ -6,6 +6,8 @@ const axios = require("axios");
 
 const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA"]; // TRX has self wallet but also be supported by rpc
 
+const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA"];
+
 class StoremanService {
     constructor() {
     }
@@ -273,6 +275,15 @@ class StoremanService {
       let p = await this.m_iwanBCConnector.getCostModelParameters("ADA", {epochID: "latest"});
       console.debug("getCardanoCostModelParameters: %O", p);
       return p;
+    }
+
+    async getChainBlockNumber(chainType) {
+      let blockNumber = 0;
+      if (!API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
+        // only for EVM chains
+        blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
+      }
+      return blockNumber;
     }
 };
 

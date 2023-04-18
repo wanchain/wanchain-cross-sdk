@@ -1030,24 +1030,7 @@ class ApiInstance extends WsInstance {
         return cb(null, result);
       });
     });
-    }
-
-    getLedgerVersion(chainType, callback) {
-        if (callback) {
-            callback = utils.wrapCallback(callback);
-        }
-        let method = 'getLedgerVersion';
-        let params = { chainType: chainType };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
+  }
 
   /**
   *
