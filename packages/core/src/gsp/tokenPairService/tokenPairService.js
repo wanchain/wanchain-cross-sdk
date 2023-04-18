@@ -285,6 +285,14 @@ class TokenPairService {
       return logo;
     }
 
+    setAssetAlias(tokenPair) { // special treatment for frontend
+      if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
+        tokenPair.assetAlias = "BTC.a";
+      } else if (tokenPair.ancestorName === "Djed_testMicroUSD") { // simplify asset name
+        tokenPair.assetAlias = "Djed Test USD";
+      }
+    }
+
     updateTokenPairInfo(tokenPair) {
         let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
@@ -298,10 +306,7 @@ class TokenPairService {
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
-            // special treatment for migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
-            if (tokenPair.id === "41") {
-              tokenPair.assetAlias = "BTC.a";
-            }
+            this.setAssetAlias(tokenPair);
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
