@@ -286,6 +286,8 @@ class TokenPairService {
     }
 
     setAssetAlias(tokenPair) { // special treatment for frontend
+      // assetAlias only change ui asset symbol, do not affect sdk, such as fee unit
+      // readableSymbol affect both ui and sdk
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
       }
