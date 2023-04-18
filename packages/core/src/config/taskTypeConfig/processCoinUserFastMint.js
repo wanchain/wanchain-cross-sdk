@@ -69,7 +69,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 value: new BigNumber(params.value).minus(params.fee),
                 chain: checkChainType,
                 fromBlockNumber: blockNumber,
-                taskType
+                taskType,
+                fromChain: params.scChainType
             }
         };
         return obj;
