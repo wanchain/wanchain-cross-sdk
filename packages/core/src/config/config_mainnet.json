@@ -186,7 +186,7 @@
       "chainId": "1073741830",
       "chainType": "FX",
       "chainName": "Function X",
-      "crossScAddr": "0x",
+      "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
