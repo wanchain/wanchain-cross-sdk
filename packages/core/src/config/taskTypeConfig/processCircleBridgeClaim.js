@@ -40,6 +40,7 @@ module.exports = class ProcessCircleBridgeClaim {
             };
             let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
             await checkTxReceiptService.add(obj);
+            this.webStores["crossChainTaskRecords"].modifyTradeTaskStatus(params.ccTaskId, "Claiming", "");
             return "";
         } catch (err) {
             if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
