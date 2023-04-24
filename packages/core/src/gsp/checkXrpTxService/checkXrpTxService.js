@@ -26,9 +26,9 @@ module.exports = class CheckXrpTxService {
     }
 
     async start() {
-        let checkXrpTxServiceCfg = this.m_configService.getGlobalConfig("CheckXrpTxService");
-        // console.debug("checkXrpTxServiceCfg:", checkXrpTxServiceCfg);
-        this.m_taskService.addTask(this, checkXrpTxServiceCfg.queryActionInfoInterval, "");
+        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+        let chainInfo = chainInfoService.getChainInfoByType("XRP");
+        this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
     }
 
     async addTagInfo(obj) {

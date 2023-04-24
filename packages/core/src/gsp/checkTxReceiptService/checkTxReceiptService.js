@@ -18,7 +18,7 @@ module.exports = class CheckTxReceiptService {
     }
 
     async start() {
-        this.m_taskService.addTask(this, 1000, "");
+        this.m_taskService.addTask(this, 3000);
     }
 
     async runTask(taskPara) {

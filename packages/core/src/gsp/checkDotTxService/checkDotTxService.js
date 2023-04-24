@@ -26,7 +26,7 @@ module.exports = class CheckDotTxService {
         this.apiServerUrl = apiServerConfig.url;
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
-        this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "");
+        this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
     }
 
     async addTask(task) {

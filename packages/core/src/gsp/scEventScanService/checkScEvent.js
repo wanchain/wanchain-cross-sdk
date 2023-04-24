@@ -23,7 +23,7 @@ module.exports = class CheckScEvent {
     EventTypes.forEach(v => this.m_mapCheckAry.set(v, []));
     this.m_iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
     this.m_taskService = this.m_frameworkService.getService("TaskService");
-    this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval, "sc event");
+    this.m_taskService.addTask(this, this.m_chainInfo.ScScanInfo.taskInterval);
     this.m_eventService = this.m_frameworkService.getService("EventService");
     let configService = this.m_frameworkService.getService("ConfigService");
     this.crossScAbi = configService.getAbi("crossSc");

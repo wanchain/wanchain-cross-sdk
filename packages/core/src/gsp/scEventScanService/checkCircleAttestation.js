@@ -14,7 +14,7 @@ module.exports = class CheckCircleAttestation {
     this.taskService = this.frameworkService.getService("TaskService");
     this.configService = this.frameworkService.getService("ConfigService");
     this.circleBridgeServer = this.configService.getGlobalConfig("circleBridgeServer");
-    this.taskService.addTask(this, 10000, "");
+    this.taskService.addTask(this, 3000);
     this.eventService = this.frameworkService.getService("EventService");
     this.iwan = this.frameworkService.getService("iWanConnectorService");
   }

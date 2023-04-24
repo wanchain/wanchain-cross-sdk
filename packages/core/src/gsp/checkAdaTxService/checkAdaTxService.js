@@ -24,7 +24,7 @@ module.exports = class CheckAdaTxService {
         this.apiServerUrl = apiServerConfig.url;
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType("ADA");
-        this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "");
+        this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
     }
 
     async addTask(task) {
