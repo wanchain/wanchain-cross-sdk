@@ -274,6 +274,12 @@ function validateXrpTokenAmount(amount) {
 function parseTokenPairSymbol(chain, symbol) {
   if ((chain === "XRP") || (chain == '2147483792')) {
     return xrpNormalizeCurrencyCode(symbol) || symbol;
+  } else if ((chain === "ADA") || (chain == '2147485463')) {
+    if (symbol === "ADA") {
+      return symbol;
+    } else {
+      return ascii2letter(hexStrip0x(symbol));
+    }
   } else {
     return symbol;
   }

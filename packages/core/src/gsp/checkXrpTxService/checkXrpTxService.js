@@ -13,8 +13,8 @@ module.exports = class CheckXrpTxService {
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_eventService = frameworkService.getService("EventService");
         this.m_configService = frameworkService.getService("ConfigService");
-        this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
-        this.lockTxTimeout = await this.m_configService.getGlobalConfig("LockTxTimeout");
+        this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
+        this.lockTxTimeout = this.m_configService.getGlobalConfig("LockTxTimeout");
     }
 
     async loadTradeTask(xrpAry) {
@@ -26,7 +26,7 @@ module.exports = class CheckXrpTxService {
     }
 
     async start() {
-        let checkXrpTxServiceCfg = await this.m_configService.getGlobalConfig("CheckXrpTxService");
+        let checkXrpTxServiceCfg = this.m_configService.getGlobalConfig("CheckXrpTxService");
         // console.debug("checkXrpTxServiceCfg:", checkXrpTxServiceCfg);
         this.m_taskService.addTask(this, checkXrpTxServiceCfg.queryActionInfoInterval, "");
     }

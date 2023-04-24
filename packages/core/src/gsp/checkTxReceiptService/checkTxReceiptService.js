@@ -47,12 +47,15 @@ module.exports = class CheckTxReceiptService {
                     if (isSuccess) {
                         result = "Succeeded";
                         errInfo = "";
-                        await this.addToScEventScan(obj);
+                        if (obj.type !== "claim") {
+                          await this.addToScEventScan(obj);
+                        }
                     }
                     await this.m_eventService.emitEvent("TaskStepResult", {
                         ccTaskId: obj.ccTaskId,
                         stepIndex: obj.stepIndex,
                         txHash: obj.txHash,
+                        type: obj.type, // claim
                         result,
                         errInfo
                     });

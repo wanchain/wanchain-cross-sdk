@@ -27,7 +27,7 @@ class Web3Wallet {
       .on("transactionHash", txHash => {
         resolve(txHash);
       }).on("error", err => {
-        console.error("web3Wallet sendTransaction error: %O", err);
+        console.debug("web3Wallet sendTransaction error: %O", err);
         reject(err);
       })
     });

@@ -33,7 +33,7 @@ module.exports = class MintXrpFromRipple {
         taskType: "ProcessXrpMintFromRipple",
         fee
       };
-      console.debug("MintXrpFromRipple params: %O", params);
+      console.debug("Mint %s FromRipple params: %O", tokenPair.readableSymbol, params);
       let ret = [
         {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
@@ -43,7 +43,7 @@ module.exports = class MintXrpFromRipple {
         errCode: null
       };
     } catch (err) {
-      console.error("MintXrpFromRipple error: %O", err);
+      console.error("Mint %s FromRipple error: %O", tokenPair.readableSymbol, err);
       WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
       return {
         stepNum: 0,

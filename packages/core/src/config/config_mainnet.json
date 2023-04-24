@@ -19,6 +19,11 @@
       "chainType": "ETH",
       "chainName": "Ethereum",
       "crossScAddr": "0xfceaaaeb8d564a9d0e71ef36f027b9d162bc334e",
+      "CircleBridge": {
+        "domain": 0,
+        "crossScAddr": "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
+        "claimScAddr": "0x0a992d191DEeC32aFe36203Ad87D7d289a738F81"
+      },
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
@@ -47,6 +52,11 @@
       "chainType": "AVAX",
       "chainName": "Avalanche C-Chain",
       "crossScAddr": "0x74e121a34a66D54C33f3291f2cdf26B1cd037c3a",
+      "CircleBridge": {
+        "domain": 1,
+        "crossScAddr": "0x6B25532e1060CE10cc3B0A99e5683b91BFDe6982",
+        "claimScAddr": "0x8186359af5f57fbb40c6b14a588d2a59c0c29880"
+      },
       "chainDecimals": 18,
       "MaskChainId": 43114,
       "crossGasLimit": 350000,
@@ -272,6 +282,7 @@
   "apiServer": {
     "url": "https://bridgeapi.wanchain.org"
   },
+  "circleBridgeServer": "https://iris-api.circle.com/attestations",
   "CheckBtcTxService": {
     "queryActionInfoInterval": 60000
   },
@@ -356,7 +367,13 @@
       "chainName": "Cardano",
       "crossScAddr": "",
       "mintFromChainHandle": "MintAdaFromCardano",
+      "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
+      "tokenScript": {
+        "txHash": "",
+        "index": 0,
+        "cborHex": ""
+      },
       "TxScanInfo": {
         "taskInterval": 10000
       }

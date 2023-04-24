@@ -50,7 +50,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
         let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
         let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
         let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
-        let blockNumber = await this.m_iwanBCConnector.getBlockNumber(checkChainType);
+        let storemanService = this.m_frameworkService.getService("StoremanService");
+        let blockNumber = await storemanService.getChainBlockNumber(checkChainType);
         let obj = {
             needCheck: true,
             checkInfo: {
@@ -62,7 +63,8 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 value: new BigNumber(params.value).minus(params.fee),
                 chain: checkChainType,
                 fromBlockNumber: blockNumber,
-                taskType
+                taskType,
+                fromChain: params.scChainType
             }
         };
         return obj;

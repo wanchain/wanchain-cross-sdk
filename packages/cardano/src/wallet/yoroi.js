@@ -1,26 +1,27 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
 
-class Nami {
+class Yoroi {
   constructor(provider) {
-    this.name = "Nami";
+    this.name = "Yoroi";
     if (!['mainnet', 'testnet'].includes(provider)) {
       throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
     }
-    this.cardano = window.cardano;
+    this.wallet = window.cardano.yoroi;
     this.wasm = wasm.getWasm();
   }
 
   // standard function
 
   async getChainId() {
-    return this.cardano.getNetworkId();
+    let cardano = await this.wallet.enable();
+    return cardano.getNetworkId();
   }
 
   async getAccounts(network) {
     try {
-      await this.cardano.enable();
-      let accounts = await this.cardano.getUsedAddresses();
+      let cardano = await this.wallet.enable();
+      let accounts = await cardano.getUsedAddresses();
       accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
     } catch (err) {
@@ -32,7 +33,8 @@ class Nami {
   async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
-      let balance = await this.cardano.getBalance();
+      let cardano = await this.wallet.enable();
+      let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       if (tokenId) {
         let [policyId, assetName] = tokenId.split(".");
@@ -47,28 +49,31 @@ class Nami {
   }
 
   async sendTransaction(tx, sender) {
-    let witnessSet = await this.cardano.signTx(tx.to_hex());
+    let cardano = await this.wallet.enable();
+    let witnessSet = await cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
     if (redeemers) {
       witnessSet.set_redeemers(redeemers);
     }
     let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
-    let txHash = await this.cardano.submitTx(transaction.to_hex());
+    let txHash = await cardano.submitTx(transaction.to_hex());
     return txHash;
   }
 
   // customized function
 
   async getUtxos() {
-    let utxos = await this.cardano.getUtxos();
+    let cardano = await this.wallet.enable();
+    let utxos = await cardano.getUtxos();
     return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 
   async getCollateral() {
-    let utxos = await this.cardano.getCollateral();
+    let cardano = await this.wallet.enable();
+    let utxos = await cardano.getCollateral("5000000");
     return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 
-module.exports = Nami;
+module.exports = Yoroi;

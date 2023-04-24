@@ -3,7 +3,7 @@
 const tool = require("../../utils/tool.js");
 const ProcessBase = require("./processBase.js");
 
-module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
+module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
     constructor(frameworkService) {
         super(frameworkService);
     }
@@ -16,31 +16,15 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txData;
-            if (wallet.generateUserBurnData) { // wallet custumized
-              txData = await wallet.generateUserBurnData(params.crossScAddr,
-                params.storemanGroupId,
-                params.tokenPairID,
-                params.value,
-                params.userBurnFee,
-                params.tokenAccount,
-                params.userAccount,
-                {coinValue: params.fee});
-            } else {
-              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-              let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
-                  params.storemanGroupId,
-                  params.tokenPairID,
-                  params.value,
-                  params.userBurnFee,
-                  params.tokenAccount,
-                  params.userAccount,
-                  {tokenType: params.tokenType});
-              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
-            }
+            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
+            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+            let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+            let toChainInfo = (params.scChainType === tokenPair.fromChainType)? tokenPair.toScInfo : tokenPair.fromScInfo;
+            let scData = await txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount);
+            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
-            console.error("ProcessErc20UserFastBurn error: %O", err);
+            console.error("ProcessCircleBridgeDeposit error: %O", err);
             this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
@@ -71,7 +55,9 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             fromChain: params.scChainType,
             fromAddr: params.fromAddr,
             chainHash: stepData.txHash,
-            toAddr: params.toAddr
+            toAddr: params.toAddr,
+            bridge: tokenPair.bridge,
+            // claim: {msg, msgHash, attestation}, // to fill later
           }
         };
         return checker;

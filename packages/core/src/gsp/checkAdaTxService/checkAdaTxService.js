@@ -20,10 +20,10 @@ module.exports = class CheckAdaTxService {
 
     async start() {
         let configService = this.frameworkService.getService("ConfigService");
-        let apiServerConfig = await configService.getGlobalConfig("apiServer");
+        let apiServerConfig = configService.getGlobalConfig("apiServer");
         this.apiServerUrl = apiServerConfig.url;
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
-        let chainInfo = await chainInfoService.getChainInfoByType("ADA");
+        let chainInfo = chainInfoService.getChainInfoByType("ADA");
         this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "");
     }
 

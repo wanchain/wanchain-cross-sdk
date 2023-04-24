@@ -8,7 +8,7 @@ module.exports = class TaskService{
 
     async init(frameworkService) {
         let configService = frameworkService.getService("ConfigService");
-        let taskInterval = await configService.getConfig("TaskService", "taskInterval");
+        let taskInterval = configService.getConfig("TaskService", "taskInterval");
         this.m_taskInterval = taskInterval;
         setTimeout(() => { this.taskLoop(); }, 0);
     }

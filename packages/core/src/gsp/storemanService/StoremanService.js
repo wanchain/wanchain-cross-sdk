@@ -6,6 +6,8 @@ const axios = require("axios");
 
 const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA"]; // TRX has self wallet but also be supported by rpc
 
+const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA"];
+
 class StoremanService {
     constructor() {
     }
@@ -59,7 +61,7 @@ class StoremanService {
             if (!tokenPair) {
                 return new BigNumber(0);
             }
-            let balance, decimals, direction = (chainType === tokenPair.fromChainType);
+            let balance, decimals, tokenAccount = "", direction = (chainType === tokenPair.fromChainType);
             let kaChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
             if (options.isCoin) { // isCoin is internal use only
                 decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
@@ -70,18 +72,21 @@ class StoremanService {
                 }
             } else {
                 decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
-                let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-                let tokenType = direction? tokenPair.fromAccountType : tokenPair.toAccountType;
+                tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
                 if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                         balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                     } else {
                         balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
                     }
-                } else if (tokenType === "Erc1155") {
+                } else if (tokenPair.protocol === "Erc1155") {
                     balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
                 } else {
-                    balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                    if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+                        balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
+                    } else {
+                        balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                    }
                 }
             }
             balance = new BigNumber(balance).div(Math.pow(10, decimals));
@@ -93,6 +98,7 @@ class StoremanService {
                     }
                 }
             }
+            console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, tokenAccount? ("token " + tokenAccount) : "coin", addr, balance.toFixed());
             return balance;
         } catch (err) {
             console.error("get tokenPair %s %s address %s balance error: %O", assetPairId, chainType, addr, err);
@@ -241,6 +247,44 @@ class StoremanService {
         }
       }
       return balance;
+    }
+
+    async getCardanoEpochParameters() {
+      let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
+      let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
+      let epochParameters = {
+        linearFee: {
+          minFeeA: p.min_fee_a.toString(),
+          minFeeB: p.min_fee_b.toString(),
+        },
+        minUtxo: p.min_utxo, // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+        poolDeposit: p.pool_deposit,
+        keyDeposit: p.key_deposit,
+        coinsPerUtxoByte: p.coins_per_utxo_byte,
+        coinsPerUtxoWord: p.coins_per_utxo_word,
+        maxValSize: p.max_val_size,
+        priceMem: p.price_mem,
+        priceStep: p.price_step,
+        maxTxSize: parseInt(p.max_tx_size),
+        slot: parseInt(latestBlock.slot),
+      };
+      console.debug("getCardanoEpochParameters: %O", epochParameters);
+      return epochParameters;
+    }
+
+    async getCardanoCostModelParameters() {
+      let p = await this.m_iwanBCConnector.getCostModelParameters("ADA", {epochID: "latest"});
+      console.debug("getCardanoCostModelParameters: %O", p);
+      return p;
+    }
+
+    async getChainBlockNumber(chainType) {
+      let blockNumber = 0;
+      if (!API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
+        // only for EVM chains
+        blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
+      }
+      return blockNumber;
     }
 };
 

@@ -1,4 +1,5 @@
 "use strict";
+const tool = require('../../utils/tool.js');
 let taskTypeConfig = require("../../config/taskTypeConfig/taskTypeConfig.js");
 
 module.exports = class TxTaskHandleService {
@@ -10,8 +11,8 @@ module.exports = class TxTaskHandleService {
         try {
             this.m_frameworkService = frameworkService;
 
-            for (let idx = 0; idx < taskTypeConfig.taskTypeCfg.length; ++idx) {
-                let obj = taskTypeConfig.taskTypeCfg[idx];
+            for (let idx = 0; idx < taskTypeConfig.length; ++idx) {
+                let obj = taskTypeConfig[idx];
                 this.m_mapTaskTypeToHandler.set(obj.name, obj.handle);
             }
         }
@@ -25,10 +26,12 @@ module.exports = class TxTaskHandleService {
             let params = taskParas.params;
             let TxTaskHandler = this.m_mapTaskTypeToHandler.get(params.taskType);
             let txHandler = new TxTaskHandler(this.m_frameworkService);
-            await txHandler.process(taskParas, wallet);
-        }
-        catch (err) {
-            console.log("TxTaskHandleService processTxTask err:", err);
+            let result = await txHandler.process(taskParas, wallet);
+            return result;
+        } catch (err) {
+            let errMsg = tool.getErrMsg(err, "processTxTask failed");
+            console.error("TxTaskHandleService processTxTask error:", errMsg);
+            return result;
         }
     }
 };

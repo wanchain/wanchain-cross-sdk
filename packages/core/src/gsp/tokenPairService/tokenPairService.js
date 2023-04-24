@@ -39,7 +39,7 @@ class TokenPairService {
             })
             // console.debug("tokenPairCfg: %O", this.m_mapTokenPairCfg);
         } catch (err) {
-            console.log("StoremanService init err:", err);
+            console.error("StoremanService init error:", err);
         }
     }
 
@@ -115,7 +115,7 @@ class TokenPairService {
     }
 
     checkCustomization(tp) {
-      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.fromAccountType)) {
+      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.protocol)) {
         return false;
       }
       if (this.crossAssets.length && !this.crossAssets.includes(tp.readableSymbol)) {
@@ -163,6 +163,11 @@ class TokenPairService {
         let key = t.chainType + "-" + t.tokenScAddr;
         map.set(key, t);
       })
+      let network = this.configService.getNetwork();
+      if (network === "testnet") {
+        map.set("AVAX-0x5425890298aed601595a70ab815c96711a31bc65", {chainType: "AVAX", symbol: "USDC", tokenScAddr: "0x5425890298aed601595a70ab815c96711a31bc65"});
+        map.set("ETH-0x07865c6e87b9f70255377e024ace6630c1eaa37f", {chainType: "ETH", symbol: "USDC", tokenScAddr: "0x07865c6e87b9f70255377e024ace6630c1eaa37f"});
+      }
       this.multiChainOrigToken = map;
       let ts = new Date().getTime();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
@@ -175,6 +180,12 @@ class TokenPairService {
         let key = t.chainType + "-" + t.tokenScAddr;
         map.set(key, t);
       })
+      // Circle USDC
+      let network = this.configService.getNetwork();
+      if (network === "testnet") {
+        map.set("AVAX-0x5425890298aed601595a70ab815c96711a31bc65", {issuer: "Circle"});
+        map.set("ETH-0x07865c6e87b9f70255377e024ace6630c1eaa37f", {issuer: "Circle"});
+      }
       this.tokenIssuer = map;
       let ts = new Date().getTime();
       console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
@@ -186,7 +197,7 @@ class TokenPairService {
       let accountSet = new Set();
       tokenPairs.forEach(tp => {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
-        assetMap.set(tp.readableSymbol + "_" + tp.toAccountType.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
+        assetMap.set(tp.readableSymbol + "_" + tp.protocol.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
       let logoMapCacheOld = new Map(cache);
@@ -285,18 +296,43 @@ class TokenPairService {
       return logo;
     }
 
+    setExtraInfo(tokenPair) { // special treatment for frontend
+      // assetAlias only change ui asset symbol, do not affect sdk, such as fee unit
+      // readableSymbol affect both ui and sdk
+      if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
+        tokenPair.assetAlias = "BTC.a";
+      } else if (tokenPair.id === "241") { // USDC@avalanche <-> USDC@ethereum, use Circle bridge and different token address
+        tokenPair.bridge = "Circle";
+        let network = this.configService.getNetwork();
+        if (network === "testnet") {
+          tokenPair.fromAccount = "0x5425890298aed601595a70ab815c96711a31bc65"; // avalanche
+          tokenPair.toAccount = "0x07865c6e87b9f70255377e024ace6630c1eaa37f"; // ethereum
+        }
+      }
+    }
+
+    customizeSymbol(symbol) { // special treatment for frontend
+      if (symbol === "Djed_testMicroUSD") {
+        return "Djed Test USD";
+      } else {
+        return symbol;
+      }
+    }
+
     updateTokenPairInfo(tokenPair) {
         let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (ancestorChainInfo && tokenPair.fromScInfo && tokenPair.toScInfo) {
             // (xrp) ancestorSymbol keep original format for iwan api
-            tokenPair.readableSymbol = tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol);
+            tokenPair.readableSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol));
             tokenPair.ancestorChainType = ancestorChainInfo.chainType;
             tokenPair.ancestorChainName = ancestorChainInfo.chainName;
             this.chainName2Type.set(tokenPair.ancestorChainName, tokenPair.ancestorChainType);
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
+            tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
+            this.setExtraInfo(tokenPair);
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
@@ -316,7 +352,7 @@ class TokenPairService {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
-        tokenPair.fromSymbol = tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol);
+        tokenPair.fromSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol));
         tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
         let issuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount);
         if (issuer) {
@@ -331,7 +367,7 @@ class TokenPairService {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
-        tokenPair.toSymbol = tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol);
+        tokenPair.toSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol));
         tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
         let issuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount);
         if (issuer) {
@@ -356,7 +392,21 @@ class TokenPairService {
 
     updateTokenPairCcHandle(tokenPair) {
         let fromChainInfo = tokenPair.fromScInfo;
+        let toChainInfo = tokenPair.toScInfo;
         tokenPair.ccType = {};
+
+        // other bridge
+        if (tokenPair.bridge) {
+          let bridgeKey = tokenPair.bridge + "Bridge";
+          if (fromChainInfo[bridgeKey] && toChainInfo[bridgeKey]) {
+            tokenPair.ccType["MINT"] = bridgeKey + "Deposit";
+            tokenPair.ccType["BURN"] = bridgeKey + "Deposit";
+            tokenPair.ccType["CLAIM"] = bridgeKey + "Claim";
+          } else {
+            throw new Error(bridgeKey + " unavailable");
+          }
+          return;
+        }
 
         // 1 1.1 最细粒度:tokenPair级别,根据tokenId配置处理特殊tokenPair的MINT/BURN
         //       目前只处理EOS跨到WAN后的token,token在WAN<->ETH之间互跨
@@ -379,21 +429,21 @@ class TokenPairService {
         if (fromChainInfo.mintFromChainHandle) {
             // 20210208 mintFromChainHandle只适用于非EVM链向EVM跨链,包括coin和token(暂不涉及)
             tokenPair.ccType["MINT"] = fromChainInfo.mintFromChainHandle;
-        } else {
-            // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
-            if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-                // coin
-                tokenPair.ccType["MINT"] = "MintCoin";
-            } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
-                // orig token
-                tokenPair.ccType["MINT"] = "MintErc20";
-            } else { // 祖先链是其他链的token
-                tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
-            }
+        } else if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
+            // coin
+            tokenPair.ccType["MINT"] = "MintCoin";
+        } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
+            // orig token
+            tokenPair.ccType["MINT"] = "MintErc20";
+        } else { // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
+            tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
         }
 
         // 2.2 BURN direction
-        if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
+        if (toChainInfo.burnFromChainHandle) {
+            // burn token from non-EVM chain, such as Cardano
+            tokenPair.ccType["BURN"] = toChainInfo.burnFromChainHandle;
+        } else if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
             // cross coin between ETH layer 2
             tokenPair.ccType["BURN"] = "MintCoin";
         } else if (tokenPair.toChainID === tokenPair.ancestorChainID) {
@@ -428,13 +478,12 @@ class TokenPairService {
       let tokenPair = this.getTokenPair(tokenPairId);
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
-      let protocol = (direction === "MINT")? tokenPair.toAccountType : tokenPair.fromAccountType;
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken || (tokenAccount === tokenPair.ancestorAccount)) { // original token or coin
-        return (protocol === "Erc20")? "BURN" : "BURNNFT"; // release
+        return (tokenPair.protocol === "Erc20")? "BURN" : "BURNNFT"; // release
       } else {
-        return (protocol === "Erc20")? "MINT" : "MINTNFT";
+        return (tokenPair.protocol === "Erc20")? "MINT" : "MINTNFT";
       }
     }
 

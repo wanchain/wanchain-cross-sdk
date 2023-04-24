@@ -17,10 +17,10 @@ module.exports = class CheckBtcTxService {
         this.m_eventService = frameworkService.getService("EventService");
 
         this.m_configService = frameworkService.getService("ConfigService");
-        this.m_apiServerConfig = await this.m_configService.getGlobalConfig("apiServer");
+        this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
         this.m_utilService = frameworkService.getService("UtilService");
 
-        this.lockTxTimeout = await this.m_configService.getGlobalConfig("LockTxTimeout");
+        this.lockTxTimeout = this.m_configService.getGlobalConfig("LockTxTimeout");
     }
 
     async loadTradeTask(otas) {
@@ -28,7 +28,7 @@ module.exports = class CheckBtcTxService {
     }
 
     async start() {
-        let cfg = await this.m_configService.getGlobalConfig(this.serviceName);
+        let cfg = this.m_configService.getGlobalConfig(this.serviceName);
         // console.debug("%s cfg: %O", this.serviceName, cfg);
         this.m_taskService.addTask(this, cfg.queryActionInfoInterval, "");
     }

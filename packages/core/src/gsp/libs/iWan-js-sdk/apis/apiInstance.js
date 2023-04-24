@@ -1030,24 +1030,7 @@ class ApiInstance extends WsInstance {
         return cb(null, result);
       });
     });
-    }
-
-    getLedgerVersion(chainType, callback) {
-        if (callback) {
-            callback = utils.wrapCallback(callback);
-        }
-        let method = 'getLedgerVersion';
-        let params = { chainType: chainType };
-
-        return utils.promiseOrCallback(callback, cb => {
-            this._request(method, params, (err, result) => {
-                if (err) {
-                    return cb(err);
-                }
-                return cb(null, result);
-            });
-        });
-    }
+  }
 
   /**
   *
@@ -8642,6 +8625,27 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getEpochParameters';
+    let params = { chainType: chainType, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getCostModelParameters(chainType, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getCostModelParameters';
     let params = { chainType: chainType, ...options };
 
     return utils.promiseOrCallback(callback, cb => {

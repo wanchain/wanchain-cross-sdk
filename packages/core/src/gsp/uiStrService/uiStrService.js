@@ -9,7 +9,7 @@ module.exports = class UIStrService {
     async init(frameworkService) {
         this.m_frameworkService = frameworkService;
         this.m_configService = frameworkService.getService("ConfigService");
-        this.m_uiStrConfig = await this.m_configService.getGlobalConfig("UIStrService");
+        this.m_uiStrConfig = this.m_configService.getGlobalConfig("UIStrService");
     }
 
     getStrByName(strName) {

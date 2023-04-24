@@ -66,11 +66,6 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getLedgerVersion(chain) {
-        let ret = await this.apiClient.getLedgerVersion(chain);
-        return ret;
-    }
-
     async getBalance(chain, addr) {
         let ret = await this.apiClient.getBalance(chain, addr);
         return ret;
@@ -217,6 +212,10 @@ class IWanBCConnector {
 
     async getEpochParameters(chainType, options) {
         return this.apiClient.getEpochParameters(chainType, options);
+    }
+
+    async getCostModelParameters(chainType, options) {
+      return this.apiClient.getCostModelParameters(chainType, options);
     }
 
     async getRegisteredTokenLogo(chainType, options) {

@@ -13,7 +13,7 @@ module.exports = class ProcessPhaMintFromPhala {
     // console.debug("ProcessPhaMintFromPhala stepData:", stepData);
     let webStores = this.m_frameworkService.getService("WebStores");
     let configService = this.m_frameworkService.getService("ConfigService");
-    let configScAddr = await configService.getGlobalConfig("crossConfigAddress");
+    let configScAddr = configService.getGlobalConfig("crossConfigAddress");
     let iwan = this.m_frameworkService.getService("iWanConnectorService");
     let params = stepData.params;
 
@@ -61,7 +61,7 @@ module.exports = class ProcessPhaMintFromPhala {
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
       let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-      let chainInfo = await chainInfoService.getChainInfoByType("PHA");
+      let chainInfo = chainInfoService.getChainInfoByType("PHA");
       let minReserved = new BigNumber(chainInfo.minReserved || 0);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
@@ -72,19 +72,8 @@ module.exports = class ProcessPhaMintFromPhala {
       }
 
       // 5 签名并发送
-      let txHash;
-      try {
-        txHash = await wallet.sendTransaction(txs, params.fromAddr);
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      } catch (err) {
-        if (err.message === "Cancelled") {
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-        } else {
-          console.error("polkadot sendTransaction error: %O", err);
-          webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
-        }
-        return;
-      }
+      let txHash = await wallet.sendTransaction(txs, params.fromAddr);
+      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // 查询目的链当前blockNumber
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
@@ -103,8 +92,12 @@ module.exports = class ProcessPhaMintFromPhala {
       let checkPhaTxService = this.m_frameworkService.getService("CheckPhaTxService");
       await checkPhaTxService.addTask(checkPara);
     } catch (err) {
-      console.error("ProcessPhaMintFromPhala error: %O", err);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      if (err.message === "Cancelled") {
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+      } else {
+        console.error("ProcessPhaMintFromPhala error: %O", err);
+        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      }
     }
   }
 

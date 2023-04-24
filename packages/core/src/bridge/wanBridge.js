@@ -26,7 +26,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304111640", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304240650", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -43,6 +43,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
+    this.eventService.addEventListener("Claimable", this._onClaimable.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
     await this._service.start();
   }
@@ -68,22 +69,20 @@ class WanBridge extends EventEmitter {
     let smgs = this.stores.assetPairs.smgList;
     if (smgs.length) {
       if (this.network === "mainnet") {
-        return smgs[0]; // mainnet has only 1 smg
+        return smgs[0]; // mainnet has only 1 smg, and do not support specify group
       }
-      let specifiedSmg = null, defaultSmg = null;
+      let requiredSmg = this.smgName || "testnet"; // default find a testnet group
+      let defaultSmg = null;
       for (let smg of smgs) {
-        if (smg.name === this.smgName) {
-          specifiedSmg = smg;
-          break;
-        } else if ((!defaultSmg) && (smg.name.indexOf("testnet") === 0)) {
-          defaultSmg = smg;
+        if (smg.name === requiredSmg) { // specific group
+          return smg;
+        } else if ((!defaultSmg) && ["testnet", "dev"].includes(requiredSmg)) { // group type
+          if (smg.name.indexOf(requiredSmg) === 0) {
+            defaultSmg = smg;
+          }
         }
       }
-      if (this.smgName) {
-        if (specifiedSmg) {
-          return specifiedSmg;
-        }
-      } else if (defaultSmg) {
+      if (defaultSmg) {
         return defaultSmg;
       }
     }
@@ -118,7 +117,7 @@ class WanBridge extends EventEmitter {
   async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
     console.debug("SDK: createTask, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
                   assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options.wallet? options.wallet.name : undefined, tool.getCurTimestamp());
-    let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
+    let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
@@ -142,11 +141,38 @@ class WanBridge extends EventEmitter {
       throw new Error("Missing wallet");
     }
     // create task
-    let direction = (fromChainName === assetPair.fromChainName)? "MINT" : "BURN";
-    let task = new BridgeTask(this, assetPair, direction, fromAccount, toAccount, amount, wallet);
+    let direction = (fromChainName === tokenPair.fromChainName)? "MINT" : "BURN";
+    let task = new BridgeTask(this, tokenPair, direction, fromAccount, toAccount, amount, wallet);
     await task.init();
     await task.start();
     return task;
+  }
+
+  async claim(taskId, wallet) { // only for other bridge, such as Circle bridge
+    console.debug("SDK: claim, taskId: %s", taskId);
+    let records = this.stores.crossChainTaskRecords;
+    let ccTask = records.ccTaskRecords.get(Number(taskId));
+    if (!ccTask) {
+      return "Task not exist";
+    }
+    if (!ccTask.claim) { // only for other bridge which need claim manually
+      return "Invalide operation";
+    }
+    let convert = {
+      ccTaskId: ccTask.ccTaskId,
+      tokenPairId: ccTask.assetPairId,
+      convertType: "CLAIM",
+      ccTaskType: ccTask.convertType,
+      msg: ccTask.claim.msg,
+      attestation: ccTask.claim.attestation,
+      wallet
+    }; 
+    // console.debug("claim convert: %O", convert);
+    let step = await this.cctHandleService.getConvertInfo(convert);
+    console.debug("claim step: %O", step);
+    // directly sync process step, do not save
+    let err = await this.txTaskHandleService.processTxTask(step, wallet);
+    return err;
   }
 
   cancelTask(taskId) {
@@ -165,9 +191,9 @@ class WanBridge extends EventEmitter {
   async getAccountBalance(assetType, chainName, account, options = {}) {
     console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account,
                   {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.name : undefined});
-    let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
+    let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
     let chainType = this.tokenPairService.getChainType(chainName);
-    let balance = await this.storemanService.getAccountBalance(assetPair.assetPairId, chainType, account, options);
+    let balance = await this.storemanService.getAccountBalance(tokenPair.id, chainType, account, options);
     balance = balance.toFixed();
     console.debug("SDK: getAccountBalance, result: %s", balance);
     return balance;
@@ -175,11 +201,11 @@ class WanBridge extends EventEmitter {
 
   async estimateFee(assetType, fromChainName, toChainName, options = {}) {
     console.debug("SDK: estimateFee, assetType: %s, fromChainName: %s, toChainName: %s, options: %O", assetType, fromChainName, toChainName, options);
-    let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
+    let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let toChainType = this.tokenPairService.getChainType(toChainName);
-    let operateFee = await this.feesService.estimateOperationFee(assetPair.assetPairId, fromChainType, toChainType);
-    let networkFee = await this.feesService.estimateNetworkFee(assetPair.assetPairId, fromChainType, toChainType, options);
+    let operateFee = await this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType);
+    let networkFee = await this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options);
     let fee = {
       operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
       networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals}
@@ -193,10 +219,10 @@ class WanBridge extends EventEmitter {
     let quota;
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
-      let assetPair = this._getAssetPair(assetType, fromChainName, toChainName, options);
+      let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
       let fromChainType = this.tokenPairService.getChainType(fromChainName);
       let smg = await this.getSmgInfo();
-      quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, assetPair.assetPairId, smg.id);
+      quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
     } else {
       quota = {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0"};
     }
@@ -239,10 +265,10 @@ class WanBridge extends EventEmitter {
 
   async getNftInfo(assetType, chainName, account, options = {}) {
     console.debug("SDK: getNftInfo, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account, options);
-    let assetPair = this._getAssetPair(assetType, chainName, chainName, options);
-    let token = (chainName === assetPair.fromChainName)? assetPair.fromAccount : assetPair.toAccount;
+    let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
+    let token = (chainName === tokenPair.fromChainName)? tokenPair.fromAccount : tokenPair.toAccount;
     let chainType = this.tokenPairService.getChainType(chainName);
-    let infos = await this.storemanService.getNftInfo(assetPair.protocol, chainType, token, account, options);
+    let infos = await this.storemanService.getNftInfo(tokenPair.protocol, chainType, token, account, options);
     console.debug("SDK: getNftInfo, result: %O", infos);
     return infos;
   }
@@ -258,6 +284,7 @@ class WanBridge extends EventEmitter {
           timestamp: task.ccTaskId,
           asset: task.assetType,
           protocol: task.protocol,
+          bridge: task.bridge,
           fromSymbol: task.fromSymbol,
           toSymbol: task.toSymbol,          
           fromChain: task.fromChainName,
@@ -424,6 +451,21 @@ class WanBridge extends EventEmitter {
     this.emit("redeem", {taskId, txHash});
   }
 
+  _onClaimable(taskClaimable) {
+    console.debug("_onClaimable: %O", taskClaimable);
+    let records = this.stores.crossChainTaskRecords;
+    let taskId = taskClaimable.ccTaskId;
+    // let txHash = taskClaimable.txHash;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (!ccTask) {
+      return;
+    }
+    records.setClaimData(taskId, taskClaimable.data);
+    records.modifyTradeTaskStatus(taskId, "Claimable");
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    this.emit("claimable", {taskId});
+  }
+
   _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
     let records = this.stores.crossChainTaskRecords;
     let fee = new BigNumber(sentAmount).minus(receivedAmount).toFixed();
@@ -470,11 +512,23 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
-      if (isLockTx) {
-        let lockEvent = {taskId, txHash};
-        console.debug("lockEvent: %O", lockEvent);
-        this.emit("lock", lockEvent);
+      if (taskStepResult.type === "claim") {
+        if (taskStepResult.result === "Succeeded") {
+          records.setTaskRedeemTxHash(taskId, txHash, ccTask.amount);
+          records.modifyTradeTaskStatus(taskId, "Succeeded", "");
+          let redeemEvent = {taskId, txHash};
+          console.debug("redeemEvent: %O", redeemEvent);
+          this.emit("redeem", redeemEvent);
+        } else {
+          records.modifyTradeTaskStatus(taskId, "Claimable", taskStepResult.errInfo);
+        }
+      } else {
+        let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
+        if (isLockTx) {
+          let lockEvent = {taskId, txHash};
+          console.debug("lockEvent: %O", lockEvent);
+          this.emit("lock", lockEvent);
+        }
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
@@ -484,15 +538,21 @@ class WanBridge extends EventEmitter {
     return THIRD_PARTY_WALLET_CHAINS.includes(chainType);
   }
 
-  _getAssetPair(assetType, fromChainName, toChainName, options = {}) {
+  _matchTokenPair(assetType, fromChainName, toChainName, options = {}) {
     let protocol = options.protocol || "Erc20";
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let pair = assetPairList[i];
-      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol)) {
+      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && (!options.assetPairId) || (options.assetPairId === pair.assetPairId)) {
         // if fromChainName and toChainName are the same, find any one of related pairs
         if ([pair.fromChainName, pair.toChainName].includes(fromChainName) && [pair.fromChainName, pair.toChainName].includes(toChainName)) {
-          return pair;
+          let tokenPair = this.tokenPairService.getTokenPair(pair.assetPairId);
+          if (tokenPair) {
+            return tokenPair;
+          } else {
+            console.error("tokenpair %s data is corrupted", pair.assetPairId);
+            break;
+          }
         }
       }
     }
