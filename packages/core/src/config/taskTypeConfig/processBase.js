@@ -82,7 +82,7 @@ module.exports = class ProcessBase {
       }      
     } catch (err) {
       this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
-      console.error("task %s checkChainId err: %O", params.ccTaskId, err);
+      console.error("task %s checkChainId error: %O", params.ccTaskId, err);
       return false;
     }
   }

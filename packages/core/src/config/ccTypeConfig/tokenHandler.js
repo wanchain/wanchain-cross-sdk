@@ -37,6 +37,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let approveMaxValue = new BigNumber(chainInfo.approveMaxValue);
+    let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr;
     let approveParams = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -45,16 +46,16 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
-      spenderAddr: chainInfo.crossScAddr,
+      spenderAddr: crossScAddr,
       taskType: "ProcessErc20Approve"
     };
     console.debug("TokenHandler buildErc20Approve %s params: %O", convert.convertType, approveParams);
     let allowance = await this.iWanConnectorService.getErc20Allowance(chainInfo.chainType,
       tokenSc,
       convert.fromAddr,
-      chainInfo.crossScAddr);
+      crossScAddr);
     allowance = new BigNumber(allowance);
-    console.debug("%s token %s allowance %s(%s->%s)", chainInfo.chainType, tokenSc, allowance.toFixed(), convert.fromAddr, chainInfo.crossScAddr);
+    console.debug("%s token %s allowance %s(%s->%s)", chainInfo.chainType, tokenSc, allowance.toFixed(), convert.fromAddr, crossScAddr);
     let approve0Title = this.uiStrService.getStrByName("approve0Title");
     let approve0Desc = this.uiStrService.getStrByName("approve0Desc");
     let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");

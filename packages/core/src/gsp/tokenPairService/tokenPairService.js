@@ -39,7 +39,7 @@ class TokenPairService {
             })
             // console.debug("tokenPairCfg: %O", this.m_mapTokenPairCfg);
         } catch (err) {
-            console.log("StoremanService init err:", err);
+            console.error("StoremanService init error:", err);
         }
     }
 
@@ -163,6 +163,11 @@ class TokenPairService {
         let key = t.chainType + "-" + t.tokenScAddr;
         map.set(key, t);
       })
+      let network = this.configService.getNetwork();
+      if (network === "testnet") {
+        map.set("AVAX-0x5425890298aed601595a70ab815c96711a31bc65", {chainType: "AVAX", symbol: "USDC", tokenScAddr: "0x5425890298aed601595a70ab815c96711a31bc65"});
+        map.set("ETH-0x07865c6e87b9f70255377e024ace6630c1eaa37f", {chainType: "ETH", symbol: "USDC", tokenScAddr: "0x07865c6e87b9f70255377e024ace6630c1eaa37f"});
+      }
       this.multiChainOrigToken = map;
       let ts = new Date().getTime();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
@@ -175,6 +180,12 @@ class TokenPairService {
         let key = t.chainType + "-" + t.tokenScAddr;
         map.set(key, t);
       })
+      // Circle USDC
+      let network = this.configService.getNetwork();
+      if (network === "testnet") {
+        map.set("AVAX-0x5425890298aed601595a70ab815c96711a31bc65", {issuer: "Circle"});
+        map.set("ETH-0x07865c6e87b9f70255377e024ace6630c1eaa37f", {issuer: "Circle"});
+      }
       this.tokenIssuer = map;
       let ts = new Date().getTime();
       console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
@@ -285,11 +296,18 @@ class TokenPairService {
       return logo;
     }
 
-    setAssetAlias(tokenPair) { // special treatment for frontend
+    setExtraInfo(tokenPair) { // special treatment for frontend
       // assetAlias only change ui asset symbol, do not affect sdk, such as fee unit
       // readableSymbol affect both ui and sdk
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
+      } else if (tokenPair.id === "241") { // USDC@avalanche <-> USDC@ethereum, use Circle bridge and different token address
+        tokenPair.bridge = "Circle";
+        let network = this.configService.getNetwork();
+        if (network === "testnet") {
+          tokenPair.fromAccount = "0x5425890298aed601595a70ab815c96711a31bc65"; // avalanche
+          tokenPair.toAccount = "0x07865c6e87b9f70255377e024ace6630c1eaa37f"; // ethereum
+        }
       }
     }
 
@@ -314,7 +332,7 @@ class TokenPairService {
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
-            this.setAssetAlias(tokenPair);
+            this.setExtraInfo(tokenPair);
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
@@ -376,6 +394,19 @@ class TokenPairService {
         let fromChainInfo = tokenPair.fromScInfo;
         let toChainInfo = tokenPair.toScInfo;
         tokenPair.ccType = {};
+
+        // other bridge
+        if (tokenPair.bridge) {
+          let bridgeKey = tokenPair.bridge + "Bridge";
+          if (fromChainInfo[bridgeKey] && toChainInfo[bridgeKey]) {
+            tokenPair.ccType["MINT"] = bridgeKey + "Deposit";
+            tokenPair.ccType["BURN"] = bridgeKey + "Deposit";
+            tokenPair.ccType["CLAIM"] = bridgeKey + "Claim";
+          } else {
+            throw new Error(bridgeKey + " unavailable");
+          }
+          return;
+        }
 
         // 1 1.1 最细粒度:tokenPair级别,根据tokenId配置处理特殊tokenPair的MINT/BURN
         //       目前只处理EOS跨到WAN后的token,token在WAN<->ETH之间互跨

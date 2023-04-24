@@ -91,6 +91,7 @@ class BridgeTask {
       protocol: this._tokenPair.protocol,
       direction: this._direction,
       amount: this._amount,
+      bridge: this._tokenPair.bridge,
       fromAccount: this._fromAccount,
       toAccount: this._toAccount,
       fromChainName: this._fromChainInfo.chainName,
@@ -163,8 +164,11 @@ class BridgeTask {
   async _checkSmg() {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
+    if (this._tokenPair.bridge) { // only for unifying process flow, other bridge do not care smg
+      return "";
+    }
     this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
-    if (this._tokenPair.protocol !== "Erc20") {
+    if (this._tokenPair.protocol !== "Erc20") { // only Erc20 need to check token smg balance
       return "";
     }
     // check quota

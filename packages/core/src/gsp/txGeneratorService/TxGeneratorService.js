@@ -3,6 +3,7 @@ const Web3 = require("web3");
 const web3 = new Web3();
 
 const BigNumber = require("bignumber.js");
+const tool = require("../../utils/tool.js");
 
 module.exports = class TxGeneratorService{
     constructor() {
@@ -99,19 +100,35 @@ module.exports = class TxGeneratorService{
         fee = "0x" + new BigNumber(fee).toString(16);
         txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
       } else {
-          let tokenIDs = [], tokenValues = [];
-          value.forEach(v => {
-            if (tokenType === "Erc721") {
-              tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
-              tokenValues.push("0x1");
-            } else if (tokenType === "Erc1155") {
-              tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
-              tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
-            }
-          })
-          txData = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount).encodeABI();
-        }
-        return txData;
+        let tokenIDs = [], tokenValues = [];
+        value.forEach(v => {
+          if (tokenType === "Erc721") {
+            tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
+            tokenValues.push("0x1");
+          } else if (tokenType === "Erc1155") {
+            tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
+            tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
+          }
+        })
+        txData = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount).encodeABI();
+      }
+      return txData;
+    }
+
+    async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount) {
+      let abi = this.configService.getAbi("circleBridgeSc");
+      let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
+      value = "0x" + new BigNumber(value).toString(16);
+      let destInBytes32 = '0x' + tool.hexStrip0x(userAccount).toLowerCase().padStart(64, '0');
+      let txData = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
+      return txData;
+    }
+
+    async generateCircleBridgeClaim(claimScAddr, msg, signature) {
+      let abi = this.configService.getAbi("circleBridgeClaim");
+      let claimScInst = new web3.eth.Contract(abi, claimScAddr.toLowerCase());
+      let txData = claimScInst.methods.receiveMessage(msg, signature).encodeABI();
+      return txData;
     }
 }
 

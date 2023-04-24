@@ -61,7 +61,7 @@ class StoremanService {
             if (!tokenPair) {
                 return new BigNumber(0);
             }
-            let balance, decimals, direction = (chainType === tokenPair.fromChainType);
+            let balance, decimals, tokenAccount = "", direction = (chainType === tokenPair.fromChainType);
             let kaChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
             if (options.isCoin) { // isCoin is internal use only
                 decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
@@ -72,7 +72,7 @@ class StoremanService {
                 }
             } else {
                 decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
-                let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+                tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
                 if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                         balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
@@ -98,6 +98,7 @@ class StoremanService {
                     }
                 }
             }
+            console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, tokenAccount? ("token " + tokenAccount) : "coin", addr, balance.toFixed());
             return balance;
         } catch (err) {
             console.error("get tokenPair %s %s address %s balance error: %O", assetPairId, chainType, addr, err);

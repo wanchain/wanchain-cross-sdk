@@ -18,30 +18,6 @@ module.exports = class CheckXrpTx {
         this.m_eventService = this.m_frameworkService.getService("EventService");
     }
 
-    async add(obj) {
-        try {
-            let url = this.m_apiServerConfig.url + "/api/xrp/addTxInfo";
-            let postJson = {
-                xrpAddr: obj.toAddr,
-                chainType: obj.fromChain,
-                chainAddr: obj.fromAddr,
-                chainHash: obj.chainHash
-            };
-            let ret = await axios.post(url, postJson);
-            if (ret.data.success === true) {
-                console.log("CheckXrpTx save to apiServer success");
-                this.m_CheckAry.unshift(obj);
-            }
-            else {
-                console.log("CheckXrpTx save to apiServer fail");
-                // ???
-            }
-        }
-        catch (err) {
-            console.log("CheckXrpTx err:", err);
-        }
-    }
-
     async load(obj) {
         this.m_CheckAry.unshift(obj);
     }
@@ -68,9 +44,8 @@ module.exports = class CheckXrpTx {
                     this.m_CheckAry.splice(index, 1);
                 }
             }
-        }
-        catch (err) {
-            console.error("CheckXrpTx err: %O", err);
+        } catch (err) {
+            console.error("CheckXrpTx error: %O", err);
         }
     }
 };

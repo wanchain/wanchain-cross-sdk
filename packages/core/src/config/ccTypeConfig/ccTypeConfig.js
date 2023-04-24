@@ -37,5 +37,13 @@ module.exports = [
     {
       "name": "BurnFromCardano",
       "handle": require("./BurnFromCardano")
+    },
+    {
+      "name": "CircleBridgeDeposit",
+      "handle": require("./CircleBridgeDeposit")
+    },
+    {
+      "name": "CircleBridgeClaim",
+      "handle": require("./CircleBridgeClaim")
     }
 ]

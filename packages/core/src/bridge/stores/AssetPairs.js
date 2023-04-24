@@ -41,7 +41,8 @@ class AssetPairs {
           fromIsNative: pair.fromIsNative,   // is fromAccount is coin or native token
           toIsNative: pair.toIsNative,       // is toAccount is coin or native token
           fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
-          toIssuer: pair.toIssuer            // issuer of toAccount, only for xFlow
+          toIssuer: pair.toIssuer,           // issuer of toAccount, only for xFlow
+          bridge: pair.bridge,               // bridge, default is WanBridge
         };
         return assetPair;
       });

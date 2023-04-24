@@ -50,4 +50,12 @@ module.exports = [
       "name": "ProcessPhaMintFromPhala",
       "handle": require("./processPhaMintFromPhala")
     },
+    {
+      "name": "ProcessCircleBridgeDeposit",
+      "handle": require("./processCircleBridgeDeposit")
+    },
+    {
+      "name": "ProcessCircleBridgeClaim",
+      "handle": require("./processCircleBridgeClaim")
+    },
 ]

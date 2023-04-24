@@ -6,6 +6,7 @@ class CrossChainTask {
       assetPairId: '', // the token pair id of this convert task
       assetType: '', // the token ancestorySymbol
       assetAlias: '', // alias of assetType
+      bridge: '', // default WanBridge or Circle bridge
       protocol: '', // token protocol, erc20 or erc721
       convertType: '', // the value is "MINT" or "BURN", used by web server 
       fromSymbol: '', // fromChain token symbol
@@ -32,6 +33,7 @@ class CrossChainTask {
       fee: null, 
       isOtaTx: false, // adapted to BTC/XRP crosschain task on 2021.0111 
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
+      claim: null, // for other bridge to claim asset manually
       errInfo: ''
     };
   }
