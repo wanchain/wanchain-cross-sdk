@@ -263,24 +263,12 @@
     }
   },
   "TaskService": {
-    "taskInterval": 2000
+    "taskInterval": 3000
   },
   "apiServer": {
     "url": "https://bridgeapi-testnet.wanchain.org:9004"
   },
   "circleBridgeServer": "https://iris-api-sandbox.circle.com/attestations",
-  "CheckBtcTxService": {
-    "queryActionInfoInterval": 60000
-  },
-  "CheckLtcTxService": {
-    "queryActionInfoInterval": 60000
-  },
-  "CheckDogeTxService": {
-    "queryActionInfoInterval": 60000
-  },
-  "CheckXrpTxService": {
-    "queryActionInfoInterval": 60000
-  },
   "noEthChainInfo": [
     {
       "chainId": "2147483648",

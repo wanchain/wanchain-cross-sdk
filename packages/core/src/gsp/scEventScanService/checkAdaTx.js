@@ -17,7 +17,7 @@ module.exports = class CheckAdaTx {
     let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
     let chainInfo = chainInfoService.getChainInfoByType(chainType);
 
-    this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval, "tx");
+    this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
     this.m_eventService = this.m_frameworkService.getService("EventService");
   }
 

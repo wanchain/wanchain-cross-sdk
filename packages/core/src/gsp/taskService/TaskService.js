@@ -13,7 +13,7 @@ module.exports = class TaskService{
         setTimeout(() => { this.taskLoop(); }, 0);
     }
 
-    async addTask(taskInst, taskInterval, taskPara) {
+    async addTask(taskInst, taskInterval, taskPara = "") {
         for (let idx = 0; idx < this.m_aryTaskInfo.length; ++idx) {
             if (taskInst === this.m_aryTaskInfo[idx].taskInst) {
                 return;

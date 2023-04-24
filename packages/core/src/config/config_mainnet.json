@@ -283,18 +283,6 @@
     "url": "https://bridgeapi.wanchain.org"
   },
   "circleBridgeServer": "https://iris-api.circle.com/attestations",
-  "CheckBtcTxService": {
-    "queryActionInfoInterval": 60000
-  },
-  "CheckLtcTxService": {
-    "queryActionInfoInterval": 60000
-  },
-  "CheckDogeTxService": {
-    "queryActionInfoInterval": 60000
-  },
-  "CheckXrpTxService": {
-    "queryActionInfoInterval": 60000
-  },
   "noEthChainInfo": [
     {
       "chainId": "2147483648",
