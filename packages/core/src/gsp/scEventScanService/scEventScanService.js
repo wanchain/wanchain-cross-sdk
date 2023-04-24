@@ -77,7 +77,11 @@ module.exports = class ScEventScanService {
     let storageService = this.m_frameworkService.getService("StorageService");
     obj.beginTime = new Date().getTime();
     await storageService.save("ScEventScanService", obj.uniqueID, obj);
-    await this.load(obj);
+    let taskType = obj.bridge || obj.chain;
+    let handle = this.m_mapCheckHandle.get(taskType);
+    if (handle) {
+      await handle.add(obj);
+    }
   }
 
   async load(obj) {
