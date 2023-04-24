@@ -19,6 +19,10 @@ module.exports = class CheckCircleAttestation {
     this.iwan = this.frameworkService.getService("iWanConnectorService");
   }
 
+  async add(obj) {
+    this.checkArray.unshift(obj);
+  }
+
   async load(obj) {
     this.checkArray.unshift(obj);
   }
