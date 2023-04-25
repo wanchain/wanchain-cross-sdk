@@ -37,7 +37,7 @@ module.exports = class MintBtcFromBitcoinHandle {
       };
       console.debug("%s params: %O", handleName, params);
       let ret = [
-        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: "addOTA", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
       WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
       return {

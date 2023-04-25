@@ -10,9 +10,9 @@ module.exports = class TxGeneratorService{
     }
 
     async init(frameworkService) {
-        this.m_frameworkService = frameworkService;
-        this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-        this.configService = this.m_frameworkService.getService("ConfigService");
+        this.frameworkService = frameworkService;
+        this.iwan = frameworkService.getService("iWanConnectorService");
+        this.configService = frameworkService.getService("ConfigService");
     }
 
     // erc20 approve
@@ -41,19 +41,8 @@ module.exports = class TxGeneratorService{
     }
 
     async generateTx(chainType, gasPrice, gasLimit, toAddress, value, txData, fromAddr) {
-        //console.log("generateTx gasPrice:", gasPrice, ",gasLimit:", gasLimit);
-        //let accountService = await this.m_frameworkService.getService("AccountService");
-        //let chainId = await accountService.getChainId(chainType);
-        //console.log("generateTx chainId:", chainId);
-        //chainId = "0x" + Number(chainId).toString(16);
-        //console.log("generateTx 2 chainId:", chainId);
-        gasPrice = await this.m_iwanBCConnector.getGasPrice(chainType);
-        //console.log("generateTx chain:", chainType,
-        //    ",gasPrice:", gasPrice,
-        //    ",typeof gasPrice:", typeof gasPrice,
-        //    ",gasLimit:", gasLimit,
-        //    ",typeof gasLimit:", typeof gasLimit);
-        //console.log("generateTx value:", value);
+        gasPrice = await this.iwan.getGasPrice(chainType);
+        console.debug("generateTx chain %s gasPrice: %s", chainType, gasPrice);
         let txGasPrice = "0x" + new BigNumber(gasPrice).toString(16);
         let rawTx = {
             "gasPrice": txGasPrice,
@@ -124,11 +113,21 @@ module.exports = class TxGeneratorService{
       return txData;
     }
 
-    async generateCircleBridgeClaim(claimScAddr, msg, signature) {
+    async generateCircleBridgeClaim(chainType, from, claimScAddr, msg, signature) {
       let abi = this.configService.getAbi("circleBridgeClaim");
       let claimScInst = new web3.eth.Contract(abi, claimScAddr.toLowerCase());
       let txData = claimScInst.methods.receiveMessage(msg, signature).encodeABI();
-      return txData;
+      try {
+        await this.iwan.estimateGas(chainType, {from, to: claimScAddr, value: '0x00', data: txData});
+        return txData;
+      } catch (err) {
+        console.debug("generateCircleBridgeClaim estimateGas error: %O", err);
+        if ((typeof(err) === "string") && (err.indexOf("Nonce already used") >= 0)) {
+          return ""; // duplicate
+        } else {
+          throw new Error(err);
+        }
+      }
     }
 }
 

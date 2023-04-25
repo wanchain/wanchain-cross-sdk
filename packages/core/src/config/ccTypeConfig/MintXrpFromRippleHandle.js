@@ -35,7 +35,7 @@ module.exports = class MintXrpFromRipple {
       };
       console.debug("Mint %s FromRipple params: %O", tokenPair.readableSymbol, params);
       let ret = [
-        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: "addTag", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
       WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
       return {

@@ -92,7 +92,7 @@ module.exports = class BurnErc20ProxyToken {
       userBurnFee: operateFee
     };
     console.debug("BurnErc20ProxyToken userFastBurnParas: %O", userFastBurnParas);
-    steps.push({name: "userFastBurnParas", stepIndex: steps.length + 1, title: this.m_strBurnTitle, desc: this.m_strBurnDesc, params: userFastBurnParas});
+    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, title: this.m_strBurnTitle, desc: this.m_strBurnDesc, params: userFastBurnParas});
 
     let chainId = await convert.wallet.getChainId();
     for (let idx = 0; idx < steps.length; ++idx) {

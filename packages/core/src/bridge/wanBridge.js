@@ -26,7 +26,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304241750", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304251800", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -172,6 +172,7 @@ class WanBridge extends EventEmitter {
     console.debug("claim step: %O", step);
     // directly sync process step, do not save
     let err = await this.txTaskHandleService.processTxTask(step, wallet);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     return err;
   }
 
@@ -508,7 +509,6 @@ class WanBridge extends EventEmitter {
     let txHash = taskStepResult.txHash;
     let result = taskStepResult.result;
     let errInfo = taskStepResult.errInfo || "";
-    this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
@@ -522,7 +522,8 @@ class WanBridge extends EventEmitter {
         } else {
           records.modifyTradeTaskStatus(taskId, "Claimable", taskStepResult.errInfo);
         }
-      } else {
+      } else { // claim is not saved in steps
+        this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
         let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
         if (isLockTx) {
           let lockEvent = {taskId, txHash};

@@ -54,7 +54,7 @@ module.exports = class CheckCircleAttestation {
         }
       }
     } catch (err) {
-      console.error("CheckXrpTx error: %O", err);
+      console.error("CheckCircleAttestation error: %O", err);
     }
   }
 

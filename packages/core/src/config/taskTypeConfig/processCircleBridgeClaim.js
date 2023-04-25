@@ -28,9 +28,23 @@ module.exports = class ProcessCircleBridgeClaim {
               return "Wallet unavailable";
             }
             let txGeneratorService = this.frameworkService.getService("TxGeneratorService");
-            let scData = await txGeneratorService.generateCircleBridgeClaim(params.claimScAddr, params.msg, params.attestation);
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.claimScAddr.toLowerCase(), 0, scData, accounts[0].toLowerCase());
+            let from = accounts[0].toLowerCase();
+            let scData = await txGeneratorService.generateCircleBridgeClaim(params.scChainType, from, params.claimScAddr, params.msg, params.attestation);
+            if (scData === "") { // duplicate
+              let eventService = this.frameworkService.getService("EventService");
+              await eventService.emitEvent("TaskStepResult", {
+                ccTaskId: params.ccTaskId,
+                stepIndex: 0,
+                txHash: "",
+                type: "claim",
+                result: "Succeeded"
+              });
+              console.debug("task %s chain %s ProcessCircleBridgeClaim repeat", params.ccTaskId, params.scChainType);
+              return "";
+            }
+            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.claimScAddr.toLowerCase(), 0, scData, from);
             let txHash = await wallet.sendTransaction(txData);
+            console.debug("task %s chain %s ProcessCircleBridgeClaim txHash: %s", params.ccTaskId, params.scChainType, txHash);
             let obj = {
               chain: params.scChainType,
               ccTaskId: params.ccTaskId,

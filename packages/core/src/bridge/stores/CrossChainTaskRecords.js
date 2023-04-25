@@ -46,13 +46,13 @@ class CrossChainTaskRecords {
             if (errInfo) {
               ccTask.errInfo = errInfo;
             }            
-          } else if ((stepIndex === ccTask.stepNums) && (!ccTask.isOtaTx)) {
+          } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
+            // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
             if (txHash && !ccTask.lockHash) {
-              // update txHash and notify dapp, then wait receipt, do not change status
               ccTask.lockHash = txHash;
               isLockTx = true;
             }
-            if (result) {
+            if (result) { // on evm only receipt report result, tx do not change status
               ccTask.status = "Converting";
             }
           }
@@ -97,7 +97,9 @@ class CrossChainTaskRecords {
   setTaskRedeemTxHash(ccTaskId, txHash, receivedAmount) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
-      ccTask.redeemHash = txHash;
+      if (txHash) { // prevent clearing txHash on repeated redeem
+        ccTask.redeemHash = txHash;
+      }
       ccTask.receivedAmount = receivedAmount;
     }
   }
