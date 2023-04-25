@@ -508,7 +508,6 @@ class WanBridge extends EventEmitter {
     let txHash = taskStepResult.txHash;
     let result = taskStepResult.result;
     let errInfo = taskStepResult.errInfo || "";
-    this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
@@ -522,7 +521,8 @@ class WanBridge extends EventEmitter {
         } else {
           records.modifyTradeTaskStatus(taskId, "Claimable", taskStepResult.errInfo);
         }
-      } else {
+      } else { // claim is not saved in steps
+        this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
         let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
         if (isLockTx) {
           let lockEvent = {taskId, txHash};
