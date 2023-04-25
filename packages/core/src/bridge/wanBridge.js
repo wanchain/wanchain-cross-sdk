@@ -26,7 +26,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304251705", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304251800", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -172,6 +172,7 @@ class WanBridge extends EventEmitter {
     console.debug("claim step: %O", step);
     // directly sync process step, do not save
     let err = await this.txTaskHandleService.processTxTask(step, wallet);
+    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     return err;
   }
 
