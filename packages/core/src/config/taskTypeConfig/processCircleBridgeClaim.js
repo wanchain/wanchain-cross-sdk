@@ -42,7 +42,7 @@ module.exports = class ProcessCircleBridgeClaim {
               console.debug("task %s chain %s ProcessCircleBridgeClaim repeat", params.ccTaskId, params.scChainType);
               return "";
             }
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.claimScAddr.toLowerCase(), 0, scData, from);
+            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.claimScAddr, 0, scData, from);
             let txHash = await wallet.sendTransaction(txData);
             console.debug("task %s chain %s ProcessCircleBridgeClaim txHash: %s", params.ccTaskId, params.scChainType, txHash);
             let obj = {
@@ -50,7 +50,12 @@ module.exports = class ProcessCircleBridgeClaim {
               ccTaskId: params.ccTaskId,
               stepIndex: 0,
               txHash,
-              type: "claim"
+              type: "claim",
+              bridge: "Circle",
+              from,
+              scAddr: params.claimScAddr,
+              msg: params.msg,
+              attestation: params.attestation
             };
             let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
             await checkTxReceiptService.add(obj);

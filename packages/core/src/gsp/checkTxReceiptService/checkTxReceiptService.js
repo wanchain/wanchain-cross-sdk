@@ -11,6 +11,7 @@ module.exports = class CheckTxReceiptService {
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_WebStores = frameworkService.getService("WebStores");
         this.m_eventService = frameworkService.getService("EventService");
+        this.txGeneratorService = frameworkService.getService("TxGeneratorService");
     }
 
     async loadTradeTask(tradeTaskAry) {
@@ -27,13 +28,20 @@ module.exports = class CheckTxReceiptService {
             //console.log("CheckTxReceiptService runTask iwan no connect");
             return;
         }
-
-        let storageService = this.m_frameworkService.getService("StorageService");
         let length = this.m_tradeTaskAry.length;
         for (let idx = 0; idx < length; ++idx) {
             let index = length - idx - 1;
             let obj = this.m_tradeTaskAry[index];
             try {
+                if (obj.type === "claim") {
+                    if (obj.bridge === "Circle") {
+                        let scData = await this.txGeneratorService.generateCircleBridgeClaim(obj.chain, obj.from, obj.scAddr, obj.msg, obj.attestation);
+                        if (scData === "") { // duplicate
+                            await this.finishTask(index, obj, "Succeeded");
+                        }
+                        continue; // forward compatible
+                    }
+                }
                 let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txHash);
                 if (txReceipt) {
                     let result = "Failed";
@@ -47,34 +55,14 @@ module.exports = class CheckTxReceiptService {
                     if (isSuccess) {
                         result = "Succeeded";
                         errInfo = "";
-                        if (obj.type !== "claim") {
-                          await this.addToScEventScan(obj);
+                        if (obj.type !== "claim") { // forward compatible for old claim task
+                            await this.addToScEventScan(obj);
                         }
                     }
-                    await this.m_eventService.emitEvent("TaskStepResult", {
-                        ccTaskId: obj.ccTaskId,
-                        stepIndex: obj.stepIndex,
-                        txHash: obj.txHash,
-                        type: obj.type, // claim
-                        result,
-                        errInfo
-                    });
-                    await storageService.delete("CheckTxReceiptService", obj.ccTaskId);
-                    this.m_tradeTaskAry.splice(index, 1);
-                } else {
-                    //let tx = await this.m_iwanBCConnector.getTxInfo(obj.chain, obj.txHash);
-                    //if (tx) {
-                    //    continue;// 仍在队列中
-                    //}
-                    //else {
-                    //    //let 
-                    //    //this.m_iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-                    //}
-                    continue;
+                    await this.finishTask(index, obj, result, errInfo);
                 }
             } catch (err) {
-                // console.error("%s %s getTransactionReceipt error: %O", obj.chain, obj.txHash, err);
-                continue;
+                // console.error("%s %s CheckTxReceiptService error: %O", obj.chain, obj.txHash, err);
             }
         }
     }
@@ -98,5 +86,20 @@ module.exports = class CheckTxReceiptService {
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
         this.m_tradeTaskAry.push(obj);
+    }
+
+    async finishTask(index, task, result, errInfo = "") {
+        await this.m_eventService.emitEvent("TaskStepResult", {
+            ccTaskId: task.ccTaskId,
+            stepIndex: task.stepIndex,
+            txHash: task.txHash,
+            type: task.type,
+            bridge: task.bridge,
+            result,
+            errInfo
+        });
+        let storageService = this.m_frameworkService.getService("StorageService");
+        await storageService.delete("CheckTxReceiptService", task.ccTaskId);
+        this.m_tradeTaskAry.splice(index, 1);
     }
 };
