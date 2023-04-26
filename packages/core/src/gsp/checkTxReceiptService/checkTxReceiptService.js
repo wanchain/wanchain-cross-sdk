@@ -94,7 +94,6 @@ module.exports = class CheckTxReceiptService {
             stepIndex: task.stepIndex,
             txHash: task.txHash,
             type: task.type,
-            bridge: task.bridge,
             result,
             errInfo
         });
