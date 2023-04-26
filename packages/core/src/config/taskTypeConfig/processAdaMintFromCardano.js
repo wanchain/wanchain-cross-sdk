@@ -100,7 +100,7 @@ module.exports = class ProcessAdaMintFromCardano {
 
       // sign and send
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
       let iwan = this.frameworkService.getService("iWanConnectorService");
@@ -119,10 +119,10 @@ module.exports = class ProcessAdaMintFromCardano {
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
       if (["User declined to sign the transaction.", "User rejected"].includes(err.info)) { // code 2 include other errors
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessAdaMintFromCardano error: %O", err);
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }

@@ -6,7 +6,6 @@ const tool = require('../../utils/tool.js');
 module.exports = class BurnErc20ProxyToken {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
-    this.m_WebStores = frameworkService.getService("WebStores");
     this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
   }
@@ -101,18 +100,10 @@ module.exports = class BurnErc20ProxyToken {
     //console.log("BurnErc20ProxyToken steps:", steps);
     let utilService = this.m_frameworkService.getService("UtilService");
     if (await utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, networkFee)) {
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);
-      return {
-        stepNum: steps.length,
-        errCode: null
-      };
+      return steps;
     } else {
       console.error("BurnErc20ProxyToken insufficient gas");
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_GAS
-      };
+      throw new Error(globalConstant.ERR_INSUFFICIENT_GAS);
     }
   }
 }

@@ -103,7 +103,7 @@ module.exports = class ProcessBurnFromCardano {
 
       // sign and send
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
       let iwan = this.frameworkService.getService("iWanConnectorService");
@@ -123,9 +123,9 @@ module.exports = class ProcessBurnFromCardano {
     } catch (err) {
       console.error("ProcessBurnFromCardano error: %O", err);
       if (err.info === "User declined to sign the transaction.") { // code 2 include other errors
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }

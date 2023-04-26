@@ -8,7 +8,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   constructor(frameworkService) {
     super();
     this.frameworkService = frameworkService;
-    this.webStores = frameworkService.getService("WebStores");
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
     this.utilService = frameworkService.getService("UtilService");
     this.uiStrService = frameworkService.getService("UIStrService");
@@ -183,18 +182,10 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
     }
     if (result) {
-      this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);
-      return {
-        stepNum: steps.length,
-        errCode: null
-      };
+      return steps;
     } else {
       console.error("TokenHandler task %d insufficient gas", convert.ccTaskId);
-      this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: this.globalConstant.ERR_INSUFFICIENT_GAS
-      };
+      throw new Error(this.globalConstant.ERR_INSUFFICIENT_GAS);
     }
   }
 

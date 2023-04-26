@@ -21,7 +21,7 @@ module.exports = class ProcessErc721Approve extends ProcessBase{
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessErc721Approve error: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to approve ERC721 token");
+            this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Failed to approve ERC721 token");
         }
     }
 };

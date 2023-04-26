@@ -296,7 +296,7 @@ function getErrMsg(err, defaultMsg) {
   if (msg && (msg[0] !== '[') && (msg[msg.length-1] !== ']')) { // "[object Object]"
     return msg;
   }
-  return defaultMsg;
+  return defaultMsg || "Unknown error";
 }
 
 module.exports = {

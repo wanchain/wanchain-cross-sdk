@@ -20,7 +20,7 @@ module.exports = class ProcessCircleBridgeClaim {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return "Invalid wallet";
             }
-            // do not via crossChainTaskSteps to excute claim, update status directly
+            // do not via crossChainTaskRecords to excute claim, update status directly
             let accounts = await wallet.getAccounts();
             if (!(accounts && accounts.length)) {
               this.webStores["crossChainTaskRecords"].modifyTradeTaskStatus(params.ccTaskId, "Claimable", "Invalid wallet");

@@ -6,7 +6,6 @@ const tool = require('../../utils/tool.js');
 module.exports = class MintCoinHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.webStores = frameworkService.getService("WebStores");
     this.configService = frameworkService.getService("ConfigService");
   }
 
@@ -39,13 +38,9 @@ module.exports = class MintCoinHandle {
     };
     console.debug("MintCoinHandle params: %O", params);
     params.chainId = await convert.wallet.getChainId();
-    let ret = [
+    let steps = [
       {name: "userFastMint", stepIndex: 1, title: this.m_strMintTitle, desc: this.m_strMintDesc, params}
     ];
-    this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
-    return {
-      stepNum: ret.length,
-      errCode: null
-    };
+    return steps;
   }
 };

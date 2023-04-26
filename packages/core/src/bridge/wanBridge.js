@@ -1,7 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const CrossChainTaskRecords = require('./stores/CrossChainTaskRecords');
 const AssetPairs = require('./stores/AssetPairs');
-const CrossChainTaskSteps = require('./stores/CrossChainTaskSteps');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
@@ -21,12 +20,11 @@ class WanBridge extends EventEmitter {
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
-      crossChainTaskSteps: new CrossChainTaskSteps()
     };
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304251800", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304261830", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -502,7 +500,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onTaskStepResult(taskStepResult) {
+  _onTaskStepResult(taskStepResult) { // only for async tx receipt
     console.log("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
@@ -512,7 +510,7 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      if (taskStepResult.type === "claim") {
+      if (taskStepResult.type === "claim") { // only for Circle bridge claim, stepData do not contains claim tx
         if (taskStepResult.result === "Succeeded") {
           records.setTaskRedeemTxHash(taskId, txHash, ccTask.amount);
           records.modifyTradeTaskStatus(taskId, "Succeeded", "");
@@ -522,8 +520,8 @@ class WanBridge extends EventEmitter {
         } else {
           records.modifyTradeTaskStatus(taskId, "Claimable", taskStepResult.errInfo);
         }
-      } else { // claim is not saved in steps
-        this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
+      } else { // for WanBridge and Circle bridge deposit
+        this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
         let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
         if (isLockTx) {
           let lockEvent = {taskId, txHash};

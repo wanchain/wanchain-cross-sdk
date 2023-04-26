@@ -25,7 +25,7 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCircleBridgeDeposit error: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
+            this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
 

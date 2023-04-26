@@ -41,7 +41,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessErc20UserFastBurn error: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
+            this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
 
