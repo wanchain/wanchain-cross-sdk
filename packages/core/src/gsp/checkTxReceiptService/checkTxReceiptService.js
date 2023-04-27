@@ -11,7 +11,6 @@ module.exports = class CheckTxReceiptService {
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_WebStores = frameworkService.getService("WebStores");
         this.m_eventService = frameworkService.getService("EventService");
-        this.txGeneratorService = frameworkService.getService("TxGeneratorService");
     }
 
     async loadTradeTask(tradeTaskAry) {
@@ -33,15 +32,6 @@ module.exports = class CheckTxReceiptService {
             let index = length - idx - 1;
             let obj = this.m_tradeTaskAry[index];
             try {
-                if (obj.type === "claim") {
-                    if (obj.bridge === "Circle") {
-                        let scData = await this.txGeneratorService.generateCircleBridgeClaim(obj.chain, obj.from, obj.scAddr, obj.msg, obj.attestation);
-                        if (scData === "") { // duplicate
-                            await this.finishTask(index, obj, "Succeeded");
-                        }
-                        continue; // forward compatible
-                    }
-                }
                 let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txHash);
                 if (txReceipt) {
                     let result = "Failed";
@@ -88,7 +78,7 @@ module.exports = class CheckTxReceiptService {
         this.m_tradeTaskAry.push(obj);
     }
 
-    async finishTask(index, task, result, errInfo = "") {
+    async finishTask(taskIndex, task, result, errInfo = "") {
         await this.m_eventService.emitEvent("TaskStepResult", {
             ccTaskId: task.ccTaskId,
             stepIndex: task.stepIndex,
@@ -99,6 +89,6 @@ module.exports = class CheckTxReceiptService {
         });
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.delete("CheckTxReceiptService", task.ccTaskId);
-        this.m_tradeTaskAry.splice(index, 1);
+        this.m_tradeTaskAry.splice(taskIndex, 1);
     }
 };

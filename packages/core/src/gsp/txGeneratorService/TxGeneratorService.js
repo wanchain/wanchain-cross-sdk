@@ -42,7 +42,7 @@ module.exports = class TxGeneratorService{
 
     async generateTx(chainType, gasPrice, gasLimit, toAddress, value, txData, fromAddr) {
         gasPrice = await this.iwan.getGasPrice(chainType);
-        console.debug("generateTx chain %s gasPrice: %s", chainType, gasPrice);
+        console.debug("%s generateTx gasPrice: %s", chainType, gasPrice);
         let txGasPrice = "0x" + new BigNumber(gasPrice).toString(16);
         let rawTx = {
             "gasPrice": txGasPrice,

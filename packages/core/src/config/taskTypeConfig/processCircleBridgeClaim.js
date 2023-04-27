@@ -50,12 +50,7 @@ module.exports = class ProcessCircleBridgeClaim {
               ccTaskId: params.ccTaskId,
               stepIndex: 0,
               txHash,
-              type: "claim",
-              bridge: "Circle",
-              from,
-              scAddr: params.claimScAddr,
-              msg: params.msg,
-              attestation: params.attestation
+              type: "claim"
             };
             let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
             await checkTxReceiptService.add(obj);

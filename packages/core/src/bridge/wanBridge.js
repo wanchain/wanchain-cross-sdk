@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304261830", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2304271518", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -501,7 +501,7 @@ class WanBridge extends EventEmitter {
   }
 
   _onTaskStepResult(taskStepResult) { // only for async tx receipt
-    console.log("_onTaskStepResult: %O", taskStepResult);
+    console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
     let txHash = taskStepResult.txHash;
