@@ -35,7 +35,7 @@ module.exports = class BurnErc20ProxyToken {
       chainInfo = tokenPair.toScInfo;
       decimals = tokenPair.toDecimals;
     }
-    let approveMaxValue = new BigNumber(chainInfo.approveMaxValue);
+    let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max
     let erc20ApproveParas = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,

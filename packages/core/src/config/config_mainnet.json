@@ -7,7 +7,6 @@
       "crossScAddr": "0xe85b0d89cbc670733d6a40a9450d8788be13da47",
       "crossGasLimit": 500000,
       "approveGasLimit": 80000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 888,
       "ScScanInfo": {
@@ -26,7 +25,6 @@
       },
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 1,
       "ScScanInfo": {
@@ -40,7 +38,6 @@
       "crossScAddr": "0xc3711bdbe7e3063bf6c22e7fed42f782ac82baee",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 56,
       "ScScanInfo": {
@@ -61,7 +58,6 @@
       "MaskChainId": 43114,
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "ScScanInfo": {
         "taskInterval": 10000
       }
@@ -74,7 +70,6 @@
       "crossScAddr": "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 1285,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -87,7 +82,6 @@
       "crossScAddr": "0x6372aEc6263AA93EAceDC994D38aa9117B6b95B5",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 1284,
       "ScScanInfo": {
@@ -102,7 +96,6 @@
       "crossScAddr": "0x2216072A246A84f7b9CE0f1415Dd239C9bF201aB",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 137,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -116,7 +109,6 @@
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
       "crossGasLimit": 3500000,
       "approveGasLimit": 750000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 42161,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -130,7 +122,6 @@
       "crossScAddr": "0xCcffE9d337f3c1b16bd271D109e691246fD69ee3",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "MaskChainId": 250,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -143,7 +134,6 @@
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 10,
       "ScScanInfo": {
@@ -157,7 +147,6 @@
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 66,
       "ScScanInfo": {
@@ -171,7 +160,6 @@
       "crossScAddr": "0xf7ba155556e2cd4dfe3fe26e506a14d2f4b97613",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 50,
       "ScScanInfo": {
@@ -185,7 +173,6 @@
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 1024,
       "ScScanInfo": {
@@ -199,7 +186,6 @@
       "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 530,
       "ScScanInfo": {
@@ -212,7 +198,6 @@
       "chainName": "Tron",
       "crossScAddr": "0xfe464ebd5bb5d95731f90aa7b9e39df920a61c97",
       "crossScAddrNative": "TZ9grqg3LwBKiddGra3WGHPdddJz3tow8N",
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 6,
       "MaskChainId": 0,
       "ScScanInfo": {
@@ -226,7 +211,6 @@
       "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 592,
       "minReserved": 0.0001,
@@ -241,7 +225,6 @@
       "crossScAddr": "0x201E5dE97DFc46aAce142B2009332c524c9D8D82",
       "crossGasLimit": 350000,
       "approveGasLimit": 75000,
-      "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
       "MaskChainId": 40,
       "ScScanInfo": {

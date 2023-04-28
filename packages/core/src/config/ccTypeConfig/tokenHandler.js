@@ -35,7 +35,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let approveMaxValue = new BigNumber(chainInfo.approveMaxValue);
+    let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max;
     let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr;
     let approveParams = {
       ccTaskId: convert.ccTaskId,
