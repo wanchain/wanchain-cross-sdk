@@ -14,7 +14,6 @@ module.exports = class CircleBridgeClaim {
       claimScAddr: chainInfo.CircleBridge.claimScAddr,
       msg: convert.msg,
       attestation: convert.attestation,
-      gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.crossGasLimit,
       taskType: "ProcessCircleBridgeClaim",
       chainId: chainInfo.MaskChainId

@@ -21,7 +21,7 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
             let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
             let toChainInfo = (params.scChainType === tokenPair.fromChainType)? tokenPair.toScInfo : tokenPair.fromScInfo;
             let scData = await txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount);
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
+            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCircleBridgeDeposit error: %O", err);

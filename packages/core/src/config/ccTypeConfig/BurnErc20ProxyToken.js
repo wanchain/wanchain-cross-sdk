@@ -41,7 +41,6 @@ module.exports = class BurnErc20ProxyToken {
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       erc20Addr: nativeToken,// token Addr
-      gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: poolToken,// poolAddr
@@ -79,7 +78,6 @@ module.exports = class BurnErc20ProxyToken {
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      gasPrice: chainInfo.gasPrice,
       gasLimit: chainInfo.crossGasLimit,
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,

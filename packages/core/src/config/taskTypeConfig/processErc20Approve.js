@@ -22,7 +22,7 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
             } else {
               let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
               let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value);
-              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.erc20Addr, 0, scData, params.fromAddr);
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.erc20Addr, 0, scData, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {

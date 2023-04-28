@@ -38,7 +38,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         params.userAccount,
         {tokenType: "Erc20"});
       let txValue = params.fee;
-      let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
+      let txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);

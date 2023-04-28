@@ -17,7 +17,7 @@ module.exports = class ProcessErc721Approve extends ProcessBase{
             }
             let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
             let scData = await txGeneratorService.generatorErc721ApproveData(params.tokenAddr, params.operator, params.value);
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.tokenAddr, 0, scData, params.fromAddr);
+            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.tokenAddr, 0, scData, params.fromAddr);
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessErc721Approve error: %O", err);

@@ -40,20 +40,19 @@ module.exports = class TxGeneratorService{
         }
     }
 
-    async generateTx(chainType, gasPrice, gasLimit, toAddress, value, txData, fromAddr) {
-        gasPrice = await this.iwan.getGasPrice(chainType);
+    async generateTx(chainType, gasLimit, toAddress, value, data, from) {
+        let gasPrice = await this.iwan.getGasPrice(chainType);
         console.debug("%s generateTx gasPrice: %s", chainType, gasPrice);
-        let txGasPrice = "0x" + new BigNumber(gasPrice).toString(16);
         let rawTx = {
-            "gasPrice": txGasPrice,
-            "gas": "0x" + new BigNumber(gasLimit).toString(16),
-            "to": toAddress.toLowerCase(),
-            "value": "0x" + new BigNumber(value).toString(16),
-            "data": txData,
-            "from": fromAddr
-            //"chainId": chainId
+            gasPrice: "0x" + new BigNumber(gasPrice).toString(16),
+            gas: "0x" + new BigNumber(gasLimit).toString(16),
+            to: toAddress.toLowerCase(),
+            value: "0x" + new BigNumber(value).toString(16),
+            data,
+            from
+            // chainId
         };
-        //console.log("rawTx:", rawTx);
+        // console.debug("generateTx: %O", rawTx);
         return rawTx;
     }
 

@@ -36,7 +36,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
                   params.tokenAccount,
                   params.userAccount,
                   {tokenType: params.tokenType});
-              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
+              txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
             }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {

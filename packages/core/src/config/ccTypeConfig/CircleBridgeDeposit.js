@@ -33,7 +33,6 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr,
-      gasPrice: chainInfo.gasPrice,
       gasLimit: this.getCrossTxGasLimit(chainInfo, "Erc20", value),
       tokenPairID: convert.tokenPairId,
       value,
