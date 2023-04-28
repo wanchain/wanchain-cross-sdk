@@ -11,7 +11,6 @@ module.exports = class BurnErc20ProxyToken {
   }
 
   async process(tokenPair, convert) {
-    let globalConstant = this.m_frameworkService.getService("GlobalConstant");
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
     this.m_strApprove0Title = this.m_uiStrService.getStrByName("approve0Title");
     this.m_strApproveValueTitle = this.m_uiStrService.getStrByName("approveValueTitle");
@@ -95,14 +94,8 @@ module.exports = class BurnErc20ProxyToken {
     for (let idx = 0; idx < steps.length; ++idx) {
       steps[idx].params.chainId = chainId;
     }
-    //console.log("BurnErc20ProxyToken steps:", steps);
-    let utilService = this.m_frameworkService.getService("UtilService");
-    if (await utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, networkFee)) {
-      return steps;
-    } else {
-      console.error("BurnErc20ProxyToken insufficient gas");
-      throw new Error(globalConstant.ERR_INSUFFICIENT_GAS);
-    }
+    //console.debug("BurnErc20ProxyToken steps:", steps);
+    return steps;
   }
 }
 

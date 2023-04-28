@@ -13,7 +13,6 @@ module.exports = class BurnErc20Handle extends TokenHandler {
     await this.buildUserFastBurn(steps, tokenPair, convert);
     await this.setChainId(steps, tokenPair, convert);
     //console.log("BurnErc20Handle steps: %O", steps);
-    let result = await this.checkGasFee(steps, tokenPair, convert);
-    return result;
+    return steps;
   }
 }

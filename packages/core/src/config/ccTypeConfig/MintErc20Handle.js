@@ -12,8 +12,7 @@ module.exports = class MintErc20Handle extends TokenHandler { // includes ERC20 
     await this.buildApproveSteps(steps, tokenPair, convert);
     await this.buildUserFastMint(steps, tokenPair, convert);
     await this.setChainId(steps, tokenPair, convert);
-    //console.log("MintErc20Handle steps: %O", steps);
-    let result = await this.checkGasFee(steps, tokenPair, convert);
-    return result;
+    //console.debug("MintErc20Handle steps: %O", steps);
+    return steps;
   }
 }

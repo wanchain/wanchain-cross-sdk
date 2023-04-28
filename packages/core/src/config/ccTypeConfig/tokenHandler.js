@@ -169,22 +169,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     }
   }
 
-  async checkGasFee(steps, tokenPair, convert) {
-    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let result = true;
-    if (chainInfo.chainType !== "TRX") {
-      let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-      let fee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-      result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
-    }
-    if (result) {
-      return steps;
-    } else {
-      console.error("TokenHandler task %d insufficient gas", convert.ccTaskId);
-      throw new Error(this.globalConstant.ERR_INSUFFICIENT_GAS);
-    }
-  }
-
   getCrossTxGasLimit(chainInfo, tokenType, value) {
     let gasLimit = chainInfo.crossGasLimit;
     if ((tokenType !== "Erc20") && (value.length > 1)) {

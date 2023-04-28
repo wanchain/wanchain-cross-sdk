@@ -15,8 +15,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
     await this.buildDeposit(steps, tokenPair, convert);
     await this.setChainId(steps, tokenPair, convert);
     //console.log("CircleBridgeDeposit steps: %O", steps);
-    let result = await this.checkGasFee(steps, tokenPair, convert);
-    return result;
+    return steps;
   }
 
   async buildDeposit(steps, tokenPair, convert) {
