@@ -25,7 +25,6 @@ module.exports = class MintCoinHandle {
       fromAddr: convert.fromAddr,
       scChainType: fromChainType,
       crossScAddr: fromScInfo.crossScAddr,
-      gasLimit: fromScInfo.crossGasLimit, // for tron is feeLimit
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,

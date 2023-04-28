@@ -16,28 +16,26 @@ module.exports = class TxGeneratorService{
     }
 
     // erc20 approve
-    async generatorErc20ApproveData(ecr20Address, spenderAddress, value) {
-        try {
-            value = "0x" + new BigNumber(value).toString(16);
-            let abi = this.configService.getAbi("erc20");
-            let erc20Inst = new web3.eth.Contract(abi, ecr20Address.toLowerCase());
-            let txData = erc20Inst.methods.approve(spenderAddress.toLowerCase(), value).encodeABI();
-            return txData;
-        } catch (err) {
-            console.log("generatorErc20ApproveData error: %O", err);
-        }
+    async generatorErc20ApproveData(tokenAddress, spenderAddress, value, options = {}) {
+        value = "0x" + new BigNumber(value).toString(16);
+        let abi = this.configService.getAbi("erc20");
+        tokenAddress = tokenAddress.toLowerCase();
+        let erc20Inst = new web3.eth.Contract(abi, tokenAddress);
+        let data = erc20Inst.methods.approve(spenderAddress.toLowerCase(), value).encodeABI();
+        let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: tokenAddress, value: '0x00', data});
+        console.debug("%s generatorErc20ApproveData gasLimit: %s", options.chainType, gasLimit);
+        return {data, gasLimit};
     }
 
     // nft approve: erc721 & erc1155
-    async generatorErc721ApproveData(tokenAddress, operator, tokenId) {
-        try {
-            let abi = this.configService.getAbi("erc721");
-            let sc = new web3.eth.Contract(abi, tokenAddress.toLowerCase());
-            let txData = sc.methods.setApprovalForAll(operator.toLowerCase(), true).encodeABI();
-            return txData;
-        } catch (err) {
-            console.error("generatorErc721ApproveData error: %O", err);
-        }
+    async generatorErc721ApproveData(tokenAddress, operator, options = {}) {
+        let abi = this.configService.getAbi("erc721");
+        tokenAddress = tokenAddress.toLowerCase();
+        let sc = new web3.eth.Contract(abi, tokenAddress.toLowerCase());
+        let data = sc.methods.setApprovalForAll(operator.toLowerCase(), true).encodeABI();
+        let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: tokenAddress, value: '0x00', data});
+        console.debug("%s generatorErc721ApproveData gasLimit: %s", options.chainType, gasLimit);
+        return {data, gasLimit};
     }
 
     async generateTx(chainType, gasLimit, toAddress, value, data, from) {
@@ -45,11 +43,11 @@ module.exports = class TxGeneratorService{
         console.debug("%s generateTx gasPrice: %s", chainType, gasPrice);
         let rawTx = {
             gasPrice: "0x" + new BigNumber(gasPrice).toString(16),
-            gas: "0x" + new BigNumber(gasLimit).toString(16),
+            gas: "0x" + new BigNumber(new BigNumber(gasLimit).times(1.1).toFixed(0)).toString(16),
             to: toAddress.toLowerCase(),
-            value: "0x" + new BigNumber(value).toString(16),
+            value: "0x" + new BigNumber(value || 0).toString(16),
             data,
-            from
+            from: from.toLowerCase()
             // chainId
         };
         // console.debug("generateTx: %O", rawTx);
@@ -58,11 +56,12 @@ module.exports = class TxGeneratorService{
 
     async generateUserLockData(crossScAddr, smgID, tokenPairID, value, userAccount, extInfo = {}) {
         let abi = this.configService.getAbi("crossSc");
-        let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
-        let txData, tokenType = extInfo.tokenType;
+        let scAddr = crossScAddr.toLowerCase();
+        let crossScInst = new web3.eth.Contract(abi, scAddr);
+        let data, tokenType = extInfo.tokenType;
         if (tokenType === "Erc20") {
           value = "0x" + new BigNumber(value).toString(16);
-          txData = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
+          data = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
         } else {
           let tokenIDs = [], tokenValues = [];
           value.forEach(v => {
@@ -74,19 +73,23 @@ module.exports = class TxGeneratorService{
               tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
             }
           })
-          txData = crossScInst.methods.userLockNFT(smgID, tokenPairID, tokenIDs, tokenValues, userAccount).encodeABI();
+          data = crossScInst.methods.userLockNFT(smgID, tokenPairID, tokenIDs, tokenValues, userAccount).encodeABI();
         }
-        return txData;
+        let txValue = "0x" + new BigNumber(extInfo.coinValue || 0).toString(16);
+        let gasLimit = await this.iwan.estimateGas(extInfo.chainType, {from: extInfo.from.toLowerCase(), to: scAddr, value: txValue, data});
+        console.debug("%s generateUserLockData gasLimit: %s", extInfo.chainType, gasLimit);
+        return {data, gasLimit};
     }
 
     async generateUserBurnData(crossScAddr, smgID, tokenPairID, value, fee, tokenAccount, userAccount, extInfo = {}) {
       let abi = this.configService.getAbi("crossSc");
-      let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
-      let txData, tokenType = extInfo.tokenType;
+      let scAddr = crossScAddr.toLowerCase();
+      let crossScInst = new web3.eth.Contract(abi, scAddr);
+      let data, tokenType = extInfo.tokenType;
       if (tokenType === "Erc20") {
         value = "0x" + new BigNumber(value).toString(16);
         fee = "0x" + new BigNumber(fee).toString(16);
-        txData = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
+        data = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
       } else {
         let tokenIDs = [], tokenValues = [];
         value.forEach(v => {
@@ -98,31 +101,41 @@ module.exports = class TxGeneratorService{
             tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
           }
         })
-        txData = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount).encodeABI();
+        data = crossScInst.methods.userBurnNFT(smgID, tokenPairID, tokenIDs, tokenValues, tokenAccount, userAccount).encodeABI();
       }
-      return txData;
+      let txValue = "0x" + new BigNumber(extInfo.coinValue || 0).toString(16);
+      let gasLimit = await this.iwan.estimateGas(extInfo.chainType, {from: extInfo.from.toLowerCase(), to: scAddr, value: txValue, data});
+      console.debug("%s generateUserBurnData gasLimit: %s", extInfo.chainType, gasLimit);
+      return {data, gasLimit};
     }
 
-    async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount) {
+    async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount, options) {
       let abi = this.configService.getAbi("circleBridgeSc");
-      let crossScInst = new web3.eth.Contract(abi, crossScAddr.toLowerCase());
+      let scAddr = crossScAddr.toLowerCase();
+      let crossScInst = new web3.eth.Contract(abi, scAddr);
       value = "0x" + new BigNumber(value).toString(16);
       let destInBytes32 = '0x' + tool.hexStrip0x(userAccount).toLowerCase().padStart(64, '0');
-      let txData = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
-      return txData;
+      let data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
+      let txValue = "0x" + new BigNumber(options.coinValue || 0).toString(16);
+      let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: scAddr, value: txValue, data});
+      console.debug("%s generateCircleBridgeDeposit gasLimit: %s", options.chainType, gasLimit);
+      return {data, gasLimit};
     }
 
-    async generateCircleBridgeClaim(chainType, from, claimScAddr, msg, signature) {
+    async generateCircleBridgeClaim(claimScAddr, msg, signature, options) {
       let abi = this.configService.getAbi("circleBridgeClaim");
-      let claimScInst = new web3.eth.Contract(abi, claimScAddr.toLowerCase());
-      let txData = claimScInst.methods.receiveMessage(msg, signature).encodeABI();
+      let scAddr = claimScAddr.toLowerCase();
+      let claimScInst = new web3.eth.Contract(abi, scAddr);
+      let data = claimScInst.methods.receiveMessage(msg, signature).encodeABI();
       try {
-        await this.iwan.estimateGas(chainType, {from, to: claimScAddr, value: '0x00', data: txData});
-        return txData;
+        let txValue = "0x" + new BigNumber(options.coinValue || 0).toString(16);
+        let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: claimScAddr, value: txValue, data});
+        console.debug("%s generateCircleBridgeClaim gasLimit: %s", options.chainType, gasLimit);
+        return {data, gasLimit};
       } catch (err) {
         console.debug("generateCircleBridgeClaim estimateGas error: %O", err);
         if ((typeof(err) === "string") && (err.indexOf("Nonce already used") >= 0)) {
-          return ""; // duplicate
+          return null; // duplicate
         } else {
           throw new Error(err);
         }

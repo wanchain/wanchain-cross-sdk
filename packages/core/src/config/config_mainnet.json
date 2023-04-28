@@ -5,8 +5,6 @@
       "chainType": "WAN",
       "chainName": "Wanchain",
       "crossScAddr": "0xe85b0d89cbc670733d6a40a9450d8788be13da47",
-      "crossGasLimit": 500000,
-      "approveGasLimit": 80000,
       "chainDecimals": 18,
       "MaskChainId": 888,
       "ScScanInfo": {
@@ -23,8 +21,6 @@
         "crossScAddr": "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
         "claimScAddr": "0x0a992d191DEeC32aFe36203Ad87D7d289a738F81"
       },
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 1,
       "ScScanInfo": {
@@ -36,8 +32,6 @@
       "chainType": "BNB",
       "chainName": "BNB Chain",
       "crossScAddr": "0xc3711bdbe7e3063bf6c22e7fed42f782ac82baee",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 56,
       "ScScanInfo": {
@@ -56,8 +50,6 @@
       },
       "chainDecimals": 18,
       "MaskChainId": 43114,
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "ScScanInfo": {
         "taskInterval": 10000
       }
@@ -68,8 +60,6 @@
       "chainName": "Moonriver",
       "chainDecimals": 18,
       "crossScAddr": "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "MaskChainId": 1285,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -80,8 +70,6 @@
       "chainType": "GLMR",
       "chainName": "Moonbeam",
       "crossScAddr": "0x6372aEc6263AA93EAceDC994D38aa9117B6b95B5",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 1284,
       "ScScanInfo": {
@@ -94,8 +82,6 @@
       "chainName": "Polygon",
       "chainDecimals": 18,
       "crossScAddr": "0x2216072A246A84f7b9CE0f1415Dd239C9bF201aB",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "MaskChainId": 137,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -107,8 +93,6 @@
       "chainName": "Arbitrum",
       "chainDecimals": 18,
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-      "crossGasLimit": 3500000,
-      "approveGasLimit": 750000,
       "MaskChainId": 42161,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -120,8 +104,6 @@
       "chainName": "Fantom",
       "chainDecimals": 18,
       "crossScAddr": "0xCcffE9d337f3c1b16bd271D109e691246fD69ee3",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "MaskChainId": 250,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -132,8 +114,6 @@
       "chainType": "OETH",
       "chainName": "Optimism",
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 10,
       "ScScanInfo": {
@@ -145,8 +125,6 @@
       "chainType": "OKT",
       "chainName": "OKC",
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 66,
       "ScScanInfo": {
@@ -158,8 +136,6 @@
       "chainType": "XDC",
       "chainName": "XDC Network",
       "crossScAddr": "0xf7ba155556e2cd4dfe3fe26e506a14d2f4b97613",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 50,
       "ScScanInfo": {
@@ -171,8 +147,6 @@
       "chainType": "CLV",
       "chainName": "Clover P-Chain",
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 1024,
       "ScScanInfo": {
@@ -184,8 +158,6 @@
       "chainType": "FX",
       "chainName": "Function X",
       "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 530,
       "ScScanInfo": {
@@ -209,8 +181,6 @@
       "chainType": "ASTR",
       "chainName": "Astar",
       "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 592,
       "minReserved": 0.0001,
@@ -223,8 +193,6 @@
       "chainType": "TLOS",
       "chainName": "Telos",
       "crossScAddr": "0x201E5dE97DFc46aAce142B2009332c524c9D8D82",
-      "crossGasLimit": 350000,
-      "approveGasLimit": 75000,
       "chainDecimals": 18,
       "MaskChainId": 40,
       "ScScanInfo": {

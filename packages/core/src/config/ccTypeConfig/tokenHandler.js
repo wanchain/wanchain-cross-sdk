@@ -42,7 +42,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       erc20Addr: tokenSc,
-      gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: crossScAddr,
       taskType: "ProcessErc20Approve"
@@ -84,7 +83,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         fromAddr: convert.fromAddr,
         scChainType: chainInfo.chainType,
         tokenAddr: tokenSc,
-        gasLimit: chainInfo.approveGasLimit,
         value,
         operator: chainInfo.crossScAddr,
         taskType: "ProcessErc721Approve"
@@ -111,7 +109,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -144,7 +141,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -167,13 +163,5 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     for (let i = 0; i < steps.length; i++) {
       steps[i].params.chainId = chainId;
     }
-  }
-
-  getCrossTxGasLimit(chainInfo, tokenType, value) {
-    let gasLimit = chainInfo.crossGasLimit;
-    if ((tokenType !== "Erc20") && (value.length > 1)) {
-      gasLimit = gasLimit + gasLimit * 0.2 * (value.length - 1);
-    }
-    return parseInt(gasLimit);
   }
 }

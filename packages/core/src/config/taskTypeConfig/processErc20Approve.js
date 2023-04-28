@@ -16,13 +16,13 @@ module.exports = class ProcessErc20Approve extends ProcessBase{
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txData;
+            let txData, options = {chainType: params.scChainType, from: params.fromAddr};
             if (wallet.generatorErc20ApproveData) { // wallet custumized
-              txData = await wallet.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value);
+              txData = await wallet.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
             } else {
               let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-              let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value);
-              txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.erc20Addr, 0, scData, params.fromAddr);
+              let scData = await txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
+              txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.erc20Addr, 0, scData.data, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {

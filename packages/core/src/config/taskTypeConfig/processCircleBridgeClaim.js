@@ -29,8 +29,9 @@ module.exports = class ProcessCircleBridgeClaim {
             }
             let txGeneratorService = this.frameworkService.getService("TxGeneratorService");
             let from = accounts[0].toLowerCase();
-            let scData = await txGeneratorService.generateCircleBridgeClaim(params.scChainType, from, params.claimScAddr, params.msg, params.attestation);
-            if (scData === "") { // duplicate
+            let options = {chainType: params.scChainType, from, coinValue: 0};
+            let scData = await txGeneratorService.generateCircleBridgeClaim(params.claimScAddr, params.msg, params.attestation, options);
+            if (!scData) { // duplicate
               let eventService = this.frameworkService.getService("EventService");
               await eventService.emitEvent("TaskStepResult", {
                 ccTaskId: params.ccTaskId,
@@ -42,7 +43,7 @@ module.exports = class ProcessCircleBridgeClaim {
               console.debug("task %s chain %s ProcessCircleBridgeClaim repeat", params.ccTaskId, params.scChainType);
               return "";
             }
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.claimScAddr, 0, scData, from);
+            let txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.claimScAddr, 0, scData.data, from);
             let txHash = await wallet.sendTransaction(txData);
             console.debug("task %s chain %s ProcessCircleBridgeClaim txHash: %s", params.ccTaskId, params.scChainType, txHash);
             let obj = {

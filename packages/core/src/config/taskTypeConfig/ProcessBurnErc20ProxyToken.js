@@ -28,6 +28,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         poolToken = tokenPair.toAccount;
         chainInfo = tokenPair.toScInfo;      
       }
+      let txValue = params.fee;
       let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
       let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
         params.storemanGroupId,
@@ -36,9 +37,8 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         params.userBurnFee,
         params.tokenAccount,
         params.userAccount,
-        {tokenType: "Erc20"});
-      let txValue = params.fee;
-      let txData = await txGeneratorService.generateTx(params.scChainType, params.gasLimit, params.crossScAddr.toLowerCase(), txValue, scData, params.fromAddr.toLowerCase());
+        {tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue});
+      let txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);
