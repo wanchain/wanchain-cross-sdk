@@ -201,7 +201,7 @@
       "approveGasLimit": 75000,
       "approveMaxValue": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
       "chainDecimals": 18,
-      "MaskChainId": 90001,
+      "MaskChainId": 530,
       "ScScanInfo": {
         "taskInterval": 15000
       }
