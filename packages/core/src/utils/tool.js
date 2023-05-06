@@ -299,6 +299,27 @@ function getErrMsg(err, defaultMsg) {
   return defaultMsg || "Unknown error";
 }
 
+function parseEvmLog(log, abi) {
+  let abiJson = abi.find(json => (json.type === 'event') && (web3.eth.abi.encodeEventSignature(json) === log.topics[0]));
+  if (abiJson) {
+    try {
+      // topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
+      log.topics.splice(0, 1);
+      let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, log.topics);
+      for (var index = 0; index < abiJson.inputs.length; index++) {
+        if (args.hasOwnProperty(index)) {
+          delete args[index];
+        }
+      }
+      log.eventName = abiJson.name;
+      log.args = args;
+    } catch (err) {
+      console.error("parseLog error: %O", err);
+    }
+  }
+  return log;
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -321,5 +342,6 @@ module.exports = {
   parseXrpTokenPairAccount,
   validateXrpTokenAmount,
   parseTokenPairSymbol,
-  getErrMsg
+  getErrMsg,
+  parseEvmLog
 }

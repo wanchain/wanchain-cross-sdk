@@ -18,8 +18,7 @@
       "crossScAddr": "0xb8460Eeaa06Bc6668dad9fd42B661C0B96b3bE57",
       "CircleBridge": {
         "domain": 0,
-        "crossScAddr": "0xd0c3da58f55358142b8d3e06c1c30c5c6114efe8",
-        "claimScAddr": "0x26413e8157cd32011e726065a5462e97dd4d03d9"
+        "crossScAddr": "0xBdF2b2e10Ea12598341410F9396D519c03919e2f"
       },
       "chainDecimals": 18,
       "MaskChainId": 5,
@@ -45,8 +44,7 @@
       "crossScAddr": "0x4c200A0867753454Db78AF84d147Bd03e567f234",
       "CircleBridge": {
         "domain": 1,
-        "crossScAddr": "0xeb08f243e5d3fcff26a9e38ae5520a669f4019d0",
-        "claimScAddr": "0xa9fb1b3009dcb79e2fe346c16a604b8fa8ae0a79"
+        "crossScAddr": "0x8D2D7e337Bb8d416d7b7DC10450C0a426a256617"
       },
       "chainDecimals": 18,
       "MaskChainId": 43113,
@@ -222,7 +220,6 @@
   "apiServer": {
     "url": "https://bridgeapi-testnet.wanchain.org:9004"
   },
-  "circleBridgeServer": "https://iris-api-sandbox.circle.com/attestations",
   "noEthChainInfo": [
     {
       "chainId": "2147483648",

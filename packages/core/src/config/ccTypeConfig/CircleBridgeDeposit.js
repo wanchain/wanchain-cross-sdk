@@ -37,9 +37,9 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessCircleBridgeDeposit",
-      fee: networkFee,
+      networkFee,
       tokenAccount,
-      userBurnFee: operateFee
+      operateFee
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

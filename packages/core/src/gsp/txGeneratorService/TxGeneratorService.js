@@ -110,7 +110,7 @@ module.exports = class TxGeneratorService{
     }
 
     async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount, options) {
-      let abi = this.configService.getAbi("circleBridgeSc");
+      let abi = this.configService.getAbi("circleBridgeProxy");
       let scAddr = crossScAddr.toLowerCase();
       let crossScInst = new web3.eth.Contract(abi, scAddr);
       value = "0x" + new BigNumber(value).toString(16);
@@ -120,25 +120,5 @@ module.exports = class TxGeneratorService{
       let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: scAddr, value: txValue, data});
       console.debug("%s generateCircleBridgeDeposit gasLimit: %s", options.chainType, gasLimit);
       return {data, gasLimit};
-    }
-
-    async generateCircleBridgeClaim(claimScAddr, msg, signature, options) {
-      let abi = this.configService.getAbi("circleBridgeClaim");
-      let scAddr = claimScAddr.toLowerCase();
-      let claimScInst = new web3.eth.Contract(abi, scAddr);
-      let data = claimScInst.methods.receiveMessage(msg, signature).encodeABI();
-      try {
-        let txValue = "0x" + new BigNumber(options.coinValue || 0).toString(16);
-        let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: claimScAddr, value: txValue, data});
-        console.debug("%s generateCircleBridgeClaim gasLimit: %s", options.chainType, gasLimit);
-        return {data, gasLimit};
-      } catch (err) {
-        console.debug("generateCircleBridgeClaim estimateGas error: %O", err);
-        if ((typeof(err) === "string") && (err.indexOf("Nonce already used") >= 0)) {
-          return null; // duplicate
-        } else {
-          throw new Error(err);
-        }
-      }
     }
 }

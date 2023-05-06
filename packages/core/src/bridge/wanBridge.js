@@ -146,34 +146,6 @@ class WanBridge extends EventEmitter {
     return task;
   }
 
-  async claim(taskId, wallet) { // only for other bridge, such as Circle bridge
-    console.debug("SDK: claim, taskId: %s", taskId);
-    let records = this.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(Number(taskId));
-    if (!ccTask) {
-      return "Task not exist";
-    }
-    if (!ccTask.claim) { // only for other bridge which need claim manually
-      return "Invalide operation";
-    }
-    let convert = {
-      ccTaskId: ccTask.ccTaskId,
-      tokenPairId: ccTask.assetPairId,
-      convertType: "CLAIM",
-      ccTaskType: ccTask.convertType,
-      msg: ccTask.claim.msg,
-      attestation: ccTask.claim.attestation,
-      wallet
-    }; 
-    // console.debug("claim convert: %O", convert);
-    let step = await this.cctHandleService.getConvertInfo(convert);
-    console.debug("claim step: %O", step);
-    // directly sync process step, do not save
-    let err = await this.txTaskHandleService.processTxTask(step, wallet);
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    return err;
-  }
-
   cancelTask(taskId) {
     console.debug("SDK: cancelTask, taskId: %s", taskId);
     // only set the status, do not really stop the task
@@ -219,9 +191,13 @@ class WanBridge extends EventEmitter {
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
-      let fromChainType = this.tokenPairService.getChainType(fromChainName);
-      let smg = await this.getSmgInfo();
-      quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
+      if (tokenPair.bridge) { // other bridge, such as Circle
+        quota = {maxQuota: Infinity.toString(), minQuota: "0"};
+      } else {
+        let fromChainType = this.tokenPairService.getChainType(fromChainName);
+        let smg = await this.getSmgInfo();
+        quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
+      }
     } else {
       quota = {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0"};
     }
@@ -510,24 +486,12 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      if (taskStepResult.type === "claim") { // only for Circle bridge claim, stepData do not contains claim tx
-        if (taskStepResult.result === "Succeeded") {
-          records.setTaskRedeemTxHash(taskId, txHash, ccTask.amount);
-          records.modifyTradeTaskStatus(taskId, "Succeeded", "");
-          let redeemEvent = {taskId, txHash};
-          console.debug("redeemEvent: %O", redeemEvent);
-          this.emit("redeem", redeemEvent);
-        } else {
-          records.modifyTradeTaskStatus(taskId, "Claimable", taskStepResult.errInfo);
-        }
-      } else { // for WanBridge and Circle bridge deposit
-        this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
-        let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
-        if (isLockTx) {
-          let lockEvent = {taskId, txHash};
-          console.debug("lockEvent: %O", lockEvent);
-          this.emit("lock", lockEvent);
-        }
+      this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
+      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
+      if (isLockTx) {
+        let lockEvent = {taskId, txHash};
+        console.debug("lockEvent: %O", lockEvent);
+        this.emit("lock", lockEvent);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }

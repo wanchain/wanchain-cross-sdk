@@ -45,9 +45,7 @@ module.exports = class CheckTxReceiptService {
                     if (isSuccess) {
                         result = "Succeeded";
                         errInfo = "";
-                        if (obj.type !== "claim") { // forward compatible for old claim task
-                            await this.addToScEventScan(obj);
-                        }
+                        await this.addToScEventScan(obj);
                     }
                     await this.finishTask(index, obj, result, errInfo);
                 }
@@ -83,7 +81,6 @@ module.exports = class CheckTxReceiptService {
             ccTaskId: task.ccTaskId,
             stepIndex: task.stepIndex,
             txHash: task.txHash,
-            type: task.type,
             result,
             errInfo
         });
