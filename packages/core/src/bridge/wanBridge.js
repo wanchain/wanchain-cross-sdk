@@ -41,7 +41,6 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
-    this.eventService.addEventListener("Claimable", this._onClaimable.bind(this)); // for other bridge to claim manually
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
     await this._service.start();
   }
@@ -424,21 +423,6 @@ class WanBridge extends EventEmitter {
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
-  }
-
-  _onClaimable(taskClaimable) {
-    console.debug("_onClaimable: %O", taskClaimable);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskClaimable.ccTaskId;
-    // let txHash = taskClaimable.txHash;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask) {
-      return;
-    }
-    records.setClaimData(taskId, taskClaimable.data);
-    records.modifyTradeTaskStatus(taskId, "Claimable");
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("claimable", {taskId});
   }
 
   _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {

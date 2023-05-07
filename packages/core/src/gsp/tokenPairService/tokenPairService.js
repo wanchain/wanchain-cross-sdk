@@ -401,7 +401,6 @@ class TokenPairService {
           if (fromChainInfo[bridgeKey] && toChainInfo[bridgeKey]) {
             tokenPair.ccType["MINT"] = bridgeKey + "Deposit";
             tokenPair.ccType["BURN"] = bridgeKey + "Deposit";
-            tokenPair.ccType["CLAIM"] = bridgeKey + "Claim";
           } else {
             throw new Error(bridgeKey + " unavailable");
           }

@@ -75,13 +75,6 @@ class CrossChainTaskRecords {
     }
   }
 
-  setClaimData(ccTaskId, data) {
-    let ccTask = this.ccTaskRecords.get(ccTaskId);
-    if (ccTask) {
-      ccTask.claim = data;
-    }
-  }
-
   setTaskLockTxHash(ccTaskId, txHash, sentAmount, sender, uniqueId) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
