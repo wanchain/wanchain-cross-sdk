@@ -19,7 +19,7 @@ module.exports = class crossChainFees {
         }
         let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
         let fee = await iwanBCConnector.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId});
-        if (tokenPair.bridge || (tokenPair.protocol !== "Erc20")) {
+        if (tokenPair.protocol !== "Erc20") {
             fee.value = "0";
         }
         // console.debug("estimateOperationFee %s->%s raw: %O", fromChainType, toChainType, fee);
@@ -48,9 +48,6 @@ module.exports = class crossChainFees {
         let decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
         let fee = await iwanBCConnector.estimateCrossChainNetworkFee(fromChainType, toChainType, {tokenPairID: tokenPairId, batchSize: options.batchSize});
         // console.debug("estimateNetworkFee %s->%s raw: %O", fromChainType, toChainType, fee);
-        if (tokenPair.bridge) {
-          fee.value = "0";
-        }
         let feeBN = new BigNumber(fee.value);
         // ETH maybe has different symbos on layer2 chains, it leads networkFee unit problem, should use ancestorSymbol as unit
         let unit, tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
