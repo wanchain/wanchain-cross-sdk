@@ -92,6 +92,9 @@ function isValidBtcAddress(address, network) {
     network = "prod";
   }
   let valid = WAValidator.validate(address, 'BTC', network);
+  if (valid) { // Shield taproot address to prevent storeman verification address error
+    valid = !["tb1p", "bc1p"].includes(address.substr(0, 4));
+  }
   return valid;
 }
 
