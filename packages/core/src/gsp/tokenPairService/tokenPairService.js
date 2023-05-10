@@ -163,11 +163,6 @@ class TokenPairService {
         let key = t.chainType + "-" + t.tokenScAddr;
         map.set(key, t);
       })
-      let network = this.configService.getNetwork();
-      if (network === "testnet") {
-        map.set("AVAX-0x5425890298aed601595a70ab815c96711a31bc65", {chainType: "AVAX", symbol: "USDC", tokenScAddr: "0x5425890298aed601595a70ab815c96711a31bc65"});
-        map.set("ETH-0x07865c6e87b9f70255377e024ace6630c1eaa37f", {chainType: "ETH", symbol: "USDC", tokenScAddr: "0x07865c6e87b9f70255377e024ace6630c1eaa37f"});
-      }
       this.multiChainOrigToken = map;
       let ts = new Date().getTime();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
@@ -180,12 +175,6 @@ class TokenPairService {
         let key = t.chainType + "-" + t.tokenScAddr;
         map.set(key, t);
       })
-      // Circle USDC
-      let network = this.configService.getNetwork();
-      if (network === "testnet") {
-        map.set("AVAX-0x5425890298aed601595a70ab815c96711a31bc65", {issuer: "Circle"});
-        map.set("ETH-0x07865c6e87b9f70255377e024ace6630c1eaa37f", {issuer: "Circle"});
-      }
       this.tokenIssuer = map;
       let ts = new Date().getTime();
       console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
@@ -301,13 +290,6 @@ class TokenPairService {
       // readableSymbol affect both ui and sdk
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
-      } else if (tokenPair.id === "241") { // USDC@avalanche <-> USDC@ethereum, use Circle bridge and different token address
-        tokenPair.bridge = "Circle";
-        let network = this.configService.getNetwork();
-        if (network === "testnet") {
-          tokenPair.fromAccount = "0x5425890298aed601595a70ab815c96711a31bc65"; // avalanche
-          tokenPair.toAccount = "0x07865c6e87b9f70255377e024ace6630c1eaa37f"; // ethereum
-        }
       }
     }
 
@@ -353,7 +335,7 @@ class TokenPairService {
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
         tokenPair.fromSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol));
-        tokenPair.fromIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
+        tokenPair.fromIsNative = this.checkNativeToken(tokenPair.bridge, tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
         let issuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount);
         if (issuer) {
           tokenPair.fromIssuer = {
@@ -368,7 +350,7 @@ class TokenPairService {
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
         tokenPair.toSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol));
-        tokenPair.toIsNative = this.checkNativeToken(tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
+        tokenPair.toIsNative = this.checkNativeToken(tokenPair.bridge, tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
         let issuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount);
         if (issuer) {
           tokenPair.toIssuer = {
@@ -378,7 +360,10 @@ class TokenPairService {
         }
     }
 
-    checkNativeToken(ancestorChainType, chainType, tokenAccount) {
+    checkNativeToken(bridge, ancestorChainType, chainType, tokenAccount) {
+      if (bridge) { // all other bridge token is native
+        return true;
+      }
       if (ancestorChainType === chainType) { // coin or orig token
         return true;
       }

@@ -209,7 +209,7 @@
           "port": 8443,
           "flag": "ws",
           "version": "v3",
-          "timeout": 300000
+          "timeout": 60000
         }
       ]
     }
