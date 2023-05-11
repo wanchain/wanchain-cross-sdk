@@ -24,7 +24,11 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
+<<<<<<< HEAD
     console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2305111910", this.network, this.isTestMode, this.smgName);
+=======
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2305111835", this.network, this.isTestMode, this.smgName);
+>>>>>>> c6cf2d7f3e231ded4e815629b6432b18a86e916d
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
