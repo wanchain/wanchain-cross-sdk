@@ -39,7 +39,7 @@ class TokenPairService {
             })
             // console.debug("tokenPairCfg: %O", this.m_mapTokenPairCfg);
         } catch (err) {
-            console.error("StoremanService init error:", err);
+            console.error("TokenPairService init error: %O", err);
         }
     }
 

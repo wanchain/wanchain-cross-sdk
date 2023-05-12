@@ -84,54 +84,6 @@ class StorageService {
                     }
                 }
             }
-        } else if (typeof(window) !== "undefined") { // try to migrate old version history to lowdb for compatibility, delete later
-            // console.log("try to migrate old version history");
-            await this.loadLegacy();
-        }
-    }
-
-    async loadLegacy() {
-        let storeNamesStr = window.localStorage.getItem("StorageService_storeNames");
-        if (storeNamesStr) {
-            db.set("StorageService_storeNames", storeNamesStr).write();
-            let storeNamesAry = JSON.parse(storeNamesStr);
-            for (let idx = 0; idx < storeNamesAry.length; ++idx) {
-                let storeName = storeNamesAry[idx];
-                let key = storeName + "_keys";
-                let storeKeysStr = window.localStorage.getItem(key);
-                if (storeKeysStr) {
-                    await db.set(key, storeKeysStr).write();
-                    try {
-                        let storeKeysAry = JSON.parse(storeKeysStr);
-                        let valueAry = [];
-                        let storeKeysMap = new Map();
-                        for (let storeKeyIdx = 0; storeKeyIdx < storeKeysAry.length; ++storeKeyIdx) {
-                            try {
-                                let keyName = storeKeysAry[storeKeyIdx];
-                                key = storeName + "_" + keyName;
-                                let value = window.localStorage.getItem(key);
-                                await db.set(key, value).write();
-                                valueAry.push(JSON.parse(value));
-                                storeKeysMap.set(keyName, true);
-                            } catch (err) {
-                                console.log("init_load 1 err:", err);
-                            }
-                        }
-                        this.m_mapStoreKeys.set(storeName, storeKeysMap);
-                        // 初始加载
-                        try {
-                            let processInst = await this.getProcessInst(storeName);
-                            if (processInst) {
-                                processInst.loadTradeTask(valueAry);
-                            }
-                        } catch (err) {
-                            console.log("init_load 2 err:", err);
-                        }
-                    } catch (err) {
-                        console.log("init_load 3 err:", err);
-                    }
-                }
-            }
         }
     }
 
