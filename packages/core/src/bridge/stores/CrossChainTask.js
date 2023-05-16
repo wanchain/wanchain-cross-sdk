@@ -28,12 +28,10 @@ class CrossChainTask {
       lockHash: '',
       redeemHash: '',
       uniqueId: '',
-      stepNums: 0, // convert steps num
       fromAccountBalance: '',
       fee: null, 
       isOtaTx: false, // adapted to BTC/XRP crosschain task on 2021.0111 
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
-      claim: null, // for other bridge to claim asset manually
       errInfo: ''
     };
   }
@@ -47,6 +45,15 @@ class CrossChainTask {
         console.error("task %s setTaskData undefined key %s", this.ccTaskData.ccTaskId, sk);
       }
     }
+  }
+
+  initSteps(stepData = []) {
+    stepData.forEach(step => {
+      step.txHash = "";
+      step.stepResult = "";
+      step.errInfo = "";
+    });
+    this.setTaskData({stepData});
   }
 }
 

@@ -34,25 +34,25 @@ class CrossChainTaskRecords {
     }
   }
 
-  // stepData has been assigned via CrossChainTaskSteps, only process additional logic
+  // stepData has already been updated, only need to update task info
   updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo = "") {
     let isLockTx = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
         if (ccTask.stepData[i].stepIndex === stepIndex) {
-          if (("Failed" == result) || ("Rejected" == result)) {
+          if (["Failed", "Rejected"].includes(result)) {
             ccTask.status = result;
             if (errInfo) {
               ccTask.errInfo = errInfo;
             }            
-          } else if ((stepIndex === ccTask.stepNums) && (!ccTask.isOtaTx)) {
+          } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
+            // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
             if (txHash && !ccTask.lockHash) {
-              // update txHash and notify dapp, then wait receipt, do not change status
               ccTask.lockHash = txHash;
               isLockTx = true;
             }
-            if (result) {
+            if (result) { // on evm do not change status until receipt with resule
               ccTask.status = "Converting";
             }
           }
@@ -75,13 +75,6 @@ class CrossChainTaskRecords {
     }
   }
 
-  setClaimData(ccTaskId, data) {
-    let ccTask = this.ccTaskRecords.get(ccTaskId);
-    if (ccTask) {
-      ccTask.claim = data;
-    }
-  }
-
   setTaskLockTxHash(ccTaskId, txHash, sentAmount, sender, uniqueId) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
@@ -97,7 +90,9 @@ class CrossChainTaskRecords {
   setTaskRedeemTxHash(ccTaskId, txHash, receivedAmount) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
-      ccTask.redeemHash = txHash;
+      if (txHash) { // prevent clearing txHash on repeated redeem
+        ccTask.redeemHash = txHash;
+      }
       ccTask.receivedAmount = receivedAmount;
     }
   }
@@ -116,6 +111,25 @@ class CrossChainTaskRecords {
         this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
       } else {
         console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);
+      }
+    }
+  }
+
+  // maybe only update txHash, not really finished
+  finishTaskStep(ccTaskId, stepIndex, txHash, stepResult, errInfo = "") {
+    let ccTask = this.ccTaskRecords.get(ccTaskId);
+    let steps = ccTask.stepData || [];
+    for (let i = 0; i < steps.length; i++) {
+      if (stepIndex == steps[i].stepIndex) {
+        if (txHash) {
+          steps[i].txHash = txHash;
+        }
+        if (stepResult) {
+          steps[i].stepResult = stepResult;
+        }
+        if (errInfo) {
+          steps[i].errInfo = errInfo;
+        }
       }
     }
   }

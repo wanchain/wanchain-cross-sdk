@@ -14,7 +14,6 @@ module.exports = class MintDotFromPolkaHandle {
   }
 
   async process(tokenPair, convert) {
-    let webStores = this.m_frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
@@ -33,21 +32,13 @@ module.exports = class MintDotFromPolkaHandle {
         toChainID: tokenPair.toChainID      // for Phala
       };
       console.debug("MintDotFromPolkaHandle params: %O", params);
-      let ret = [
+      let steps = [
         {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
-      webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
-      return {
-        stepNum: ret.length,
-        errCode: null
-      };
+      return steps;
     } catch (err) {
       console.error("MintDotFromPolkaHandle error: %O", err);
-      webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: err
-      };
+      throw err;
     }
   }
 };

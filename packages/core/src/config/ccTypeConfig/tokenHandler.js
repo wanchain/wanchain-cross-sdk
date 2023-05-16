@@ -8,7 +8,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   constructor(frameworkService) {
     super();
     this.frameworkService = frameworkService;
-    this.webStores = frameworkService.getService("WebStores");
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
     this.utilService = frameworkService.getService("UtilService");
     this.uiStrService = frameworkService.getService("UIStrService");
@@ -36,15 +35,13 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let approveMaxValue = new BigNumber(chainInfo.approveMaxValue);
+    let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max;
     let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr;
     let approveParams = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       erc20Addr: tokenSc,
-      gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: crossScAddr,
       taskType: "ProcessErc20Approve"
@@ -86,8 +83,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         fromAddr: convert.fromAddr,
         scChainType: chainInfo.chainType,
         tokenAddr: tokenSc,
-        gasPrice: chainInfo.gasPrice,
-        gasLimit: chainInfo.approveGasLimit,
         value,
         operator: chainInfo.crossScAddr,
         taskType: "ProcessErc721Approve"
@@ -114,8 +109,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      gasPrice: chainInfo.gasPrice,
-      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -148,8 +141,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      gasPrice: chainInfo.gasPrice,
-      gasLimit: this.getCrossTxGasLimit(chainInfo, tokenType, value),
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -172,37 +163,5 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     for (let i = 0; i < steps.length; i++) {
       steps[i].params.chainId = chainId;
     }
-  }
-
-  async checkGasFee(steps, tokenPair, convert) {
-    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let result = true;
-    if (chainInfo.chainType !== "TRX") {
-      let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
-      let fee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-      result = await this.utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, fee);
-    }
-    if (result) {
-      this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);
-      return {
-        stepNum: steps.length,
-        errCode: null
-      };
-    } else {
-      console.error("TokenHandler task %d insufficient gas", convert.ccTaskId);
-      this.webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: this.globalConstant.ERR_INSUFFICIENT_GAS
-      };
-    }
-  }
-
-  getCrossTxGasLimit(chainInfo, tokenType, value) {
-    let gasLimit = chainInfo.crossGasLimit;
-    if ((tokenType !== "Erc20") && (value.length > 1)) {
-      gasLimit = gasLimit + gasLimit * 0.2 * (value.length - 1);
-    }
-    return parseInt(gasLimit);
   }
 }

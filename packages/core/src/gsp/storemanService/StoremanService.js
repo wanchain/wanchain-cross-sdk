@@ -17,7 +17,7 @@ class StoremanService {
             this.m_frameworkService = frameworkService;
             this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
         } catch (err) {
-            console.log("StoremanService init err:", err);
+            console.error("StoremanService init error: %O", err);
         }
     }
 

@@ -6,13 +6,11 @@ const tool = require('../../utils/tool.js');
 module.exports = class BurnErc20ProxyToken {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
-    this.m_WebStores = frameworkService.getService("WebStores");
     this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
   }
 
   async process(tokenPair, convert) {
-    let globalConstant = this.m_frameworkService.getService("GlobalConstant");
     this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
     this.m_strApprove0Title = this.m_uiStrService.getStrByName("approve0Title");
     this.m_strApproveValueTitle = this.m_uiStrService.getStrByName("approveValueTitle");
@@ -36,14 +34,12 @@ module.exports = class BurnErc20ProxyToken {
       chainInfo = tokenPair.toScInfo;
       decimals = tokenPair.toDecimals;
     }
-    let approveMaxValue = new BigNumber(chainInfo.approveMaxValue);
+    let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max
     let erc20ApproveParas = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       erc20Addr: nativeToken,// token Addr
-      gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.approveGasLimit,
       value: approveMaxValue,
       spenderAddr: poolToken,// poolAddr
       taskType: "ProcessErc20Approve"
@@ -80,8 +76,6 @@ module.exports = class BurnErc20ProxyToken {
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: chainInfo.crossScAddr,
-      gasPrice: chainInfo.gasPrice,
-      gasLimit: chainInfo.crossGasLimit,
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value: value,
@@ -92,28 +86,14 @@ module.exports = class BurnErc20ProxyToken {
       userBurnFee: operateFee
     };
     console.debug("BurnErc20ProxyToken userFastBurnParas: %O", userFastBurnParas);
-    steps.push({name: "userFastBurnParas", stepIndex: steps.length + 1, title: this.m_strBurnTitle, desc: this.m_strBurnDesc, params: userFastBurnParas});
+    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, title: this.m_strBurnTitle, desc: this.m_strBurnDesc, params: userFastBurnParas});
 
     let chainId = await convert.wallet.getChainId();
     for (let idx = 0; idx < steps.length; ++idx) {
       steps[idx].params.chainId = chainId;
     }
-    //console.log("BurnErc20ProxyToken steps:", steps);
-    let utilService = this.m_frameworkService.getService("UtilService");
-    if (await utilService.checkBalanceGasFee(steps, chainInfo.chainType, convert.fromAddr, networkFee)) {
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, steps);
-      return {
-        stepNum: steps.length,
-        errCode: null
-      };
-    } else {
-      console.error("BurnErc20ProxyToken insufficient gas");
-      this.m_WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: globalConstant.ERR_INSUFFICIENT_GAS
-      };
-    }
+    //console.debug("BurnErc20ProxyToken steps:", steps);
+    return steps;
   }
 }
 

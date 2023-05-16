@@ -5,7 +5,6 @@ const CheckBtcTx = require("./checkBtcTx");
 const CheckXrpTx = require("./checkXrpTx");
 const CheckDotTx = require("./checkDotTx");
 const CheckAdaTx = require("./checkAdaTx");
-const CheckCircleAttestation = require("./checkCircleAttestation");
 
 module.exports = class ScEventScanService {
   constructor() {
@@ -25,11 +24,6 @@ module.exports = class ScEventScanService {
       checkScEventObj.init(obj);
       this.m_mapCheckHandle.set(obj.chainType, checkScEventObj);
     }
-
-    // Circle bridge
-    let checkCircle = new CheckCircleAttestation(this.m_frameworkService);
-    checkCircle.init();
-    this.m_mapCheckHandle.set("Circle", checkCircle);
 
     let checkBtcTx = new CheckBtcTx(this.m_frameworkService, "BTC");
     await checkBtcTx.init();
@@ -77,8 +71,7 @@ module.exports = class ScEventScanService {
     let storageService = this.m_frameworkService.getService("StorageService");
     obj.beginTime = new Date().getTime();
     await storageService.save("ScEventScanService", obj.uniqueID, obj);
-    let taskType = obj.bridge || obj.chain;
-    let handle = this.m_mapCheckHandle.get(taskType);
+    let handle = this.m_mapCheckHandle.get(obj.chain);
     if (handle) {
       await handle.add(obj);
     }
@@ -86,12 +79,11 @@ module.exports = class ScEventScanService {
 
   async load(obj) {
     //console.log("scEventScanService load obj:", obj);
-    let taskType = obj.bridge || obj.chain;
-    let handle = this.m_mapCheckHandle.get(taskType);
+    let handle = this.m_mapCheckHandle.get(obj.chain);
     if (handle) {
       await handle.load(obj);
     } else {
-      console.error("ScEventScan for %s unavailable", taskType);
+      console.error("ScEventScan for %s unavailable", obj.chain);
     }
   }
 };

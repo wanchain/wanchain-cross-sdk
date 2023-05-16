@@ -20,12 +20,13 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
             let tokenPairService = this.m_frameworkService.getService("TokenPairService");
             let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
             let toChainInfo = (params.scChainType === tokenPair.fromChainType)? tokenPair.toScInfo : tokenPair.fromScInfo;
-            let scData = await txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount);
-            let txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.fee, scData, params.fromAddr.toLowerCase());
+            let options = {chainType: params.scChainType, from: params.fromAddr, coinValue: params.networkFee};
+            let scData = await txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount, options);
+            let txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.networkFee, scData.data, params.fromAddr);
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCircleBridgeDeposit error: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
+            this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
 
@@ -34,30 +35,24 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
         let params = stepData.params;
         let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-        let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
-        let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+        let direction = (params.scChainType === tokenPair.fromChainType);
+        let depositChain = direction? tokenPair.fromChainType : tokenPair.toChainType;
+        let depositChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+        let checkChain = direction? tokenPair.toChainType : tokenPair.fromChainType;
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let blockNumber = await storemanService.getChainBlockNumber(checkChainType);
-        // exception: burn legency EOS from ethereum to wanchain is "BURN"
-        let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
+        let blockNumber = await storemanService.getChainBlockNumber(checkChain);
         let checker = {
           needCheck: true,
           checkInfo: {
             ccTaskId: params.ccTaskId,
             uniqueID: stepData.txHash,
-            userAccount: params.userAccount,
-            smgID: params.storemanGroupId,
-            tokenPairID: params.tokenPairID,
-            value: params.value,
-            chain: checkChainType,
+            chain: checkChain,
             fromBlockNumber: blockNumber,
-            taskType,
-            fromChain: params.scChainType,
-            fromAddr: params.fromAddr,
-            chainHash: stepData.txHash,
-            toAddr: params.toAddr,
-            bridge: tokenPair.bridge,
-            // claim: {msg, msgHash, attestation}, // to fill later
+            taskType: "circleMINT",
+            depositChain,
+            depositDomain: depositChainInfo.CircleBridge.domain,
+            depositNonce: undefined, // deposit nonce is really uniqueID
+            depositAmount: 0
           }
         };
         return checker;

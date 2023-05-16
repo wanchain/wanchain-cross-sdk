@@ -112,25 +112,17 @@ class BridgeTask {
 
   async start() {
     console.debug("bridgeTask start at %s ms", tool.getCurTimestamp());
-
-    // build steps
-    console.debug("bridgeTask _checkTaskSteps at %s ms", tool.getCurTimestamp());
-    let errInfo = await this._checkTaskSteps();
-    if (errInfo) {
-      throw new Error(errInfo);
-    }
+    // build
+    let steps = await this._buildTaskSteps();
+    this._task.initSteps(steps);
     this._task.setTaskData({status: "Performing"});
-
     // save context
     let bridge = this._bridge;
     let ccTaskData = this._task.ccTaskData;
-    let taskSteps = bridge.stores.crossChainTaskSteps.mapCCTaskStepsArray.get(this.id);
-    this._task.setTaskData({stepData: taskSteps});
     bridge.stores.crossChainTaskRecords.addNewTradeTask(ccTaskData);
     await bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
-
-    // background process
-    this._parseTaskStatus(taskSteps);
+    // process
+    this._procTaskSteps();
   }
 
   async _initToWallet() {
@@ -298,7 +290,7 @@ class BridgeTask {
     return "";
   }
 
-  async _checkTaskSteps() {
+  async _buildTaskSteps() {
     let ccTaskData = this._task.ccTaskData;
     // to get the stepsFunc from server api
     let convert = {
@@ -316,22 +308,17 @@ class BridgeTask {
       wallet: this._wallet
     }; 
     // console.debug("checkTaskSteps: %O", convert);
-    let stepInfo = await this._bridge.cctHandleService.getConvertInfo(convert);
-    // console.debug("getConvertInfo: %O", stepInfo);
-    if (stepInfo.stepNum > 0) {
-      this._task.setTaskData({stepNums: stepInfo.stepNum});
-      return "";
-    } else {
-      return this._getErrInfo(stepInfo.errCode);
-    }
+    let steps = await this._bridge.cctHandleService.getConvertInfo(convert);
+    // console.debug("getConvertInfo: %O", steps);
+    return steps;
   }
 
-  async _parseTaskStatus(ccTaskStepsArray) {
-    console.debug("bridgeTask _parseTaskStatus at %s ms", tool.getCurTimestamp());
-    console.debug("task %s steps: %d", this.id, ccTaskStepsArray.length);
+  async _procTaskSteps() {
+    let steps = this._task.ccTaskData.stepData;
+    console.debug("bridgeTask _procTaskSteps total %d at %s ms", steps.length, tool.getCurTimestamp());
     let curStep = 0, executedStep = -1, stepTxHash = "";
-    for (; curStep < ccTaskStepsArray.length; ) {
-      let taskStep = ccTaskStepsArray[curStep];
+    for (; curStep < steps.length; ) {
+      let taskStep = steps[curStep];
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
@@ -339,15 +326,15 @@ class BridgeTask {
           stepTxHash = taskStep.txHash;
         }
         if (executedStep != curStep) {
-          console.debug("bridgeTask _parseTaskStatus step %s at %s ms", curStep, tool.getCurTimestamp());
+          console.debug("bridgeTask _procTaskSteps step %s at %s ms", curStep, tool.getCurTimestamp());
           await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
           executedStep = curStep;
         } else {
-          await tool.sleep(5000);
+          await tool.sleep(3000);
         }
         continue;
       }
-      console.debug("check task %d step %d: %O", this.id, curStep, taskStep);
+      console.debug("proc task %d step %d: %O", this.id, curStep, taskStep);
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult contains ota address, XRP tagId or BTC randomId
         this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
         this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
@@ -389,10 +376,9 @@ class BridgeTask {
     console.debug("%s OTA: %O", chainType, ota);
   }
 
-  _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") {
+  _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // for sync step result
     let records = this._bridge.stores.crossChainTaskRecords;
-    const ccTaskRecords = records.ccTaskRecords;
-    let ccTask = ccTaskRecords.get(this.id);    
+    let ccTask = records.ccTaskRecords.get(this.id);
     if (ccTask) {
       let isLockTx = records.updateTaskByStepResult(this.id, stepIndex, txHash, stepResult, errInfo);
       if (isLockTx) {
@@ -430,16 +416,6 @@ class BridgeTask {
       return this._getSmgXrpClassicAddress();
     } else { // only for not-sc-chain to check smg account, other chains should not call this function
       throw new Error("Unknown " + chainType + " smg address");
-    }
-  }
-
-  _getErrInfo(errCode) {
-    if (typeof(errCode) === "string") {
-      return errCode;
-    } else if (errCode && errCode.message) {
-      return errCode.message;
-    } else {
-      this._bridge.globalConstant.ERR_OTHER_UNKNOWN_ERR;
     }
   }
 }

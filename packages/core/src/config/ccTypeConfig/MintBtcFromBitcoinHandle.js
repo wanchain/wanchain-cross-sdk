@@ -16,7 +16,6 @@ module.exports = class MintBtcFromBitcoinHandle {
   }
 
   async process(tokenPair, convert) {
-    let WebStores = this.frameworkService.getService("WebStores");
     let handleName = handleNames[tokenPair.fromChainType];
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
@@ -36,21 +35,13 @@ module.exports = class MintBtcFromBitcoinHandle {
         fee
       };
       console.debug("%s params: %O", handleName, params);
-      let ret = [
-        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+      let steps = [
+        {name: "addOTA", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
-      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
-      return {
-        stepNum: ret.length,
-        errCode: null
-      };
+      return steps;
     } catch (err) {
       console.error("%s error: %O", handleName, err);
-      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: err
-      };
+      throw err;
     }
   }
 };

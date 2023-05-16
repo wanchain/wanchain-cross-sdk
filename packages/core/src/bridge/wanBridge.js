@@ -1,7 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const CrossChainTaskRecords = require('./stores/CrossChainTaskRecords');
 const AssetPairs = require('./stores/AssetPairs');
-const CrossChainTaskSteps = require('./stores/CrossChainTaskSteps');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
@@ -21,12 +20,11 @@ class WanBridge extends EventEmitter {
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
-      crossChainTaskSteps: new CrossChainTaskSteps()
     };
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2305091425", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2305161546", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -43,7 +41,6 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
-    this.eventService.addEventListener("Claimable", this._onClaimable.bind(this)); // for other bridge to claim manually
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
     await this._service.start();
   }
@@ -148,34 +145,6 @@ class WanBridge extends EventEmitter {
     return task;
   }
 
-  async claim(taskId, wallet) { // only for other bridge, such as Circle bridge
-    console.debug("SDK: claim, taskId: %s", taskId);
-    let records = this.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(Number(taskId));
-    if (!ccTask) {
-      return "Task not exist";
-    }
-    if (!ccTask.claim) { // only for other bridge which need claim manually
-      return "Invalide operation";
-    }
-    let convert = {
-      ccTaskId: ccTask.ccTaskId,
-      tokenPairId: ccTask.assetPairId,
-      convertType: "CLAIM",
-      ccTaskType: ccTask.convertType,
-      msg: ccTask.claim.msg,
-      attestation: ccTask.claim.attestation,
-      wallet
-    }; 
-    // console.debug("claim convert: %O", convert);
-    let step = await this.cctHandleService.getConvertInfo(convert);
-    console.debug("claim step: %O", step);
-    // directly sync process step, do not save
-    let err = await this.txTaskHandleService.processTxTask(step, wallet);
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    return err;
-  }
-
   cancelTask(taskId) {
     console.debug("SDK: cancelTask, taskId: %s", taskId);
     // only set the status, do not really stop the task
@@ -221,9 +190,13 @@ class WanBridge extends EventEmitter {
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
-      let fromChainType = this.tokenPairService.getChainType(fromChainName);
-      let smg = await this.getSmgInfo();
-      quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
+      if (tokenPair.bridge) { // other bridge, such as Circle
+        quota = {maxQuota: Infinity.toString(), minQuota: "0"};
+      } else {
+        let fromChainType = this.tokenPairService.getChainType(fromChainName);
+        let smg = await this.getSmgInfo();
+        quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
+      }
     } else {
       quota = {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0"};
     }
@@ -452,21 +425,6 @@ class WanBridge extends EventEmitter {
     this.emit("redeem", {taskId, txHash});
   }
 
-  _onClaimable(taskClaimable) {
-    console.debug("_onClaimable: %O", taskClaimable);
-    let records = this.stores.crossChainTaskRecords;
-    let taskId = taskClaimable.ccTaskId;
-    // let txHash = taskClaimable.txHash;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask) {
-      return;
-    }
-    records.setClaimData(taskId, taskClaimable.data);
-    records.modifyTradeTaskStatus(taskId, "Claimable");
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("claimable", {taskId});
-  }
-
   _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
     let records = this.stores.crossChainTaskRecords;
     let fee = new BigNumber(sentAmount).minus(receivedAmount).toFixed();
@@ -502,8 +460,8 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onTaskStepResult(taskStepResult) {
-    console.log("_onTaskStepResult: %O", taskStepResult);
+  _onTaskStepResult(taskStepResult) { // only for async tx receipt
+    console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
     let txHash = taskStepResult.txHash;
@@ -512,24 +470,12 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      if (taskStepResult.type === "claim") {
-        if (taskStepResult.result === "Succeeded") {
-          records.setTaskRedeemTxHash(taskId, txHash, ccTask.amount);
-          records.modifyTradeTaskStatus(taskId, "Succeeded", "");
-          let redeemEvent = {taskId, txHash};
-          console.debug("redeemEvent: %O", redeemEvent);
-          this.emit("redeem", redeemEvent);
-        } else {
-          records.modifyTradeTaskStatus(taskId, "Claimable", taskStepResult.errInfo);
-        }
-      } else { // claim is not saved in steps
-        this.stores.crossChainTaskSteps.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
-        let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
-        if (isLockTx) {
-          let lockEvent = {taskId, txHash};
-          console.debug("lockEvent: %O", lockEvent);
-          this.emit("lock", lockEvent);
-        }
+      this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
+      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
+      if (isLockTx) {
+        let lockEvent = {taskId, txHash};
+        console.debug("lockEvent: %O", lockEvent);
+        this.emit("lock", lockEvent);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }

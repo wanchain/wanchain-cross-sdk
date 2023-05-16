@@ -15,8 +15,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
     await this.buildDeposit(steps, tokenPair, convert);
     await this.setChainId(steps, tokenPair, convert);
     //console.log("CircleBridgeDeposit steps: %O", steps);
-    let result = await this.checkGasFee(steps, tokenPair, convert);
-    return result;
+    return steps;
   }
 
   async buildDeposit(steps, tokenPair, convert) {
@@ -33,17 +32,14 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
       crossScAddr: tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr,
-      gasPrice: chainInfo.gasPrice,
-      gasLimit: this.getCrossTxGasLimit(chainInfo, "Erc20", value),
-      storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
       userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessCircleBridgeDeposit",
-      fee: networkFee,
+      networkFee,
       tokenAccount,
-      userBurnFee: operateFee
+      operateFee
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

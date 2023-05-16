@@ -32,13 +32,13 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                   params.tokenPairID,
                   crossValue,
                   params.userAccount,
-                  {tokenType: "Erc20"});
-              txData = await txGeneratorService.generateTx(params.scChainType, params.gasPrice, params.gasLimit, params.crossScAddr.toLowerCase(), params.value, scData, params.fromAddr);
+                  {tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: params.value});
+              txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.value, scData.data, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCoinUserFastMint error: %O", err);
-            this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
+            this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
 

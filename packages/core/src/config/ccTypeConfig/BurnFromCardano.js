@@ -9,7 +9,6 @@ module.exports = class BurnFromCardano {
   }
 
   async process(tokenPair, convert) {
-    let webStores = this.frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals)).toFixed(0);
       // fee is not necessary, storeman agent get fee from config contract
@@ -28,21 +27,13 @@ module.exports = class BurnFromCardano {
         fromAddr: convert.fromAddr
       };
       console.debug("Burn %s FromCardano params: %O", tokenPair.readableSymbol, params);
-      let ret = [
+      let steps = [
         {name: "userFastBurn", stepIndex: 1, title: "BurnTitle", desc: "BurnDesc", params}
       ];
-      webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
-      return {
-        stepNum: ret.length,
-        errCode: null
-      };
+      return steps;
     } catch (err) {
       console.error("Burn %s FromCardano error: %O", tokenPair.readableSymbol, err);
-      webStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: err
-      };
+      throw err;
     }
   }
 };

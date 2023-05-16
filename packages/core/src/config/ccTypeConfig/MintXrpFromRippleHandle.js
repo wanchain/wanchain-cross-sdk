@@ -10,7 +10,6 @@ module.exports = class MintXrpFromRipple {
   }
 
   async process(tokenPair, convert) {
-    let WebStores = this.frameworkService.getService("WebStores");
     try {
       let value = new BigNumber(convert.value);
       if (tokenPair.fromAccount == 0) { // token ignore decimals
@@ -34,21 +33,13 @@ module.exports = class MintXrpFromRipple {
         fee
       };
       console.debug("Mint %s FromRipple params: %O", tokenPair.readableSymbol, params);
-      let ret = [
-        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+      let steps = [
+        {name: "addTag", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
-      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, ret);
-      return {
-        stepNum: ret.length,
-        errCode: null
-      };
+      return steps;
     } catch (err) {
       console.error("Mint %s FromRipple error: %O", tokenPair.readableSymbol, err);
-      WebStores["crossChainTaskSteps"].setTaskSteps(convert.ccTaskId, []);
-      return {
-        stepNum: 0,
-        errCode: err
-      };
+      throw err;
     }
   }
 };

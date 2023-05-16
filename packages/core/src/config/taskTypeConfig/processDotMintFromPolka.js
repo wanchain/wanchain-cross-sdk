@@ -61,13 +61,13 @@ module.exports = class ProcessDotMintFromPolka {
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
       if (new BigNumber(balance).lte(totalNeed)) {
         console.error("ProcessDotMintFromPolka insufficient balance, fee: %s", gasFee.div(Math.pow(10, chainInfo.chainDecimals)).toFixed());
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
 
       // 5 签名并发送
       let txHash = await wallet.sendTransaction(txs, params.fromAddr);
-      webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // 查询目的链当前blockNumber
       let iwan = this.frameworkService.getService("iWanConnectorService");
@@ -86,10 +86,10 @@ module.exports = class ProcessDotMintFromPolka {
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
       if (err.message === "Cancelled") {
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessDotMintFromPolka error: %O", err);
-        webStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }

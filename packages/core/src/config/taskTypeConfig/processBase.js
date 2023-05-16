@@ -39,13 +39,13 @@ module.exports = class ProcessBase {
       let accountAry = await wallet.getAccounts();
       let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
       if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
         console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
         return;
       }
 
       let txHash = await wallet.sendTransaction(txData);
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let convertCheckInfo = await this.getConvertInfoForCheck(stepData);
       let obj = {
@@ -59,10 +59,10 @@ module.exports = class ProcessBase {
       await checkTxReceiptService.add(obj);
     } catch (err) {
       if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected", "");
+        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected", "");
       } else {
         console.error("ProcessBase sendTransactionData error:", err);
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
@@ -76,12 +76,12 @@ module.exports = class ProcessBase {
       if (chainId === params.chainId) {
         return true;
       } else {
-        this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
         console.error("wallet chainId changes from %s to %s", params.chainId, chainId);
         return false;
       }      
     } catch (err) {
-      this.m_WebStores["crossChainTaskSteps"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
       console.error("task %s checkChainId error: %O", params.ccTaskId, err);
       return false;
     }
