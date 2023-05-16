@@ -18,8 +18,7 @@
       "crossScAddr": "0xfceaaaeb8d564a9d0e71ef36f027b9d162bc334e",
       "CircleBridge": {
         "domain": 0,
-        "crossScAddr": "0xBd3fa81B58Ba92a82136038B25aDec7066af3155",
-        "claimScAddr": "0x0a992d191DEeC32aFe36203Ad87D7d289a738F81"
+        "crossScAddr": "0xeC0D8Cfd081ccce2D6Ed4E3dd8f248D3cAa3d24B"
       },
       "chainDecimals": 18,
       "MaskChainId": 1,
@@ -45,8 +44,7 @@
       "crossScAddr": "0x74e121a34a66D54C33f3291f2cdf26B1cd037c3a",
       "CircleBridge": {
         "domain": 1,
-        "crossScAddr": "0x6B25532e1060CE10cc3B0A99e5683b91BFDe6982",
-        "claimScAddr": "0x8186359af5f57fbb40c6b14a588d2a59c0c29880"
+        "crossScAddr": "0x0D4d2595B1d83AB6110b4291816D62d1417C5A8B"
       },
       "chainDecimals": 18,
       "MaskChainId": 43114,
