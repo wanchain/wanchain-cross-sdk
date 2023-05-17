@@ -199,7 +199,7 @@
     "MintDesc": "MintDesc",
     "BurnTitle": "BurnTitle",
     "BurnDesc": "BurnDesc",
-    "CacheVersion": "1"
+    "CacheVersion": "2"
   },
   "iWanConnectorService": {
     "iWanOption": {
