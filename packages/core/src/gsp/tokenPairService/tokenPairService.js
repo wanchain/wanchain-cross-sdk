@@ -146,7 +146,12 @@ class TokenPairService {
         console.debug("all tokenpair hit cache");
       } else {
         let network = this.configService.getNetwork();
-        let options = ((network === "mainnet") && !this.isTestMode)? {tags: ["bridge"]} : {isAllTokenPairs: true};
+        let options;
+        if (network === "mainnet") {
+          options = this.isTestMode? {tags: ["bridgeBeta"]} : {tags: ["bridge"]};
+        } else {
+          options = {isAllTokenPairs: true};
+        }
         tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
         this.storageService.setCacheData("TokenPair", tokenPairs);
         this.storageService.setCacheData("Version", {ui: uiVer, iwan: iwanVer});
