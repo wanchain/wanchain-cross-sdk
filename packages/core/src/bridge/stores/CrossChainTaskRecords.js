@@ -48,9 +48,9 @@ class CrossChainTaskRecords {
             }            
           } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
             // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
-            if (txHash && !ccTask.lockHash) {
-              ccTask.lockHash = txHash;
-              isLockTx = true;
+            if (txHash) {
+              isLockTx = !ccTask.lockHash;
+              ccTask.lockHash = txHash; // may repriced, always update lockHash
             }
             if (result) { // on evm do not change status until receipt with resule
               ccTask.status = "Converting";

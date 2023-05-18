@@ -1,91 +1,174 @@
 'use strict';
 
+const tool = require("../../utils/tool.js");
+
 module.exports = class CheckTxReceiptService {
-    constructor() {
-        this.m_tradeTaskAry = [];
-    }
+  constructor() {
+    this.taskArray = [];
+  }
 
-    async init(frameworkService) {
-        this.m_frameworkService = frameworkService;
-        this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
-        this.m_taskService = frameworkService.getService("TaskService");
-        this.m_WebStores = frameworkService.getService("WebStores");
-        this.m_eventService = frameworkService.getService("EventService");
-    }
+  async init(frameworkService) {
+    this.frameworkService = frameworkService;
+    this.iwan = frameworkService.getService("iWanConnectorService");
+    this.taskService = frameworkService.getService("TaskService");
+    this.webStores = frameworkService.getService("WebStores");
+    this.eventService = frameworkService.getService("EventService");
+  }
 
-    async loadTradeTask(tradeTaskAry) {
-        this.m_tradeTaskAry = tradeTaskAry;
-    }
+  async loadTradeTask(taskArray) {
+    this.taskArray = taskArray;
+  }
 
-    async start() {
-        this.m_taskService.addTask(this, 3000);
-    }
+  async start() {
+    this.taskService.addTask(this, 3000);
+  }
 
-    async runTask(taskPara) {
-        let connected = await this.m_iwanBCConnector.isConnected();
-        if (connected === false) {
-            //console.log("CheckTxReceiptService runTask iwan no connect");
-            return;
+  async runTask(taskPara) {
+    let connected = await this.iwan.isConnected();
+    if (connected === false) {
+      //console.log("CheckTxReceiptService runTask iwan no connect");
+      return;
+    }
+    let length = this.taskArray.length;
+    for (let idx = 0; idx < length; ++idx) {
+      let index = length - idx - 1;
+      let obj = this.taskArray[index];
+      try {
+        let result = await this.checkReceipt(obj);
+        if ((!result) && obj.txCheckInfo) {
+          result = await this.checkEvent(obj);
         }
-        let length = this.m_tradeTaskAry.length;
-        for (let idx = 0; idx < length; ++idx) {
-            let index = length - idx - 1;
-            let obj = this.m_tradeTaskAry[index];
-            try {
-                let txReceipt = await this.m_iwanBCConnector.getTransactionReceipt(obj.chain, obj.txHash);
-                if (txReceipt) {
-                    let result = "Failed";
-                    let errInfo = "Transaction failed";
-                    let isSuccess = false;
-                    if (obj.chain === "TRX") {
-                      isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
-                    } else {
-                      isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
-                    }
-                    if (isSuccess) {
-                        result = "Succeeded";
-                        errInfo = "";
-                        await this.addToScEventScan(obj);
-                    }
-                    await this.finishTask(index, obj, result, errInfo);
-                }
-            } catch (err) {
-                // console.error("%s %s CheckTxReceiptService error: %O", obj.chain, obj.txHash, err);
+        if (result) {
+          console.debug("CheckTxReceiptService result: %O", result);
+          if (result.txHash && (obj.txHash !== result.txHash)) { // repriced
+            console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
+            obj.txHash = result.txHash;
+            if (obj.convertCheckInfo) {
+              obj.convertCheckInfo.uniqueID = result.txHash;
             }
+          }
+          if (result.result === "Succeeded") {
+            await this.addToScEventScan(obj);
+          }
+          await this.finishTask(index, obj, result.result, result.errInfo);
         }
+      } catch (err) {
+        console.error("%s %s CheckTxReceiptService error: %O", obj.chain, obj.txHash, err);
+      }
     }
+  }
 
-    async addToScEventScan(obj) {
-        if (obj.convertCheckInfo && obj.convertCheckInfo.needCheck) {
-            let scEventScanService = this.m_frameworkService.getService("ScEventScanService");
-            await scEventScanService.add(obj.convertCheckInfo.checkInfo);
+  async checkReceipt(obj) {
+    try {
+      let txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
+      if (txReceipt) {
+        let result = "Failed";
+        let errInfo = "Transaction failed";
+        let isSuccess = false;
+        if (obj.chain === "TRX") {
+          isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
+        } else {
+          isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
+        if (isSuccess) {
+          result = "Succeeded";
+          errInfo = "";
+        }
+        return {result, errInfo};
+      } else {
+        return null;
+      }
+    } catch (err) { // not finish
+      // console.error("%s %s checkReceipt error: %O", obj.chain, obj.txHash, err);
+      return null;
     }
+  }
 
-    async add(obj) {
-        //let obj = {
-        //    "chain": params.scChainType,
-        //    "ccTaskId": params.ccTaskId,
-        //    "stepIndex": paramsJson.stepIndex,
-        //    "txHash": ret.txHash,
-        //    "convertCheckInfo": convertCheckInfo
-        //};
-        obj.sendTime = new Date().getTime();
-        let storageService = this.m_frameworkService.getService("StorageService");
-        await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
-        this.m_tradeTaskAry.push(obj);
+  async checkEvent(obj) {
+    let storageService = this.frameworkService.getService("StorageService");
+    let txCheckInfo = obj.txCheckInfo;
+    if (txCheckInfo.nonce === undefined) { // save nonce at first run
+      let txInfo = await this.iwan.getTxInfo(obj.chain, obj.txHash);
+      if (!txInfo) { // not broadcast yet
+        return null;
+      }
+      console.debug("task %s %s get txInfo: %O", obj.ccTaskId, obj.chain, txInfo);
+      txCheckInfo.input = txInfo.input;
+      txCheckInfo.nonce = txInfo.nonce;
+      await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     }
+    let latestBlock = await this.iwan.getBlockNumber(obj.chain);
+    let fromBlock = txCheckInfo.fromBlock - 30; // for rollback
+    if (fromBlock < 1) {
+      fromBlock = 1;
+    }
+    let toBlock = fromBlock;
+    if (latestBlock >= fromBlock) {
+      toBlock = fromBlock + 300; // OKC
+      if (toBlock > latestBlock) {
+        toBlock = latestBlock;
+      }
+    } else { // rollback
+      txCheckInfo.fromBlock = latestBlock;
+      txCheckInfo.nonceBlock = 0;
+    }
+    console.debug("task %s %s check tx minted: block %d-%d/%d", obj.ccTaskId, obj.chain, fromBlock, toBlock, latestBlock);
+    let events = await this.iwan.getScEvent(
+      obj.chain,
+      txCheckInfo.to, // now only support event of "to" contract
+      txCheckInfo.topics,
+      {fromBlock, toBlock}
+    );
+    if (events.length) {
+      for (let log of events) {
+        console.debug("checkEvent log: %O", log);
+        let txInfo = await this.iwan.getTxInfo(obj.chain, log.transactionHash);
+        if ((txInfo.nonce === txCheckInfo.nonce) && tool.cmpAddress(txInfo.from, txCheckInfo.from)) {
+          if (tool.cmpAddress(txInfo.to, txCheckInfo.to) && (txInfo.input === txCheckInfo.input)) {
+            return {result: "Succeeded", errInfo: "", txHash: log.transactionHash}; // normal or repriced
+          }
+        }
+      }
+    }
+    if (txCheckInfo.nonceBlock) {
+      if (toBlock > (txCheckInfo.nonceBlock + 10)) {
+        console.debug("task %s %s tx %s is replaced or canceled", obj.ccTaskId, obj.chain, obj.txHash);
+        return {result: "Failed", errInfo: "Transaction failed"};
+      }
+    } else {
+      let curNonce = await this.iwan.getNonce(obj.chain, txCheckInfo.from);
+      if (curNonce > txCheckInfo.nonce) {
+        txCheckInfo.nonceBlock = latestBlock;
+      }
+    }
+    txCheckInfo.fromBlock = toBlock + 1;
+    await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
+    return null;
+  }
 
-    async finishTask(taskIndex, task, result, errInfo = "") {
-        await this.m_eventService.emitEvent("TaskStepResult", {
-            ccTaskId: task.ccTaskId,
-            stepIndex: task.stepIndex,
-            txHash: task.txHash,
-            result,
-            errInfo
-        });
-        let storageService = this.m_frameworkService.getService("StorageService");
-        await storageService.delete("CheckTxReceiptService", task.ccTaskId);
-        this.m_tradeTaskAry.splice(taskIndex, 1);
+  async addToScEventScan(obj) {
+    if (obj.convertCheckInfo) {
+      let scEventScanService = this.frameworkService.getService("ScEventScanService");
+      await scEventScanService.add(obj.convertCheckInfo);
     }
+  }
+
+  async add(obj) {
+    let storageService = this.frameworkService.getService("StorageService");
+    await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
+    this.taskArray.push(obj);
+  }
+
+  async finishTask(taskIndex, task, result, errInfo) {
+    await this.eventService.emitEvent("TaskStepResult", {
+      ccTaskId: task.ccTaskId,
+      stepIndex: task.stepIndex,
+      txHash: task.txHash,
+      result,
+      errInfo
+    });
+    let storageService = this.frameworkService.getService("StorageService");
+    await storageService.delete("CheckTxReceiptService", task.ccTaskId);
+    this.taskArray.splice(taskIndex, 1);
+  }
 };

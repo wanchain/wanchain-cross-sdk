@@ -10,8 +10,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
     }
 
     async process(stepData, wallet) {
-        let uiStrService = this.m_frameworkService.getService("UIStrService");
-        let strFailed = uiStrService.getStrByName("Failed");
+        let strFailed = this.m_uiStrService.getStrByName("Failed");
         let params = stepData.params;
         try {
             if (!(await this.checkChainId(stepData, wallet))) {
@@ -26,14 +25,13 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
                 params.userAccount,
                 {coinValue: params.value});
             } else { // common evm
-              let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-              let scData = await txGeneratorService.generateUserLockData(params.crossScAddr,
+              let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr,
                   params.storemanGroupId,
                   params.tokenPairID,
                   crossValue,
                   params.userAccount,
                   {tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: params.value});
-              txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.value, scData.data, params.fromAddr);
+              txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.value, scData.data, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
@@ -44,29 +42,31 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
 
     // virtual function
     async getConvertInfoForCheck(stepData) {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
         let params = stepData.params;
-        let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+        let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
         let direction = (params.scChainType === tokenPair.fromChainType)? "MINT" : "BURN";
         let checkChainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
-        let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
-        let storemanService = this.m_frameworkService.getService("StoremanService");
-        let blockNumber = await storemanService.getChainBlockNumber(checkChainType);
-        let obj = {
-            needCheck: true,
-            checkInfo: {
-                ccTaskId: params.ccTaskId,
-                uniqueID: stepData.txHash,
-                userAccount: params.userAccount,
-                smgID: params.storemanGroupId,
-                tokenPairID: params.tokenPairID,
-                value: new BigNumber(params.value).minus(params.fee),
-                chain: checkChainType,
-                fromBlockNumber: blockNumber,
-                taskType,
-                fromChain: params.scChainType
-            }
+        let taskType = this.m_tokenPairService.getTokenEventType(params.tokenPairID, direction);
+        let blockNumber = await this.m_storemanService.getChainBlockNumber(checkChainType);
+        let srcToken = (direction === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+        let txEventTopics = [
+            "0x43eb196c5950c738b34cd1760941e0876559e4fb835498fe19016bc039ad61a9",     // UserLockLogger
+            params.storemanGroupId,                                                   // smgID
+            "0x" + new BigNumber(params.tokenPairID).toString(16).padStart(64, '0'),  // tokenPairID
+            "0x" + tool.hexStrip0x(srcToken).toLowerCase().padStart(64, '0')          // tokenAccount
+        ];
+        let convertCheckInfo = {
+            ccTaskId: params.ccTaskId,
+            uniqueID: stepData.txHash,
+            userAccount: params.userAccount,
+            smgID: params.storemanGroupId,
+            tokenPairID: params.tokenPairID,
+            value: new BigNumber(params.value).minus(params.fee),
+            chain: checkChainType,
+            fromBlockNumber: blockNumber,
+            taskType,
+            fromChain: params.scChainType
         };
-        return obj;
+        return {txEventTopics, convertCheckInfo};
     }
 };

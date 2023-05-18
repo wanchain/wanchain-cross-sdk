@@ -9,20 +9,17 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
     }
 
     async process(stepData, wallet) {
-        let uiStrService = this.m_frameworkService.getService("UIStrService");
-        let strFailed = uiStrService.getStrByName("Failed");
+        let strFailed = this.m_uiStrService.getStrByName("Failed");
         let params = stepData.params;
         try {
             if (!(await this.checkChainId(stepData, wallet))) {
                 return;
             }
-            let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-            let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+            let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
             let toChainInfo = (params.scChainType === tokenPair.fromChainType)? tokenPair.toScInfo : tokenPair.fromScInfo;
             let options = {chainType: params.scChainType, from: params.fromAddr, coinValue: params.networkFee};
-            let scData = await txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount, options);
-            let txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.networkFee, scData.data, params.fromAddr);
+            let scData = await this.m_txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount, options);
+            let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.networkFee, scData.data, params.fromAddr);
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
             console.error("ProcessCircleBridgeDeposit error: %O", err);
@@ -33,17 +30,17 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
     // virtual function
     async getConvertInfoForCheck(stepData) {
         let params = stepData.params;
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+        let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
         let direction = (params.scChainType === tokenPair.fromChainType);
         let depositChain = direction? tokenPair.fromChainType : tokenPair.toChainType;
         let depositChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
         let checkChain = direction? tokenPair.toChainType : tokenPair.fromChainType;
         let storemanService = this.m_frameworkService.getService("StoremanService");
         let blockNumber = await storemanService.getChainBlockNumber(checkChain);
-        let checker = {
-          needCheck: true,
-          checkInfo: {
+        let txEventTopics = [
+            "0x6dce5b2406630dbc3a2633f31a15505733a9ede5169532aaab88ac01c77ff1e4",     // DepositForBurnWithFee
+        ];
+        let convertCheckInfo = {
             ccTaskId: params.ccTaskId,
             uniqueID: stepData.txHash,
             chain: checkChain,
@@ -53,8 +50,7 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
             depositDomain: depositChainInfo.CircleBridge.domain,
             depositNonce: undefined, // deposit nonce is really uniqueID
             depositAmount: 0
-          }
         };
-        return checker;
+        return {txEventTopics, convertCheckInfo};
     }
 };

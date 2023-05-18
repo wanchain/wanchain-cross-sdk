@@ -1,9 +1,10 @@
 'use strict';
-const Web3 = require("web3");
-const web3 = new Web3();
 
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
+const Web3 = require("web3");
+
+const web3 = new Web3();
 
 module.exports = class TxGeneratorService{
     constructor() {
@@ -16,6 +17,8 @@ module.exports = class TxGeneratorService{
     }
 
     // erc20 approve
+    // event: Approval(address indexed owner, address indexed spender, uint256 value)
+    // topic[0]: 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925
     async generatorErc20ApproveData(tokenAddress, spenderAddress, value, options = {}) {
         value = "0x" + new BigNumber(value).toString(16);
         let abi = this.configService.getAbi("erc20");
@@ -28,6 +31,8 @@ module.exports = class TxGeneratorService{
     }
 
     // nft approve: erc721 & erc1155
+    // event: ApprovalForAll(address indexed account, address indexed operator, bool approved)
+    // topic[0]: 0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31
     async generatorErc721ApproveData(tokenAddress, operator, options = {}) {
         let abi = this.configService.getAbi("erc721");
         tokenAddress = tokenAddress.toLowerCase();
@@ -40,7 +45,6 @@ module.exports = class TxGeneratorService{
 
     async generateTx(chainType, gasLimit, toAddress, value, data, from) {
         let gasPrice = await this.iwan.getGasPrice(chainType);
-        console.debug("%s generateTx gasPrice: %s", chainType, gasPrice);
         let rawTx = {
             gasPrice: "0x" + new BigNumber(gasPrice).toString(16),
             gas: "0x" + new BigNumber(new BigNumber(gasLimit).times(1.1).toFixed(0)).toString(16),
@@ -50,10 +54,15 @@ module.exports = class TxGeneratorService{
             from: from.toLowerCase()
             // chainId
         };
+        console.debug("%s generateTx gasPrice: %s, gasLimit: %s", chainType, gasPrice, Number(rawTx.gas).toFixed());
         // console.debug("generateTx: %O", rawTx);
         return rawTx;
     }
 
+    // erc20 event: UserLockLogger(bytes32 indexed smgID, uint256 indexed tokenPairID, address indexed tokenAccount, uint256 value, uint256 contractFee, bytes userAccount);
+    // erc20 topic[0]: 0x43eb196c5950c738b34cd1760941e0876559e4fb835498fe19016bc039ad61a9
+    // nft event: UserLockNFT(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, string[] keys, bytes[] values)
+    // nft topic[0]: 0x62605e96f2f9cd2d124a846c58ea7d9982610ba45d052c99b14900c37a718683
     async generateUserLockData(crossScAddr, smgID, tokenPairID, value, userAccount, extInfo = {}) {
         let abi = this.configService.getAbi("crossSc");
         let scAddr = crossScAddr.toLowerCase();
@@ -81,6 +90,10 @@ module.exports = class TxGeneratorService{
         return {data, gasLimit};
     }
 
+    // erc20 event: UserBurnLogger(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, uint value, uint contractFee, uint fee, bytes userAccount)
+    // erc20 topic[0]: 0xe314e23175856b9484e39ab0547753cf1b5cd0cbe3b0d7018c953d31f23fc767
+    // nft event: UserBurnNFT(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, string[] keys, bytes[] values)
+    // nft topic[0]: 0x988781dff960cf5a144a15c9b0c4d1346196e415e64ea7ebd609c6ac0559bbbb
     async generateUserBurnData(crossScAddr, smgID, tokenPairID, value, fee, tokenAccount, userAccount, extInfo = {}) {
       let abi = this.configService.getAbi("crossSc");
       let scAddr = crossScAddr.toLowerCase();
@@ -109,6 +122,8 @@ module.exports = class TxGeneratorService{
       return {data, gasLimit};
     }
 
+    // event: DepositForBurnWithFee(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken, uint256 fee)
+    // topic[0]: 0x6dce5b2406630dbc3a2633f31a15505733a9ede5169532aaab88ac01c77ff1e4
     async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount, options) {
       let abi = this.configService.getAbi("circleBridgeProxy");
       let scAddr = crossScAddr.toLowerCase();
