@@ -34,6 +34,9 @@ module.exports = class MintBtcFromBitcoinHandle {
         taskType: "ProcessMintBtcFromBitcoin",
         fee
       };
+      if (convert.gpkDetail) {
+        params.gpkDetail = convert.gpkDetail
+      }
       console.debug("%s params: %O", handleName, params);
       let steps = [
         {name: "addOTA", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}

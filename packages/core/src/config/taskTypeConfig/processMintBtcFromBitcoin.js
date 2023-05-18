@@ -2,7 +2,9 @@
 
 const crypto = require('crypto');
 const bitcoin = require('bitcoinjs-lib');
+const bitcoin6 = require('btcjs-lib6')
 const axios = require("axios");
+let ecc = null
 
 const names = {
   BTC: "ProcessMintBtcFromBitcoin",
@@ -10,6 +12,23 @@ const names = {
   DOGE: "ProcessMintDogeFromDogecoin"
 };
 
+let g_initState = 0
+async function initBitcoin6() {
+  if (g_initState === 0) {
+    g_initState = 1
+    try {
+      ecc = await import('tiny-secp256k1')
+      bitcoin6.initEccLib(ecc)
+      g_initState = 2
+    } catch (error) {
+      g_initState = 0
+    }
+  }
+}
+
+setTimeout(async() => {
+  await initBitcoin6()
+}, 0)
 const litecoinPrefix = '\\x19Litecoin Signed Message:\n';
 const DogecoinPrefix = "\\x19Dogecoin Signed Message:\n";
 const testnetBip32 = {
@@ -71,7 +90,8 @@ module.exports = class ProcessMintBtcFromBitcoin {
     let params = stepData.params;
     let processorName = names[params.fromChainType];
     try {
-      let p2sh = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
+
+      let p2sh = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk, params.gpkDetail);
       // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, p2sh.address);
       if (p2sh.address) {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: p2sh.address, randomId: p2sh.randomId});
@@ -84,7 +104,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
     }
   }
 
-  async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
+  async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, storemanGroupPublicKey, gpkDetail) {
     let params = stepData.params;
     try {
       let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
@@ -105,7 +125,16 @@ module.exports = class ProcessMintBtcFromBitcoin {
         tmpGPK = "04" + tmpGPK.slice(2);
       }
 
-      let p2sh = this.getP2SH(hashValue, tmpGPK, network);
+      let p2sh = null
+      console.log(`from chain type ${fromChainType}`)
+      if (fromChainType === 'BTC' && gpkDetail.algo === '2') {
+        if (g_initState === 0) {
+          await initBitcoin6()
+        }
+        p2sh = this.getP2TR(hashValue, tmpGPK, network);
+      } else {
+        p2sh = this.getP2SH(hashValue, tmpGPK, network);
+      }
       let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
       // save p2sh 和id 到apiServer
       let data = {
@@ -155,6 +184,38 @@ module.exports = class ProcessMintBtcFromBitcoin {
       },
     });
     return p2sh.address;
+  }
+
+  getP2TR(hashVal, publicKey, network) {
+    console.log(`getP2TR hashVal = ${hashVal}, pub = ${publicKey}, network =${network}`)
+    const xOnlyMpcPk = Buffer.from(publicKey.slice(2, 66), 'hex')
+    console.log(`xOnlyMpcPk ${xOnlyMpcPk.toString('hex')}`)
+    const redeemScript = bitcoin6.script.fromASM(
+      `
+      ${hashVal}
+      OP_DROP
+      OP_DUP
+      OP_HASH160
+      ${bitcoin6.crypto.hash160(xOnlyMpcPk).toString('hex')}
+      OP_EQUALVERIFY
+      OP_CHECKSIG
+      `.trim().replace(/\s+/g, ' '),
+    )
+    console.log(`redeemScript ${redeemScript.length}`)
+    const scriptTree = {
+      output: redeemScript,
+      version: 0xc0
+    }
+    console.log(`scriptTree `)
+  
+    const p2tr = bitcoin6.payments.p2tr({ 
+      internalPubkey: xOnlyMpcPk,
+      scriptTree: scriptTree,
+      redeem: scriptTree,
+      network 
+    })
+    console.log(`address ${p2tr.address} `)
+    return p2tr.address
   }
 
   getRedeemScript(hashVal, publicKey) {

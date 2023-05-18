@@ -10,15 +10,33 @@ class AssetPairs {
 
   setAssetPairs(tokenPairs, smgs, configService = null) {
     this.smgList = smgs.map(smg => {
-      return {
+      if (!!smg.algo1 && !!smg.algo2) {
+        smg.algo1 = smg.curve1
+        smg.algo2 = smg.curve2
+      }
+      const rt = {
         id: smg.groupId,
         name: tool.ascii2letter(smg.groupId),
         gpk1: smg.gpk1,
         gpk2: smg.gpk2,
         curve1: smg.curve1,
         curve2: smg.curve2,
-        endTime: smg.endTime
+        endTime: smg.endTime,
+        algo1: smg.algo1,
+        algo2: smg.algo2,
       }
+      let gpkCount = 3
+      let gpkName = "gpk" + gpkCount
+      while(!!smg[gpkName]) {
+        rt["gpk" + gpkCount] = smg["gpk" + gpkCount]
+        rt["curve" + gpkCount] = smg["curve" + gpkCount]
+        rt["algo" + gpkCount] = smg["algo" + gpkCount]
+
+        gpkCount ++
+        gpkName = "gpk" + gpkCount
+      }
+
+      return rt
     });
     if (tokenPairs) { // maybe only update smgs
       let pairList = tokenPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend

@@ -156,10 +156,23 @@ class BridgeTask {
   async _checkSmg() {
     // get active smg
     this._smg = await this._bridge.getSmgInfo();
-    if (this._tokenPair.bridge) { // only for unifying process flow, other bridge do not care smg
-      return "";
+    if (this._fromChainInfo.chainType === 'BTC') {
+      const curve = '0'
+      const algo = this._smg.gpk3 ? '2' : '0'
+      let index = 1
+      while (this._smg["gpk" + index]) {
+        if (curve === this._smg["curve" + index] && algo === this._smg["algo" + index]) {
+          this._secp256k1Gpk = this._smg["gpk" + index]
+          this._gpkDetail = {
+            curve,
+            algo
+          }
+        }
+        index ++
+      }
+    } else {
+      this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     }
-    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
     if (this._tokenPair.protocol !== "Erc20") { // only Erc20 need to check token smg balance
       return "";
     }
@@ -307,6 +320,9 @@ class BridgeTask {
       fee: this._fee,
       wallet: this._wallet
     }; 
+    if (ccTaskData.fromSymbol === 'BTC') {
+      convert.gpkDetail = this._gpkDetail
+    }
     // console.debug("checkTaskSteps: %O", convert);
     let steps = await this._bridge.cctHandleService.getConvertInfo(convert);
     // console.debug("getConvertInfo: %O", steps);
