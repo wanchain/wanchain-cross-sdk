@@ -15,6 +15,10 @@ module.exports = class ProcessBase {
     this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
     this.m_storageService = frameworkService.getService("StorageService");
+    this.m_uiStrService = frameworkService.getService("UIStrService");
+    this.m_storemanService = frameworkService.getService("StoremanService");
+    this.m_tokenPairService = frameworkService.getService("TokenPairService");
+    this.m_txGeneratorService = frameworkService.getService("TxGeneratorService");
   }
   // virtual function
   async process(stepData, wallet) {
@@ -22,19 +26,17 @@ module.exports = class ProcessBase {
 
   // virtual function
   async getConvertInfoForCheck(stepData) {
-    let obj = {
-      needCheck: false,
-      checkInfo: {}
+    return {
+      txEventTopics: null,
+      convertCheckInfo: null
     };
-    return obj;
   }
 
   async sendTransactionData(stepData, txData, wallet) {
     console.log("processBase sendTransactionData stepData:", stepData);
     let params = stepData.params;
     try {
-      let uiStrService = this.m_frameworkService.getService("UIStrService");
-      let strFailed = uiStrService.getStrByName("Failed");
+      let strFailed = this.m_uiStrService.getStrByName("Failed");
 
       let accountAry = await wallet.getAccounts();
       let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
@@ -44,19 +46,24 @@ module.exports = class ProcessBase {
         return;
       }
 
+      let fromBlock = await this.m_storemanService.getChainBlockNumber(params.scChainType);
       let txHash = await wallet.sendTransaction(txData);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-
-      let convertCheckInfo = await this.getConvertInfoForCheck(stepData);
-      let obj = {
+      let {txEventTopics, convertCheckInfo} = await this.getConvertInfoForCheck(stepData);
+      let txCheckInfo = (params.scChainType === "TRX")? null : {
+        from: txData.from, to: txData.to, topics: txEventTopics, fromBlock, input: "", nonce: undefined, nonceBlock: 0
+      }; // fetch input, nonce and nonceBlock from chain later
+      let checker = {
         chain: params.scChainType,
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         txHash,
-        convertCheckInfo: convertCheckInfo
+        txCheckInfo,
+        convertCheckInfo
       };
+      console.log("sendTransactionData checker: %O", checker);
       let checkTxReceiptService = this.m_frameworkService.getService("CheckTxReceiptService");
-      await checkTxReceiptService.add(obj);
+      await checkTxReceiptService.add(checker);
     } catch (err) {
       if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
         this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected", "");
@@ -68,8 +75,7 @@ module.exports = class ProcessBase {
   }
 
   async checkChainId(stepData, wallet) {
-    let uiStrService = this.m_frameworkService.getService("UIStrService");
-    let strFailed = uiStrService.getStrByName("Failed");
+    let strFailed = this.m_uiStrService.getStrByName("Failed");
     let params = stepData.params;
     try {
       let chainId = await wallet.getChainId();

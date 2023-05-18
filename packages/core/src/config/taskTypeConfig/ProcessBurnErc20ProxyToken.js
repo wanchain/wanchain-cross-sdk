@@ -1,5 +1,6 @@
 'use strict';
 
+const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 const ProcessBase = require("./processBase.js");
 
@@ -9,15 +10,13 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
   }
 
   async process(stepData, wallet) {
-    let uiStrService = this.m_frameworkService.getService("UIStrService");
-    let strFailed = uiStrService.getStrByName("Failed");
+    let strFailed = this.m_uiStrService.getStrByName("Failed");
     let params = stepData.params;
     try {
       if (!(await this.checkChainId(stepData, wallet))) {
         return;
       }
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+      let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
       let nativeToken, poolToken, chainInfo;
       if (params.scChainType === tokenPair.fromChainType) { // MINT
         nativeToken = tokenPair.fromNativeToken;
@@ -29,8 +28,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         chainInfo = tokenPair.toScInfo;      
       }
       let txValue = params.fee;
-      let txGeneratorService = this.m_frameworkService.getService("TxGeneratorService");
-      let scData = await txGeneratorService.generateUserBurnData(params.crossScAddr,
+      let scData = await this.m_txGeneratorService.generateUserBurnData(params.crossScAddr,
         params.storemanGroupId,
         params.tokenPairID,
         params.value,
@@ -38,7 +36,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
         params.tokenAccount,
         params.userAccount,
         {tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue});
-      let txData = await txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
+      let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);
@@ -49,26 +47,30 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
   // virtual function
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
-    let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-    let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-    let chainType = (params.scChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
+    let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
+    let direction = (params.scChainType === tokenPair.fromChainType);
+    let chainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
     let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
-    let nativeToken = (params.scChainType === tokenPair.fromChainType)? tokenPair.toNativeToken : tokenPair.fromNativeToken;
+    let nativeToken = direction? tokenPair.toNativeToken : tokenPair.fromNativeToken;
     let taskType = nativeToken? "MINT" : "BURN"; // adapt to CheckScEvent task to scan SmgMintLogger or SmgReleaseLogger
-    let obj = {
-      needCheck: true,
-      checkInfo: {
-        ccTaskId: params.ccTaskId,
-        uniqueID: stepData.txHash,
-        userAccount: params.userAccount,
-        smgID: params.storemanGroupId,
-        tokenPairID: params.tokenPairID,
-        value: params.value,
-        chain: chainType,
-        fromBlockNumber: blockNumber,
-        taskType: taskType
-      }
+    let srcToken = direction? tokenPair.fromAccount : tokenPair.toAccount;
+    let txEventTopics = [
+      "0xe314e23175856b9484e39ab0547753cf1b5cd0cbe3b0d7018c953d31f23fc767",     // UserBurnLogger
+      params.storemanGroupId,                                                   // smgID
+      "0x" + new BigNumber(params.tokenPairID).toString(16).padStart(64, '0'),  // tokenPairID
+      "0x" + tool.hexStrip0x(srcToken).toLowerCase().padStart(64, '0')          // tokenAccount
+    ];
+    let convertCheckInfo = {
+      ccTaskId: params.ccTaskId,
+      uniqueID: stepData.txHash,
+      userAccount: params.userAccount,
+      smgID: params.storemanGroupId,
+      tokenPairID: params.tokenPairID,
+      value: params.value,
+      chain: chainType,
+      fromBlockNumber: blockNumber,
+      taskType
     };
-    return obj;
+    return {txEventTopics, convertCheckInfo};
   }
 };

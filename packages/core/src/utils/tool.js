@@ -210,7 +210,7 @@ function sha256(str) {
 
 function cmpAddress(address1, address2) {
   // compatible with tron '41' or xdc 'xdc' prefix
-  return (address1.substr(-40).toLowerCase() == address2.substr(-40).toLowerCase());
+  return (address1.substr(-40).toLowerCase() === address2.substr(-40).toLowerCase());
 }
 
 function xrpNormalizeCurrencyCode(currencyCode, maxLength = 20) {
