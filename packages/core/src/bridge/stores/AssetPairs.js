@@ -10,11 +10,11 @@ class AssetPairs {
 
   setAssetPairs(tokenPairs, smgs, configService = null) {
     this.smgList = smgs.map(smg => {
-      if (!!smg.algo1 && !!smg.algo2) {
-        smg.algo1 = smg.curve1
-        smg.algo2 = smg.curve2
+      if (!(smg.algo1 && smg.algo2)) {
+        smg.algo1 = smg.curve1; // bn256 => schnorr
+        smg.algo2 = smg.curve2; // secp256 => ecdsa
       }
-      const rt = {
+      const smgInfo = {
         id: smg.groupId,
         name: tool.ascii2letter(smg.groupId),
         gpk1: smg.gpk1,
@@ -24,20 +24,15 @@ class AssetPairs {
         endTime: smg.endTime,
         algo1: smg.algo1,
         algo2: smg.algo2,
+      };
+      for (let i = 3; smg["gpk" + i]; i++) {
+        smgInfo["gpk" + i] = smg["gpk" + i];
+        smgInfo["curve" + i] = smg["curve" + i];
+        smgInfo["algo" + i] = smg["algo" + i];
       }
-      let gpkCount = 3
-      let gpkName = "gpk" + gpkCount
-      while(!!smg[gpkName]) {
-        rt["gpk" + gpkCount] = smg["gpk" + gpkCount]
-        rt["curve" + gpkCount] = smg["curve" + gpkCount]
-        rt["algo" + gpkCount] = smg["algo" + gpkCount]
-
-        gpkCount ++
-        gpkName = "gpk" + gpkCount
-      }
-
-      return rt
+      return smgInfo;
     });
+
     if (tokenPairs) { // maybe only update smgs
       let pairList = tokenPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
         this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService).toLowerCase());

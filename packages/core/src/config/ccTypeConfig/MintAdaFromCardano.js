@@ -19,7 +19,7 @@ module.exports = class MintAdaFromCardano {
         crossScAddr: tokenPair.fromScInfo.crossScAddr,
         userAccount: convert.toAddr,
         storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
+        storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessAdaMintFromCardano",

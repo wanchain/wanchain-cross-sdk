@@ -22,7 +22,7 @@ module.exports = class MintDotFromPolkaHandle {
         toChainType: tokenPair.toChainType,
         userAccount: convert.toAddr,
         storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
+        storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
         taskType: TaskTypes[tokenPair.fromChainType],

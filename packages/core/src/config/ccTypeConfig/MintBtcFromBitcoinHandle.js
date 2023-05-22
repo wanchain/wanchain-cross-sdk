@@ -28,15 +28,12 @@ module.exports = class MintBtcFromBitcoinHandle {
         userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
+        gpkInfo: convert.gpkInfo,
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessMintBtcFromBitcoin",
         fee
       };
-      if (convert.gpkDetail) {
-        params.gpkDetail = convert.gpkDetail
-      }
       console.debug("%s params: %O", handleName, params);
       let steps = [
         {name: "addOTA", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}

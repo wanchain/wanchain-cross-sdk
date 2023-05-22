@@ -26,7 +26,7 @@ module.exports = class MintXrpFromRipple {
         userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
+        storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessXrpMintFromRipple",
