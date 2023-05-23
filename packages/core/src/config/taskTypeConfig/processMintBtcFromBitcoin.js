@@ -92,10 +92,10 @@ module.exports = class ProcessMintBtcFromBitcoin {
     let params = stepData.params;
     let processorName = names[params.fromChainType];
     try {
-      let p2sh = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.gpkInfo);
-      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, p2sh.address);
-      if (p2sh.address) {
-        WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: p2sh.address, randomId: p2sh.randomId});
+      let ota = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.gpkInfo);
+      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, ota.address);
+      if (ota.address) {
+        WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: ota.address, randomId: ota.randomId});
       } else {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
@@ -126,7 +126,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
         tmpGPK = "04" + tmpGPK.slice(2);
       }
 
-      let p2sh = null;
+      let ota = null;
       if (gpkInfo.algo == 2) { // schnorr340
         if (libInitState === 0) {
           console.debug("fix bitcoinjs-lib");
@@ -135,14 +135,15 @@ module.exports = class ProcessMintBtcFromBitcoin {
         if (libInitState !== 2) {
           throw new Error("bitcoinjs-lib unavailable");
         }
-        p2sh = this.getP2TR(hashValue, tmpGPK, network);
+        ota = this.getP2TR(hashValue, tmpGPK, network);
+        console.debug("generate %s p2tr ota %s", fromChainType, ota);
       } else {
-        p2sh = this.getP2SH(hashValue, tmpGPK, network);
+        ota = this.getP2SH(hashValue, tmpGPK, network);
       }
       let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
-      // save p2sh 和id 到apiServer
+      // save ota 和id 到apiServer
       let data = {
-        oneTimeAddr: p2sh,
+        oneTimeAddr: ota,
         randomId,
         chainType: toChainType,
         chainAddr: chainAddr,
@@ -162,7 +163,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
         data.ccTaskId = params.ccTaskId;
         await checkTxService.addOTAInfo(data);
         return {
-          address: p2sh,
+          address: ota,
           randomId
         };
       } else {
