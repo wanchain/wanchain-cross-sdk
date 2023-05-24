@@ -154,7 +154,7 @@
     {
       "chainId": "1073741830",
       "chainType": "FX",
-      "chainName": "f(x)core",
+      "chainName": "f(x)Core",
       "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
       "chainDecimals": 18,
       "MaskChainId": 530,
