@@ -154,7 +154,7 @@
     {
       "chainId": "1073741830",
       "chainType": "FX",
-      "chainName": "Function X",
+      "chainName": "f(x)core",
       "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
       "chainDecimals": 18,
       "MaskChainId": 530,
@@ -210,7 +210,7 @@
     "MintDesc": "MintDesc",
     "BurnTitle": "BurnTitle",
     "BurnDesc": "BurnDesc",
-    "CacheVersion": "2"
+    "CacheVersion": "3"
   },
   "iWanConnectorService": {
     "iWanOption": {
