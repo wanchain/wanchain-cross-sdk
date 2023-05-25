@@ -51,10 +51,10 @@ module.exports = class CheckBtcTxService {
     addressToLockHash(address) {
       if (this.chainType === 'BTC' && address.length > 40) {
         const lock = bitcoin.address.fromBech32(address)
-        return lock.data.toString('hex')
+        return "0x" + lock.data.toString('hex')
       } else {
         const lock = bitcoin.address.fromBase58Check(address)
-        return lock.hash.toString('hex')
+        return "0x" + lock.hash.toString('hex')
       }
     }
 
