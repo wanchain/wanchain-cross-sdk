@@ -86,6 +86,9 @@ module.exports = class TxGeneratorService{
         }
         let txValue = "0x" + new BigNumber(extInfo.coinValue || 0).toString(16);
         let gasLimit = await this.iwan.estimateGas(extInfo.chainType, {from: extInfo.from.toLowerCase(), to: scAddr, value: txValue, data});
+        if ((extInfo.chainType === "WAN") && (gasLimit < 200000)) {
+          gasLimit = 200000;
+        }
         console.debug("%s generateUserLockData gasLimit: %s", extInfo.chainType, gasLimit);
         return {data, gasLimit};
     }
@@ -118,6 +121,9 @@ module.exports = class TxGeneratorService{
       }
       let txValue = "0x" + new BigNumber(extInfo.coinValue || 0).toString(16);
       let gasLimit = await this.iwan.estimateGas(extInfo.chainType, {from: extInfo.from.toLowerCase(), to: scAddr, value: txValue, data});
+      if ((extInfo.chainType === "WAN") && (gasLimit < 200000)) {
+        gasLimit = 200000;
+      }
       console.debug("%s generateUserBurnData gasLimit: %s", extInfo.chainType, gasLimit);
       return {data, gasLimit};
     }
