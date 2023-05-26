@@ -40,7 +40,6 @@ module.exports = class TxGeneratorService{
 
     async generateTx(chainType, gasLimit, toAddress, value, data, from) {
         let gasPrice = await this.iwan.getGasPrice(chainType);
-        console.debug("%s generateTx gasPrice: %s", chainType, gasPrice);
         let rawTx = {
             gasPrice: "0x" + new BigNumber(gasPrice).toString(16),
             gas: "0x" + new BigNumber(new BigNumber(gasLimit).times(1.1).toFixed(0)).toString(16),
@@ -50,6 +49,7 @@ module.exports = class TxGeneratorService{
             from: from.toLowerCase()
             // chainId
         };
+        console.debug("%s generateTx gasPrice: %s, gasLimit: %s", chainType, gasPrice, Number(rawTx.gas).toFixed());
         // console.debug("generateTx: %O", rawTx);
         return rawTx;
     }
@@ -77,6 +77,9 @@ module.exports = class TxGeneratorService{
         }
         let txValue = "0x" + new BigNumber(extInfo.coinValue || 0).toString(16);
         let gasLimit = await this.iwan.estimateGas(extInfo.chainType, {from: extInfo.from.toLowerCase(), to: scAddr, value: txValue, data});
+        if ((extInfo.chainType === "WAN") && (gasLimit < 200000)) {
+          gasLimit = 200000;
+        }
         console.debug("%s generateUserLockData gasLimit: %s", extInfo.chainType, gasLimit);
         return {data, gasLimit};
     }
@@ -105,6 +108,9 @@ module.exports = class TxGeneratorService{
       }
       let txValue = "0x" + new BigNumber(extInfo.coinValue || 0).toString(16);
       let gasLimit = await this.iwan.estimateGas(extInfo.chainType, {from: extInfo.from.toLowerCase(), to: scAddr, value: txValue, data});
+      if ((extInfo.chainType === "WAN") && (gasLimit < 200000)) {
+        gasLimit = 200000;
+      }
       console.debug("%s generateUserBurnData gasLimit: %s", extInfo.chainType, gasLimit);
       return {data, gasLimit};
     }
