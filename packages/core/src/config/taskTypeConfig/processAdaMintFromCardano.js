@@ -1,6 +1,5 @@
 'use strict';
 
-const axios = require("axios");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
