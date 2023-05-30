@@ -156,6 +156,14 @@ function getAddressType(address){
   return type;
 }
 
+function splitMetadata(metadata, segmentLength = 64) {
+  let totalLength = metadata.length, result = [];
+  for (let cur = 0; cur < totalLength; cur = cur + segmentLength) {
+    result.push(metadata.substr(cur, segmentLength));
+  }
+  return result;
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -166,5 +174,6 @@ module.exports = {
   getAssetBalance,
   selectUtxos,
   genPlutusData,
-  showUtxos
+  showUtxos,
+  splitMetadata
 }

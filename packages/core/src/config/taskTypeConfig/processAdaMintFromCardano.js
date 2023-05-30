@@ -92,7 +92,7 @@ module.exports = class ProcessAdaMintFromCardano {
       console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       // this.tool.showUtxos(inputs, "inputs");
 
-      let metaData = await this.buildMetadata(params.tokenPairID, params.userAccount, params.storemanGroupId);
+      let metaData = await this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
 
       let tx = this.buildTx(params.fromAddr, inputs, txOutput, epochParameters, metaData);
       console.debug("ProcessAdaMintFromCardano tx: %O", tx.to_json());
@@ -126,11 +126,12 @@ module.exports = class ProcessAdaMintFromCardano {
     }
   }
 
-  buildMetadata(tokenPairID, toAccount, smgID) {
+  buildMetadata(tokenPairID, fromAccount, toAccount, smgID) {
     let data = {
       1: {
         type: TX_TYPE.userLock,
         tokenPairID: Number(tokenPairID),
+        fromAccount: this.tool.splitMetadata(fromAccount),
         toAccount,
         smgID
       }
