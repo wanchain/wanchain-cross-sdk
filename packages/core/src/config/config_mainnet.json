@@ -196,6 +196,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741833",
+      "chainType": "GTH",
+      "chainName": "Gather",
+      "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+      "chainDecimals": 18,
+      "MaskChainId": 192837465,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
