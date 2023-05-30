@@ -95,7 +95,7 @@ module.exports = class ProcessBurnFromCardano {
       console.debug("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       // this.tool.showUtxos(inputs, "inputs");
 
-      let metaData = this.buildMetadata(params.tokenPairID, params.userAccount, params.storemanGroupId);
+      let metaData = this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
       let mintBuilder = this.buildMint(tokenId, params.value);
       let collateralBuilder = await this.buildCollateral(wallet);
       let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder);
@@ -130,11 +130,12 @@ module.exports = class ProcessBurnFromCardano {
     }
   }
 
-  buildMetadata(tokenPairID, toAccount, smgID) {
+  buildMetadata(tokenPairID, fromAccount, toAccount, smgID) {
     let data = {
       1: {
         type: TX_TYPE.userBurn,
         tokenPairID: Number(tokenPairID),
+        fromAccount: this.tool.splitMetadata(fromAccount),
         toAccount,
         smgID
       }

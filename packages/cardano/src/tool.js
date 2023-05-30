@@ -20,7 +20,7 @@ function validateAddress(address, network, chain) {
   try {
     let addr = wasm.ByronAddress.from_base58(address);
     console.debug("%s is ADA Byron base58 address", address);
-    return (addr.network_id() === networkId);
+    return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
   } catch (e) {
     console.debug("%s is not ADA Byron base58 address: %O", address, e);
   }
@@ -31,14 +31,14 @@ function validateAddress(address, network, chain) {
       if (byronAddr) {
         console.debug("%s is ADA Byron bech32 address", address);
       }
-      return (byronAddr.network_id() === networkId); // byronAddr is undefined to throw error
+      return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key)); // byronAddr is undefined to throw error
     } catch (e) {
       let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
       console.log("%s is Shelly type %s address", address, prefix);
       if (parseInt(prefix, 2) > 7) {
         return false;
       }
-      return (addr.network_id() === networkId);
+      return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
     }
   } catch (e) {
     console.debug("%s is not ADA bech32 address: %O", address, e);
@@ -148,6 +148,22 @@ function showUtxos(utxos, title = "") {
   });
 }
 
+function getAddressType(address){
+  let tmp = wasm.Address.from_bech32(address);
+  let toAddrBase = wasm.BaseAddress.from_address(tmp) || wasm.EnterpriseAddress.from_address(tmp);
+  let type = toAddrBase.payment_cred().kind();
+  console.debug("cardano address %s type: %s", address, type);
+  return type;
+}
+
+function splitMetadata(metadata, segmentLength = 64) {
+  let totalLength = metadata.length, result = [];
+  for (let cur = 0; cur < totalLength; cur = cur + segmentLength) {
+    result.push(metadata.substr(cur, segmentLength));
+  }
+  return result;
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -158,5 +174,6 @@ module.exports = {
   getAssetBalance,
   selectUtxos,
   genPlutusData,
-  showUtxos
+  showUtxos,
+  splitMetadata
 }

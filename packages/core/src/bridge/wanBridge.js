@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2305171142", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2305231634", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -213,7 +213,7 @@ class WanBridge extends EventEmitter {
     }
     if (extension && extension.tool && extension.tool.validateAddress) {
       return extension.tool.validateAddress(account, this.network, chainName);
-    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS"].includes(chainType)) {
+    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
