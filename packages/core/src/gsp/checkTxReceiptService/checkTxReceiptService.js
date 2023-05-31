@@ -112,7 +112,7 @@ module.exports = class CheckTxReceiptService {
       txCheckInfo.fromBlock = latestBlock;
       txCheckInfo.nonceBlock = 0;
     }
-    console.debug("task %s %s check tx minted: block %d-%d/%d", obj.ccTaskId, obj.chain, fromBlock, toBlock, latestBlock);
+    console.debug("task %s %s check tx %s minted: block %d-%d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, toBlock, latestBlock);
     let events = await this.iwan.getScEvent(
       obj.chain,
       txCheckInfo.to, // now only support event of "to" contract
