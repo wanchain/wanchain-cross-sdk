@@ -238,6 +238,7 @@
       "chainName": "Bitcoin",
       "network": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
