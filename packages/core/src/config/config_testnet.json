@@ -110,7 +110,7 @@
     {
       "chainId": "2147484644",
       "chainType": "OKT",
-      "chainName": "OKC",
+      "chainName": "OKT Chain",
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "chainDecimals": 18,
       "MaskChainId": 65,
@@ -193,6 +193,17 @@
       "crossScAddr": "0x7e0195A43a5DD27C507A1f0B2371d543c9e4dfc9",
       "chainDecimals": 18,
       "MaskChainId": 356256156,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741835",
+      "chainType": "OKB",
+      "chainName": "OKB Chain",
+      "crossScAddr": "0x4a9F99ceb037E8C4FBEC272D17D40282aA67d9c6",
+      "chainDecimals": 18,
+      "MaskChainId": 195,
       "ScScanInfo": {
         "taskInterval": 15000
       }

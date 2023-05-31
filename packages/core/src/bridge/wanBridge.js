@@ -213,7 +213,7 @@ class WanBridge extends EventEmitter {
     }
     if (extension && extension.tool && extension.tool.validateAddress) {
       return extension.tool.validateAddress(account, this.network, chainName);
-    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH"].includes(chainType)) {
+    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH", "OKB"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
