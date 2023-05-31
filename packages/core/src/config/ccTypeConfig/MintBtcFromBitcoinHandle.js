@@ -16,14 +16,16 @@ module.exports = class MintBtcFromBitcoinHandle {
   }
 
   async process(tokenPair, convert) {
-    let handleName = handleNames[tokenPair.fromChainType];
+    let direction = (convert.convertType === "MINT");
+    let fromChainType = direction? tokenPair.fromChainType : tokenPair.toChainType;
+    let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
+    let handleName = handleNames[fromChainType];
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals));
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
-      let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
-        fromChainType: tokenPair.fromChainType,
+        fromChainType,
         toChainType,
         userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
         toAddr: convert.toAddr, // for readability
