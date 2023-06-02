@@ -135,17 +135,29 @@ class BridgeTask {
   }
 
   async _checkFee() {
-    let options = {protocol: this._tokenPair.protocol};
+    let options = {protocol: this._tokenPair.protocol, includeSubsidyFee: true};
     let isErc20 = (this._tokenPair.protocol === "Erc20");
     if (!isErc20) {
       options.batchSize = this._amount.length;
     }
     // should use assetAlias as assetType to call bridge external api
     this._fee = await this._bridge.estimateFee((this._tokenPair.assetAlias || this._tokenPair.readableSymbol), this._fromChainInfo.chainName, this._toChainInfo.chainName, options);
+    if (this._fee.networkFee.isSubsidy) {
+      // check subsidyCrossSc coin balance and clear subsidyFee
+      let subsidyFee = tool.parseFee(this._fee, this._amount, this._fee.networkFee.unit);
+      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._fromChainInfo.chainType);
+      let subsidyBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, this._fromChainInfo.chainType, chainInfo.subsidyCrossSc, {isCoin: true});
+      console.debug("balance for fee subsidy: %s/%s %s", subsidyBalance.toFixed(), subsidyFee, this._fee.networkFee.unit);
+      if (subsidyBalance.lt(subsidyFee)) {
+        console.error("Not enough balance for fee subsidy: %s/%s %s", subsidyBalance.toFixed(), subsidyFee, this._fee.networkFee.unit);
+        return "Not enough balance for fee subsidy";
+      }
+      this._fee.networkFee.value = "0";
+    }
     if (isErc20) {
-      let fee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol);
-      if (new BigNumber(fee).gte(this._amount)) { // input amount includes fee
-        console.error("Amount is too small to pay the bridge fee: %s %s", fee, this._tokenPair.readableSymbol);
+      let assetFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol);
+      if (new BigNumber(assetFee).gte(this._amount)) { // input amount includes fee
+        console.error("Amount is too small to pay the bridge fee: %s %s", assetFee, this._tokenPair.readableSymbol);
         return "Amount is too small to pay the bridge fee";
       }
     }

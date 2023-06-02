@@ -3,33 +3,24 @@
 let FrameworkService = require("../frameworkService/FrameworkService");
 let EventService = require("../eventService/EventService");
 let ConfigService = require("../configService/configService");
-
 let CheckiWanSpeed = require("../checkiWanSpeedService/checkiWanSpeed");
 let IWanBCConnector = require("../iWanConnectorService/IWanBCConnector");
-
 let StorageService = require("../storageService/storageService");
-
 let TaskService = require("../taskService/TaskService");
-
 let StoremanService = require("../storemanService/StoremanService");
 let TxGeneratorService = require("../txGeneratorService/TxGeneratorService");
 let CheckTxReceiptService = require("../checkTxReceiptService/checkTxReceiptService");
-
 let CheckBtcTxService = require("../checkBtcTxService/checkBtcTxService");
 let CheckXrpTxService = require("../checkXrpTxService/checkXrpTxService");
-
 let UIStrService = require("../uiStrService/uiStrService");
 let ScEventScanService = require("../scEventScanService/scEventScanService");
 let UtilService = require("../utilService/utilService");
 let CrossChainFeesService = require("../crossChainFeesService/crossChainFees");
-
 let CCTHandleService = require("../CCTHandleService/CCTHandleService");
 let TxTaskHandleService = require("../txTaskHandleService/txTaskHandleService");
 let TokenPairService = require("../tokenPairService/tokenPairService");
 let ChainInfoService = require("../chainInfoService/chainInfoService");
-
-const GlobalConstant = require("../globalConstantService/globalConstant");
-
+let GlobalConstant = require("../globalConstantService/globalConstant");
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
 let CheckAdaTxService = require("../checkAdaTxService/checkAdaTxService");
 
