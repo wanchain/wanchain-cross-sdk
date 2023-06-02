@@ -123,6 +123,7 @@
       "chainType": "XDC",
       "chainName": "XDC Network",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
+      "subsidyCrossSc": "0x70114d2a0Ec788BaFee869aCf7FD1F8c76491799",
       "chainDecimals": 18,
       "MaskChainId": 51,
       "ScScanInfo": {

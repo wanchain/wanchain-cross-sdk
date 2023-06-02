@@ -13,6 +13,7 @@ module.exports = class CheckTxReceiptService {
     this.taskService = frameworkService.getService("TaskService");
     this.webStores = frameworkService.getService("WebStores");
     this.eventService = frameworkService.getService("EventService");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
   async loadTradeTask(taskArray) {
@@ -113,9 +114,11 @@ module.exports = class CheckTxReceiptService {
       txCheckInfo.nonceBlock = 0;
     }
     console.debug("task %s %s check tx %s minted: block %d-%d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, toBlock, latestBlock);
+    let chainInfo = this.chainInfoService.getChainInfoByType(obj.chain);
+    let eventEmitter = tool.cmpAddress(txCheckInfo.to, chainInfo.subsidyCrossSc || "")? chainInfo.crossScAddr : txCheckInfo.to;
     let events = await this.iwan.getScEvent(
       obj.chain,
-      txCheckInfo.to, // now only support event of "to" contract
+      eventEmitter,
       txCheckInfo.topics,
       {fromBlock, toBlock}
     );

@@ -58,7 +58,7 @@ module.exports = class CheckScEvent {
         }
       }
     } catch (err) {
-      console.log("checkScEvent chainType:", this.chainInfo.chainType, ",err:", err);
+      console.error("%s checkScEvent error: %O", this.chainInfo.chainType, err);
     }
   }
 

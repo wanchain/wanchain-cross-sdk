@@ -36,7 +36,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max;
-    let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr;
+    let wanBridgeCrossSc = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : wanBridgeCrossSc;
     let approveParams = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -76,7 +77,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let value = convert.value; // [tokenId, name] or [{tokenId, name, amount}]
-    let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, chainInfo.crossScAddr);
+    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, crossScAddr);
     if (approved === false) {
       let params = {
         ccTaskId: convert.ccTaskId,
@@ -84,7 +86,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         scChainType: chainInfo.chainType,
         tokenAddr: tokenSc,
         value,
-        operator: chainInfo.crossScAddr,
+        operator: crossScAddr,
         taskType: "ProcessErc721Approve"
       }
       console.debug("TokenHandler buildErc721Approve params: %O", params);
@@ -104,11 +106,12 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
-      crossScAddr: chainInfo.crossScAddr,
+      crossScAddr,
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
@@ -136,11 +139,12 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
-      crossScAddr: chainInfo.crossScAddr,
+      crossScAddr,
       storemanGroupId: convert.storemanGroupId,
       tokenPairID: convert.tokenPairId,
       value,
