@@ -80,6 +80,10 @@
       "chainName": "Arbitrum",
       "chainDecimals": 18,
       "crossScAddr": "0x3E18014F7c11F4D70b0023d8f61350A3Ef8f0978",
+      "CircleBridge": {
+        "domain": 3,
+        "crossScAddr": "0x12dcfd3fe2e9eac2859fd1ed86d2ab8c5a2f9352"
+      },
       "MaskChainId": 421613,
       "ScScanInfo": {
         "taskInterval": 10000
