@@ -140,7 +140,7 @@ class WanBridge extends EventEmitter {
     // create task
     let direction = (fromChainName === tokenPair.fromChainName)? "MINT" : "BURN";
     let task = new BridgeTask(this, tokenPair, direction, fromAccount, toAccount, amount, wallet);
-    await task.init();
+    await task.init(options);
     await task.start();
     return task;
   }
@@ -180,10 +180,12 @@ class WanBridge extends EventEmitter {
       operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
       networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals, isSubsidy: networkFee.isSubsidy}
     };
-    console.debug("SDK: estimateFee, result: %O", fee);
-    if (networkFee.isSubsidy && !options.includeSubsidyFee) {
-      fee.networkFee.value = "0";
+    if (networkFee.isSubsidy) {
+      let chainInfo = this.chainInfoService.getChainInfoByType(fromChainType);
+      let subsidyBalance = await this.storemanService.getAccountBalance(tokenPair.id, fromChainType, chainInfo.subsidyCrossSc, {isCoin: true});
+      fee.networkFee.subsidyBalance = subsidyBalance.toFixed();
     }
+    console.debug("SDK: estimateFee, result: %O", fee);
     return fee;
   }
 

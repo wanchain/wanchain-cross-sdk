@@ -167,7 +167,7 @@ function getCoinSymbol(chainType, chainName) {
 function parseFee(fee, amount, unit, options) {
   options = Object.assign({formatWithDecimals: true}, options);
   let result = new BigNumber(0), networkFee = new BigNumber(0), decimals = 0, tmp;
-  if (fee.networkFee.unit === unit) {
+  if ((fee.networkFee.unit === unit) && ((!fee.networkFee.isSubsidy) || options.includeSubsidy)) {
     tmp = new BigNumber(fee.networkFee.value);
     if (tmp.gt(0) && fee.networkFee.isRatio) {
       tmp = tmp.times(amount);
