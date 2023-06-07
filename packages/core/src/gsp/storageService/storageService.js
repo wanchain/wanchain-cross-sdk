@@ -12,7 +12,6 @@ if (typeof(window) !== "undefined") {
 }
 const db = low(adapter);
 
-// 存储格式参考
 //let all = {
 //    "StorageService_stores": [
 //        "storename1",

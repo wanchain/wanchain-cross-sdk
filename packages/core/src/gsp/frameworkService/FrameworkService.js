@@ -1,6 +1,5 @@
 'use strict';
 
-
 class FrameworkService {
     constructor(options) {
         this.serviceRegistry = {};

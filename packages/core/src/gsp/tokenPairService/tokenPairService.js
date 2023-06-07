@@ -397,9 +397,7 @@ class TokenPairService {
           return;
         }
 
-        // 1 1.1 最细粒度:tokenPair级别,根据tokenId配置处理特殊tokenPair的MINT/BURN
-        //       目前只处理EOS跨到WAN后的token,token在WAN<->ETH之间互跨
-        //   1.2 20210324 针对FNX和CFNX特殊处理
+        // 1、config single tokenPair, only for wanEOS between wanchain and ethereum 
         let tokenPairCfg = this.m_mapTokenPairCfg.get(tokenPair.id);
         if (tokenPairCfg) {
             tokenPair.ccType["MINT"] = tokenPairCfg.mintHandle;
@@ -413,10 +411,10 @@ class TokenPairService {
             return;
         }
 
-        // 2 根据一般规律处理普通tokenPair
+        // 2、common rule for tokenPairs
         // 2.1 MINT direction
         if (fromChainInfo.mintFromChainHandle) {
-            // 20210208 mintFromChainHandle只适用于非EVM链向EVM跨链,包括coin和token(暂不涉及)
+            // mintFromChainHandle is used for non-EVM to EVM, include coin and token
             tokenPair.ccType["MINT"] = fromChainInfo.mintFromChainHandle;
         } else if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
             // coin
@@ -424,7 +422,7 @@ class TokenPairService {
         } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
             // orig token
             tokenPair.ccType["MINT"] = "MintErc20";
-        } else { // EVM coin和token互跨,fromAccount可能是原生币或原始币但与祖先币不同链
+        } else { // EVM coin and token, fromAccount maybe coin or orignal token which has different chain from ancestor
             tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
         }
 
@@ -438,7 +436,7 @@ class TokenPairService {
         } else if (tokenPair.toChainID === tokenPair.ancestorChainID) {
             // orig token, should not be configured like this
             tokenPair.ccType["BURN"] = "MintErc20";
-        } else { // 祖先链是其他链的token
+        } else { // token which has different chain from ancestor
             tokenPair.ccType["BURN"] = this.getTokenBurnHandler(tokenPair, "BURN");
         }
     }

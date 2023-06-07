@@ -1,6 +1,7 @@
 "use strict";
+
 const tool = require('../../utils/tool.js');
-let taskTypeConfig = require("../../config/taskTypeConfig/taskTypeConfig.js");
+const taskTypeConfig = require("../../config/taskTypeConfig/taskTypeConfig.js");
 
 module.exports = class TxTaskHandleService {
     constructor() {
