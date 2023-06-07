@@ -1,6 +1,5 @@
 "use strict";
 
-
 module.exports = class TaskInterface {
     constructor() {
         if (new.target === TaskInterface) {

@@ -1,7 +1,5 @@
 'use strict';
 
-
-
 module.exports = class UIStrService {
     constructor() {
     }
