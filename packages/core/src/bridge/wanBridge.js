@@ -112,8 +112,8 @@ class WanBridge extends EventEmitter {
   }
 
   async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
-    console.debug("SDK: createTask, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, wallet: %s, time: %s ms",
-                  assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options.wallet? options.wallet.name : undefined, tool.getCurTimestamp());
+    console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
+                  tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     // check fromAccount
@@ -159,8 +159,7 @@ class WanBridge extends EventEmitter {
   }
 
   async getAccountBalance(assetType, chainName, account, options = {}) {
-    console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account,
-                  {isCoin: options.isCoin, keepAlive: options.keepAlive, wallet: options.wallet? options.wallet.name : undefined});
+    console.debug("SDK: getAccountBalance, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account, this._getDebugOptions(options));
     let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
     let chainType = this.tokenPairService.getChainType(chainName);
     let balance = await this.storemanService.getAccountBalance(tokenPair.id, chainType, account, options);
@@ -509,6 +508,15 @@ class WanBridge extends EventEmitter {
       }
     }
     throw new Error("Asset pair not exist");
+  }
+
+  _getDebugOptions(options) {
+    let opt = Object.assign({}, options);
+    // only display wallet name
+    if (opt.wallet) {
+      opt.wallet = opt.wallet.name;
+    }
+    return opt;
   }
 }
 
