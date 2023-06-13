@@ -50,9 +50,17 @@ module.exports = class ProcessBase {
       let txHash = await wallet.sendTransaction(txData);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let {txEventTopics, convertCheckInfo} = await this.getConvertInfoForCheck(stepData);
-      let txCheckInfo = (params.scChainType === "TRX")? null : {
-        from: txData.from, to: txData.to, topics: txEventTopics, fromBlock, input: "", nonce: undefined, nonceBlock: 0
-      }; // fetch input, nonce and nonceBlock from chain later
+      let txCheckInfo = null;
+      if (params.scChainType !== "TRX") { // do not support tx replacement on tron
+        txCheckInfo = {from: txData.from, to: txData.to, topics: txEventTopics, fromBlock, input: "", nonce: undefined, nonceBlock: 0};
+        if (wallet.getTxInfo) { // try fetch input and nonce from chain
+          let txInfo = await wallet.getTxInfo(txHash);
+          if (txInfo) {
+            txCheckInfo.input = txInfo.input;
+            txCheckInfo.nonce = txInfo.nonce;
+          }
+        }
+      }
       let checker = {
         chain: params.scChainType,
         ccTaskId: params.ccTaskId,

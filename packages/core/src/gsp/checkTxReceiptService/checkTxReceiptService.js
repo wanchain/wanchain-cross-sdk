@@ -90,13 +90,14 @@ module.exports = class CheckTxReceiptService {
     let txCheckInfo = obj.txCheckInfo;
     if (txCheckInfo.nonce === undefined) { // save nonce at first run
       let txInfo = await this.iwan.getTxInfo(obj.chain, obj.txHash);
-      if (!txInfo) { // not broadcast yet
+      console.debug("task %s %s get txInfo: %O", obj.ccTaskId, obj.chain, txInfo);
+      if (txInfo) {
+        txCheckInfo.input = txInfo.input;
+        txCheckInfo.nonce = txInfo.nonce;
+        await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
+      } else { // not broadcast yet, or has been replaced before task run
         return null;
       }
-      console.debug("task %s %s get txInfo: %O", obj.ccTaskId, obj.chain, txInfo);
-      txCheckInfo.input = txInfo.input;
-      txCheckInfo.nonce = txInfo.nonce;
-      await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     }
     let latestBlock = await this.iwan.getBlockNumber(obj.chain);
     let fromBlock = txCheckInfo.fromBlock - 30; // for rollback

@@ -32,6 +32,16 @@ class Web3Wallet {
       })
     });
   }
+
+  async getTxInfo(txHash) {
+    try {
+      let txInfo = await this.web3.eth.getTransaction(txHash);
+      return txInfo;
+    } catch (err) {
+      console.error("%s wallet getTxInfo %s faild", this.name, txHash);
+      return null;
+    }
+  }
 }
 
 module.exports = Web3Wallet;
