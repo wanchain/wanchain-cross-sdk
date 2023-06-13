@@ -141,7 +141,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
         ota = this.getP2SH(hashValue, tmpGPK, network);
       }
       let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
-      // save ota 和id 到apiServer
+      // save ota and id to apiServer
       let data = {
         oneTimeAddr: ota,
         randomId,
