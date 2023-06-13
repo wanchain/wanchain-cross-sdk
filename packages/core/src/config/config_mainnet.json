@@ -243,7 +243,6 @@
   "apiServer": {
     "url": "https://bridgeapi.wanchain.org"
   },
-  "circleBridgeServer": "https://iris-api.circle.com/attestations",
   "noEthChainInfo": [
     {
       "chainId": "2147483648",
@@ -251,6 +250,7 @@
       "chainName": "Bitcoin",
       "network": "bitcoin",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
       "TxScanInfo": {
         "taskInterval": 60000
