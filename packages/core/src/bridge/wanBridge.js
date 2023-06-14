@@ -320,7 +320,6 @@ class WanBridge extends EventEmitter {
   }
 
   formatTokenAccount(chainName, tokenAccount) {
-    console.debug("SDK: formatTokenAccount, chainName: %s, tokenAccount: %s", chainName, tokenAccount);
     try {
       let chainType = this.tokenPairService.getChainType(chainName);
       if (tokenAccount === "0x0000000000000000000000000000000000000000") {
@@ -336,7 +335,7 @@ class WanBridge extends EventEmitter {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
       }
     } catch (err) {
-      console.error("SDK: formatTokenAccount error: %O", err);
+      console.error("SDK: formatTokenAccount, chainName: %s, tokenAccount: %s, error: %O", chainName, tokenAccount, err);
       return tokenAccount;
     }
   }
