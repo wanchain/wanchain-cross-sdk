@@ -320,18 +320,24 @@ class WanBridge extends EventEmitter {
   }
 
   formatTokenAccount(chainName, tokenAccount) {
-    let chainType = this.tokenPairService.getChainType(chainName);
-    if (tokenAccount === "0x0000000000000000000000000000000000000000") {
-      return chainType;
-    }
-    if (chainType === "XRP") {
-      return tool.parseXrpTokenPairAccount(tokenAccount, true).join("."); // name.issuer
-    } else if (chainType === "ADA") {
-      let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
-      let [policyId, name] = tokenInfo.split(".");
-      return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
-    } else {
-      return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
+    console.debug("SDK: formatTokenAccount, chainName: %s, tokenAccount: %s", chainName, tokenAccount);
+    try {
+      let chainType = this.tokenPairService.getChainType(chainName);
+      if (tokenAccount === "0x0000000000000000000000000000000000000000") {
+        return chainType;
+      }
+      if (chainType === "XRP") {
+        return tool.parseXrpTokenPairAccount(tokenAccount, true).join("."); // name.issuer
+      } else if (chainType === "ADA") {
+        let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+        let [policyId, name] = tokenInfo.split(".");
+        return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+      } else {
+        return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
+      }
+    } catch (err) {
+      console.error("SDK: formatTokenAccount error: %O", err);
+      return tokenAccount;
     }
   }
 
