@@ -15,7 +15,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "cardano-contract-sdk": "git+https://github.com/fridayback/contracts-sdk.git"
+    "cardano-contract-sdk": "git+https://github.com/fridayback/contracts-sdk.git#multisign"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
