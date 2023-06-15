@@ -1,4 +1,4 @@
-const ContractSdk = require("cardano-contract-sdk");
+const ContractSdk = require("cardano-contract-sdk/sdk.js");
 const tool = require("./tool");
 
 class Signer {
