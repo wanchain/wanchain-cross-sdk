@@ -99,6 +99,4 @@ class Signer {
   }
 }
 
-module.exports = {
-  setWasm,
-}
+module.exports = Signer;
