@@ -2,8 +2,8 @@ const ContractSdk = require("cardano-contract-sdk");
 const tool = require("./tool");
 
 class Signer {
-  constructor(network = "testnet", wallet) {
-    this.network = network;
+  constructor(network, wallet) {
+    this.network = network; // "testnet" or "mainnet"
     this.sdk = new ContractSdk(network === "mainnet");
     this.wallet = wallet;
   }
