@@ -296,7 +296,7 @@ class TokenPairService {
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
       } if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
-        // tokenPair.assetAlias = "wanBTC"; // temp disable WBTC
+        tokenPair.assetAlias = "wanBTC";
       }
     }
 
