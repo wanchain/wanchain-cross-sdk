@@ -1,4 +1,4 @@
-const ContractSdk = require("cardano-contract-sdk/sdk.js");
+const { ContractSdk } = require("cardano-contract-sdk/sdk.js");
 const tool = require("./tool");
 
 class Signer {
@@ -32,7 +32,8 @@ class Signer {
 
   } */
   async updateGroupNFT(update, signers) {
-
+    console.debug("Cardano Signer: updateGroupNFT, update: %O, signers: %O", update, signers);
+    return "";
   }
 
   async upgradeGroupNFT() {
