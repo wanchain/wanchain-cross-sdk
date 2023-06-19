@@ -34,95 +34,125 @@ class Signer {
   } */
   async updateGroupNFT(update, signers) {
     console.debug("Cardano Signer: updateGroupNFT, update: %O, signers: %O", update, signers);
-    let collateralUtxos = await this._getCollateralUtxos();
     let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx;
     if (update.newOracleWorker) {
-      console.debug("updateGroupNFT get %d feeUtxos", feeUtxos.length);
-      feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-      console.debug("updateGroupNFT get %d collateralUtxos", collateralUtxos.length);
-      collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-      feeUtxos.forEach((v, i) => console.debug("feeUtxos %d: %O", i, v));
-      collateralUtxos.forEach((v, i) => console.debug("collateralUtxos %d: %O", i, v));
       tx = await this.sdk.setOracleWorker(update.newOracleWorker, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    } else if (update.newTreasuryCheckVH) {
+      tx = await this.sdk.setTreasuryCheckVH(update.newTreasuryCheckVH, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    } else if (update.newMintCheckVH) {
+      tx = await this.sdk.setMintCheckVH(update.newMintCheckVH, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    } else if (update.newStackCheckVH) {
+      tx = await this.sdk.setStakeCheckVH(update.newStackCheckVH, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    } else {
+      throw new Error("Invalid input parameters");
     }
-    let witnessSet = await this.wallet.signTx(tx);
-    let output = {
-      function: "updateGroupNFT",
-      input: tx.to_json(),
-      witnessSet: witnessSet.to_json()
-    };
-    return JSON.stringify(output);
+    let result = await this._sign("updateGroupNFT", tx);
+    return result;
   }
 
   async upgradeGroupNFT() {
-    
+    throw new Error("Not support yet");
   }
 
   // AdminNFT@AdminNFTHolder
 
   async updateAdminNFT() {
-
+    throw new Error("Not support yet");
   }
 
   async upgradeAdminNFT() {
-    
+    throw new Error("Not support yet");
   }
 
   // CheckToken/TreasuryCheck@TreasuryCheck
 
-  async mintTreasuryCheckToken() {
-
+  async mintTreasuryCheckToken(amount) {
+    console.debug("Cardano Signer: mintTreasuryCheckToken, amount: %s, signers: %O", signers);
+    let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
+    let selfAddres = await this.wallet.getAccounts();
+    let tx = await this.sdk.mintTreasuryCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let result = await this._sign("mintTreasuryCheckToken", tx);
+    return result;
   }
 
   async burnTreasuryCheckToken() {
-    
+    throw new Error("Not support yet");
   }
 
   async migrateTreasuryCheckToken() {
-    
+    throw new Error("Not support yet");
   }
 
   // CheckToken/MintCheck@MintCheck
 
   async mintMintCheckToken() {
-
+    console.debug("Cardano Signer: mintMintCheckToken, amount: %s, signers: %O", signers);
+    let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
+    let selfAddres = await this.wallet.getAccounts();
+    let tx = await this.sdk.mintMintCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let result = await this._sign("mintMintCheckToken", tx);
+    return result;
   }
 
   async burnMintCheckToken() {
-    
+    throw new Error("Not support yet");
   }
 
   async migrateMintCheckToken() {
-    
+    throw new Error("Not support yet");
   }
 
   // UTXO@StakeCheck
 
   async registerStake() {
-
+    throw new Error("Not neccessary");
   }
 
-  async deregisterStake() {
-    
+  async deregisterStake(signers) {
+    console.debug("Cardano Signer: deregisterStake, signers: %O", signers);
+    let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
+    let selfAddres = await this.wallet.getAccounts();
+    let tx = await this.sdk.deregister(signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let result = await this._sign("deregisterStake", tx);
+    return result;
   }
 
-  async delegateStake() {
-    
+  async delegateStake(pool, signers) {
+    console.debug("Cardano Signer: delegateStake, pool: %s, signers: %O", pool, signers);
+    let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
+    let selfAddres = await this.wallet.getAccounts();
+    let tx = await this.sdk.delegate(pool, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let result = await this._sign("delegateStake", tx);
+    return result;
   }
 
-  async withdrawalStake() {
-    
-  }
-
-  async _getCollateralUtxos() {
-    let utxos = await this.wallet.getCollateral();
-    if (utxos.length === 0) {
-      throw new Error("No collateral");
-    }
-    utxos.map(utxo => console.log(utxo.to_json()))
-    return utxos;
+  async withdrawalStake(amount, receiptor) {
+    console.debug("Cardano Signer: withdrawalStake, amount: %s, receiptor: %s, signers: %O", amount, receiptor, signers);
+    let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
+    let selfAddres = await this.wallet.getAccounts();
+    let tx = await this.sdk.claim(amount, receiptor, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let result = await this._sign("withdrawalStake", tx);
+    return result;
   }
 
   async _getFeeUtxos(amount = 2000000) {
@@ -131,14 +161,24 @@ class Signer {
     for (let utxo of utxos) {
       let multiasset = utxo.output().amount().multiasset();
       if (!(multiasset && multiasset.keys().len())) {
+        feeUtxos.push(utxo);
         totalAmount = totalAmount.plus(utxo.output().amount().coin().to_str());
         if (totalAmount.gte(amount)) {
-          feeUtxos.push(utxo);
+          feeUtxos.forEach((v, i) => console.debug("_getFeeUtxos %d: %O", i, v.to_json()));
           return feeUtxos;
         }
       }
     }
     throw new Error("No available utxos for tx fee");
+  }
+
+  async _getCollateralUtxos() {
+    let utxos = await this.wallet.getCollateral();
+    if (utxos.length === 0) {
+      throw new Error("No collateral");
+    }
+    utxos.forEach((v, i) => console.debug("_getCollateralUtxos %d: %O", i, v.to_json()));
+    return utxos;
   }
 
   _convertUtxo(utxo) {
@@ -154,6 +194,18 @@ class Signer {
       datumHash: undefined,
       script: undefined
     }
+  }
+
+  async _sign(fn, tx) {
+    let witnessSet = await this.wallet.signTx(tx);
+    let output = {
+      function: fn,
+      input: tx.to_json(),
+      witnessSet: witnessSet.to_json()
+    };
+    let result = JSON.stringify(output);
+    console.debug(result);
+    return result;
   }
 }
 
