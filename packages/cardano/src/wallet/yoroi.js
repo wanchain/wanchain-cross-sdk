@@ -51,16 +51,15 @@ class Yoroi {
   async signTx(tx, sender) {
     let cardano = await this.wallet.enable();
     let witnessSet = await cardano.signTx(tx.to_hex(), true);
-    witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
-    let redeemers = tx.witness_set().redeemers();
-    if (redeemers) {
-      witnessSet.set_redeemers(redeemers);
-    }
-    return witnessSet;
+    return this.wasm.TransactionWitnessSet.from_hex(witnessSet);
   }
 
   async sendTransaction(tx, sender) {
+    let redeemers = tx.witness_set().redeemers();
     let witnessSet = await this.signTx(tx, sender);
+    if (redeemers) {
+      witnessSet.set_redeemers(redeemers);
+    }
     let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
     let txHash = await cardano.submitTx(transaction.to_hex());
     return txHash;

@@ -48,16 +48,15 @@ class Nami {
 
   async signTx(tx, sender) {
     let witnessSet = await this.cardano.signTx(tx.to_hex(), true);
-    witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
-    let redeemers = tx.witness_set().redeemers();
-    if (redeemers) {
-      witnessSet.set_redeemers(redeemers);
-    }
-    return witnessSet;
+    return this.wasm.TransactionWitnessSet.from_hex(witnessSet);
   }
 
   async sendTransaction(tx, sender) {
+    let redeemers = tx.witness_set().redeemers();
     let witnessSet = await this.signTx(tx, sender);
+    if (redeemers) {
+      witnessSet.set_redeemers(redeemers);
+    }
     let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
     let txHash = await this.cardano.submitTx(transaction.to_hex());
     return txHash;

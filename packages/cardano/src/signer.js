@@ -15,11 +15,18 @@ class Signer {
 
   // TX Signatures
 
-  async signTx(wallet, txHex) {
-
+  async signTx(hexData, wallet) {
+    let data = JSON.parse(hexData);
+    console.log("signTx data: %O", data);
+    let wasm = tool.getWasm();
+    let tx = wasm.Transaction.from_hex(data.tx);
+    let latestWitnessSet = wasm.TransactionWitnessSet.from_hex(data.witnessSet);
+    console.debug("signTx, tx: %s, latestWitnessSet: %s", tx.to_json(), latestWitnessSet.to_json());
+    let result = await this._sign(data.function, data.paras, tx, latestWitnessSet);
+    return result;
   }
 
-  async sendTx(wallet, txHex) {
+  async sendTx(hexData, wallet) {
 
   }
 
@@ -51,7 +58,7 @@ class Signer {
     } else {
       throw new Error("Invalid input parameters");
     }
-    let result = await this._sign("updateGroupNFT", tx);
+    let result = await this._sign("updateGroupNFT", {update, signers}, tx);
     return result;
   }
 
@@ -71,7 +78,7 @@ class Signer {
 
   // CheckToken/TreasuryCheck@TreasuryCheck
 
-  async mintTreasuryCheckToken(amount) {
+  async mintTreasuryCheckToken(amount, signers) {
     console.debug("Cardano Signer: mintTreasuryCheckToken, amount: %s, signers: %O", signers);
     let feeUtxos = await this._getFeeUtxos();
     feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
@@ -79,7 +86,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.mintTreasuryCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("mintTreasuryCheckToken", tx);
+    let result = await this._sign("mintTreasuryCheckToken", {amount, signers}, tx);
     return result;
   }
 
@@ -93,7 +100,7 @@ class Signer {
 
   // CheckToken/MintCheck@MintCheck
 
-  async mintMintCheckToken() {
+  async mintMintCheckToken(amount, signers) {
     console.debug("Cardano Signer: mintMintCheckToken, amount: %s, signers: %O", signers);
     let feeUtxos = await this._getFeeUtxos();
     feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
@@ -101,7 +108,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.mintMintCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("mintMintCheckToken", tx);
+    let result = await this._sign("mintMintCheckToken", {amount, signers}, tx);
     return result;
   }
 
@@ -127,7 +134,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.deregister(signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("deregisterStake", tx);
+    let result = await this._sign("deregisterStake", {signers}, tx);
     return result;
   }
 
@@ -139,11 +146,11 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.delegate(pool, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("delegateStake", tx);
+    let result = await this._sign("delegateStake", {pool, signers}, tx);
     return result;
   }
 
-  async withdrawalStake(amount, receiptor) {
+  async withdrawalStake(amount, receiptor, signers) {
     console.debug("Cardano Signer: withdrawalStake, amount: %s, receiptor: %s, signers: %O", amount, receiptor, signers);
     let feeUtxos = await this._getFeeUtxos();
     feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
@@ -151,7 +158,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.claim(amount, receiptor, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("withdrawalStake", tx);
+    let result = await this._sign("withdrawalStake", {amount, receiptor, signers}, tx);
     return result;
   }
 
@@ -196,14 +203,34 @@ class Signer {
     }
   }
 
-  async _sign(fn, tx) {
-    let witnessSet = await this.wallet.signTx(tx);
+  async _sign(fn, paras, tx, latestWitnessSet = null) {
+    let witnessSet = latestWitnessSet || tx.witness_set();
+    let vkeys = witnessSet.vkeys();
+    let signed = await this.wallet.signTx(tx);
+    let newVkeyWitness = signed.vkeys().get(0);
+    // check duplicate
+    let newVkeyWitnessJs = newVkeyWitness.to_js_value();
+    for (let i = 0; i < vkeys.len(); i++) {
+      let existVkeyWitness = vkeys.get(i);
+      let existVkeyWitnessJs = existVkeyWitness.to_js_value();
+      if (existVkeyWitnessJs.vkey === newVkeyWitnessJs.vkey) {
+        if (existVkeyWitnessJs.signature === newVkeyWitnessJs.signature) {
+          throw new Error("Already signed");
+        } else {
+          throw new Error("Signature mismatch");
+        }
+      }
+    }
+    vkeys.add(newVkeyWitness);
+    witnessSet.set_vkeys(vkeys);
     let output = {
       function: fn,
-      input: tx.to_json(),
-      witnessSet: witnessSet.to_json()
+      paras,
+      tx: tx.to_hex(),
+      witnessSet: witnessSet.to_hex()
     };
     let result = JSON.stringify(output);
+    console.debug(witnessSet.to_json());
     console.debug(result);
     return result;
   }
