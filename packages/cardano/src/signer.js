@@ -35,8 +35,9 @@ class Signer {
     if (latestWitnessSet.vkeys().len() !== data.paras.signers.length) {
       throw new Error("Only " + latestWitnessSet.vkeys().len() + "/" + data.paras.signers.length + " signers done");
     }
-    let result = await this.wallet.submitTx(tx, latestWitnessSet);
-    return result;
+    let txHash = await this.wallet.submitTx(tx, latestWitnessSet);
+    console.debug("Cardano Signer: submitTx, txHash: %s", txHash);
+    return txHash;
   }
 
   // GroupNFT@GroupNFTHolder
