@@ -148,7 +148,7 @@ function showUtxos(utxos, title = "") {
   });
 }
 
-function getAddressType(address){
+function getAddressType(address) {
   let tmp = wasm.Address.from_bech32(address);
   let toAddrBase = wasm.BaseAddress.from_address(tmp) || wasm.EnterpriseAddress.from_address(tmp);
   let type = toAddrBase.payment_cred().kind();
