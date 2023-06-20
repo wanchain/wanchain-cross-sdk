@@ -32,6 +32,9 @@ class Signer {
     let tx = wasm.Transaction.from_hex(data.tx);
     let latestWitnessSet = wasm.TransactionWitnessSet.from_hex(data.witnessSet);
     console.debug(latestWitnessSet.to_json());
+    if (latestWitnessSet.vkeys().len() !== data.paras.signers.length) {
+      throw new Error("Only " + latestWitnessSet.vkeys().len() + "/" + data.paras.signers.length + " signers done");
+    }
     let result = await this.wallet.submitTx(tx, latestWitnessSet);
     return result;
   }
