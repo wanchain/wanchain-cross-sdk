@@ -54,12 +54,7 @@ class Yoroi {
     return this.wasm.TransactionWitnessSet.from_hex(witnessSet);
   }
 
-  async sendTransaction(tx, sender) {
-    let redeemers = tx.witness_set().redeemers();
-    let witnessSet = await this.signTx(tx, sender);
-    if (redeemers) {
-      witnessSet.set_redeemers(redeemers);
-    }
+  async submitTx(tx, witnessSet) {
     let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
     let txHash = await cardano.submitTx(transaction.to_hex());
     return txHash;

@@ -15,19 +15,25 @@ class Signer {
 
   // TX Signatures
 
-  async signTx(hexData, wallet) {
+  async signTx(hexData) {
     let data = JSON.parse(hexData);
-    console.log("signTx data: %O", data);
+    console.debug("Cardano Signer: signTx, data: %O", data);
     let wasm = tool.getWasm();
     let tx = wasm.Transaction.from_hex(data.tx);
     let latestWitnessSet = wasm.TransactionWitnessSet.from_hex(data.witnessSet);
-    console.debug("signTx, tx: %s, latestWitnessSet: %s", tx.to_json(), latestWitnessSet.to_json());
     let result = await this._sign(data.function, data.paras, tx, latestWitnessSet);
     return result;
   }
 
-  async sendTx(hexData, wallet) {
-
+  async submitTx(hexData) {
+    let data = JSON.parse(hexData);
+    console.debug("Cardano Signer: submitTx, data: %O", data);
+    let wasm = tool.getWasm();
+    let tx = wasm.Transaction.from_hex(data.tx);
+    let latestWitnessSet = wasm.TransactionWitnessSet.from_hex(data.witnessSet);
+    console.debug(latestWitnessSet.to_json());
+    let result = await this.wallet.submitTx(tx, latestWitnessSet);
+    return result;
   }
 
   // GroupNFT@GroupNFTHolder
@@ -204,24 +210,33 @@ class Signer {
   }
 
   async _sign(fn, paras, tx, latestWitnessSet = null) {
+    let selfAddres = await this.wallet.getAccounts();
+    if (!paras.signers.includes(selfAddres[0])) {
+      throw new Error("Not designated signer");
+    }
     let witnessSet = latestWitnessSet || tx.witness_set();
-    let vkeys = witnessSet.vkeys();
     let signed = await this.wallet.signTx(tx);
-    let newVkeyWitness = signed.vkeys().get(0);
+    console.debug("_sign new witnessSet: %O", signed.to_json());
     // check duplicate
-    let newVkeyWitnessJs = newVkeyWitness.to_js_value();
-    for (let i = 0; i < vkeys.len(); i++) {
-      let existVkeyWitness = vkeys.get(i);
-      let existVkeyWitnessJs = existVkeyWitness.to_js_value();
-      if (existVkeyWitnessJs.vkey === newVkeyWitnessJs.vkey) {
-        if (existVkeyWitnessJs.signature === newVkeyWitnessJs.signature) {
-          throw new Error("Already signed");
-        } else {
-          throw new Error("Signature mismatch");
+    let vkeys = witnessSet.vkeys();
+    if (vkeys) {
+      let newVkeyWitness = signed.vkeys().get(0);
+      let newVkeyWitnessJs = newVkeyWitness.to_js_value();
+      for (let i = 0; i < vkeys.len(); i++) {
+        let existVkeyWitness = vkeys.get(i);
+        let existVkeyWitnessJs = existVkeyWitness.to_js_value();
+        if (existVkeyWitnessJs.vkey === newVkeyWitnessJs.vkey) {
+          if (existVkeyWitnessJs.signature === newVkeyWitnessJs.signature) {
+            throw new Error("Already signed");
+          } else {
+            throw new Error("Signature mismatch");
+          }
         }
       }
+      vkeys.add(newVkeyWitness);
+    } else { // first signature
+      vkeys = signed.vkeys();
     }
-    vkeys.add(newVkeyWitness);
     witnessSet.set_vkeys(vkeys);
     let output = {
       function: fn,
@@ -230,7 +245,7 @@ class Signer {
       witnessSet: witnessSet.to_hex()
     };
     let result = JSON.stringify(output);
-    console.debug(witnessSet.to_json());
+    console.debug("_sign latest witnessSet: %O", witnessSet.to_json());
     console.debug(result);
     return result;
   }
