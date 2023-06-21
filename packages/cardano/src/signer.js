@@ -68,7 +68,10 @@ class Signer {
     } else {
       throw new Error("Invalid input parameters");
     }
-    let result = await this._sign("updateGroupNFT", {update, signers}, tx);
+    // let result = await this._sign("updateGroupNFT", {update, signers}, tx);
+    // return result;
+    let result = await this.wallet.sendTransaction(tx);
+    console.debug("sendTransaction hash: %s", result)
     return result;
   }
 

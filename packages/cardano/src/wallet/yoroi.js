@@ -60,6 +60,26 @@ class Yoroi {
     return txHash;
   }
 
+  async sendTransaction(tx, sender) {
+    let cardano = await this.wallet.enable();
+    console.debug("sendTransaction orig tx json: %s", tx.to_json());
+    console.debug("sendTransaction orig tx body hash: %s", this.wasm.hash_transaction(tx.body()).to_hex());
+    console.debug("sendTransaction orig witness: %s", tx.witness_set().to_json());
+    let witnessSet = await cardano.signTx(tx.to_hex(), true);
+    console.debug("sendTransaction signed witness: %s", tx.witness_set().to_json());
+    witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
+    let redeemers = tx.witness_set().redeemers();
+    if (redeemers) {
+      witnessSet.set_redeemers(redeemers);
+    }
+    let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
+    console.debug("sendTransaction signed tx json: %s", transaction.to_json());
+    console.debug("sendTransaction signed tx hex: %s", transaction.to_hex());
+    let txHash = await cardano.submitTx(transaction.to_hex());
+    console.debug("sendTransaction submitTx hash: %s", txHash)
+    return txHash;
+  }
+
   // customized function
 
   async getUtxos() {
