@@ -293,11 +293,19 @@ class TokenPairService {
     setExtraInfo(tokenPair) { // special treatment for frontend
       // assetAlias only change ui asset symbol, do not affect sdk, such as fee unit
       // readableSymbol affect both ui and sdk
+      let direction = "both";
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
+        direction = "t2f";
       } if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
         tokenPair.assetAlias = "wanBTC";
+        direction = "t2f";
+      } if (tokenPair.id === "454") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
+        tokenPair.assetAlias = "USDC.e";
+        tokenPair.fromSymbol = "USDC.e";
+        direction = "f2t";
       }
+      tokenPair.direction = direction;
     }
 
     customizeSymbol(symbol) { // special treatment for frontend
