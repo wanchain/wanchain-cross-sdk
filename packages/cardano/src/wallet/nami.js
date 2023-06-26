@@ -61,6 +61,7 @@ class Nami {
 
   async sendTransaction(tx, sender) {
     console.debug("sendTransaction orig tx json: %s", tx.to_json());
+    console.debug("sendTransaction orig tx hex: %s", tx.to_hex());
     console.debug("sendTransaction orig tx body hash: %s", this.wasm.hash_transaction(tx.body()).to_hex());
     console.debug("sendTransaction orig witness: %s", tx.witness_set().to_json());
     let witnessSet = await this.cardano.signTx(tx.to_hex(), true);
