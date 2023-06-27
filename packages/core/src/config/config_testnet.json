@@ -114,7 +114,7 @@
     {
       "chainId": "2147484644",
       "chainType": "OKT",
-      "chainName": "OKC",
+      "chainName": "OKT Chain",
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "chainDecimals": 18,
       "MaskChainId": 65,
