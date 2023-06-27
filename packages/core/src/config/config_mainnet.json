@@ -212,6 +212,39 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741834",
+      "chainType": "METIS",
+      "chainName": "Metis",
+      "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+      "chainDecimals": 18,
+      "MaskChainId": 1088,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741835",
+      "chainType": "OKB",
+      "chainName": "OKB Chain",
+      "crossScAddr": "",
+      "chainDecimals": 18,
+      "MaskChainId": 196,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741836",
+      "chainType": "SGB",
+      "chainName": "Songbird",
+      "crossScAddr": "",
+      "chainDecimals": 18,
+      "MaskChainId": 19,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
