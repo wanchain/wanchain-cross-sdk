@@ -217,7 +217,7 @@ class WanBridge extends EventEmitter {
     }
     if (extension && extension.tool && extension.tool.validateAddress) {
       return extension.tool.validateAddress(account, this.network, chainName);
-    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH"].includes(chainType)) {
+    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH", "METIS", "OKB", "SGB"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
@@ -320,18 +320,23 @@ class WanBridge extends EventEmitter {
   }
 
   formatTokenAccount(chainName, tokenAccount) {
-    let chainType = this.tokenPairService.getChainType(chainName);
-    if (tokenAccount === "0x0000000000000000000000000000000000000000") {
-      return chainType;
-    }
-    if (chainType === "XRP") {
-      return tool.parseXrpTokenPairAccount(tokenAccount, true).join("."); // name.issuer
-    } else if (chainType === "ADA") {
-      let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
-      let [policyId, name] = tokenInfo.split(".");
-      return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
-    } else {
-      return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
+    try {
+      let chainType = this.tokenPairService.getChainType(chainName);
+      if (tokenAccount === "0x0000000000000000000000000000000000000000") {
+        return chainType;
+      }
+      if (chainType === "XRP") {
+        return tool.parseXrpTokenPairAccount(tokenAccount, true).join("."); // name.issuer
+      } else if (chainType === "ADA") {
+        let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+        let [policyId, name] = tokenInfo.split(".");
+        return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+      } else {
+        return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
+      }
+    } catch (err) {
+      console.error("SDK: formatTokenAccount, chainName: %s, tokenAccount: %s, error: %O", chainName, tokenAccount, err);
+      return tokenAccount;
     }
   }
 

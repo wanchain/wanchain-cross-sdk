@@ -14,6 +14,7 @@ module.exports = class CheckScEvent {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
+    this.scanBatchSize = (chainInfo.chainType === "SGB")? 30 : 300; // OKTC limit 300
     this.mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
     this.mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
     this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
@@ -131,7 +132,7 @@ module.exports = class CheckScEvent {
         }
         let toBlockNumber = fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
-          toBlockNumber = fromBlockNumber + 300; // OKC
+          toBlockNumber = fromBlockNumber + this.scanBatchSize;
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }

@@ -106,7 +106,8 @@ module.exports = class CheckTxReceiptService {
     }
     let toBlock = fromBlock;
     if (latestBlock >= fromBlock) {
-      toBlock = fromBlock + 300; // OKC
+      let scanBatchSize = (obj.chain === "SGB")? 30 : 300; // OKTC limit 300
+      toBlock = fromBlock + scanBatchSize;
       if (toBlock > latestBlock) {
         toBlock = latestBlock;
       }
