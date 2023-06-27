@@ -223,6 +223,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741836",
+      "chainType": "SGB",
+      "chainName": "Songbird",
+      "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
+      "chainDecimals": 18,
+      "MaskChainId": 16,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
