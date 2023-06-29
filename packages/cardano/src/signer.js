@@ -221,9 +221,12 @@ class Signer {
     if (!paras.signers.includes(selfAddres[0])) {
       throw new Error("Not designated signer");
     }
+    if (!latestWitnessSet) { // only debug for new tx
+      console.debug("Cardano Signer: _sign tx: %O", tx.to_json());
+    }
     let witnessSet = latestWitnessSet || tx.witness_set();
     let signed = await this.wallet.signTx(tx);
-    console.debug("_sign new witnessSet: %O", signed.to_json());
+    console.debug("Cardano Signer: _sign new witnessSet: %O", signed.to_json());
     // check duplicate
     let vkeys = witnessSet.vkeys();
     if (vkeys) {
@@ -252,7 +255,7 @@ class Signer {
       witnessSet: witnessSet.to_hex()
     };
     let result = JSON.stringify(output);
-    console.debug("_sign latest witnessSet: %O", witnessSet.to_json());
+    console.debug("Cardano Signer: _sign latest witnessSet: %O", witnessSet.to_json());
     console.debug(result);
     return result;
   }
