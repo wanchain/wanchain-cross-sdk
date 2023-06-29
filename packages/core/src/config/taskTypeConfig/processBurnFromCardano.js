@@ -1,5 +1,6 @@
 'use strict';
 
+const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -54,7 +55,7 @@ module.exports = class ProcessBurnFromCardano {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let output = {
-        address: this.wasm.Address.from_bech32(params.crossScAddr),
+        address: params.crossScAddr,
         amount: [
           {
             unit: 'lovelace',
@@ -88,7 +89,8 @@ module.exports = class ProcessBurnFromCardano {
         throw new Error("No utxo available");
       }
 
-      let inputs = this.tool.selectUtxos(utxos, txOutput, epochParameters);
+      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
+      let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       if (inputs.length === 0) {
         throw new Error("Not enough utxo available");
       }

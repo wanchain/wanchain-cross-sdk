@@ -109,7 +109,11 @@ function getAssetBalance(multiAsset, policyId, name) {
   return "0";
 }
 
-function selectUtxos(utxos, output, protocolParameters) {
+function selectUtxos(utxos, rawOutput, protocolParameters) {
+  let output = wasm.TransactionOutput.new(
+    wasm.Address.from_bech32(rawOutput.address),
+    assetsToValue(rawOutput.amount)
+  );
   const totalAssets = multiAssetCount(output.amount().multiasset());
   CoinSelection.setProtocolParameters(
     protocolParameters.coinsPerUtxoWord,
