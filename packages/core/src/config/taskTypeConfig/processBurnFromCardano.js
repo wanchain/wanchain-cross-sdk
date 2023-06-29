@@ -70,11 +70,11 @@ module.exports = class ProcessBurnFromCardano {
         quantity: params.value
       });
 
-      let tempOutput = this.wasm.TransactionOutput.new(
+      let tempTxOutput = this.wasm.TransactionOutput.new(
         this.wasm.Address.from_bech32(params.crossScAddr),
         this.tool.assetsToValue(output.amount)
       );
-      let minAda = this.tool.minAdaRequired(tempOutput, epochParameters.coinsPerUtxoByte);
+      let minAda = this.tool.minAdaRequired(tempTxOutput, epochParameters.coinsPerUtxoByte);
       console.debug({minAda});
       output.amount[0].quantity = minAda;
 
@@ -83,16 +83,16 @@ module.exports = class ProcessBurnFromCardano {
         this.tool.assetsToValue(output.amount)
       );
 
-      let utxos = await wallet.getUtxos(); // hex
+      let utxos = await wallet.getUtxos();
       // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
-        throw new Error("No utxo available");
+        throw new Error("No available utxos");
       }
 
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       if (inputs.length === 0) {
-        throw new Error("Not enough utxo available");
+        throw new Error("Not enough utxos");
       }
       console.debug("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       // this.tool.showUtxos(inputs, "inputs");
