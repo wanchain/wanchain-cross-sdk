@@ -245,6 +245,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741837",
+      "chainType": "ZKETH",
+      "chainName": "zkSync Era",
+      "crossScAddr": "",
+      "chainDecimals": 18,
+      "MaskChainId": 324,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
