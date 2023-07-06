@@ -1,4 +1,5 @@
 const { ContractSdk } = require("cardano-contract-sdk/sdk.js");
+const { evaluateTx } = require("cardano-contract-sdk/ogmios-utils.js");
 const BigNumber = require("bignumber.js");
 const tool = require("./tool");
 
@@ -25,7 +26,7 @@ class Signer {
     return result;
   }
 
-  async submitTx(hexData) {
+  async submitTx(hexData, onlyEvaluateTx = false) {
     let data = JSON.parse(hexData);
     console.debug("Cardano Signer: submitTx, data: %O", data);
     let wasm = tool.getWasm();
@@ -35,9 +36,27 @@ class Signer {
     if (latestWitnessSet.vkeys().len() < data.signers.length) {
       throw new Error("Only " + latestWitnessSet.vkeys().len() + "/" + data.signers.length + " signers done");
     }
-    let txHash = await this.wallet.submitTx(tx, latestWitnessSet);
-    console.debug("Cardano Signer: submitTx, txHash: %s", txHash);
-    return txHash;
+    await this.checkTx(tx, latestWitnessSet);
+    if (onlyEvaluateTx) {
+      console.log("Cardano Signer: submitTx, evaluateTx pass and do not submit");
+      return "";
+    } else {
+      let txHash = await this.wallet.submitTx(tx, latestWitnessSet);
+      console.log("Cardano Signer: submitTx, txHash: %s", txHash);
+      return txHash;
+    }
+  }
+
+  async checkTx(tx, witnessSet) {
+    let wasm = tool.getWasm();
+    let transaction = wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
+    let cost = await evaluateTx(transaction);
+    if (cost !== undefined) {
+      console.debug("evaluateTx cost: %s", JSON.stringify(cost));
+    } else {
+      console.error("evaluateTx failed: %s", transaction.to_json());
+      throw new Error("evaluateTx failed");
+    }
   }
 
   // GroupNFT@GroupNFTHolder
