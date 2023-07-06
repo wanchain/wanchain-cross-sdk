@@ -20,8 +20,8 @@ class Signer {
     console.debug("Cardano Signer: signTx, data: %O", data);
     let wasm = tool.getWasm();
     let tx = wasm.Transaction.from_hex(data.tx);
-    let latestWitnessSet = wasm.TransactionWitnessSet.from_hex(data.witnessSet);
-    let result = await this._sign(data.function, data.paras, tx, latestWitnessSet);
+    let latestWitnessSet = data.witnessSet? wasm.TransactionWitnessSet.from_hex(data.witnessSet) : null;
+    let result = await this._sign(data.function, data.paras, data.signers, tx, latestWitnessSet);
     return result;
   }
 
@@ -32,8 +32,8 @@ class Signer {
     let tx = wasm.Transaction.from_hex(data.tx);
     let latestWitnessSet = wasm.TransactionWitnessSet.from_hex(data.witnessSet);
     console.debug(latestWitnessSet.to_json());
-    if (latestWitnessSet.vkeys().len() !== data.paras.signers.length) {
-      throw new Error("Only " + latestWitnessSet.vkeys().len() + "/" + data.paras.signers.length + " signers done");
+    if (latestWitnessSet.vkeys().len() < data.signers.length) {
+      throw new Error("Only " + latestWitnessSet.vkeys().len() + "/" + data.signers.length + " signers done");
     }
     let txHash = await this.wallet.submitTx(tx, latestWitnessSet);
     console.debug("Cardano Signer: submitTx, txHash: %s", txHash);
@@ -68,7 +68,7 @@ class Signer {
     } else {
       throw new Error("Invalid input parameters");
     }
-    let result = await this._sign("updateGroupNFT", {update, signers}, tx);
+    let result = await this._sign("updateGroupNFT", update, signers, tx);
     return result;
   }
 
@@ -96,7 +96,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.mintTreasuryCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("mintTreasuryCheckToken", {amount, signers}, tx);
+    let result = await this._sign("mintTreasuryCheckToken", {amount}, signers, tx);
     return result;
   }
 
@@ -118,7 +118,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.mintMintCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("mintMintCheckToken", {amount, signers}, tx);
+    let result = await this._sign("mintMintCheckToken", {amount}, signers, tx);
     return result;
   }
 
@@ -144,7 +144,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.deregister(signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("deregisterStake", {signers}, tx);
+    let result = await this._sign("deregisterStake", {}, signers, tx);
     return result;
   }
 
@@ -156,7 +156,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.delegate(pool, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("delegateStake", {pool, signers}, tx);
+    let result = await this._sign("delegateStake", {pool}, signers, tx);
     return result;
   }
 
@@ -168,7 +168,7 @@ class Signer {
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
     let selfAddres = await this.wallet.getAccounts();
     let tx = await this.sdk.claim(amount, receiptor, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("withdrawalStake", {amount, receiptor, signers}, tx);
+    let result = await this._sign("withdrawalStake", {amount, receiptor}, signers, tx);
     return result;
   }
 
@@ -213,9 +213,9 @@ class Signer {
     }
   }
 
-  async _sign(fn, paras, tx, latestWitnessSet = null) {
+  async _sign(fn, paras, signers, tx, latestWitnessSet = null) {
     let selfAddres = await this.wallet.getAccounts();
-    if (!paras.signers.includes(selfAddres[0])) {
+    if (!signers.includes(selfAddres[0])) {
       throw new Error("Not designated signer");
     }
     if (!latestWitnessSet) { // only debug for new tx
@@ -248,6 +248,7 @@ class Signer {
     let output = {
       function: fn,
       paras,
+      signers,
       tx: tx.to_hex(),
       witnessSet: witnessSet.to_hex()
     };
