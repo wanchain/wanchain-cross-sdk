@@ -239,7 +239,7 @@
       "chainId": "1073741836",
       "chainType": "SGB",
       "chainName": "Songbird",
-      "crossScAddr": "",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "chainDecimals": 18,
       "MaskChainId": 19,
       "ScScanInfo": {
