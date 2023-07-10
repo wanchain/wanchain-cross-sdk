@@ -10,13 +10,13 @@ class Signer {
     this.wallet = wallet;
   }
 
-  async init(host, port) {
+  async init(host, port, tls) {
     let networkId = await this.wallet.getChainId();
     if (((this.network === "mainnet") && (networkId != 1))
        || ((this.network === "testnet") && (networkId != 0))) {
       throw new Error("Wrong network");
     }
-    await this.sdk.init(host, port);
+    await this.sdk.init(host, port, tls);
   }
 
   // TX Signatures
