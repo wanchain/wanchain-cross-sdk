@@ -11,6 +11,11 @@ class Signer {
   }
 
   async init(host, port) {
+    let networkId = await this.wallet.getChainId();
+    if (((this.network === "mainnet") && (networkId != 1))
+       || ((this.network === "testnet") && (networkId != 0))) {
+      throw new Error("Wrong network");
+    }
     await this.sdk.init(host, port);
   }
 
