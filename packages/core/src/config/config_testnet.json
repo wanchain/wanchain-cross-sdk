@@ -105,6 +105,10 @@
       "chainType": "OETH",
       "chainName": "Optimism",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
+      "CircleBridge": {
+        "domain": 2,
+        "crossScAddr": "0xE0b44F6D5412190a08e44836110Df2549055e3eb"
+      },
       "chainDecimals": 18,
       "MaskChainId": 420,
       "ScScanInfo": {
