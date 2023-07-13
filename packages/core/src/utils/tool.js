@@ -193,6 +193,9 @@ function parseFee(fee, amount, unit, options) {
         tmp = fee.operateFee.max;
       }
     }
+    if (fee.operateFee.discount) {
+      tmp = tmp.times(fee.operateFee.discount);
+    }
     result = result.plus(tmp);
     decimals = fee.operateFee.decimals;
   }

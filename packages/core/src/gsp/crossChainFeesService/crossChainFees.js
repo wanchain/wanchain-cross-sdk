@@ -12,10 +12,10 @@ module.exports = class crossChainFees {
   }
 
   // agent fee
-  async estimateOperationFee(tokenPairId, fromChainType, toChainType) {
+  async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) {
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId});
+    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId, address: options.address || ""});
     if (tokenPair.protocol !== "Erc20") {
       fee.value = "0";
     }
@@ -27,7 +27,8 @@ module.exports = class crossChainFees {
       unit: tokenPair.readableSymbol,
       min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
       max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
-      decimals: Number(decimals)
+      decimals: Number(decimals),
+      discount: fee.discountPercent || "1"
     };
   }
 

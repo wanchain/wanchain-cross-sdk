@@ -173,10 +173,12 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let toChainType = this.tokenPairService.getChainType(toChainName);
-    let operateFee = await this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType);
-    let networkFee = await this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options);
+    let [operateFee, networkFee] = await Promise.all([
+      this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
+      this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)
+    ]);
     let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals, discount: operateFee.discount},
       networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals, isSubsidy: networkFee.isSubsidy}
     };
     if (networkFee.isSubsidy) {
