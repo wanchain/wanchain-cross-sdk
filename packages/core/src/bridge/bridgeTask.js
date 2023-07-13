@@ -148,7 +148,7 @@ class BridgeTask {
   }
 
   async _checkFee(isSubsidy) {
-    let options = {protocol: this._tokenPair.protocol, address: this._fromAccount};
+    let options = {protocol: this._tokenPair.protocol, address: this._toAccount};
     let isErc20 = (this._tokenPair.protocol === "Erc20");
     if (!isErc20) {
       options.batchSize = this._amount.length;
