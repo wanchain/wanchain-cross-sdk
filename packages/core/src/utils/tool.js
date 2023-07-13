@@ -172,9 +172,9 @@ function parseFee(fee, amount, unit, options) {
     if (tmp.gt(0) && fee.networkFee.isRatio) {
       tmp = tmp.times(amount);
       if ((fee.networkFee.min != 0) && (tmp.lt(fee.networkFee.min))) {
-        tmp = fee.networkFee.min;
+        tmp = new BigNumber(fee.networkFee.min);
       } else if ((fee.networkFee.max != 0) && (tmp.gt(fee.networkFee.max))) {
-        tmp = fee.networkFee.max;
+        tmp = new BigNumber(fee.networkFee.max);
       }
     }
     networkFee = tmp;
@@ -188,9 +188,9 @@ function parseFee(fee, amount, unit, options) {
     if (tmp.gt(0) && fee.operateFee.isRatio) {
       tmp = tmp.times(new BigNumber(amount).minus(networkFee));
       if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
-        tmp = fee.operateFee.min;
+        tmp = new BigNumber(fee.operateFee.min);
       } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
-        tmp = fee.operateFee.max;
+        tmp = new BigNumber(fee.operateFee.max);
       }
     }
     if (fee.operateFee.discount) {
