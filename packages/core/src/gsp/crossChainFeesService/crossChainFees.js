@@ -38,7 +38,7 @@ module.exports = class crossChainFees {
     let direction = (fromChainType === tokenPair.fromScInfo.chainType);
     let srcChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = srcChainInfo.chainDecimals;
-    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, {tokenPairID: tokenPairId, batchSize: options.batchSize});
+    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, {tokenPairID: tokenPairId, address: options.address || "", batchSize: options.batchSize});
     // console.debug("estimateNetworkFee %s->%s raw: %O", fromChainType, toChainType, fee);
     let feeBN = new BigNumber(fee.value);
     // ETH maybe has different symbos on layer2 chains, it leads networkFee unit problem, should use ancestorSymbol as unit
@@ -62,7 +62,8 @@ module.exports = class crossChainFees {
       min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
       max: new BigNumber(fee.maxFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
       decimals: Number(decimals),
-      isSubsidy
+      discount: fee.discountPercent || "1",
+      isSubsidy,
     };
   }
 };

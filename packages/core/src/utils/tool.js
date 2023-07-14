@@ -177,6 +177,9 @@ function parseFee(fee, amount, unit, options) {
         tmp = new BigNumber(fee.networkFee.max);
       }
     }
+    if (fee.networkFee.discount) {
+      tmp = tmp.times(fee.networkFee.discount);
+    }
     networkFee = tmp;
     if ((!options.feeType) || (options.feeType === "networkFee")) {
       result = result.plus(networkFee);

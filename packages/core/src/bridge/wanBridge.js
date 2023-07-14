@@ -179,7 +179,7 @@ class WanBridge extends EventEmitter {
     ]);
     let fee = {
       operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals, discount: operateFee.discount},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals, isSubsidy: networkFee.isSubsidy}
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals, discount: networkFee.discount, isSubsidy: networkFee.isSubsidy}
     };
     if (networkFee.isSubsidy) {
       let chainInfo = this.chainInfoService.getChainInfoByType(fromChainType);
