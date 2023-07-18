@@ -102,8 +102,16 @@ class Signer {
 
   // AdminNFT@AdminNFTHolder
 
-  async updateAdminNFT() {
-    throw new Error("Not support yet");
+  async updateAdminNFT(newSigners, threshold, signers) {
+    console.debug("Cardano Signer: updateAdminNFT, newSigners: %s, threshold: %s, signers: %O", newSigners, threshold, signers);
+    let feeUtxos = await this._getFeeUtxos();
+    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
+    let collateralUtxos = await this._getCollateralUtxos();
+    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
+    let selfAddres = await this.wallet.getAccounts();
+    let tx = await this.sdk.setAdmin(newSigners, threshold, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let result = await this._sign("setAdmin", {newSigners, threshold}, signers, tx);
+    return result;
   }
 
   async upgradeAdminNFT() {
