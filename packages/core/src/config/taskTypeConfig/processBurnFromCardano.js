@@ -78,11 +78,6 @@ module.exports = class ProcessBurnFromCardano {
       console.debug({minAda});
       output.amount[0].quantity = minAda;
 
-      let txOutput = this.wasm.TransactionOutput.new(
-        this.wasm.Address.from_bech32(params.crossScAddr),
-        this.tool.assetsToValue(output.amount)
-      );
-
       let utxos = await wallet.getUtxos();
       // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
@@ -110,6 +105,7 @@ module.exports = class ProcessBurnFromCardano {
       // check receipt
       let iwan = this.frameworkService.getService("iWanConnectorService");
       let blockNumber = await iwan.getBlockNumber(params.toChainType);
+      let taskType = tokenPairService.getTokenEventType(params.tokenPairID, "BURN");
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
@@ -117,7 +113,7 @@ module.exports = class ProcessBurnFromCardano {
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
-        taskType: "BURN"
+        taskType
       };
 
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
