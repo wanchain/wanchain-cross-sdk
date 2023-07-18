@@ -84,11 +84,11 @@ setTimeout(async() => {
 
 module.exports = class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
   }
 
   async process(stepData, wallet) {
-    let WebStores = this.m_frameworkService.getService("WebStores");
+    let WebStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
     let processorName = names[params.fromChainType];
     try {
@@ -108,10 +108,10 @@ module.exports = class ProcessMintBtcFromBitcoin {
   async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, gpkInfo) {
     let params = stepData.params;
     try {
-      let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-      let configService = this.m_frameworkService.getService("ConfigService");
+      let storemanService = this.frameworkService.getService("StoremanService");
+      let configService = this.frameworkService.getService("ConfigService");
       let apiServerConfig = configService.getGlobalConfig("apiServer");
-      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+      let chainInfoService = this.frameworkService.getService("ChainInfoService");
       let chainInfo = chainInfoService.getChainInfoByType(fromChainType);
       let network = networks[fromChainType][chainInfo.network];
 
@@ -156,10 +156,9 @@ module.exports = class ProcessMintBtcFromBitcoin {
 
       let ret = await axios.post(url, data);
       if (ret.data.success === true) {
-        let blockNumber = await iwanBCConnector.getBlockNumber(toChainType);
         let serviceName = "Check" + fromChainType.charAt(0).toUpperCase() + fromChainType.substr(1).toLowerCase() + "TxService"
-        let checkTxService = this.m_frameworkService.getService(serviceName);
-        data.fromBlockNumber = blockNumber;
+        let checkTxService = this.frameworkService.getService(serviceName);
+        data.fromBlockNumber = await storemanService.getChainBlockNumber(toChainType);
         data.ccTaskId = params.ccTaskId;
         await checkTxService.addOTAInfo(data);
         return {
