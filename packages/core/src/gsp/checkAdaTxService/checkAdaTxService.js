@@ -49,6 +49,8 @@ module.exports = class CheckAdaTxService {
                     console.debug("CheckAdaTxService %s: %O", queryUrl, ret.data);
                     if (ret.data.success && ret.data.data) {
                       task.uniqueID = ret.data.data.hashX;
+                      task.fromChain = "ADA";
+                      task.chainHash = task.txHash;
                       await this.eventService.emitEvent("TaskStepResult", {
                         ccTaskId: task.ccTaskId,
                         stepIndex: task.stepIndex,

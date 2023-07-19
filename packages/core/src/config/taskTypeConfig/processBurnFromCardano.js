@@ -103,17 +103,17 @@ module.exports = class ProcessBurnFromCardano {
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
-      let iwan = this.frameworkService.getService("iWanConnectorService");
-      let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let taskType = tokenPairService.getTokenEventType(params.tokenPairID, "BURN");
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
-        fromBlockNumber: blockNumber,
+        fromBlockNumber: await this.storemanService.getChainBlockNumber(params.toChainType),
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
-        taskType
+        taskType,
+        fromAddr: params.fromAddr,
+        toAddr: params.userAccount
       };
 
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
