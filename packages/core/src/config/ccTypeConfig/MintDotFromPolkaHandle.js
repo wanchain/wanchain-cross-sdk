@@ -10,19 +10,22 @@ const TaskTypes = {
 
 module.exports = class MintDotFromPolkaHandle {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
+    this.configService = frameworkService.getService("ConfigService");
   }
 
   async process(tokenPair, convert) {
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
+      let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
-        toChainType: tokenPair.toChainType,
-        userAccount: convert.toAddr,
+        toChainType,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
+        storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
         taskType: TaskTypes[tokenPair.fromChainType],

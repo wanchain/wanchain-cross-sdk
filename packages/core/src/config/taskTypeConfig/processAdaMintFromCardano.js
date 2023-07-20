@@ -104,12 +104,10 @@ module.exports = class ProcessAdaMintFromCardano {
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
-      let iwan = this.frameworkService.getService("iWanConnectorService");
-      let blockNumber = await iwan.getBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
-        fromBlockNumber: blockNumber,
+        fromBlockNumber: await this.storemanService.getChainBlockNumber(params.toChainType),
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,

@@ -25,7 +25,7 @@ module.exports = class CheckBtcTx{
 
     async add(obj) {
         try {
-            console.log("%s add obj:", this.serviceName, obj);
+            console.log("%s add obj: %O", this.serviceName, obj);
             let url = this.m_apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/addTxInfo";
             let postJson = {
                 chainType: obj.fromChain,
@@ -40,10 +40,9 @@ module.exports = class CheckBtcTx{
                 this.m_CheckAry.unshift(obj);
             } else {
                 console.error("%s save to apiServer fail", this.serviceName);
-                // ???
             }
         } catch (err) {
-            console.error("%s add err:", this.serviceName, err);
+            console.error("%s add error: %O", this.serviceName, err);
         }
     }
 

@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2306131652", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2307201620", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -173,11 +173,13 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let toChainType = this.tokenPairService.getChainType(toChainName);
-    let operateFee = await this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType);
-    let networkFee = await this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options);
+    let [operateFee, networkFee] = await Promise.all([
+      this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
+      this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)
+    ]);
     let fee = {
-      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals},
-      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals, isSubsidy: networkFee.isSubsidy}
+      operateFee: {value: operateFee.fee, unit: operateFee.unit, isRatio: operateFee.isRatio, min: operateFee.min, max: operateFee.max, decimals: operateFee.decimals, discount: operateFee.discount},
+      networkFee: {value: networkFee.fee, unit: networkFee.unit, isRatio: networkFee.isRatio, min: networkFee.min, max: networkFee.max, decimals: networkFee.decimals, discount: networkFee.discount, isSubsidy: networkFee.isSubsidy}
     };
     if (networkFee.isSubsidy) {
       let chainInfo = this.chainInfoService.getChainInfoByType(fromChainType);
@@ -217,7 +219,7 @@ class WanBridge extends EventEmitter {
     }
     if (extension && extension.tool && extension.tool.validateAddress) {
       return extension.tool.validateAddress(account, this.network, chainName);
-    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH", "METIS", "OKB", "SGB", "ZKETH"].includes(chainType)) {
+    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH", "METIS", "OKB", "SGB", "ZKETH", "ZEN"].includes(chainType)) {
       return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);

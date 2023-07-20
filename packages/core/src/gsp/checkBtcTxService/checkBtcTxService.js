@@ -38,6 +38,7 @@ module.exports = class CheckBtcTxService {
       let taskType = tokenPairService.getTokenEventType(obj.tokenPairId, "MINT");
         let tmpObj = {
             ccTaskId: obj.ccTaskId,
+            fromChain: obj.fromChain,
             oneTimeAddr: obj.oneTimeAddr,
             chain: obj.chainType,
             fromBlockNumber: obj.fromBlockNumber,
@@ -47,10 +48,20 @@ module.exports = class CheckBtcTxService {
         await storageService.save(this.serviceName, obj.ccTaskId, tmpObj);
         this.checkOtas.unshift(tmpObj);
     }
+    
+    addressToLockHash(address) {
+      if (this.chainType === 'BTC' && address.length > 40) {
+        const lock = bitcoin.address.fromBech32(address)
+        return "0x" + lock.data.toString('hex')
+      } else {
+        const lock = bitcoin.address.fromBase58Check(address)
+        return "0x" + lock.hash.toString('hex')
+      }
+    }
 
     getOtaTxUniqueId(txHash, address) {
       txHash = "0x" + tool.hexStrip0x(txHash);
-      let hash160 = "0x" + bitcoin.address.fromBase58Check(address).hash.toString('hex');
+      let hash160 = this.addressToLockHash(address);
       let uniqueId = tool.sha256(txHash + hash160);
       // console.log({txHash, hash160, uniqueId});
       return uniqueId;

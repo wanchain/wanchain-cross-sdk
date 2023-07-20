@@ -138,7 +138,7 @@ function getXdcAddressInfo(address) {
     native = address;
     evm = "0x" + address.substr(3);
   }
-  return {native, evm};
+  return {native, evm, ascii: evm};
 }
 
 function getStandardAddressInfo(chainType, address, extension = null) {
@@ -147,10 +147,10 @@ function getStandardAddressInfo(chainType, address, extension = null) {
   } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) {
     return extension.tool.getStandardAddressInfo(address);
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
-    return {native: address, evm: address};
+    return {native: address, evm: address, ascii: address};
   } else {
     let evmBytes = web3.utils.asciiToHex(address);
-    return {native: address, evm: evmBytes};
+    return {native: address, evm: evmBytes, ascii: address};
   }
 }
 
@@ -172,10 +172,13 @@ function parseFee(fee, amount, unit, options) {
     if (tmp.gt(0) && fee.networkFee.isRatio) {
       tmp = tmp.times(amount);
       if ((fee.networkFee.min != 0) && (tmp.lt(fee.networkFee.min))) {
-        tmp = fee.networkFee.min;
+        tmp = new BigNumber(fee.networkFee.min);
       } else if ((fee.networkFee.max != 0) && (tmp.gt(fee.networkFee.max))) {
-        tmp = fee.networkFee.max;
+        tmp = new BigNumber(fee.networkFee.max);
       }
+    }
+    if (fee.networkFee.discount) {
+      tmp = tmp.times(fee.networkFee.discount);
     }
     networkFee = tmp;
     if ((!options.feeType) || (options.feeType === "networkFee")) {
@@ -188,10 +191,13 @@ function parseFee(fee, amount, unit, options) {
     if (tmp.gt(0) && fee.operateFee.isRatio) {
       tmp = tmp.times(new BigNumber(amount).minus(networkFee));
       if ((fee.operateFee.min != 0) && (tmp.lt(fee.operateFee.min))) {
-        tmp = fee.operateFee.min;
+        tmp = new BigNumber(fee.operateFee.min);
       } else if ((fee.operateFee.max != 0) && (tmp.gt(fee.operateFee.max))) {
-        tmp = fee.operateFee.max;
+        tmp = new BigNumber(fee.operateFee.max);
       }
+    }
+    if (fee.operateFee.discount) {
+      tmp = tmp.times(fee.operateFee.discount);
     }
     result = result.plus(tmp);
     decimals = fee.operateFee.decimals;

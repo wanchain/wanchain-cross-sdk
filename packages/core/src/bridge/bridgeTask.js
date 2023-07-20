@@ -10,6 +10,19 @@ const util = require('util');
 // consistant with crosschain contract
 const MAX_NFT_BATCH_SIZE = 10;
 
+const gpkAlgs = {
+  ecdsa: 0,
+  schnorr: 1,
+  schnorr340: 2,
+  ed25519: 3,
+};
+
+const gpkCurves = {
+  secp256: 0,
+  bn256: 1,
+  ed25519: 2,
+};
+
 class BridgeTask {
   constructor(bridge, tokenPair, direction, fromAccount, toAccount, amount, wallet) {
     this.id = Date.now();
@@ -48,7 +61,7 @@ class BridgeTask {
     }
     // smg info
     this._smg = null;
-    this._secp256k1Gpk = '';
+    this._gpkInfo = null;
     // server side para
     this._quota = null;
     this._fee = null;
@@ -135,7 +148,7 @@ class BridgeTask {
   }
 
   async _checkFee(isSubsidy) {
-    let options = {protocol: this._tokenPair.protocol};
+    let options = {protocol: this._tokenPair.protocol, address: this._toAccount};
     let isErc20 = (this._tokenPair.protocol === "Erc20");
     if (!isErc20) {
       options.batchSize = this._amount.length;
@@ -173,7 +186,20 @@ class BridgeTask {
     if (this._tokenPair.bridge) { // only for unifying process flow, other bridge do not care smg
       return "";
     }
-    this._secp256k1Gpk = (0 == this._smg.curve1)? this._smg.gpk1 : this._smg.gpk2;
+    let gpk = "", curve = gpkCurves.secp256, algo = gpkAlgs.ecdsa;
+    if ((this._fromChainInfo.chainType === 'BTC') && this._smg.gpk3) {
+      algo = gpkAlgs.schnorr340;
+    }
+    for (let i = 1; this._smg["gpk" + i]; i++) {
+      if (curve == this._smg["curve" + i] && algo == this._smg["algo" + i]) {
+        gpk = this._smg["gpk" + i];
+        break;
+      }
+    }
+    if (!gpk) {
+      return "Invalid protocol parameter";
+    }
+    this._gpkInfo = {gpk, curve, algo};
     if (this._tokenPair.protocol !== "Erc20") { // only Erc20 need to check token smg balance
       return "";
     }
@@ -316,11 +342,11 @@ class BridgeTask {
       toSymbol: ccTaskData.toSymbol,
       toAddr: ccTaskData.toAccount,
       storemanGroupId: ccTaskData.smg.id,
-      storemanGroupGpk: this._secp256k1Gpk,
+      gpkInfo: this._gpkInfo,
       value: ccTaskData.amount,
       fee: this._fee,
       wallet: this._wallet
-    }; 
+    };
     // console.debug("checkTaskSteps: %O", convert);
     let steps = await this._bridge.cctHandleService.getConvertInfo(convert);
     // console.debug("getConvertInfo: %O", steps);
@@ -405,7 +431,7 @@ class BridgeTask {
   }
 
   _getSmgXrpClassicAddress() {
-    let pubKey = Secp256k1.keyFromPublic("04" + this._secp256k1Gpk.slice(2), 'hex');
+    let pubKey = Secp256k1.keyFromPublic("04" + this._gpkInfo.gpk.slice(2), 'hex');
     let compressed = pubKey.getPublic(true, 'hex');
     let deriveAddress = keypairs.deriveAddress(compressed.toUpperCase());
     return deriveAddress;
@@ -425,7 +451,7 @@ class BridgeTask {
   _getSmgAddress(chainType) {
     let extension = this._bridge.configService.getExtension(chainType);
     if (extension && extension.tool && extension.tool.gpk2Address) {
-      return extension.tool.gpk2Address(this._secp256k1Gpk, chainType, this._bridge.network);
+      return extension.tool.gpk2Address(this._gpkInfo.gpk, chainType, this._bridge.network);
     } else if ("XRP" === chainType) {
       return this._getSmgXrpClassicAddress();
     } else { // only for not-sc-chain to check smg account, other chains should not call this function

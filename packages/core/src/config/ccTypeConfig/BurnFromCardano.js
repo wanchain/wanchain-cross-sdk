@@ -6,6 +6,7 @@ const tool = require("../../utils/tool.js");
 module.exports = class BurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
+    this.configService = frameworkService.getService("ConfigService");
   }
 
   async process(tokenPair, convert) {
@@ -13,13 +14,15 @@ module.exports = class BurnFromCardano {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals)).toFixed(0);
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+      let toChainType = tokenPair.fromChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
-        toChainType: tokenPair.fromChainType,
+        toChainType,
         crossScAddr: tokenPair.toScInfo.crossScAddr,
-        userAccount: convert.toAddr,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
-        storemanGroupGpk: convert.storemanGroupGpk,
+        storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessBurnFromCardano",

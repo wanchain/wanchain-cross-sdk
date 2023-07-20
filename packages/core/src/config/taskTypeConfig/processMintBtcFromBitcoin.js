@@ -61,20 +61,41 @@ const networks = {
   }
 }
 
+let libInitState = 0;
+
+async function initBitcoinLib() {
+  if (libInitState === 0) {
+    libInitState = 1;
+    try {
+      let ecc = await import('tiny-secp256k1');
+      bitcoin.initEccLib(ecc);
+      libInitState = 2;
+      console.debug("bitcoinjs-lib ready");
+    } catch (err) {
+      console.error("bitcoinjs-lib init error: %O", err);
+      libInitState = 0;
+    }
+  }
+}
+
+setTimeout(async() => {
+  await initBitcoinLib();
+}, 0);
+
 module.exports = class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
   }
 
   async process(stepData, wallet) {
-    let WebStores = this.m_frameworkService.getService("WebStores");
+    let WebStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
     let processorName = names[params.fromChainType];
     try {
-      let p2sh = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
-      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, p2sh.address);
-      if (p2sh.address) {
-        WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: p2sh.address, randomId: p2sh.randomId});
+      let ota = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.gpkInfo);
+      // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, ota.address);
+      if (ota.address) {
+        WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: ota.address, randomId: ota.randomId});
       } else {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
@@ -84,13 +105,13 @@ module.exports = class ProcessMintBtcFromBitcoin {
     }
   }
 
-  async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
+  async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, gpkInfo) {
     let params = stepData.params;
     try {
-      let iwanBCConnector = this.m_frameworkService.getService("iWanConnectorService");
-      let configService = this.m_frameworkService.getService("ConfigService");
+      let storemanService = this.frameworkService.getService("StoremanService");
+      let configService = this.frameworkService.getService("ConfigService");
       let apiServerConfig = configService.getGlobalConfig("apiServer");
-      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+      let chainInfoService = this.frameworkService.getService("ChainInfoService");
       let chainInfo = chainInfoService.getChainInfoByType(fromChainType);
       let network = networks[fromChainType][chainInfo.network];
 
@@ -100,20 +121,33 @@ module.exports = class ProcessMintBtcFromBitcoin {
         hashValue = ret.slice(2);
       }
 
-      let tmpGPK = storemanGroupPublicKey;
+      let tmpGPK = gpkInfo.gpk;
       if (tmpGPK.startsWith('0x')) {
         tmpGPK = "04" + tmpGPK.slice(2);
       }
 
-      let p2sh = this.getP2SH(hashValue, tmpGPK, network);
+      let ota = null;
+      if (gpkInfo.algo == 2) { // schnorr340
+        if (libInitState === 0) {
+          console.debug("fix bitcoinjs-lib");
+          await initBitcoinLib();
+        }
+        if (libInitState !== 2) {
+          throw new Error("bitcoinjs-lib unavailable");
+        }
+        ota = this.getP2TR(hashValue, tmpGPK, network);
+        console.debug("generate %s p2tr ota %s", fromChainType, ota);
+      } else {
+        ota = this.getP2SH(hashValue, tmpGPK, network);
+      }
       let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
       // save ota and id to apiServer
       let data = {
-        oneTimeAddr: p2sh,
+        oneTimeAddr: ota,
         randomId,
         chainType: toChainType,
-        chainAddr: chainAddr,
-        smgPublicKey: storemanGroupPublicKey,
+        chainAddr,
+        smgPublicKey: gpkInfo.gpk,
         smgId: storemanGroupId,
         tokenPairId: params.tokenPairID,
         networkFee: params.fee,
@@ -122,14 +156,14 @@ module.exports = class ProcessMintBtcFromBitcoin {
 
       let ret = await axios.post(url, data);
       if (ret.data.success === true) {
-        let blockNumber = await iwanBCConnector.getBlockNumber(toChainType);
         let serviceName = "Check" + fromChainType.charAt(0).toUpperCase() + fromChainType.substr(1).toLowerCase() + "TxService"
-        let checkTxService = this.m_frameworkService.getService(serviceName);
-        data.fromBlockNumber = blockNumber;
+        let checkTxService = this.frameworkService.getService(serviceName);
+        data.fromBlockNumber = await storemanService.getChainBlockNumber(toChainType);
         data.ccTaskId = params.ccTaskId;
+        data.fromChain = fromChainType;
         await checkTxService.addOTAInfo(data);
         return {
-          address: p2sh,
+          address: ota,
           randomId
         };
       } else {
@@ -157,18 +191,44 @@ module.exports = class ProcessMintBtcFromBitcoin {
     return p2sh.address;
   }
 
+  getP2TR(hashVal, publicKey, network) {
+    const xOnlyMpcPk = Buffer.from(publicKey.slice(2, 66), 'hex');
+    const redeemScript = bitcoin.script.fromASM(
+      `
+      ${hashVal}
+      OP_DROP
+      OP_DUP
+      OP_HASH160
+      ${bitcoin.crypto.hash160(xOnlyMpcPk).toString('hex')}
+      OP_EQUALVERIFY
+      OP_CHECKSIG
+      `.trim().replace(/\s+/g, ' '),
+    )
+    const scriptTree = {
+      output: redeemScript,
+      version: 0xc0
+    }
+    const p2tr = bitcoin.payments.p2tr({
+      internalPubkey: xOnlyMpcPk,
+      scriptTree: scriptTree,
+      redeem: scriptTree,
+      network 
+    })
+    return p2tr.address;
+  }
+
   getRedeemScript(hashVal, publicKey) {
     return bitcoin.script.fromASM(
       `
-        ${hashVal}
-        OP_DROP
-        OP_DUP
-        OP_HASH160
-        ${bitcoin.crypto.hash160(Buffer.from(publicKey, 'hex')).toString('hex')}
-        OP_EQUALVERIFY
-        OP_CHECKSIG
-        `.trim()
-        .replace(/\s+/g, ' '),
+      ${hashVal}
+      OP_DROP
+      OP_DUP
+      OP_HASH160
+      ${bitcoin.crypto.hash160(Buffer.from(publicKey, 'hex')).toString('hex')}
+      OP_EQUALVERIFY
+      OP_CHECKSIG
+      `.trim()
+      .replace(/\s+/g, ' '),
     )
   }
 };
