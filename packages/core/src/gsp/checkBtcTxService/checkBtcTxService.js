@@ -38,6 +38,7 @@ module.exports = class CheckBtcTxService {
       let taskType = tokenPairService.getTokenEventType(obj.tokenPairId, "MINT");
         let tmpObj = {
             ccTaskId: obj.ccTaskId,
+            fromChain: obj.fromChain,
             oneTimeAddr: obj.oneTimeAddr,
             chain: obj.chainType,
             fromBlockNumber: obj.fromBlockNumber,
