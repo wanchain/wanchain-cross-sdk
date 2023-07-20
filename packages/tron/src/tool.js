@@ -26,7 +26,7 @@ function getStandardAddressInfo(address) {
     evm = "0x" + tronweb.defaultAddress.hex.substr(2);
     native = tronweb.defaultAddress.base58;
   }
-  return {native, evm};
+  return {native, evm, ascii: evm};
 }
 
 module.exports = {

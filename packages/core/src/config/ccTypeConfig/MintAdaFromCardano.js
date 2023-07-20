@@ -6,6 +6,7 @@ const tool = require("../../utils/tool.js");
 module.exports = class MintAdaFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
+    this.configService = frameworkService.getService("ConfigService");
   }
 
   async process(tokenPair, convert) {
@@ -13,11 +14,13 @@ module.exports = class MintAdaFromCardano {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+      let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
-        toChainType: tokenPair.toChainType,
+        toChainType,
         crossScAddr: tokenPair.fromScInfo.crossScAddr,
-        userAccount: convert.toAddr,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,

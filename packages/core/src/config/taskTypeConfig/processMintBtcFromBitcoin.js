@@ -146,7 +146,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
         oneTimeAddr: ota,
         randomId,
         chainType: toChainType,
-        chainAddr: chainAddr,
+        chainAddr,
         smgPublicKey: gpkInfo.gpk,
         smgId: storemanGroupId,
         tokenPairId: params.tokenPairID,

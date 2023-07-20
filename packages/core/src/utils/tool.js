@@ -138,7 +138,7 @@ function getXdcAddressInfo(address) {
     native = address;
     evm = "0x" + address.substr(3);
   }
-  return {native, evm};
+  return {native, evm, ascii: evm};
 }
 
 function getStandardAddressInfo(chainType, address, extension = null) {
@@ -147,10 +147,10 @@ function getStandardAddressInfo(chainType, address, extension = null) {
   } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) {
     return extension.tool.getStandardAddressInfo(address);
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
-    return {native: address, evm: address};
+    return {native: address, evm: address, ascii: address};
   } else {
     let evmBytes = web3.utils.asciiToHex(address);
-    return {native: address, evm: evmBytes};
+    return {native: address, evm: evmBytes, ascii: address};
   }
 }
 
