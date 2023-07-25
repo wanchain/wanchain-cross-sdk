@@ -253,7 +253,7 @@
     {
       "chainId": "1073741839",
       "chainType": "ZEN",
-      "chainName": "Horizen",
+      "chainName": "Horizen EON",
       "crossScAddr": "0x6E81E127a280Cd17BeBc7704Ce28a0226295A12b",
       "chainDecimals": 18,
       "MaskChainId": 1663,
