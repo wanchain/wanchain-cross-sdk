@@ -40,6 +40,7 @@ module.exports = class ProcessBurnFromCardano {
     let extension = configService.getExtension("ADA");
     this.tool = extension.tool;
     this.wasm = extension.tool.getWasm();
+    this.network = configService.getNetwork();
   }
 
   async process(stepData, wallet) {
@@ -96,7 +97,14 @@ module.exports = class ProcessBurnFromCardano {
       let mintBuilder = this.buildMint(tokenId, params.value);
       let collateralBuilder = await this.buildCollateral(wallet);
       let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder);
-      console.debug("ProcessBurnFromCardano tx: %O", tx.to_json());
+      console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
+
+      let evaluateTx = await this.tool.evaluateTx(this.network, tx.to_hex());
+      console.debug("evaluateTx: %O", evaluateTx);
+
+      // rebuild tx
+      mintBuilder = this.buildMint(tokenId, params.value, evaluateTx["mint:0"]);
+      tx = await this.buildTx(params.fromAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder);
 
       // sign and send
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
@@ -181,7 +189,7 @@ module.exports = class ProcessBurnFromCardano {
     return builder;
   }
 
-  buildMint(tokenId, burnedAmount) {
+  buildMint(tokenId, burnedAmount, budget = undefined) {
     const wasm = this.wasm;
     const chainInfoService = this.frameworkService.getService("ChainInfoService");
     const chainInfo = chainInfoService.getChainInfoByType("ADA");
@@ -193,8 +201,8 @@ module.exports = class ProcessBurnFromCardano {
     const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input_with_lang_ver(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2());
 
     const exUnitsMint = wasm.ExUnits.new(
-      wasm.BigNum.from_str("2136910"),  //(EX_UNIT_A),//TODO----->903197
-      wasm.BigNum.from_str("634469356") //(EX_UNIT_B)306405352
+      wasm.BigNum.from_str(budget? budget.memory.toString() : "2136910"),
+      wasm.BigNum.from_str(budget? budget.steps.toString() : "634469356")
     );
     const mintRedeemer = wasm.Redeemer.new(
       wasm.RedeemerTag.new_mint(),

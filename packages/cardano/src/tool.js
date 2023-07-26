@@ -1,4 +1,5 @@
 const CoinSelection = require("./coinSelection");
+const axios = require('axios');
 
 let wasm = null;
 
@@ -168,6 +169,12 @@ function splitMetadata(metadata, segmentLength = 64) {
   return result;
 }
 
+async function evaluateTx(network, rawTx) {
+  let ogmiosUrl = (network === "mainnet")? "https://nodes.wandevs.org/cardano" : "https://nodes-testnet.wandevs.org/cardano";
+  let res = await axios.post(ogmiosUrl + "/evaluateTx", {rawTx});
+  return res.data;
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -179,5 +186,6 @@ module.exports = {
   selectUtxos,
   genPlutusData,
   showUtxos,
-  splitMetadata
+  splitMetadata,
+  evaluateTx
 }
