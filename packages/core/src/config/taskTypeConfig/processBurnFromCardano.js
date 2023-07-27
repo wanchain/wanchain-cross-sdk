@@ -103,11 +103,11 @@ module.exports = class ProcessBurnFromCardano {
       console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
 
       let evaluateTx = await this.tool.evaluateTx(this.network, tx.to_hex());
-      console.debug("evaluateTx: %O", evaluateTx);
       let executionUnits = evaluateTx["mint:0"];
+      console.debug("executionUnits: %O", executionUnits);
       if ((executionUnits.memory > costModelParameters.maxExecutionUnitsPerTransaction.memory)
           || (executionUnits.steps > costModelParameters.maxExecutionUnitsPerTransaction.steps)) {
-        throw new Error("The execution unit exceeds the maximum limit, it is recommended to merge utxos");
+        throw new Error("The execution units exceed the maximum limit, it is recommended to merge utxos");
       }
 
       // rebuild tx
