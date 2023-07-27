@@ -68,6 +68,7 @@ class Signer {
   
   /* update one of {
     newOracleWorker,
+    newBalanceWorker,
     newTreasuryCheckVH,
     newMintCheckVH,
     newStackCheckVH,
@@ -78,6 +79,8 @@ class Signer {
     let tx, ctx = await this._getWalletContext();
     if (update.newOracleWorker) {
       tx = await this.sdk.setOracleWorker(update.newOracleWorker, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
+    } else if (update.newBalanceWorker) {
+      tx = await this.sdk.setBalanceWorker(update.newBalanceWorker, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     } else if (update.newTreasuryCheckVH) {
       tx = await this.sdk.setTreasuryCheckVH(update.newTreasuryCheckVH, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     } else if (update.newMintCheckVH) {
@@ -91,8 +94,12 @@ class Signer {
     return result;
   }
 
-  async upgradeGroupNFT() {
-    throw new Error("Not support yet");
+  async upgradeGroupNFT(newHolder, newDatum, signers) {
+    console.debug("Cardano Signer: upgradeGroupNFT, newHolder: %s, newDatum: %s, signers: %O", newHolder, newDatum, signers);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.upgradeGroupNFTHolder(newHolder, newDatum, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
+    let result = await this._sign("upgradeGroupNFT", {newHolder, newDatum}, signers, tx);
+    return result;
   }
 
   // AdminNFT@AdminNFTHolder
@@ -101,29 +108,37 @@ class Signer {
     console.debug("Cardano Signer: updateAdminNFT, newSigners: %s, threshold: %s, signers: %O", newSigners, threshold, signers);
     let ctx = await this._getWalletContext();
     let tx = await this.sdk.setAdmin(newSigners, threshold, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
-    let result = await this._sign("setAdmin", {newSigners, threshold}, signers, tx);
+    let result = await this._sign("updateAdminNFT", {newSigners, threshold}, signers, tx);
     return result;
   }
 
-  async upgradeAdminNFT() {
-    throw new Error("Not support yet");
+  async upgradeAdminNFT(newHolder, newDatum, signers) {
+    console.debug("Cardano Signer: upgradeAdminNFT, newHolder: %s, newDatum: %s, signers: %O", newHolder, newDatum, signers);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.upgradeAdminNFTHolder(newHolder, newDatum, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
+    let result = await this._sign("upgradeAdminNFT", {newHolder, newDatum}, signers, tx);
+    return result;
   }
 
   // CheckToken/TreasuryCheck@TreasuryCheck
 
   async mintTreasuryCheckToken(amount, signers) {
-    console.debug("Cardano Signer: mintTreasuryCheckToken, amount: %s, signers: %O", signers);
+    console.debug("Cardano Signer: mintTreasuryCheckToken, amount: %s, signers: %O", amount, signers);
     let ctx = await this._getWalletContext();
     let tx = await this.sdk.mintTreasuryCheckToken(amount, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     let result = await this._sign("mintTreasuryCheckToken", {amount}, signers, tx);
     return result;
   }
 
-  async burnTreasuryCheckToken() {
-    throw new Error("Not support yet");
+  async burnTreasuryCheckToken(amount, signers) {
+    console.debug("Cardano Signer: burnTreasuryCheckToken, amount: %s, signers: %O", amount, signers);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.burnTreasuryCheckToken(amount, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
+    let result = await this._sign("burnTreasuryCheckToken", {amount}, signers, tx);
+    return result;
   }
 
-  async migrateTreasuryCheckToken() {
+  async migrateTreasuryCheckToken() { // UNNECESSARY => burn + mint
     throw new Error("Not support yet");
   }
 
@@ -137,18 +152,22 @@ class Signer {
     return result;
   }
 
-  async burnMintCheckToken() {
-    throw new Error("Not support yet");
+  async burnMintCheckToken(amount, signers) {
+    console.debug("Cardano Signer: burnMintCheckToken, amount: %s, signers: %O", amount, signers);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.burnMintCheckToken(amount, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
+    let result = await this._sign("burnMintCheckToken", {amount}, signers, tx);
+    return result;
   }
 
-  async migrateMintCheckToken() {
+  async migrateMintCheckToken() { // UNNECESSARY => burn + mint
     throw new Error("Not support yet");
   }
 
   // UTXO@StakeCheck
 
-  async registerStake() {
-    throw new Error("Not neccessary");
+  async registerStake() { // UNNECESSARY
+    throw new Error("Not support yet");
   }
 
   async deregisterStake(signers) {
