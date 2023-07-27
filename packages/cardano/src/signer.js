@@ -75,20 +75,15 @@ class Signer {
   } */
   async updateGroupNFT(update, signers) {
     console.debug("Cardano Signer: updateGroupNFT, update: %O, signers: %O", update, signers);
-    let feeUtxos = await this._getFeeUtxos();
-    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-    let collateralUtxos = await this._getCollateralUtxos();
-    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx;
+    let tx, ctx = await this._getWalletContext();
     if (update.newOracleWorker) {
-      tx = await this.sdk.setOracleWorker(update.newOracleWorker, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+      tx = await this.sdk.setOracleWorker(update.newOracleWorker, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     } else if (update.newTreasuryCheckVH) {
-      tx = await this.sdk.setTreasuryCheckVH(update.newTreasuryCheckVH, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+      tx = await this.sdk.setTreasuryCheckVH(update.newTreasuryCheckVH, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     } else if (update.newMintCheckVH) {
-      tx = await this.sdk.setMintCheckVH(update.newMintCheckVH, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+      tx = await this.sdk.setMintCheckVH(update.newMintCheckVH, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     } else if (update.newStackCheckVH) {
-      tx = await this.sdk.setStakeCheckVH(update.newStackCheckVH, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+      tx = await this.sdk.setStakeCheckVH(update.newStackCheckVH, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     } else {
       throw new Error("Invalid input parameters");
     }
@@ -104,12 +99,8 @@ class Signer {
 
   async updateAdminNFT(newSigners, threshold, signers) {
     console.debug("Cardano Signer: updateAdminNFT, newSigners: %s, threshold: %s, signers: %O", newSigners, threshold, signers);
-    let feeUtxos = await this._getFeeUtxos();
-    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-    let collateralUtxos = await this._getCollateralUtxos();
-    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx = await this.sdk.setAdmin(newSigners, threshold, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.setAdmin(newSigners, threshold, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     let result = await this._sign("setAdmin", {newSigners, threshold}, signers, tx);
     return result;
   }
@@ -122,12 +113,8 @@ class Signer {
 
   async mintTreasuryCheckToken(amount, signers) {
     console.debug("Cardano Signer: mintTreasuryCheckToken, amount: %s, signers: %O", signers);
-    let feeUtxos = await this._getFeeUtxos();
-    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-    let collateralUtxos = await this._getCollateralUtxos();
-    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx = await this.sdk.mintTreasuryCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.mintTreasuryCheckToken(amount, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     let result = await this._sign("mintTreasuryCheckToken", {amount}, signers, tx);
     return result;
   }
@@ -144,12 +131,8 @@ class Signer {
 
   async mintMintCheckToken(amount, signers) {
     console.debug("Cardano Signer: mintMintCheckToken, amount: %s, signers: %O", signers);
-    let feeUtxos = await this._getFeeUtxos();
-    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-    let collateralUtxos = await this._getCollateralUtxos();
-    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx = await this.sdk.mintMintCheckToken(amount, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.mintMintCheckToken(amount, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     let result = await this._sign("mintMintCheckToken", {amount}, signers, tx);
     return result;
   }
@@ -170,38 +153,35 @@ class Signer {
 
   async deregisterStake(signers) {
     console.debug("Cardano Signer: deregisterStake, signers: %O", signers);
-    let feeUtxos = await this._getFeeUtxos();
-    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-    let collateralUtxos = await this._getCollateralUtxos();
-    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx = await this.sdk.deregister(signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.deregister(signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     let result = await this._sign("deregisterStake", {}, signers, tx);
     return result;
   }
 
   async delegateStake(pool, signers) {
     console.debug("Cardano Signer: delegateStake, pool: %s, signers: %O", pool, signers);
-    let feeUtxos = await this._getFeeUtxos();
-    feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
-    let collateralUtxos = await this._getCollateralUtxos();
-    collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx = await this.sdk.delegate(pool, signers, feeUtxos, collateralUtxos, selfAddres[0]);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.delegate(pool, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
     let result = await this._sign("delegateStake", {pool}, signers, tx);
     return result;
   }
 
   async withdrawalStake(amount, receiptor, signers) {
     console.debug("Cardano Signer: withdrawalStake, amount: %s, receiptor: %s, signers: %O", amount, receiptor, signers);
+    let ctx = await this._getWalletContext();
+    let tx = await this.sdk.claim(amount, receiptor, signers, ctx.feeUtxos, ctx.collateralUtxos, ctx.selfAddress);
+    let result = await this._sign("withdrawalStake", {amount, receiptor}, signers, tx);
+    return result;
+  }
+
+  async _getWalletContext() {
     let feeUtxos = await this._getFeeUtxos();
     feeUtxos = feeUtxos.map(v => this._convertUtxo(v));
     let collateralUtxos = await this._getCollateralUtxos();
     collateralUtxos = collateralUtxos.map(v => this._convertUtxo(v));
-    let selfAddres = await this.wallet.getAccounts();
-    let tx = await this.sdk.claim(amount, receiptor, signers, feeUtxos, collateralUtxos, selfAddres[0]);
-    let result = await this._sign("withdrawalStake", {amount, receiptor}, signers, tx);
-    return result;
+    let addresses = await this.wallet.getAccounts();
+    return {feeUtxos, collateralUtxos, selfAddress: addresses[0]};
   }
 
   async _getFeeUtxos(amount = 2000000) {
