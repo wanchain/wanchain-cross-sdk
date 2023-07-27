@@ -48,7 +48,10 @@ module.exports = class ProcessBurnFromCardano {
     //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
-      let epochParameters = await this.storemanService.getCardanoEpochParameters();
+      let [epochParameters, costModelParameters] = await Promise.all([
+        this.storemanService.getCardanoEpochParameters(),
+        this.storemanService.getCardanoCostModelParameters()
+      ]);
       // fix FeeTooSmallUTxO
       epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA * 2).toString();
       epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB * 2).toString();
@@ -96,15 +99,20 @@ module.exports = class ProcessBurnFromCardano {
       let metaData = this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
       let mintBuilder = this.buildMint(tokenId, params.value);
       let collateralBuilder = await this.buildCollateral(wallet);
-      let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder);
+      let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
       console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
 
       let evaluateTx = await this.tool.evaluateTx(this.network, tx.to_hex());
       console.debug("evaluateTx: %O", evaluateTx);
+      let executionUnits = evaluateTx["mint:0"];
+      if ((executionUnits.memory > costModelParameters.maxExecutionUnitsPerTransaction.memory)
+          || (executionUnits.steps > costModelParameters.maxExecutionUnitsPerTransaction.steps)) {
+        throw new Error("The execution unit exceeds the maximum limit, it is recommended to merge utxos");
+      }
 
       // rebuild tx
-      mintBuilder = this.buildMint(tokenId, params.value, evaluateTx["mint:0"]);
-      tx = await this.buildTx(params.fromAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder);
+      mintBuilder = this.buildMint(tokenId, params.value, executionUnits);
+      tx = await this.buildTx(params.fromAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
 
       // sign and send
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
@@ -151,17 +159,14 @@ module.exports = class ProcessBurnFromCardano {
     return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
 
-  async buildCostModels() {
-    let parameters = await this.storemanService.getCardanoCostModelParameters();
-    let costModels = parameters.costModels;
-
+  async buildCostModels(costModelParameters) {
+    let costModels = costModelParameters.costModels;
     const v1 = this.wasm.CostModel.new();
     let index = 0;
     for (let key in costModels['plutus:v1']) {
         v1.set(index, this.wasm.Int.new_i32(costModels['plutus:v1'][key]));
         index++;
     }
-
     const v2 = this.wasm.CostModel.new();
     index = 0;
     for (let key in costModels['plutus:v2']) {
@@ -189,7 +194,7 @@ module.exports = class ProcessBurnFromCardano {
     return builder;
   }
 
-  buildMint(tokenId, burnedAmount, budget = undefined) {
+  buildMint(tokenId, burnedAmount, executionUnits = undefined) {
     const wasm = this.wasm;
     const chainInfoService = this.frameworkService.getService("ChainInfoService");
     const chainInfo = chainInfoService.getChainInfoByType("ADA");
@@ -201,8 +206,8 @@ module.exports = class ProcessBurnFromCardano {
     const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input_with_lang_ver(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2());
 
     const exUnitsMint = wasm.ExUnits.new(
-      wasm.BigNum.from_str(budget? budget.memory.toString() : "2136910"),
-      wasm.BigNum.from_str(budget? budget.steps.toString() : "634469356")
+      wasm.BigNum.from_str(executionUnits? executionUnits.memory.toString() : "2136910"),
+      wasm.BigNum.from_str(executionUnits? executionUnits.steps.toString() : "634469356")
     );
     const mintRedeemer = wasm.Redeemer.new(
       wasm.RedeemerTag.new_mint(),
@@ -218,7 +223,7 @@ module.exports = class ProcessBurnFromCardano {
     return builder;
   }
 
-  async buildTx(paymentAddr, inputs, epochParameters, metaData, mintBuilder, collateralBuilder) {
+  async buildTx(paymentAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder) {
     const wasm = this.wasm;
     const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
     .coins_per_utxo_byte(
@@ -260,7 +265,7 @@ module.exports = class ProcessBurnFromCardano {
 
     txBuilder.set_mint_builder(mintBuilder);
 
-    let costModels = await this.buildCostModels();
+    let costModels = await this.buildCostModels(costModelParameters);
     txBuilder.calc_script_data_hash(costModels);
 
     let selfAddress = wasm.Address.from_bech32(paymentAddr);
