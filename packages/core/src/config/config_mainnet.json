@@ -377,6 +377,7 @@
       "mintFromChainHandle": "MintAdaFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
+      "MaskChainId": 1,
       "tokenScript": {
         "txHash": "fffb1b66bd78837ea0136587c354ee6a0991b6d0a2954e48d46a476b3ce683df",
         "index": 0,

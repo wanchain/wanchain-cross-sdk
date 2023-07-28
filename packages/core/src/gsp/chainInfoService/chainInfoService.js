@@ -5,7 +5,6 @@ module.exports = class ChainInfoService {
     this.m_mapChainIdObj = new Map();   // chainId - > chainInfo
     this.m_mapChainNameObj = new Map();  // chainName - > chainInfo
     this.m_mapChainTypeObj = new Map();  // chainType - > chainInfo
-    this.m_mapMaskChainIdObj = new Map(); // MaskChainId - > chainInfo
   }
 
   async init(frameworkService) {
@@ -18,9 +17,6 @@ module.exports = class ChainInfoService {
       this.m_mapChainIdObj.set(obj.chainId, obj);
       this.m_mapChainNameObj.set(obj.chainName, obj);
       this.m_mapChainTypeObj.set(obj.chainType, obj);
-      if (obj.MaskChainId) {
-        this.m_mapMaskChainIdObj.set(obj.MaskChainId, obj);
-      }
     }
 
     let noEthChainInfo = configService.getGlobalConfig("noEthChainInfo");
@@ -32,7 +28,6 @@ module.exports = class ChainInfoService {
     }
     // console.log("ChainInfoService this.m_mapChainIdObj:", this.m_mapChainIdObj);
     // console.log("ChainInfoService this.m_mapChainTypeObj:", this.m_mapChainTypeObj);
-    // console.log("ChainInfoService this.m_mapMaskChainIdObj:", this.m_mapMaskChainIdObj);
   }
 
   getChainInfoById(chainId) {
@@ -47,11 +42,6 @@ module.exports = class ChainInfoService {
 
   getChainInfoByType(chainType) {
     let obj = this.m_mapChainTypeObj.get(chainType);
-    return obj;
-  }
-
-  getChainInfoByMaskChainId(MaskchainId) {
-    let obj = this.m_mapMaskChainIdObj.get(MaskchainId);
     return obj;
   }
 }

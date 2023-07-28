@@ -1,4 +1,5 @@
 const CoinSelection = require("./coinSelection");
+const axios = require('axios');
 
 let wasm = null;
 
@@ -152,7 +153,7 @@ function showUtxos(utxos, title = "") {
   });
 }
 
-function getAddressType(address){
+function getAddressType(address) {
   let tmp = wasm.Address.from_bech32(address);
   let toAddrBase = wasm.BaseAddress.from_address(tmp) || wasm.EnterpriseAddress.from_address(tmp);
   let type = toAddrBase.payment_cred().kind();
@@ -168,6 +169,12 @@ function splitMetadata(metadata, segmentLength = 64) {
   return result;
 }
 
+async function evaluateTx(network, rawTx) {
+  let ogmiosUrl = (network === "mainnet")? "https://nodes.wandevs.org/cardano" : "https://nodes-testnet.wandevs.org/cardano";
+  let res = await axios.post(ogmiosUrl + "/evaluateTx", {rawTx});
+  return res.data;
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -179,5 +186,6 @@ module.exports = {
   selectUtxos,
   genPlutusData,
   showUtxos,
-  splitMetadata
+  splitMetadata,
+  evaluateTx
 }
