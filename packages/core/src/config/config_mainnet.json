@@ -267,6 +267,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741840",
+      "chainType": "VC",
+      "chainName": "VinuChain",
+      "crossScAddr": "",
+      "chainDecimals": 18,
+      "MaskChainId": 26,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
