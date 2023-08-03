@@ -245,6 +245,10 @@ class IWanBCConnector {
     async getRegisteredTokenIssuer(options) {
       return this.apiClient.getRegisteredTokenIssuer(options);
     }
+
+    async getRegisteredCoinGecko(options) {
+      return this.apiClient.getRegisteredCoinGecko(options);
+    }
 };
 
 module.exports = IWanBCConnector;

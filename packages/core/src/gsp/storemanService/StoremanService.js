@@ -286,6 +286,32 @@ class StoremanService {
       }
       return blockNumber;
     }
-};
+
+    async getAssetPrice(assets) {
+      let symbols = (typeof(assets) === "string")? [assets] : assets;
+      let ids = await this.m_iwanBCConnector.getRegisteredCoinGecko({symbol: symbols});
+      let id2symbol = {}, queryIds = [];
+      ids.forEach(v => {
+        id2symbol[v.id] = v.symbol.toUpperCase();
+        queryIds.push(v.id);
+      });
+      let prices = {};
+      try {
+        let res = await axios.get("https://api.coingecko.com/api/v3/simple/price", {params: {ids: queryIds.toString(), vs_currencies: 'usd'}});
+        if (res && res.data) {
+          for (let k in res.data) {
+            prices[id2symbol[k]] = res.data[k]['usd'].toString();
+          }
+        }
+        // console.log("get %s(%s) price: %O", symbols, queryIds, prices);
+      } catch (e) {
+        console.error("get %s(%s) price error: %O", symbols, queryIds, e);
+      }
+      if (typeof(assets) === "string") { // single symbol
+        prices = prices[ids[0]] || '0';
+      }
+      return prices;
+    }
+}
 
 module.exports = StoremanService;
