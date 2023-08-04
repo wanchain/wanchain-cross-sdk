@@ -6180,6 +6180,80 @@ class ApiInstance extends WsInstance {
 
   /**
    *
+   * @apiName getRegisteredCoinGecko
+   * @apiGroup Service
+   * @api {CONNECT} /ws/v3/YOUR-API-KEY getRegisteredCoinGecko
+   * @apiVersion 1.3.0
+   * @apiDescription Get records of registered coingecko information.
+   * <br><br><strong>Returns:</strong>
+   * <br><font color=&#39;blue&#39;>«Promise,undefined»</font> Returns undefined if used with callback or a promise otherwise.
+   *
+   * @apiParam {object} [options] Optional.
+   * <br>&nbsp;&nbsp;<code>address</code> - The array of coingecko address you want to search.
+   * <br>&nbsp;&nbsp;<code>symbol</code> - The array of coingecko symbol you want to search.
+   * <br>&nbsp;&nbsp;<code>after</code> - The timestamp after you want to search.
+   * @apiParam {function} [callback] Optional, the callback will receive two parameters:
+   * <br>&nbsp;&nbsp;<code>err</code> - If an error occurred.
+   * <br>&nbsp;&nbsp;<code>result</code> - The saved result.
+   *
+   * @apiParamExample {string} JSON-RPC over websocket
+   * {"jsonrpc":"2.0","method":"getRegisteredCoinGecko","params":{"symbol":######},"id":1}
+   *
+   * @apiExample {nodejs} Example callback usage:
+   *   const ApiInstance = require('iwan-sdk');
+   *   let apiTest = new ApiInstance(YOUR-API-KEY, YOUR-SECRET-KEY);
+   *   apiTest.getRegisteredCoinGecko({symbol:######}, (err, result) => {
+   *     console.log("Result is ", result);
+   *     apiTest.close();
+   *   });
+   *
+   * @apiExample {nodejs} Example promise usage:
+   *   const ApiInstance = require('iwan-sdk');
+   *   let apiTest = new ApiInstance(YOUR-API-KEY, YOUR-SECRET-KEY);
+   *   let result = await apiTest.getRegisteredCoinGecko({symbol:######});
+   *   console.log("Result is ", result);
+   *   apiTest.close();
+   *
+   * @apiSuccessExample {json} Successful Response
+   *  [
+   *    {
+   *      "id": "wanchain",
+   *      "symbol": "wan",
+   *      "name": "Wanchain"
+   *      "updatedAt": 1563780893497
+   *    },
+   *    ... ...
+   *  ]
+   *
+   */
+  getRegisteredCoinGecko(options, callback) {
+    let method = 'getRegisteredCoinGecko';
+    let params = {};
+
+    if (typeof (options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    params = utils.newJson(options);
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  /**
+   *
    * @apiName getPosInfo
    * @apiGroup POS
    * @api {CONNECT} /ws/v3/YOUR-API-KEY getPosInfo
@@ -8490,22 +8564,6 @@ class ApiInstance extends WsInstance {
 
     isConnetionOpen() {
         return this.open;
-    }
-
-    getStoremanGroupConfig(storemanGroupId, callback) {
-      let method = 'getStoremanGroupConfig';
-      let params = {
-        "groupId": storemanGroupId
-      };
-
-      return utils.promiseOrCallback(callback, cb => {
-        this._request(method, params, (err, result) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb(null, result);
-        });
-      });
     }
 
     multiCall(chainType, calls, options, callback) {
