@@ -8566,22 +8566,6 @@ class ApiInstance extends WsInstance {
         return this.open;
     }
 
-    getStoremanGroupConfig(storemanGroupId, callback) {
-      let method = 'getStoremanGroupConfig';
-      let params = {
-        "groupId": storemanGroupId
-      };
-
-      return utils.promiseOrCallback(callback, cb => {
-        this._request(method, params, (err, result) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb(null, result);
-        });
-      });
-    }
-
     multiCall(chainType, calls, options, callback) {
       if (typeof(options) === "function") {
         callback = options;

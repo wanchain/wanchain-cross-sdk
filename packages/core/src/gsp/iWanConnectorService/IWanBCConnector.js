@@ -71,11 +71,6 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getMultiBalance(chain, addrArray) {
-        let ret = await this.apiClient.getMultiBalances(chain, addrArray);
-        return ret;
-    }
-
     async getGasPrice(chain) {
         let ret = await this.apiClient.getGasPrice(chain);
         return ret;
@@ -91,30 +86,9 @@ class IWanBCConnector {
         return ret;
     }
 
-    async sendRawTransaction(chain, signedTx) {
-        let ret = await this.apiClient.sendRawTransaction(chain, signedTx);
-        return ret;
-    }
-
     async getTransactionReceipt(chain,txHash){
         let ret = await this.apiClient.getTransactionReceipt(chain,txHash);
         return ret;
-    }
-
-    async getChainInfo(chain) {
-        let ret = await this.apiClient.getChainInfo(chain);
-        return ret;
-    }
-
-    async getChainConstantInfo(options) {
-        try {
-            console.log("getChainConstantInfo options:", options);
-            let ret = await this.apiClient.getChainConstantInfo(options);
-            return ret;
-        }
-        catch (err) {
-            console.log("IWanBCConnector getChainConstantInfo err:", err);
-        }
     }
 
     async getTokenPairs(options) {
@@ -140,18 +114,6 @@ class IWanBCConnector {
     async getTokenPairIDs(options) {
         let ret = await this.apiClient.getTokenPairIDs(options);
         return ret;
-    }
-
-    async getTokenInfo(chain, tokenAddr, tokenType) {
-        let options = tokenType? {tokenType} : undefined;
-        let ret = await this.apiClient.getTokenInfo(chain, tokenAddr, options);
-        return ret;
-    }
-
-    async getMultiTokenInfo(chain, tokenScAddrArray, tokenType) {
-      let options = tokenType? {tokenType} : undefined;
-      let ret = await this.apiClient.getMultiTokenInfo(chain, tokenScAddrArray, options);
-      return ret;
     }
 
     async getTokenBalance(chain, accountAddr, tokenAddr) {
@@ -182,10 +144,6 @@ class IWanBCConnector {
     async getTxInfo(chain, txHash, options) {
         let ret = await this.apiClient.getTxInfo(chain, txHash, options);
         return ret;
-    }
-
-    async getStoremanGroupConfig(storemanGroupId) {
-        return await this.apiClient.getStoremanGroupConfig(storemanGroupId);
     }
 
     async checkErc721Approved(chain, token, ids, owner, operator) {
