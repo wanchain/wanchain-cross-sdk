@@ -273,53 +273,57 @@ class WanBridge extends EventEmitter {
   }
 
   getHistory(options = {}) {
-    let history = [];
+    let all = [];
     let records = this.stores.crossChainTaskRecords;
-    for (let [id, task] of records.ccTaskRecords) {
-      if (((options.taskId === undefined) || (options.taskId == id)) && ((options.protocol === undefined) || (options.protocol === task.protocol))) {
-        let item = {
-          taskId: task.ccTaskId,
-          pairId: task.assetPairId,
-          timestamp: task.ccTaskId,
-          asset: task.assetType,
-          protocol: task.protocol,
-          bridge: task.bridge,
-          fromSymbol: task.fromSymbol,
-          toSymbol: task.toSymbol,          
-          fromChain: task.fromChainName,
-          toChain: task.toChainName,
-          amount: task.sentAmount || task.amount,
-          fromDecimals: task.fromDecimals,
-          toDecimals: task.toDecimals,
-          receivedAmount: task.receivedAmount,
-          fee: task.fee,
-          fromAccount: task.fromAccount,
-          toAccount: task.toAccount,
-          ota: task.ota,
-          lockHash: task.lockHash,
-          redeemHash: task.redeemHash,
-          uniqueId: task.uniqueId || "",
-          status: task.status,
-          errInfo: task.errInfo
-        };
-        if (task.assetAlias) {
-          item.assetAlias = task.assetAlias;
-        }
-        history.push(item);
-        if (options.taskId !== undefined) { // only get one
-          break;
-        }
+    if (options.taskId) { // single
+      let task = records.getTaskById(options.taskId);
+      if (task) {
+        all.push(task);
       }
+    } else if ((options.page !== undefined) && options.number) { // page
+      all = records.getTaskByPage(options.page, options.number, options.protocols);
     }
-    console.debug("SDK: getHistory, options: %O, count: %d", options, history.length);
+    let history = all.map(task => {
+      let item = {
+        taskId: task.ccTaskId,
+        pairId: task.assetPairId,
+        timestamp: task.ccTaskId,
+        asset: task.assetType,
+        protocol: task.protocol,
+        bridge: task.bridge,
+        fromSymbol: task.fromSymbol,
+        toSymbol: task.toSymbol,
+        fromChain: task.fromChainName,
+        toChain: task.toChainName,
+        amount: task.sentAmount || task.amount,
+        fromDecimals: task.fromDecimals,
+        toDecimals: task.toDecimals,
+        receivedAmount: task.receivedAmount,
+        fee: task.fee,
+        fromAccount: task.fromAccount,
+        toAccount: task.toAccount,
+        ota: task.ota,
+        lockHash: task.lockHash,
+        redeemHash: task.redeemHash,
+        uniqueId: task.uniqueId || "",
+        status: task.status,
+        errInfo: task.errInfo
+      };
+      if (task.assetAlias) {
+        item.assetAlias = task.assetAlias;
+      }
+      return item;
+    });
+    console.debug("SDK: getHistory, options: %O, count: %O", options, history);
     return history;
   }
 
   async deleteHistory(options = {}) {
     let count = 0;
     let records = this.stores.crossChainTaskRecords;
+    let delIdSet = new Set(options.taskIds);
     let ids = Array.from(records.ccTaskRecords.values())
-      .filter(v => (((options.taskId === undefined) || (options.taskId == v.ccTaskId)) && ((options.protocol === undefined) || (options.protocol === v.protocol))))
+      .filter(v => (((delIdSet.size === 0) || delIdSet.has(v.ccTaskId)) && ((options.protocols === undefined) || (options.protocols.includes(v.protocol)))))
       .map(v => v.ccTaskId);
     for (let i = 0; i < ids.length; i++) {
       let id = ids[i];
