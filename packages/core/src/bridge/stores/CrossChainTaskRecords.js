@@ -145,7 +145,7 @@ class CrossChainTaskRecords {
 
   getTaskByPage(page, number, protocols) {
     let skip = page * number, result = [];
-    let allTasks = Array.from(ccTaskRecords.values()).filter(v => (protocols === undefined) || protocols.includes(v.protocol)); // should already be sorted in ascending order
+    let allTasks = Array.from(this.ccTaskRecords.values()).filter(v => (protocols === undefined) || protocols.includes(v.protocol)); // should already be sorted in ascending order
     let endIndex = allTasks.length - 1 - skip; // include
     let startIndex = endIndex - number + 1; // include
     if (startIndex < 0) {
