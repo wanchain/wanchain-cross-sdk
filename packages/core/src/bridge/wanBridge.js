@@ -272,6 +272,12 @@ class WanBridge extends EventEmitter {
     return infos;
   }
 
+  getHistoryNumber(options) {
+    let records = this.stores.crossChainTaskRecords;
+    let number = records.getTaskNumber(options.protocols);
+    console.debug("SDK: getHistoryNumber, options: %O, number: %O", options, number);
+  }
+
   getHistory(options = {}) {
     let all = [];
     let records = this.stores.crossChainTaskRecords;
