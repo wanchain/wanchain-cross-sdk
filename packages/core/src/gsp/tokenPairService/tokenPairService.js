@@ -297,7 +297,7 @@ class TokenPairService {
         tokenPair.assetAlias = "BTC.a";
       } if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
         tokenPair.assetAlias = "wanBTC";
-      } if (tokenPair.id === "454") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
+      } if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
         tokenPair.assetAlias = "USDC.e";
         tokenPair.fromSymbol = "USDC.e";
       }
