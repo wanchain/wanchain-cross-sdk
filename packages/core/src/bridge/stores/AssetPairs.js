@@ -56,6 +56,7 @@ class AssetPairs {
           fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
           toIssuer: pair.toIssuer,           // issuer of toAccount, only for xFlow
           bridge: pair.bridge,               // bridge, default is WanBridge
+          direction: pair.direction,
         };
         return assetPair;
       });

@@ -272,6 +272,12 @@ class WanBridge extends EventEmitter {
     return infos;
   }
 
+  getHistoryNumber(options) {
+    let records = this.stores.crossChainTaskRecords;
+    let number = records.getTaskNumber(options.protocols);
+    console.debug("SDK: getHistoryNumber, options: %O, number: %O", options, number);
+  }
+
   getHistory(options = {}) {
     let all = [];
     let records = this.stores.crossChainTaskRecords;
@@ -363,6 +369,67 @@ class WanBridge extends EventEmitter {
       console.error("SDK: formatTokenAccount, chainName: %s, tokenAccount: %s, error: %O", chainName, tokenAccount, err);
       return tokenAccount;
     }
+  }
+
+  getFromChains(options) { // options MUST contain protocols
+    let fromChainSet = new Set();
+    let assetPairList = this.stores.assetPairs.assetPairList;
+    for (let pair of assetPairList) {
+      if (options.protocols.includes(pair.protocol)) {
+        if (pair.direction === "both") {
+          fromChainSet.add(pair.fromChainName);
+          fromChainSet.add(pair.toChainName);
+        } else if (pair.direction === "f2t") {
+          fromChainSet.add(pair.fromChainName);
+        } else { // t2f
+          fromChainSet.add(pair.toChainName);
+        }
+      }
+    }
+    return Array.from(fromChainSet);
+  }
+
+  async getChainAssets(chainName, account, options) { // options should contain wallet for non-EVM chain
+    let chains;
+    if (chainName) {
+      chains = [chainName];
+    } else {
+      chains = await this.getFromChains(options);
+    }
+    let assets = await Promise.all(chains.map(chain => this._getChainAssets(chain, account, options)));
+    let result = {};
+    chains.forEach((v, i) => result[v] = assets[i]);
+    return result;
+  }
+
+  getToChains(assetType, fromChainName, options) { // options MUST contain protocols
+    let toChainSet = new Set();
+    let assetPairList = this.stores.assetPairs.assetPairList;
+    for (let pair of assetPairList) {
+      if (((pair.assetAlias || pair.assetType) === assetType) && options.protocols.includes(pair.protocol)) {
+        if (pair.fromChainName === fromChainName) {
+          if (["both", "f2t"].includes(pair.direction)) {
+            toChainSet.add(pair.toChainName);
+          }
+        }
+        if (pair.toChainName === fromChainName) {
+          if (["both", "t2f"].includes(pair.direction)) {
+            toChainSet.add(pair.fromChainName);
+          }
+        }
+      }
+    }
+    return Array.from(toChainSet);
+  }
+
+  async _getChainAssets(chainName, account, options) {
+    let chainType = this.tokenPairService.getChainType(chainName);
+    let assets = this.tokenPairService.getChainAssets(chainType);
+    let assetInfos = [];
+    for (let [asset, tokenAccount] of assets.entries()) {
+      assetInfos.push({asset, blance: "0", price: ""});
+    }
+    return assetInfos;
   }
 
   _onStoremanInitilized(success) {

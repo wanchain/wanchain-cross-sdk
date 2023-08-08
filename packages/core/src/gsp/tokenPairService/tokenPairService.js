@@ -15,7 +15,9 @@ class TokenPairService {
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
         this.tokenIssuer = new Map();
-        this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
+        this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
+        this.assetAlias2Type = new Map(); // for logo
+        this.chainAssets = new Map(); // chainType => assetName => tokenAccount
     }
 
     async init(frameworkService, options) {
@@ -273,8 +275,9 @@ class TokenPairService {
     }
 
     getAssetLogo(name, protocol) {
+      let assetName = this.assetAlias2Type.get(name) || name;
       protocol = protocol? protocol.toLowerCase() : "erc20";
-      let key = name + "_" + protocol;
+      let key = assetName + "_" + protocol;
       let logo = this.assetLogo.get(key);
       if (!logo) {
         logo = {data: new Identicon(crypto.createHash('md5').update(key).digest('hex')).toString(), type: "png"};
@@ -293,14 +296,22 @@ class TokenPairService {
     setExtraInfo(tokenPair) { // special treatment for frontend
       // assetAlias only change ui asset symbol, do not affect sdk, such as fee unit
       // readableSymbol affect both ui and sdk
+      let direction = "both";
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
+        this.assetAlias2Type.set("BTC.a", "BTC");
+        direction = "t2f";
       } if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
         tokenPair.assetAlias = "wanBTC";
-      } if (tokenPair.id === "454") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
+        this.assetAlias2Type.set("wanBTC", "BTC");
+        direction = "t2f";
+      } if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
         tokenPair.assetAlias = "USDC.e";
         tokenPair.fromSymbol = "USDC.e";
+        this.assetAlias2Type.set("USDC.e", "USDC");
+        direction = "f2t"; // fromChain and toChain are the same, only support f2t
       }
+      tokenPair.direction = direction;
     }
 
     customizeSymbol(symbol) { // special treatment for frontend
@@ -329,6 +340,7 @@ class TokenPairService {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
                 this.updateTokenPairCcHandle(tokenPair);
+                this.updateChainAssets(tokenPair);
                 return true;
             } catch (err) {
                 console.error("ignore unavailable token pair %s(%s, %s<->%s): %O", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName, err);
@@ -446,6 +458,25 @@ class TokenPairService {
         }
     }
 
+    updateChainAssets(tokenPair) {
+      let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
+      // fromChain
+      let assets = this.chainAssets.get(tokenPair.fromChainType);
+      if (!assets) {
+        assets = new Map();
+        this.chainAssets.set(tokenPair.fromChainType, assets);
+      }
+      assets.set(assetName, tokenPair.fromAccount);
+
+      // toChain
+      assets = this.chainAssets.get(tokenPair.toChainType);
+      if (!assets) {
+        assets = new Map();
+        this.chainAssets.set(tokenPair.toChainType, assets);
+      }
+      assets.set(assetName, tokenPair.toAccount);
+    }
+
     // for internal call
     getTokenBurnHandler(tokenPair, direction) {
       let chainType = (direction === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
@@ -480,12 +511,16 @@ class TokenPairService {
     }
 
     async updateSmgs() {
-        let smgList = await this.getSmgs();
-        this.webStores.assetPairs.setAssetPairs(undefined, smgList);
+      let smgList = await this.getSmgs();
+      this.webStores.assetPairs.setAssetPairs(undefined, smgList);
     }
 
     getChainType(chainName) {
       return this.chainName2Type.get(chainName);
+    }
+
+    getChainAssets(chainType) {
+      return this.chainAssets.get(chainType);
     }
 };
 

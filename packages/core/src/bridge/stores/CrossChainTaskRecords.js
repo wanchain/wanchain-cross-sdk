@@ -139,7 +139,7 @@ class CrossChainTaskRecords {
   }
 
   getTaskNumber(protocols) {
-    let allTasks = Array.from(ccTaskRecords.values()).filter(v => (protocols === undefined) || protocols.includes(v.protocol));
+    let allTasks = Array.from(this.ccTaskRecords.values()).filter(v => (protocols === undefined) || protocols.includes(v.protocol));
     return allTasks.length;
   }
 
