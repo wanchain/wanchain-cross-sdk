@@ -286,27 +286,6 @@ class StoremanService {
       }
       return blockNumber;
     }
-
-    async getAssetPrice(symbols) {
-      let prices = {}, id2symbol = {}, queryIds = [];
-      try {
-        let ids = await this.m_iwanBCConnector.getRegisteredCoinGecko({symbol: symbols});
-        ids.forEach(v => {
-          id2symbol[v.id] = v.symbol.toUpperCase();
-          queryIds.push(v.id);
-        });
-        let res = await axios.get("https://api.coingecko.com/api/v3/simple/price", {params: {ids: queryIds.toString(), vs_currencies: 'usd'}});
-        if (res && res.data) {
-          for (let k in res.data) {
-            prices[id2symbol[k]] = res.data[k]['usd'].toString();
-          }
-        }
-        // console.log("get %s(%s) price: %O", symbols, queryIds, prices);
-      } catch (e) {
-        console.error("get %s(%s) price error: %O", symbols, queryIds, e);
-      }
-      return prices;
-    }
 }
 
 module.exports = StoremanService;

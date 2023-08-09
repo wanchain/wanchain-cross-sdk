@@ -177,7 +177,7 @@ class WanBridge extends EventEmitter {
       this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
       this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)
     ]);
-    let prices = await this.storemanService.getAssetPrice([operateFee.unit, networkFee.unit]);
+    let prices = await this.tokenPairService.getAssetPrice([operateFee.unit, networkFee.unit]);
     let fee = {
       operateFee: {
         value: operateFee.fee,
@@ -394,11 +394,22 @@ class WanBridge extends EventEmitter {
     if (chainName) {
       chains = [chainName];
     } else {
-      chains = await this.getFromChains(options);
+      chains = this.getFromChains(options);
     }
-    let assets = await Promise.all(chains.map(chain => this._getChainAssets(chain, account, options)));
+    let assetNameSet = new Set();
+    let assetPairList = this.stores.assetPairs.assetPairList;
+    assetPairList.forEach(pair => {
+      if (options.protocols.includes(pair.protocol)) {
+        if ((!chainName) || (pair.fromChainName === chainName) || (pair.toChainName === chainName)) {
+          assetNameSet.add(pair.assetAlias || pair.assetType);
+        }
+      }
+    });
+    let prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
+    console.log("getChainAssets prices: %O", prices);
+    let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, account, prices, options)));
     let result = {};
-    chains.forEach((v, i) => result[v] = assets[i]);
+    chains.forEach((v, i) => result[v] = assetInfos[i]);
     return result;
   }
 
@@ -422,12 +433,12 @@ class WanBridge extends EventEmitter {
     return Array.from(toChainSet);
   }
 
-  async _getChainAssets(chainName, account, options) {
+  async _getChainAssets(chainName, account, prices, options) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType);
     let assetInfos = [];
     for (let [asset, tokenAccount] of assets.entries()) {
-      assetInfos.push({asset, blance: "0", price: ""});
+      assetInfos.push({asset, blance: "0", price: prices[asset] || "0"});
     }
     return assetInfos;
   }

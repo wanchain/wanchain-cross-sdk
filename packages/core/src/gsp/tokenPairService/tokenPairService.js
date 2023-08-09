@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
 const tool = require('../../utils/tool');
+const axios = require("axios");
 
 class TokenPairService {
     constructor() {
@@ -521,6 +522,45 @@ class TokenPairService {
 
     getChainAssets(chainType) {
       return this.chainAssets.get(chainType);
+    }
+
+    async getAssetPrice(symbols) {
+      let prices = {};
+      try {
+        let origSymbols = new Set(), alias = {}, id2symbol = {}, queryIds = [];
+        symbols.forEach(v => {
+          let aliasType = this.assetAlias2Type.get(v);
+          if (aliasType) {
+            alias[v] = aliasType;
+          } else {
+            origSymbols.add(v);
+          }
+        });
+        let ids = await this.iwanBCConnector.getRegisteredCoinGecko({symbol: Array.from(origSymbols)});
+        let symbol2id = {};
+        origSymbols.forEach(origSymbol => {
+          let idInfo = ids.find(v => v.symbol.toLowerCase() === origSymbol.toLowerCase());
+          symbol2id[origSymbol] = idInfo? idInfo.id : "";
+        });
+        for (let aliasName in alias) {
+          symbol2id[aliasName] = symbol2id[alias[aliasName]] || "";
+        }
+        let res = await axios.get("https://api.coingecko.com/api/v3/simple/price", {params: {ids: ids.map(v => v.id).toString(), vs_currencies: 'usd'}});
+        if (res && res.data) {
+          for (let symbol in symbol2id) {
+            let id = symbol2id[symbol];
+            if (res.data[id]) {
+              prices[symbol] = res.data[id]['usd'].toString();
+            } else {
+              prices[symbol] = "0";
+            }
+          }
+        }
+        // console.log("get %s price: %O", symbols, prices);
+      } catch (e) {
+        console.error("get %s price error: %O", symbols, e);
+      }
+      return prices;
     }
 };
 
