@@ -243,7 +243,7 @@
       "chainId": "1073741837",
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
-      "crossScAddr": "0x782Ab1450A934620B08f1f5fb07dfd3b8e6Dd5f6",
+      "crossScAddr": "0xa2374Ca12C744D6297c1954149b3e912742A782d",
       "chainDecimals": 18,
       "MaskChainId": 280,
       "ScScanInfo": {
