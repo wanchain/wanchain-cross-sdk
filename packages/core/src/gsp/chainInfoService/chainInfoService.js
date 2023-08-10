@@ -14,6 +14,7 @@ module.exports = class ChainInfoService {
     // console.log("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];
+      obj._isEVM = true;
       this.m_mapChainIdObj.set(obj.chainId, obj);
       this.m_mapChainNameObj.set(obj.chainName, obj);
       this.m_mapChainTypeObj.set(obj.chainType, obj);

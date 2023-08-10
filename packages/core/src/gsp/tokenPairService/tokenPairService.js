@@ -18,7 +18,7 @@ class TokenPairService {
         this.tokenIssuer = new Map();
         this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
         this.assetAlias2Type = new Map(); // for logo
-        this.chainAssets = new Map(); // chainType => assetName => tokenAccount
+        this.chainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
     }
 
     async init(frameworkService, options) {
@@ -462,20 +462,24 @@ class TokenPairService {
     updateChainAssets(tokenPair) {
       let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
       // fromChain
-      let assets = this.chainAssets.get(tokenPair.fromChainType);
-      if (!assets) {
-        assets = new Map();
-        this.chainAssets.set(tokenPair.fromChainType, assets);
+      let protocol = this.chainAssets.get(tokenPair.protocol);
+      if (!protocol) {
+        protocol = new Map();
+        this.chainAssets.set(tokenPair.protocol, protocol);
       }
-      assets.set(assetName, tokenPair.fromAccount);
-
+      let chain = protocol.get(tokenPair.fromChainType);
+      if (!chain) {
+        chain = new Map();
+        protocol.set(tokenPair.fromChainType, chain);
+      }
+      chain.set(assetName, {address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals});
       // toChain
-      assets = this.chainAssets.get(tokenPair.toChainType);
-      if (!assets) {
-        assets = new Map();
-        this.chainAssets.set(tokenPair.toChainType, assets);
+      chain = protocol.get(tokenPair.toChainType);
+      if (!chain) {
+        chain = new Map();
+        protocol.set(tokenPair.toChainType, chain);
       }
-      assets.set(assetName, tokenPair.toAccount);
+      chain.set(assetName, {address: tokenPair.toAccount, decimals: tokenPair.toDecimals});
     }
 
     // for internal call
@@ -520,8 +524,18 @@ class TokenPairService {
       return this.chainName2Type.get(chainName);
     }
 
-    getChainAssets(chainType) {
-      return this.chainAssets.get(chainType);
+    getChainAssets(chainType, options) {
+      let assets = {};
+      options.protocols.forEach(p => {
+        let protocol = this.chainAssets.get(p);
+        if (protocol) {
+          let chain = protocol.get(chainType);
+          if (chain) {
+            chain.forEach((tokenInfo, asset) => assets[asset] = tokenInfo);
+          }
+        }
+      })
+      return assets;
     }
 
     async getAssetPrice(symbols) {

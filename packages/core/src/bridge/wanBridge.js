@@ -395,7 +395,7 @@ class WanBridge extends EventEmitter {
     if (chainName) {
       chains = [chainName];
     } else {
-      chains = this.getFromChains(options);
+      chains = this.getFromChains(options).filter(v => v !== "VinuChain");
     }
     let assetNameSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
@@ -407,7 +407,7 @@ class WanBridge extends EventEmitter {
       }
     });
     let prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
-    console.log("getChainAssets prices: %O", prices);
+    // console.log("getChainAssets prices: %O", prices);
     let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, account, prices, options)));
     let result = {};
     chains.forEach((v, i) => result[v] = assetInfos[i]);
@@ -436,10 +436,12 @@ class WanBridge extends EventEmitter {
 
   async _getChainAssets(chainName, account, prices, options) {
     let chainType = this.tokenPairService.getChainType(chainName);
-    let assets = this.tokenPairService.getChainAssets(chainType);
+    let assets = this.tokenPairService.getChainAssets(chainType, options);
+    // console.log("_getChainAssets assets: %O", assets);
     let assetInfos = [];
-    for (let [asset, tokenAccount] of assets.entries()) {
-      assetInfos.push({asset, blance: "0", price: prices[asset] || "0"});
+    let balances = await this.storemanService.getAccountBalances(chainType, account, assets, options);
+    for (let asset in assets) {
+      assetInfos.push({asset, blance: balances[asset] || "0", price: prices[asset] || "0"});
     }
     return assetInfos;
   }
