@@ -438,8 +438,12 @@ class WanBridge extends EventEmitter {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType, options);
     // console.log("_getChainAssets assets: %O", assets);
-    let assetInfos = [];
-    let balances = await this.storemanService.getAccountBalances(chainType, account, assets, options);
+    let balances = {}, assetInfos = [];
+    try {
+      balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, account, assets, options));
+    } catch (err) {
+      console.error("%s _getChainAssets error: %O", chainName, err);
+    }
     for (let asset in assets) {
       assetInfos.push({asset, blance: balances[asset] || "0", price: prices[asset] || "0"});
     }
