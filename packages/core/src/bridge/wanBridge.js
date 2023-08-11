@@ -390,7 +390,7 @@ class WanBridge extends EventEmitter {
     return Array.from(fromChainSet);
   }
 
-  async getChainAssets(account, options) { // options should contain wallet for non-EVM chain
+  async getChainAssets(options) { // options should contain wallet for non-EVM chain
     let chains = options.chainNames || this.getFromChains(options).filter(v => v !== "VinuChain");
     let assetNameSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
@@ -406,7 +406,7 @@ class WanBridge extends EventEmitter {
       await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
     }
     // console.log("getChainAssets prices: %O", prices);
-    let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, account, prices, options)));
+    let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, prices, options)));
     let result = {};
     chains.forEach((v, i) => result[v] = assetInfos[i]);
     return result;
@@ -432,14 +432,14 @@ class WanBridge extends EventEmitter {
     return Array.from(toChainSet);
   }
 
-  async _getChainAssets(chainName, account, prices, options) {
+  async _getChainAssets(chainName, prices, options) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType, options);
     // console.log("_getChainAssets assets: %O", assets);
     let balances = {}, assetInfos = [];
     try {
-      if (options.balance) {
-        balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, account, assets, options));
+      if (options.account && options.balance) {
+        balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, options.account, assets, options));
       }
     } catch (err) {
       console.error("%s _getChainAssets error: %O", chainName, err);
