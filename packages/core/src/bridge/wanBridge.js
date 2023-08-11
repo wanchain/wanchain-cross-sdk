@@ -445,7 +445,7 @@ class WanBridge extends EventEmitter {
       console.error("%s _getChainAssets error: %O", chainName, err);
     }
     for (let asset in assets) {
-      assetInfos.push({asset, blance: balances[asset] || "0", price: prices[asset] || "0"});
+      assetInfos.push({asset, address: assets[asset].address, blance: balances[asset] || "0", price: prices[asset] || "0"});
     }
     return assetInfos;
   }
