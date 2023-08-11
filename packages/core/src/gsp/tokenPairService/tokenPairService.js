@@ -474,12 +474,14 @@ class TokenPairService {
       }
       chain.set(assetName, {address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals});
       // toChain
-      chain = protocol.get(tokenPair.toChainType);
-      if (!chain) {
-        chain = new Map();
-        protocol.set(tokenPair.toChainType, chain);
+      if (tokenPair.toChainType !== tokenPair.fromChainType) { // USDC.e
+        chain = protocol.get(tokenPair.toChainType);
+        if (!chain) {
+          chain = new Map();
+          protocol.set(tokenPair.toChainType, chain);
+        }
+        chain.set(assetName, {address: tokenPair.toAccount, decimals: tokenPair.toDecimals});
       }
-      chain.set(assetName, {address: tokenPair.toAccount, decimals: tokenPair.toDecimals});
     }
 
     // for internal call

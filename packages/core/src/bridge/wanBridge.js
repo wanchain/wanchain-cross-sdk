@@ -353,10 +353,10 @@ class WanBridge extends EventEmitter {
 
   formatTokenAccount(chainName, tokenAccount) {
     try {
-      let chainType = this.tokenPairService.getChainType(chainName);
       if (tokenAccount === "0x0000000000000000000000000000000000000000") {
-        return chainType;
+        return tokenAccount;
       }
+      let chainType = this.tokenPairService.getChainType(chainName);
       if (chainType === "XRP") {
         return tool.parseXrpTokenPairAccount(tokenAccount, true).join("."); // name.issuer
       } else if (chainType === "ADA") {
@@ -390,23 +390,21 @@ class WanBridge extends EventEmitter {
     return Array.from(fromChainSet);
   }
 
-  async getChainAssets(chainName, account, options) { // options should contain wallet for non-EVM chain
-    let chains;
-    if (chainName) {
-      chains = [chainName];
-    } else {
-      chains = this.getFromChains(options).filter(v => v !== "VinuChain");
-    }
+  async getChainAssets(account, options) { // options should contain wallet for non-EVM chain
+    let chains = options.chainNames || this.getFromChains(options).filter(v => v !== "VinuChain");
     let assetNameSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
     assetPairList.forEach(pair => {
       if (options.protocols.includes(pair.protocol)) {
-        if ((!chainName) || (pair.fromChainName === chainName) || (pair.toChainName === chainName)) {
+        if (chains.includes(pair.fromChainName) || chains.includes(pair.toChainName)) {
           assetNameSet.add(pair.assetAlias || pair.assetType);
         }
       }
     });
-    let prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
+    let prices = {};
+    if (options.balance) {
+      await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
+    }
     // console.log("getChainAssets prices: %O", prices);
     let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, account, prices, options)));
     let result = {};
@@ -440,12 +438,14 @@ class WanBridge extends EventEmitter {
     // console.log("_getChainAssets assets: %O", assets);
     let balances = {}, assetInfos = [];
     try {
-      balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, account, assets, options));
+      if (options.balance) {
+        balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, account, assets, options));
+      }
     } catch (err) {
       console.error("%s _getChainAssets error: %O", chainName, err);
     }
     for (let asset in assets) {
-      assetInfos.push({asset, address: assets[asset].address, blance: balances[asset] || "0", price: prices[asset] || "0"});
+      assetInfos.push({asset, address: this.formatTokenAccount(chainName, assets[asset].address), balance: balances[asset] || "0", price: prices[asset] || "0"});
     }
     return assetInfos;
   }
