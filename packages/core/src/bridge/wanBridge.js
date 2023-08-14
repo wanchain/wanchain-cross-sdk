@@ -402,8 +402,8 @@ class WanBridge extends EventEmitter {
       }
     });
     let prices = {};
-    if (options.balance) {
-      await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
+    if (options.account) {
+      prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
     }
     // console.log("getChainAssets prices: %O", prices);
     let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, prices, options)));
@@ -438,14 +438,14 @@ class WanBridge extends EventEmitter {
     // console.log("_getChainAssets assets: %O", assets);
     let balances = {}, assetInfos = [];
     try {
-      if (options.account && options.balance) {
+      if (options.account) {
         balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, options.account, assets, options));
       }
     } catch (err) {
       console.error("%s _getChainAssets error: %O", chainName, err);
     }
     for (let asset in assets) {
-      assetInfos.push({asset, address: this.formatTokenAccount(chainName, assets[asset].address), balance: balances[asset] || "0", price: prices[asset] || "0"});
+      assetInfos.push({asset, address: this.formatTokenAccount(chainName, assets[asset].address), balance: balances[asset] || "", price: prices[asset] || ""});
     }
     return assetInfos;
   }

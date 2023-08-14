@@ -543,7 +543,7 @@ class TokenPairService {
     async getAssetPrice(symbols) {
       let prices = {};
       try {
-        let origSymbols = new Set(), alias = {}, id2symbol = {}, queryIds = [];
+        let origSymbols = new Set(), alias = {};
         symbols.forEach(v => {
           let aliasType = this.assetAlias2Type.get(v);
           if (aliasType) {

@@ -16,6 +16,7 @@ class StoremanService {
       this.frameworkService = frameworkService;
       this.iwan = frameworkService.getService("iWanConnectorService");
       this.chainInfoService = frameworkService.getService("ChainInfoService");
+      this.configService = frameworkService.getService("ConfigService");
     }
 
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
@@ -107,39 +108,58 @@ class StoremanService {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
       let result = {};
       if (chainInfo._isEVM) { // evm support multicall
-        let mcs = [];
-        for (let asset in assets) {
-          let tokenInfo = assets[asset];
-          if (tokenInfo.address == 0) { // coin
-            mcs.push({
-              call: ['getEthBalance(address)(uint256)', addr],
-              returns: [[asset]]
-            });
-          } else { // token
-            mcs.push({
-              target: tokenInfo.address,
-              call: ['balanceOf(address)(uint256)', addr],
-              returns: [[asset]]
-            });
+        let evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
+        if (tool.isValidEthAddress(evmAddress)) {
+          let mcs = [];
+          for (let asset in assets) {
+            let tokenInfo = assets[asset];
+            if (tokenInfo.address == 0) { // coin
+              mcs.push({
+                call: ['getEthBalance(address)(uint256)', evmAddress],
+                returns: [[asset]]
+              });
+            } else { // token
+              mcs.push({
+                target: tokenInfo.address,
+                call: ['balanceOf(address)(uint256)', evmAddress],
+                returns: [[asset]]
+              });
+            }
+          };
+          let res = await this.iwan.multiCall(chainType, mcs);
+          let balances = res.results.transformed;
+          for (let asset in assets) {
+            let tokenInfo = assets[asset];
+            let balance = balances[asset];
+            if (typeof(balance) === "string") { // Tron
+              // do nothing
+            } else if (typeof(balance._hex) === "string") { // other EVMs
+              balance = balance._hex;
+            } else {
+              console.error("unrecognized %s %s balance: %O", chain, asset, balance);
+              balance = "";
+              continue;
+            }
+            result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
           }
-        };
-        let res = await this.iwan.multiCall(chainType, mcs);
-        let balances = res.results.transformed;
-        for (let asset in assets) {
-          let tokenInfo = assets[asset];
-          let balance = balances[asset];
-          if (typeof(balance) === "string") { // Tron
-            // do nothing
-          } else if (typeof(balance._hex) === "string") { // other EVMs
-            balance = balance._hex;
-          } else {
-            console.error("unrecognized %s %s balance: %O", chain, asset, balance);
-            balance = "0";
+        }
+      } else if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+        let assetArray = [], ps = [];
+        try { // input addr format maybe not match wallet
+          for (let asset in assets) {
+            assetArray.push(asset);
+            ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
           }
-          result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
+          let balances = await Promise.all(ps);
+          for (let i = 0; i < assetArray.length; i++) {
+            let asset = assetArray[i];
+            result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();
+          }
+        } catch (err) {
+          console.error("get %s %s balances error: %O", chainType, addr, err);
         }
       } else {
-        // TODO: non-EVM
+        console.debug("not support to get %s balance", chainType);
       }
       return result;
     }

@@ -32,7 +32,7 @@ class Yoroi {
 
   async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
-    if (addr === accounts[0]) {
+    if (accounts.includes(addr)) {
       let cardano = await this.wallet.enable();
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
@@ -43,8 +43,8 @@ class Yoroi {
         return value.coin().to_str(); // TODO: sub token locked coin
       }
     } else {
-      console.error("%s is not current address", addr);
-      throw new Error("Not current address");
+      console.log("%s is not used address", addr);
+      throw new Error("Not used address");
     }
   }
 
