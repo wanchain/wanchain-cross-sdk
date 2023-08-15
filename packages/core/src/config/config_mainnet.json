@@ -274,7 +274,7 @@
       "chainName": "VinuChain",
       "crossScAddr": "",
       "chainDecimals": 18,
-      "MaskChainId": 26,
+      "MaskChainId": 27,
       "ScScanInfo": {
         "taskInterval": 15000
       }
