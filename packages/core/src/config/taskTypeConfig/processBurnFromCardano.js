@@ -196,7 +196,7 @@ module.exports = class ProcessBurnFromCardano {
     const utxos = await wallet.getCollateral();
     console.log("get %d collateral utxos", utxos.length);
     if (utxos.length) {
-      let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 30000);
+      let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 60000);
       if (!checkUtxos) {
         throw new Error("Collateral utxos unavailable, please try again later");
       }

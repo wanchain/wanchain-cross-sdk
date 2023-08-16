@@ -187,7 +187,7 @@ async function evaluateTx(network, rawTx) {
   return res.data;
 }
 
-async function checkUtxos(network, utxos, timeout = 0, interval = 10000) { // ms
+async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
   let t0 = Date.now();
   for ( ; ; ) {
     let chainUtxos = [];

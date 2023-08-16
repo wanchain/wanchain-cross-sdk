@@ -505,7 +505,7 @@ class TokenPairService {
         }
         // console.log("get %s(%s) price: %O", symbols, queryIds, prices);
       } catch (e) {
-        console.error("get %s(%s) price error: %O", symbols, queryIds, e);
+        console.log("get %s(%s) price error: %O", symbols, queryIds, e);
       }
       return prices;
     }
