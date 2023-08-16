@@ -282,12 +282,6 @@ class BridgeTask {
         return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
       }
     }
-    if ((chainType === "ADA") && (this._direction === "BURN")) { // check ADA collateral
-      let collateral = await this._wallet.getCollateral();
-      if (collateral.length === 0) {
-        return this._bridge.globalConstant.ERR_NO_COLLATERAL;
-      }
-    }
     return "";
   }
 

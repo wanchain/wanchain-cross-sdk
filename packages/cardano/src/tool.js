@@ -169,10 +169,50 @@ function splitMetadata(metadata, segmentLength = 64) {
   return result;
 }
 
+function sleep(time) {
+  return new Promise(function(resolve) {
+    setTimeout(function() {
+      resolve();
+    }, time);
+  })
+}
+
+const OgmiosUrl = {
+  mainnet: "https://nodes.wandevs.org/cardano",
+  testnet: "https://nodes-testnet.wandevs.org/cardano"
+};
+
 async function evaluateTx(network, rawTx) {
-  let ogmiosUrl = (network === "mainnet")? "https://nodes.wandevs.org/cardano" : "https://nodes-testnet.wandevs.org/cardano";
-  let res = await axios.post(ogmiosUrl + "/evaluateTx", {rawTx});
+  let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
   return res.data;
+}
+
+async function checkUtxos(network, utxos, timeout = 0, interval = 10000) { // ms
+  let t0 = Date.now();
+  for ( ; ; ) {
+    let chainUtxos = [];
+    try {
+      let checkUtxos = utxos.map(v => {
+        let input = v.to_js_value().input;
+        return {
+          txId: input.transaction_id,
+          index: input.index
+        }
+      });
+      let res = await axios.post(OgmiosUrl[network] + "/getUTXOs", checkUtxos);
+      // console.log("checkUtxos res: %O", res);
+      chainUtxos = res.data;
+    } catch (err) {
+      console.error("checkUtxos error: %O", err);
+    }
+    if (chainUtxos.length >= utxos.length) {
+      return true;
+    } else if ((Date.now() - t0) <  timeout) {
+      await sleep(interval);
+    } else {
+      return false;
+    }
+  }
 }
 
 module.exports = {
@@ -187,5 +227,6 @@ module.exports = {
   genPlutusData,
   showUtxos,
   splitMetadata,
-  evaluateTx
+  evaluateTx,
+  checkUtxos
 }

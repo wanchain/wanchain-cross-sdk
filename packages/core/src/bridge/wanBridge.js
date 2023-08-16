@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2308151145", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2308161145", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -177,7 +177,7 @@ class WanBridge extends EventEmitter {
       this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
       this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)
     ]);
-    let prices = await this.storemanService.getAssetPrice([operateFee.unit, networkFee.unit]);
+    let prices = await this.tokenPairService.getAssetPrice([operateFee.unit, networkFee.unit]);
     let fee = {
       operateFee: {
         value: operateFee.fee,
@@ -238,8 +238,6 @@ class WanBridge extends EventEmitter {
     }
     if (extension && extension.tool && extension.tool.validateAddress) {
       return extension.tool.validateAddress(account, this.network, chainName);
-    } else if (["ETH", "BNB", "AVAX", "MOVR", "GLMR", "MATIC", "ARETH", "FTM", "OETH", "OKT", "CLV", "FX", "ASTR", "TLOS", "GTH", "METIS", "OKB", "SGB", "ZKETH", "ZEN", "VC"].includes(chainType)) {
-      return tool.isValidEthAddress(account);
     } else if ("WAN" === chainType) {
       return tool.isValidWanAddress(account);
     } else if ("BTC" === chainType) {
@@ -252,9 +250,8 @@ class WanBridge extends EventEmitter {
       return tool.isValidXrpAddress(account);
     } else if ("XDC" === chainType) {
       return tool.isValidXdcAddress(account);
-    } else {
-      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: unsupported chain", chainName, account);
-      return false;
+    } else { // default as EVM
+      return tool.isValidEthAddress(account);
     }
   }
 

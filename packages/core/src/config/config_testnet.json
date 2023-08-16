@@ -271,6 +271,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741838",
+      "chainType": "MATICETH",
+      "chainName": "Polygon zkEVM",
+      "crossScAddr": "0xdf9EfDC523407e8657a2d4f1eF4Dd2aCA51ceaBb",
+      "chainDecimals": 18,
+      "MaskChainId": 1442,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
