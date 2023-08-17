@@ -472,7 +472,7 @@ class TokenPairService {
         chain = new Map();
         protocol.set(tokenPair.fromChainType, chain);
       }
-      chain.set(assetName, {address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals});
+      chain.set(assetName, {address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol});
       // toChain
       if (tokenPair.toChainType !== tokenPair.fromChainType) { // USDC.e
         chain = protocol.get(tokenPair.toChainType);
@@ -480,7 +480,7 @@ class TokenPairService {
           chain = new Map();
           protocol.set(tokenPair.toChainType, chain);
         }
-        chain.set(assetName, {address: tokenPair.toAccount, decimals: tokenPair.toDecimals});
+        chain.set(assetName, {address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol});
       }
     }
 
