@@ -161,6 +161,10 @@ module.exports = class ProcessMintBtcFromBitcoin {
         data.fromBlockNumber = await storemanService.getChainBlockNumber(toChainType);
         data.ccTaskId = params.ccTaskId;
         data.fromChain = fromChainType;
+        let tokenPairService = this.frameworkService.getService("TokenPairService");
+        let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+        let direction = (tokenPair.fromChainType === fromChainType)? "MINT" : "BURN";
+        data.taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
         await checkTxService.addOTAInfo(data);
         return {
           address: ota,
