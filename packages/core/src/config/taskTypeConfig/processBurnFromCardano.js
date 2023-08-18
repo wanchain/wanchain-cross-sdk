@@ -94,7 +94,7 @@ module.exports = class ProcessBurnFromCardano {
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       if (inputs.length) {
-        let checkUtxos = await this.tool.checkUtxos(this.network, inputs);
+        let checkUtxos = await this.tool.checkUtxos(this.network, inputs, 10000);
         if (!checkUtxos) {
           throw new Error("UTXOs unavailable, please try again later");
         }
