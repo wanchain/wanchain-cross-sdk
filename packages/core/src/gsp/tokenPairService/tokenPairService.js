@@ -454,9 +454,9 @@ class TokenPairService {
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken) {
-        if (direction === "BURN") {
-          console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
-        }
+        // if (direction === "BURN") {
+        //   console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
+        // }
         return "MintErc20";
       } else {
         // if (direction === "MINT") {
