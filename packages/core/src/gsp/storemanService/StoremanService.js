@@ -144,22 +144,26 @@ class StoremanService {
           }
         }
       } else if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-        let assetArray = [], ps = [];
-        try { // input addr format maybe not match wallet
-          for (let asset in assets) {
-            assetArray.push(asset);
-            ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
+        let extension = this.configService.getExtension(chainType);
+        let network = this.configService.getNetwork();
+        if (extension && extension.tool && extension.tool.validateAddress && extension.tool.validateAddress(addr, network, chainType)) {
+          let assetArray = [], ps = [];
+          try { // input addr format maybe not match wallet
+            for (let asset in assets) {
+              assetArray.push(asset);
+              ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
+            }
+            let balances = await Promise.all(ps);
+            for (let i = 0; i < assetArray.length; i++) {
+              let asset = assetArray[i];
+              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();
+            }
+          } catch (err) {
+            console.error("get %s %s balances error: %O", chainType, addr, err);
           }
-          let balances = await Promise.all(ps);
-          for (let i = 0; i < assetArray.length; i++) {
-            let asset = assetArray[i];
-            result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();
-          }
-        } catch (err) {
-          console.error("get %s %s balances error: %O", chainType, addr, err);
         }
       } else {
-        console.debug("not support to get %s balance", chainType);
+        // console.debug("not support to get %s balance", chainType);
       }
       return result;
     }

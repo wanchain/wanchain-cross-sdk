@@ -55,12 +55,12 @@ class TokenPairService {
 
     async getSmgs(startTime) {
         let smgList = await this.iwanBCConnector.getStoremanGroupList();
-        let ts = new Date().getTime();
+        let ts = Date.now();
         console.debug("getSmgs %d consume %s ms", smgList.length, ts - startTime);
         let workingList = [];
         for (let i = 0; i < smgList.length; i++) {
             let smg = smgList[i];
-            let curTime = new Date().getTime();
+            let curTime = Date.now();
             let startTime = smg.startTime * 1000;
             let endTime = smg.endTime * 1000;
             if ((smg.status == 5) && (curTime > startTime) && (curTime < endTime)) {
@@ -78,7 +78,7 @@ class TokenPairService {
     async readAssetPair() {
         this.storageService = this.frameworkService.getService("StorageService");
         try {
-            let ts0 = new Date().getTime();
+            let ts0 = Date.now();
             let tokenPairMap = new Map();
             let [tokenPairs] = await Promise.all([
               this.readTokenpairs(ts0),
@@ -96,7 +96,7 @@ class TokenPairService {
               }
               return false;
             });
-            let ts1 = new Date().getTime();
+            let ts1 = Date.now();
             let ps = [
               this.getSmgs(ts1)
             ];
@@ -105,7 +105,7 @@ class TokenPairService {
               ps.push(this.readChainLogos(tokenPairs, ts1));
             }
             let [smgList] = await Promise.all(ps);
-            let ts2 = new Date().getTime();
+            let ts2 = Date.now();
             console.debug("readAssetPair consume %s/%s ms", ts2 - ts1, ts2 - ts0);
             // console.debug("available tokenPairMap: %O", tokenPairMap.values());
             this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList, this.configService);
@@ -159,7 +159,7 @@ class TokenPairService {
         this.storageService.setCacheData("TokenPair", tokenPairs);
         this.storageService.setCacheData("Version", {ui: uiVer, iwan: iwanVer});
       }
-      let ts = new Date().getTime();
+      let ts = Date.now();
       console.debug("readTokenpairs %d consume %s ms", tokenPairs.length, ts - startTime);
       return tokenPairs;
     }
@@ -172,7 +172,7 @@ class TokenPairService {
         map.set(key, t);
       })
       this.multiChainOrigToken = map;
-      let ts = new Date().getTime();
+      let ts = Date.now();
       console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
     }
 
@@ -184,7 +184,7 @@ class TokenPairService {
         map.set(key, t);
       })
       this.tokenIssuer = map;
-      let ts = new Date().getTime();
+      let ts = Date.now();
       console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
     }
 
@@ -222,7 +222,7 @@ class TokenPairService {
       } else {
         console.debug("all asset logo hit cache");
       }
-      let ts = new Date().getTime();
+      let ts = Date.now();
       console.debug("readAssetLogos %d consume %s ms", tokenScAddr.length, ts - startTime);
       this.assetLogo = logoMapCacheNew;
       this.storageService.setCacheData("AssetLogo", Array.from(logoMapCacheNew));
@@ -265,7 +265,7 @@ class TokenPairService {
       } else {
         console.debug("all chain logo hit cache");
       }
-      let ts = new Date().getTime();
+      let ts = Date.now();
       console.debug("readChainLogos %d consume %s ms", newChains.length, ts - startTime);
       this.chainLogo = logoMapCacheNew;
       this.storageService.setCacheData("ChainLogo", Array.from(logoMapCacheNew));
@@ -491,9 +491,9 @@ class TokenPairService {
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken) {
-        if (direction === "BURN") {
-          console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
-        }
+        // if (direction === "BURN") {
+        //   console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
+        // }
         return "MintErc20";
       } else {
         // if (direction === "MINT") {
@@ -574,7 +574,7 @@ class TokenPairService {
         }
         // console.log("get %s price: %O", symbols, prices);
       } catch (e) {
-        console.error("get %s price error: %O", symbols, e);
+        console.log("get %s price error: %O", symbols, e);
       }
       return prices;
     }

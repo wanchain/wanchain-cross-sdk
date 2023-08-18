@@ -391,6 +391,7 @@ class WanBridge extends EventEmitter {
   }
 
   async getChainAssets(options) { // options should contain wallet for non-EVM chain
+    let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options).filter(v => v !== "VinuChain");
     let assetNameSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
@@ -406,9 +407,13 @@ class WanBridge extends EventEmitter {
       prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
     }
     // console.log("getChainAssets prices: %O", prices);
-    let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, prices, options)));
+    let ts1 = Date.now();
+    console.debug("getAssetPrice consume %s ms", ts1 - ts0);
+    let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, prices, options, ts1)));
     let result = {};
     chains.forEach((v, i) => result[v] = assetInfos[i]);
+    let ts2 = Date.now();
+    console.debug("getChainAssets consume %s ms", ts2 - ts0);
     return result;
   }
 
@@ -432,7 +437,7 @@ class WanBridge extends EventEmitter {
     return Array.from(toChainSet);
   }
 
-  async _getChainAssets(chainName, prices, options) {
+  async _getChainAssets(chainName, prices, options, startTime) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType, options);
     // console.log("_getChainAssets assets: %O", assets);
@@ -453,6 +458,8 @@ class WanBridge extends EventEmitter {
         price: prices[asset] || ""
       });
     }
+    // let ts = Date.now();
+    // console.debug("%s _getChainAssets consume %s ms", chainName, ts - startTime);
     return assetInfos;
   }
 
