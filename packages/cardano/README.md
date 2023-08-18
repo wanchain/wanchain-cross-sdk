@@ -9,9 +9,11 @@ Use NPM or Yarn to install the package:
 npm install --save @wandevs/cross-cardano
 ```
 ## Prerequisites
-<li>Install Nami wallet from Chrome Web Store:
+<li>Install your favorite Cardano wallet from Chrome Web Store, such as:
 
-[Nami](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo)
+[Nami](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo),
+[Yoroi](https://chrome.google.com/webstore/detail/yoroi/ffnbelfdoeiohenkjibnmadjiehjhajb),
+[Eternl](https://chrome.google.com/webstore/detail/eternl/kmhcihpebfmpgmihbkipmjlmmioameka)
 
 ## Usage
 Step 1: Import WanBridge and cardano extension, create a bridge instance and initialize it with the extension.
@@ -31,10 +33,12 @@ let iwanAuth = {
 bridge.init(iwanAuth, {extensions: [CardanoExtension]});
 ```
 
-Step 2: Connect the Nami wallet.
+Step 2: Connect a wallet.
 
 ```javascript
 let namiWallet = new CardanoExtension.NamiWallet("testnet");
+// let yoroiWallet = new CardanoExtension.YoroiWallet("testnet");
+// let eternlWallet = new CardanoExtension.EternlWallet("testnet");
 ```
 
 Step 3: Select a related asset pair and create cross-chain task.
