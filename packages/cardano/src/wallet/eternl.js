@@ -69,9 +69,9 @@ class Eternl {
     return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 
-  async getCollateral(value = "3000000") {
+  async getCollateral() {
     let cardano = await this.wallet.enable();
-    let utxos = await cardano.getCollateral(value);
+    let utxos = await cardano.getCollateral();
     return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
