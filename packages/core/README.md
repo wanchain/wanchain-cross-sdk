@@ -19,7 +19,7 @@ npm install --save @wandevs/cross-core
 [WanMask](https://github.com/wanchain/wanmask),
 [XDCPay](https://chrome.google.com/webstore/detail/xdcpay/bocpokimicclpaiekenaeelehdjllofo),
 [OKX Wallet](https://chrome.google.com/webstore/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge),
-[CLV Wallet](https://chrome.google.com/webstore/detail/clv-wallet/nhnkbkgjikgcigadomkphalanndcapjk),
+[CLV Wallet](https://chrome.google.com/webstore/detail/clv-wallet/nhnkbkgjikgcigadomkphalanndcapjk)
 
 SDK core has built-in Web3Wallet support for cross-chain between EVM chains. Some extensions are provided to support sending transactions on other chains, such as Cardano, Polkadot and Tron, please refer the corresponding guide.
 

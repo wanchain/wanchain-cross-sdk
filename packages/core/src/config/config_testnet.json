@@ -243,7 +243,7 @@
       "chainId": "1073741837",
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
-      "crossScAddr": "0x782Ab1450A934620B08f1f5fb07dfd3b8e6Dd5f6",
+      "crossScAddr": "0xa2374Ca12C744D6297c1954149b3e912742A782d",
       "chainDecimals": 18,
       "MaskChainId": 280,
       "ScScanInfo": {
@@ -267,7 +267,18 @@
       "chainName": "VinuChain",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 26,
+      "MaskChainId": 27,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741838",
+      "chainType": "MATICETH",
+      "chainName": "Polygon zkEVM",
+      "crossScAddr": "0xdf9EfDC523407e8657a2d4f1eF4Dd2aCA51ceaBb",
+      "chainDecimals": 18,
+      "MaskChainId": 1442,
       "ScScanInfo": {
         "taskInterval": 15000
       }

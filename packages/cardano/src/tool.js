@@ -20,29 +20,29 @@ function validateAddress(address, network, chain) {
   const networkId = (network === "testnet")? 0 : 1;
   try {
     let addr = wasm.ByronAddress.from_base58(address);
-    console.debug("%s is ADA Byron base58 address", address);
+    // console.debug("%s is ADA Byron base58 address", address);
     return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
   } catch (e) {
-    console.debug("%s is not ADA Byron base58 address: %O", address, e);
+    // console.debug("%s is not ADA Byron base58 address: %O", address, e);
   }
   try {
     let addr = wasm.Address.from_bech32(address);
     try {
       let byronAddr = wasm.ByronAddress.from_address(addr);
       if (byronAddr) {
-        console.debug("%s is ADA Byron bech32 address", address);
+        // console.debug("%s is ADA Byron bech32 address", address);
       }
       return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key)); // byronAddr is undefined to throw error
     } catch (e) {
       let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-      console.log("%s is Shelly type %s address", address, prefix);
+      // console.log("%s is Shelly type %s address", address, prefix);
       if (parseInt(prefix, 2) > 7) {
         return false;
       }
       return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
     }
   } catch (e) {
-    console.debug("%s is not ADA bech32 address: %O", address, e);
+    // console.debug("%s is not ADA bech32 address: %O", address, e);
   }
   return false;
 }
@@ -169,10 +169,51 @@ function splitMetadata(metadata, segmentLength = 64) {
   return result;
 }
 
+function sleep(time) {
+  return new Promise(function(resolve) {
+    setTimeout(function() {
+      resolve();
+    }, time);
+  })
+}
+
+const OgmiosUrl = {
+  mainnet: "https://nodes.wandevs.org/cardano",
+  testnet: "https://nodes-testnet.wandevs.org/cardano"
+};
+
 async function evaluateTx(network, rawTx) {
-  let ogmiosUrl = (network === "mainnet")? "https://nodes.wandevs.org/cardano" : "https://nodes-testnet.wandevs.org/cardano";
-  let res = await axios.post(ogmiosUrl + "/evaluateTx", {rawTx});
+  let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
   return res.data;
+}
+
+async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
+  let t0 = Date.now();
+  for ( ; ; ) {
+    let chainUtxos = [];
+    let checkUtxos = utxos.map(v => {
+      let input = v.to_js_value().input;
+      return {
+        txId: input.transaction_id,
+        index: input.index
+      }
+    });
+    try {
+      let res = await axios.post(OgmiosUrl[network] + "/getUTXOs", checkUtxos);
+      // console.log("checkUtxos res: %O", res);
+      chainUtxos = res.data;
+    } catch (err) {
+      console.error("checkUtxos error: %O", err);
+    }
+    if (chainUtxos.length >= utxos.length) {
+      return true;
+    } else if ((Date.now() - t0) <  timeout) {
+      await sleep(interval);
+    } else {
+      console.debug("check utxos %d ms unavailable: %O", timeout, checkUtxos);
+      return false;
+    }
+  }
 }
 
 module.exports = {
@@ -187,5 +228,6 @@ module.exports = {
   genPlutusData,
   showUtxos,
   splitMetadata,
-  evaluateTx
+  evaluateTx,
+  checkUtxos
 }

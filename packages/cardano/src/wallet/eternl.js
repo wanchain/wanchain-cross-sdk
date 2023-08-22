@@ -1,13 +1,13 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
 
-class Yoroi {
+class Eternl {
   constructor(provider) {
-    this.name = "Yoroi";
+    this.name = "Eternl";
     if (!['mainnet', 'testnet'].includes(provider)) {
       throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
     }
-    this.wallet = window.cardano.yoroi;
+    this.wallet = window.cardano.eternl;
     this.wasm = wasm.getWasm();
   }
 
@@ -50,7 +50,7 @@ class Yoroi {
 
   async sendTransaction(tx, sender) {
     let cardano = await this.wallet.enable();
-    let witnessSet = await cardano.signTx(tx.to_hex());
+    let witnessSet = await cardano.signTx(tx.to_hex(), true);
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
     if (redeemers) {
@@ -69,11 +69,11 @@ class Yoroi {
     return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 
-  async getCollateral(value = "3000000") {
+  async getCollateral() {
     let cardano = await this.wallet.enable();
-    let utxos = await cardano.getCollateral(value);
+    let utxos = await cardano.getCollateral();
     return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 
-module.exports = Yoroi;
+module.exports = Eternl;

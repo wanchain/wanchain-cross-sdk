@@ -326,6 +326,25 @@ function parseEvmLog(log, abi) {
   return log;
 }
 
+async function timedPromise(promise, msg = 'PTIMEOUT', ms = 5000) {
+  let timer;
+  let wrappedPromise = Promise.race([
+    promise,
+    new Promise((resolve, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error(msg));
+      }, ms);
+    }),
+  ]);
+  return wrappedPromise.then((result) => {
+      clearTimeout(timer);
+      return result;
+  }).catch((err) => {
+      clearTimeout(timer);
+      throw err;
+  })
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -349,5 +368,6 @@ module.exports = {
   validateXrpTokenAmount,
   parseTokenPairSymbol,
   getErrMsg,
-  parseEvmLog
+  parseEvmLog,
+  timedPromise
 }

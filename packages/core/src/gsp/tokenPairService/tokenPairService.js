@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const Identicon = require('identicon.js');
 const tool = require('../../utils/tool');
+const axios = require("axios");
 
 class TokenPairService {
     constructor() {
@@ -453,9 +454,9 @@ class TokenPairService {
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken) {
-        if (direction === "BURN") {
-          console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
-        }
+        // if (direction === "BURN") {
+        //   console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
+        // }
         return "MintErc20";
       } else {
         // if (direction === "MINT") {
@@ -486,6 +487,27 @@ class TokenPairService {
 
     getChainType(chainName) {
       return this.chainName2Type.get(chainName);
+    }
+
+    async getAssetPrice(symbols) {
+      let prices = {}, id2symbol = {}, queryIds = [];
+      try {
+        let ids = await this.iwanBCConnector.getRegisteredCoinGecko({symbol: symbols});
+        ids.forEach(v => {
+          id2symbol[v.id] = v.symbol.toUpperCase();
+          queryIds.push(v.id);
+        });
+        let res = await tool.timedPromise(axios.get("https://api.coingecko.com/api/v3/simple/price", {params: {ids: queryIds.toString(), vs_currencies: 'usd'}}), "price timeout", 2000);
+        if (res && res.data) {
+          for (let k in res.data) {
+            prices[id2symbol[k]] = res.data[k]['usd'].toString();
+          }
+        }
+        // console.log("get %s(%s) price: %O", symbols, queryIds, prices);
+      } catch (e) {
+        console.log("get %s(%s) price error: %O", symbols, queryIds, e);
+      }
+      return prices;
     }
 };
 
