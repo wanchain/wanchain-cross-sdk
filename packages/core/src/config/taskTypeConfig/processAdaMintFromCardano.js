@@ -104,6 +104,7 @@ module.exports = class ProcessAdaMintFromCardano {
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
+      let direction = (tokenPair.fromChainType === "ADA")? "MINT" : "BURN";
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
@@ -111,7 +112,7 @@ module.exports = class ProcessAdaMintFromCardano {
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
-        taskType: "MINT"
+        taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction)
       };
 
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
