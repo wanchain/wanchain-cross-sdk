@@ -40,6 +40,7 @@ module.exports = class ProcessAdaMintFromCardano {
     let extension = configService.getExtension("ADA");
     this.tool = extension.tool;
     this.wasm = extension.tool.getWasm();
+    this.network = configService.getNetwork();
   }
 
   async process(stepData, wallet) {
@@ -82,17 +83,21 @@ module.exports = class ProcessAdaMintFromCardano {
       );
 
       let utxos = await wallet.getUtxos();
-      // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
-      if (inputs.length === 0) {
+      console.log("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
+      if (inputs.length) {
+        this.tool.showUtxos(inputs, "mint tx input");
+        let checkUtxos = await this.tool.checkUtxos(this.network, inputs, 10000);
+        if (!checkUtxos) {
+          throw new Error("UTXOs unavailable, please try again later");
+        }
+      } else {
         throw new Error("Not enough utxos");
       }
-      console.debug("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      // this.tool.showUtxos(inputs, "inputs");
 
       let metaData = await this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
 

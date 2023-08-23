@@ -148,8 +148,7 @@ function showUtxos(utxos, title = "") {
     if (typeof(utxo) === "string") {
       utxo = wasm.TransactionUnspentOutput.from_hex(utxo);
     }
-    let amount = utxo.output().amount();
-    console.debug("%s utxo %d amount: %O", title, i, amount.to_js_value());
+    console.debug("%s utxo %d: %O", title, i, utxo.to_js_value());
   });
 }
 
