@@ -45,7 +45,7 @@ module.exports = class ProcessBurnFromCardano {
 
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
-    //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
+    // console.debug("ProcessBurnFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
       // check collateral at first
