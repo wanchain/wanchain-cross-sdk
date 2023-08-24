@@ -85,7 +85,6 @@ class Yoroi {
     return utxos.filter(v => {
       let output = v.output().address().to_bech32();
       if (accountSet.has(output)) {
-        tool.showUtxos([v], "owned");
         return true;
       } else {
         tool.showUtxos([v], "filter not owned");
