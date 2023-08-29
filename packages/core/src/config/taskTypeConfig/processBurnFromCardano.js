@@ -86,14 +86,15 @@ module.exports = class ProcessBurnFromCardano {
       output.amount[0].quantity = minAda;
 
       let utxos = await wallet.getUtxos();
-      // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
 
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
+      console.log("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       if (inputs.length) {
+        this.tool.showUtxos(inputs, "burn tx input");
         let checkUtxos = await this.tool.checkUtxos(this.network, inputs, 10000);
         if (!checkUtxos) {
           throw new Error("UTXOs unavailable, please try again later");
@@ -101,8 +102,6 @@ module.exports = class ProcessBurnFromCardano {
       } else {
         throw new Error("Not enough utxos");
       }
-      console.debug("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      // this.tool.showUtxos(inputs, "inputs");
 
       let metaData = this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
       let mintBuilder = this.buildMint(tokenId, params.value);
@@ -194,8 +193,9 @@ module.exports = class ProcessBurnFromCardano {
 
   async buildCollateral(wallet) {
     const utxos = await wallet.getCollateral();
-    console.log("get %d collateral utxos", utxos.length);
     if (utxos.length) {
+      console.log("get %d collateral utxos", utxos.length);
+      this.tool.showUtxos(utxos, "burn tx collateral");
       let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 120000);
       if (!checkUtxos) {
         throw new Error("Collateral utxos unavailable, please try again later");
