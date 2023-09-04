@@ -437,6 +437,26 @@ class WanBridge extends EventEmitter {
     return Array.from(toChainSet);
   }
 
+  getAssetPairInfo(assetType, fromChainName, toChainName, options) {
+    let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
+    let fromInfo = {
+      chain: tokenPair.fromChainName,
+      symbol: tokenPair.fromSymbol,
+      address: this.formatTokenAccount(tokenPair.fromChainName, tokenPair.fromAccount),
+      isNative: tokenPair.fromIsNative,
+      issuer: tokenPair.fromIssuer
+    };
+    let toInfo = {
+      chain: tokenPair.toChainName,
+      symbol: tokenPair.toSymbol,
+      address: this.formatTokenAccount(tokenPair.toChainName, tokenPair.toAccount),
+      isNative: tokenPair.toIsNative,
+      issuer: tokenPair.toIssuer
+    };
+    let result = (tokenPair.fromChainName === fromChainName)? [fromInfo, toInfo] : [toInfo, fromInfo];
+    return result;
+  }
+
   async _getChainAssets(chainName, prices, options, startTime) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType, options);
@@ -452,6 +472,7 @@ class WanBridge extends EventEmitter {
     for (let asset in assets) {
       assetInfos.push({
         asset,
+        symbol: assets[asset].symbol,
         address: this.formatTokenAccount(chainName, assets[asset].address),
         protocol: assets[asset].protocol,
         balance: balances[asset] || "",
