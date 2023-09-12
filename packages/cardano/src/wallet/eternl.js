@@ -1,13 +1,13 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
 
-class Yoroi {
+class Eternl {
   constructor(provider) {
-    this.name = "Yoroi";
+    this.name = "Eternl";
     if (!['mainnet', 'testnet'].includes(provider)) {
       throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
     }
-    this.wallet = window.cardano.yoroi;
+    this.wallet = window.cardano.eternl;
     this.wasm = wasm.getWasm();
   }
 
@@ -50,7 +50,7 @@ class Yoroi {
 
   async sendTransaction(tx, sender) {
     let cardano = await this.wallet.enable();
-    let witnessSet = await cardano.signTx(tx.to_hex());
+    let witnessSet = await cardano.signTx(tx.to_hex(), true);
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
     if (redeemers) {
@@ -66,32 +66,14 @@ class Yoroi {
   async getUtxos() {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getUtxos();
-    let selfUtxos = await this._filterUtxos(utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo)));
-    return selfUtxos;
+    return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 
-  async getCollateral(value = "3000000") {
+  async getCollateral() {
     let cardano = await this.wallet.enable();
-    let utxos = await cardano.getCollateral(value);
+    let utxos = await cardano.getCollateral();
     return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
-  }
-
-  async _filterUtxos(utxos) {
-    let cardano = await this.wallet.enable();
-    let accounts = await cardano.getUsedAddresses();
-    let accountSet = new Set();
-    accounts.forEach(v => accountSet.add(this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32()));
-    console.log("_filterUtxos by accounts: %O", accountSet)
-    return utxos.filter(v => {
-      let output = v.output().address().to_bech32();
-      if (accountSet.has(output)) {
-        return true;
-      } else {
-        tool.showUtxos([v], "filter not owned");
-        return false;
-      }
-    });
   }
 }
 
-module.exports = Yoroi;
+module.exports = Eternl;

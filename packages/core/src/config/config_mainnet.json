@@ -116,6 +116,10 @@
       "chainType": "OETH",
       "chainName": "Optimism",
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+      "CircleBridge": {
+        "domain": 2,
+        "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6"
+      },
       "chainDecimals": 18,
       "MaskChainId": 10,
       "ScScanInfo": {
@@ -274,7 +278,7 @@
       "chainName": "VinuChain",
       "crossScAddr": "",
       "chainDecimals": 18,
-      "MaskChainId": 26,
+      "MaskChainId": 27,
       "ScScanInfo": {
         "taskInterval": 15000
       }

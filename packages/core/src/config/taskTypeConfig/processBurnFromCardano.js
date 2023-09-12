@@ -45,14 +45,17 @@ module.exports = class ProcessBurnFromCardano {
 
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
-    //console.debug("ProcessAdaMintFromCardano stepData:", stepData);
+    // console.debug("ProcessBurnFromCardano stepData:", stepData);
     let params = stepData.params;
     try {
+      // check collateral at first
+      let collateralBuilder = await this.buildCollateral(wallet);
+
       let [epochParameters, costModelParameters] = await Promise.all([
         this.storemanService.getCardanoEpochParameters(),
         this.storemanService.getCardanoCostModelParameters()
       ]);
-      // fix FeeTooSmallUTxO
+      // adjust FeeTooSmallUTxO
       epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA * 2).toString();
       epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB * 2).toString();
 
@@ -83,28 +86,36 @@ module.exports = class ProcessBurnFromCardano {
       output.amount[0].quantity = minAda;
 
       let utxos = await wallet.getUtxos();
-      // this.tool.showUtxos(utxos, "all");
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
 
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
-      if (inputs.length === 0) {
+      console.log("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
+      if (inputs.length) {
+        this.tool.showUtxos(inputs, "burn tx input");
+        let checkUtxos = await this.tool.checkUtxos(this.network, inputs, 10000);
+        if (!checkUtxos) {
+          throw new Error("UTXOs unavailable, please try again later");
+        }
+      } else {
         throw new Error("Not enough utxos");
       }
-      console.debug("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
-      // this.tool.showUtxos(inputs, "inputs");
 
       let metaData = this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
       let mintBuilder = this.buildMint(tokenId, params.value);
-      let collateralBuilder = await this.buildCollateral(wallet);
       let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
       console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
 
       let evaluateTx = await this.tool.evaluateTx(this.network, tx.to_hex());
       let executionUnits = evaluateTx["mint:0"];
-      console.debug("executionUnits: %O", executionUnits);
+      if (executionUnits) {
+        console.debug("executionUnits: %O", executionUnits);
+      } else {
+        console.error("evaluateTx: %O", evaluateTx);
+        throw new Error("Failed to evaluate tx, please try again later");
+      }
       if ((executionUnits.memory > costModelParameters.maxExecutionUnitsPerTransaction.memory)
           || (executionUnits.steps > costModelParameters.maxExecutionUnitsPerTransaction.steps)) {
         throw new Error("The execution units exceed the maximum limit, it is recommended to merge utxos");
@@ -136,7 +147,7 @@ module.exports = class ProcessBurnFromCardano {
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessBurnFromCardano error: %O", err);
-      if (err.info === "User declined to sign the transaction.") { // code 2 include other errors
+      if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.info)) { // code 2 include other errors
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
@@ -182,7 +193,16 @@ module.exports = class ProcessBurnFromCardano {
 
   async buildCollateral(wallet) {
     const utxos = await wallet.getCollateral();
-    console.debug("buildCollateral get %d utxos", utxos.length);
+    if (utxos.length) {
+      console.log("get %d collateral utxos", utxos.length);
+      this.tool.showUtxos(utxos, "burn tx collateral");
+      let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 120000);
+      if (!checkUtxos) {
+        throw new Error("Collateral utxos unavailable, please try again later");
+      }
+    } else {
+      throw new Error("No collateral utxos");
+    }
     const builder = this.wasm.TxInputsBuilder.new();
     for (let utxo of utxos) {
       builder.add_input(

@@ -318,6 +318,8 @@ class TokenPairService {
     customizeSymbol(symbol) { // special treatment for frontend
       if (symbol === "Djed_testMicroUSD") {
         return "Djed Test USD";
+      } else if (symbol === "GEROV2") {
+        return "GERO";
       } else {
         return symbol;
       }
