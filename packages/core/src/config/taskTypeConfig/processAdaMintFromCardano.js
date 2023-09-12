@@ -86,6 +86,7 @@ module.exports = class ProcessAdaMintFromCardano {
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
+      utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
@@ -105,7 +106,7 @@ module.exports = class ProcessAdaMintFromCardano {
       console.debug("ProcessAdaMintFromCardano tx: %O", tx.to_json());
 
       // sign and send
-      let txHash = await wallet.sendTransaction(tx, params.fromAddr);
+      let txHash = await wallet.sendTransaction(tx.to_hex(), params.fromAddr);
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt

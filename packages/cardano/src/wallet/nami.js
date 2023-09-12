@@ -47,6 +47,7 @@ class Nami {
   }
 
   async sendTransaction(tx, sender) {
+    tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await this.cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
@@ -62,12 +63,12 @@ class Nami {
 
   async getUtxos() {
     let utxos = await this.cardano.getUtxos();
-    return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos;
   }
 
   async getCollateral() {
     let utxos = await this.cardano.getCollateral();
-    return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos.slice(0, 3);
   }
 }
 

@@ -50,6 +50,7 @@ class Yoroi {
 
   async sendTransaction(tx, sender) {
     let cardano = await this.wallet.enable();
+    tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
@@ -66,14 +67,14 @@ class Yoroi {
   async getUtxos() {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getUtxos();
-    let selfUtxos = await this._filterUtxos(utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo)));
+    let selfUtxos = await this._filterUtxos(utxos);
     return selfUtxos;
   }
 
   async getCollateral(value = "3000000") {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getCollateral(value);
-    return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos.slice(0, 3);
   }
 
   async _filterUtxos(utxos) {
@@ -83,11 +84,12 @@ class Yoroi {
     accounts.forEach(v => accountSet.add(this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32()));
     console.log("_filterUtxos by accounts: %O", accountSet)
     return utxos.filter(v => {
-      let output = v.output().address().to_bech32();
+      let utxo = this.wasm.TransactionUnspentOutput.from_hex(v);
+      let output = utxo.output().address().to_bech32();
       if (accountSet.has(output)) {
         return true;
       } else {
-        tool.showUtxos([v], "filter not owned");
+        tool.showUtxos([utxo], "filter not owned");
         return false;
       }
     });

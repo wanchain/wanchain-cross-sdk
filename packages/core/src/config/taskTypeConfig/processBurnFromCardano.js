@@ -89,7 +89,7 @@ module.exports = class ProcessBurnFromCardano {
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
-
+      utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
@@ -126,7 +126,7 @@ module.exports = class ProcessBurnFromCardano {
       tx = await this.buildTx(params.fromAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
 
       // sign and send
-      let txHash = await wallet.sendTransaction(tx, params.fromAddr);
+      let txHash = await wallet.sendTransaction(tx.to_hex(), params.fromAddr);
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
@@ -192,18 +192,18 @@ module.exports = class ProcessBurnFromCardano {
   }
 
   async buildCollateral(wallet) {
-    const utxos = await wallet.getCollateral();
-    if (utxos.length) {
-      console.log("get %d collateral utxos", utxos.length);
-      this.tool.showUtxos(utxos, "burn tx collateral");
-      let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 120000);
-      if (!checkUtxos) {
-        throw new Error("Collateral utxos unavailable, please try again later");
-      }
-    } else {
+    let utxos = await wallet.getCollateral();
+    if (utxos.length === 0) {
       throw new Error("No collateral utxos");
     }
-    const builder = this.wasm.TxInputsBuilder.new();
+    console.log("get %d collateral utxos", utxos.length);
+    utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
+    this.tool.showUtxos(utxos, "burn tx collateral");
+    let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 120000);
+    if (!checkUtxos) {
+      throw new Error("Collateral utxos unavailable, please try again later");
+    }
+    let builder = this.wasm.TxInputsBuilder.new();
     for (let utxo of utxos) {
       builder.add_input(
         utxo.output().address(),

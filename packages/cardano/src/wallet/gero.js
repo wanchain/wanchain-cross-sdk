@@ -50,6 +50,7 @@ class Gero {
 
   async sendTransaction(tx, sender) {
     let cardano = await this.wallet.enable();
+    tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await cardano.signTx(tx.to_hex(), true);
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
@@ -66,13 +67,13 @@ class Gero {
   async getUtxos() {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getUtxos();
-    return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos;
   }
 
   async getCollateral() {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getCollateral();
-    return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
+    return utxos.slice(0, 3);
   }
 }
 
