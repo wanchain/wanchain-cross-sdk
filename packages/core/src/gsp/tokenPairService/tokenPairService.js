@@ -16,7 +16,7 @@ class TokenPairService {
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
         this.tokenIssuer = new Map();
-        this.chainName2Type = new Map(); // internal use chainType and fromtend use chainName
+        this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
     }
 
     async init(frameworkService, options) {
