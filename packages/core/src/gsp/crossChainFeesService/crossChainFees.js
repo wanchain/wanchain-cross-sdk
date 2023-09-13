@@ -9,6 +9,7 @@ module.exports = class crossChainFees {
     this.subsidyAbi = cofigService.getAbi("subsidyCrossSc");
     this.iwan = frameworkService.getService("iWanConnectorService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
   // agent fee
@@ -46,7 +47,7 @@ module.exports = class crossChainFees {
     if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
       unit = tokenPair.ancestorSymbol;
     } else {
-      unit = tool.getCoinSymbol(fromChainType, srcChainInfo.chainName);
+      unit = this.chainInfoService.getCoinSymbol(fromChainType);
     }
     // check subsidy
     let isSubsidy = false;
