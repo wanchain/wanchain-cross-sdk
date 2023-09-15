@@ -281,7 +281,7 @@
       "chainType": "MATICETH",
       "chainName": "Polygon zkEVM",
       "symbol": "ETH",
-      "crossScAddr": "0xdf9EfDC523407e8657a2d4f1eF4Dd2aCA51ceaBb",
+      "crossScAddr": "0x318dD97B7712AFA80FE40Becc0dC0d309BA607f1",
       "chainDecimals": 18,
       "MaskChainId": 1442,
       "ScScanInfo": {
