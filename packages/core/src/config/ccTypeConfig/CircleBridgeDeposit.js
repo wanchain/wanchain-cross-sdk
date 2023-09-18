@@ -24,7 +24,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
-    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
     let params = {

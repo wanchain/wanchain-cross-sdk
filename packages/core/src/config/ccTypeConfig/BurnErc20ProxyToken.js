@@ -5,19 +5,18 @@ const tool = require('../../utils/tool.js');
 
 module.exports = class BurnErc20ProxyToken {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
-    this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+    this.m_uiStrService = frameworkService.getService("UIStrService");
+    this.m_chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
   async process(tokenPair, convert) {
-    this.m_uiStrService = this.m_frameworkService.getService("UIStrService");
-    this.m_strApprove0Title = this.m_uiStrService.getStrByName("approve0Title");
-    this.m_strApproveValueTitle = this.m_uiStrService.getStrByName("approveValueTitle");
-    this.m_strApprove0Desc = this.m_uiStrService.getStrByName("approve0Desc");
-    this.m_strApproveValueDesc = this.m_uiStrService.getStrByName("approveValueDesc");
-    this.m_strBurnTitle = this.m_uiStrService.getStrByName("BurnTitle");
-    this.m_strBurnDesc = this.m_uiStrService.getStrByName("BurnDesc");
+    let strApprove0Title = this.m_uiStrService.getStrByName("approve0Title");
+    let strApproveValueTitle = this.m_uiStrService.getStrByName("approveValueTitle");
+    let strApprove0Desc = this.m_uiStrService.getStrByName("approve0Desc");
+    let strApproveValueDesc = this.m_uiStrService.getStrByName("approveValueDesc");
+    let strBurnTitle = this.m_uiStrService.getStrByName("BurnTitle");
+    let strBurnDesc = this.m_uiStrService.getStrByName("BurnDesc");
 
     let steps = [];
 
@@ -56,19 +55,19 @@ module.exports = class BurnErc20ProxyToken {
         // 1 approve 0
         let erc20Approve0ParaJson = JSON.parse(JSON.stringify(erc20ApproveParas));
         erc20Approve0ParaJson.value = new BigNumber(0);
-        steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, title: this.m_strApprove0Title, desc: this.m_strApprove0Desc, params: erc20Approve0ParaJson });
+        steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, title: strApprove0Title, desc: strApprove0Desc, params: erc20Approve0ParaJson });
         // 2 approve
-        steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: this.m_strApproveValueTitle, desc: this.m_strApproveValueDesc, params: erc20ApproveParas });
+        steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: strApproveValueTitle, desc: strApproveValueDesc, params: erc20ApproveParas });
       } else {
         // allowance >= value,无需approve
       }
     } else {
       // 1 approve
-      steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: this.m_strApproveValueTitle, desc: this.m_strApproveValueDesc, params: erc20ApproveParas });
+      steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: strApproveValueTitle, desc: strApproveValueDesc, params: erc20ApproveParas });
     }
 
     // function userFastBurn(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)  
-    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let unit = this.m_chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
     let userFastBurnParas = {
@@ -86,7 +85,7 @@ module.exports = class BurnErc20ProxyToken {
       userBurnFee: operateFee
     };
     console.debug("BurnErc20ProxyToken userFastBurnParas: %O", userFastBurnParas);
-    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, title: this.m_strBurnTitle, desc: this.m_strBurnDesc, params: userFastBurnParas});
+    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, title: strBurnTitle, desc: strBurnDesc, params: userFastBurnParas});
 
     let chainId = await convert.wallet.getChainId();
     for (let idx = 0; idx < steps.length; ++idx) {

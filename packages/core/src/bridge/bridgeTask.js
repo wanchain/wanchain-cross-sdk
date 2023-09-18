@@ -260,7 +260,7 @@ class BridgeTask {
     let chainType = this._fromChainInfo.chainType;
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
-    let coinSymbol = tool.getCoinSymbol(this._fromChainInfo.chainType, this._fromChainInfo.chainName);
+    let coinSymbol = this._bridge.chainInfoService.getCoinSymbol(chainType);
     let requiredCoin = new BigNumber(0);
     let requiredAsset = 0;
     if (this._tokenPair.readableSymbol === coinSymbol) { // asset is coin

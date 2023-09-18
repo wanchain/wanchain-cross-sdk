@@ -89,6 +89,7 @@
       "chainId": "1073741826",
       "chainType": "ARETH",
       "chainName": "Arbitrum",
+      "symbol": "ETH",
       "chainDecimals": 18,
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
       "CircleBridge": {
@@ -115,6 +116,7 @@
       "chainId": "2147484262",
       "chainType": "OETH",
       "chainName": "Optimism",
+      "symbol": "ETH",
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "CircleBridge": {
         "domain": 2,
@@ -254,6 +256,7 @@
       "chainId": "1073741837",
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
+      "symbol": "ETH",
       "crossScAddr": "",
       "chainDecimals": 18,
       "MaskChainId": 324,
