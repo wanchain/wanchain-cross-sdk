@@ -8,21 +8,21 @@ class Web3Wallet {
   }
 
   async getChainId() {
-    if (window.injectWeb3) {
-      return new Promise((resolve, reject) => {
-        console.log('wanwallet getChainId');
-        window.web3.eth.getChainId((err, chainId) => {
-          console.log('wanwallet getChainId: %O, %O', err, chainId);
-          if (err) {
-            reject(err);
-          } else {
-            resolve(chainId);
-          }
-        });
-      })
-    } else {
+    // if (window.injectWeb3) {
+    //   return new Promise((resolve, reject) => {
+    //     console.log('wanwallet getChainId');
+    //     window.web3.eth.getChainId((err, chainId) => {
+    //       console.log('wanwallet getChainId: %O, %O', err, chainId);
+    //       if (err) {
+    //         reject(err);
+    //       } else {
+    //         resolve(chainId);
+    //       }
+    //     });
+    //   })
+    // } else {
       return this.web3.eth.getChainId();
-    }
+    // }
   }
 
   async getAccounts(network) {
