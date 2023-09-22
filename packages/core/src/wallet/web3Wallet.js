@@ -21,6 +21,11 @@ class Web3Wallet {
       //     }
       //   });
       // })
+      console.log("provider: %O", this.provider.provider);
+      console.log("provider getChainId: %O", await this.provider.getChainId());
+      console.log("this.web3.eth.getChainId: %O", await this.web3.eth.getChainId());
+      console.log("provider getAccount: %O", await this.provider.getAccount());
+      console.log("this.web3.eth.getAccount: %O", await this.web3.eth.getAccount());
       return this.provider.getChainId();
     } else {
       return this.web3.eth.getChainId();
