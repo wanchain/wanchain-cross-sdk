@@ -22,6 +22,7 @@ class Web3Wallet {
       //   });
       // })
       console.log("getChainId provider: %O", this.provider);
+      console.log("getChainId web3: %O", this.web3);
       console.log("getChainId web3.eth: %O", this.web3.eth);
       let result = this.provider.getChainId? (await this.provider.getChainId()) : "not exist";
       console.log("provider getChainId: %O", result);
