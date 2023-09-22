@@ -21,12 +21,17 @@ class Web3Wallet {
       //     }
       //   });
       // })
-      console.log("provider: %O", this.provider.provider);
-      console.log("provider getChainId: %O", await this.provider.getChainId());
-      console.log("this.web3.eth.getChainId: %O", await this.web3.eth.getChainId());
-      console.log("provider getAccount: %O", await this.provider.getAccount());
-      console.log("this.web3.eth.getAccount: %O", await this.web3.eth.getAccount());
-      return this.provider.getChainId();
+      console.log("getChainId provider: %O", this.provider);
+      console.log("getChainId web3.eth: %O", this.web3.eth);
+      let result = this.provider.getChainId? (await this.provider.getChainId()) : "not exist";
+      console.log("provider getChainId: %O", result);
+      result = await this.web3.eth.getChainId();
+      console.log("this.web3.eth.getChainId: %O", result);
+      result = this.provider.getAccount? (await this.provider.getAccount()) : "not exist";
+      console.log("provider getAccount: %O", result);
+      result = this.web3.eth.getAccount? (await this.web3.eth.getAccount()) : "not exist";
+      console.log("this.web3.eth.getAccount: %O", result);
+      return this.provider.getChainId? this.provider.getChainId() : 999;
     } else {
       return this.web3.eth.getChainId();
     }
