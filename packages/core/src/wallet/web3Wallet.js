@@ -3,26 +3,28 @@ const Web3 = require("web3");
 class Web3Wallet {
   constructor(provider, type = "MetaMask") {
     this.name = "Web3";
+    this.provider = provider;
     this.web3 = new Web3(provider);
     this.type = type; // the type is not mandatory, many web3-compatible wallets are slightly different, can be handled differently according to the type
   }
 
   async getChainId() {
-    // if (window.injectWeb3) {
-    //   return new Promise((resolve, reject) => {
-    //     console.log('wanwallet getChainId');
-    //     window.web3.eth.getChainId((err, chainId) => {
-    //       console.log('wanwallet getChainId: %O, %O', err, chainId);
-    //       if (err) {
-    //         reject(err);
-    //       } else {
-    //         resolve(chainId);
-    //       }
-    //     });
-    //   })
-    // } else {
+    if (window.injectWeb3) {
+      // return new Promise((resolve, reject) => {
+      //   console.log('wanwallet getChainId');
+      //   window.web3.eth.getChainId((err, chainId) => {
+      //     console.log('wanwallet getChainId: %O, %O', err, chainId);
+      //     if (err) {
+      //       reject(err);
+      //     } else {
+      //       resolve(chainId);
+      //     }
+      //   });
+      // })
+      return this.provider.getChainId();
+    } else {
       return this.web3.eth.getChainId();
-    // }
+    }
   }
 
   async getAccounts(network) {
