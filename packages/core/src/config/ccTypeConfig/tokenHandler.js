@@ -13,6 +13,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     this.uiStrService = frameworkService.getService("UIStrService");
     this.globalConstant = frameworkService.getService("GlobalConstant");
     this.configService = frameworkService.getService("ConfigService");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
   async process(tokenPair, convert) {  
@@ -103,7 +104,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
     let tokenType = tokenPair.protocol;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
-    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
     let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
@@ -136,7 +137,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
     let tokenType = tokenPair.protocol;
     let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
-    let unit = tool.getCoinSymbol(chainInfo.chainType, chainInfo.chainName);
+    let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
     let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;

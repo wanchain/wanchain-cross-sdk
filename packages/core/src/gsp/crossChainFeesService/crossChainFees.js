@@ -9,14 +9,15 @@ module.exports = class crossChainFees {
     this.subsidyAbi = cofigService.getAbi("subsidyCrossSc");
     this.iwan = frameworkService.getService("iWanConnectorService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
   // agent fee
   async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) {
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId, address: options.address || ""});
-    if (tokenPair.protocol !== "Erc20") {
+    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId, address: options.address});
+    if ((tokenPair.protocol !== "Erc20") || (tokenPair.bridge === "Circle")) {
       fee.value = "0";
     }
     // console.debug("estimateOperationFee %s->%s raw: %O", fromChainType, toChainType, fee);
@@ -38,7 +39,7 @@ module.exports = class crossChainFees {
     let direction = (fromChainType === tokenPair.fromScInfo.chainType);
     let srcChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = srcChainInfo.chainDecimals;
-    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, {tokenPairID: tokenPairId, address: options.address || "", batchSize: options.batchSize});
+    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, {tokenPairID: tokenPairId, address: options.address, batchSize: options.batchSize});
     // console.debug("estimateNetworkFee %s->%s raw: %O", fromChainType, toChainType, fee);
     let feeBN = new BigNumber(fee.value);
     // ETH maybe has different symbos on layer2 chains, it leads networkFee unit problem, should use ancestorSymbol as unit
@@ -46,7 +47,7 @@ module.exports = class crossChainFees {
     if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
       unit = tokenPair.ancestorSymbol;
     } else {
-      unit = tool.getCoinSymbol(fromChainType, srcChainInfo.chainName);
+      unit = this.chainInfoService.getCoinSymbol(fromChainType);
     }
     // check subsidy
     let isSubsidy = false;

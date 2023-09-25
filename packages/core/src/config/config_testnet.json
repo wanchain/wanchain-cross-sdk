@@ -56,6 +56,7 @@
       "chainId": "1073741825",
       "chainType": "MOVR",
       "chainName": "Moonbase Alpha",
+      "symbol": "DEV",
       "chainDecimals": 18,
       "crossScAddr": "0x9274Be9167c7dBa7F81b61d3870e0272cB8474f6",
       "MaskChainId": 1287,
@@ -78,6 +79,7 @@
       "chainId": "1073741826",
       "chainType": "ARETH",
       "chainName": "Arbitrum",
+      "symbol": "ETH",
       "chainDecimals": 18,
       "crossScAddr": "0x3E18014F7c11F4D70b0023d8f61350A3Ef8f0978",
       "CircleBridge": {
@@ -104,6 +106,7 @@
       "chainId": "2147484262",
       "chainType": "OETH",
       "chainName": "Optimism",
+      "symbol": "ETH",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "CircleBridge": {
         "domain": 2,
@@ -243,7 +246,8 @@
       "chainId": "1073741837",
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
-      "crossScAddr": "0xa2374Ca12C744D6297c1954149b3e912742A782d",
+      "symbol": "ETH",
+      "crossScAddr": "0x954C53Abe8E7F06B36F00Db2ea3C0950A5b200CB",
       "chainDecimals": 18,
       "MaskChainId": 280,
       "ScScanInfo": {
@@ -276,7 +280,8 @@
       "chainId": "1073741838",
       "chainType": "MATICETH",
       "chainName": "Polygon zkEVM",
-      "crossScAddr": "0xdf9EfDC523407e8657a2d4f1eF4Dd2aCA51ceaBb",
+      "symbol": "ETH",
+      "crossScAddr": "0x318dD97B7712AFA80FE40Becc0dC0d309BA607f1",
       "chainDecimals": 18,
       "MaskChainId": 1442,
       "ScScanInfo": {
@@ -367,6 +372,7 @@
       "chainId": "2147484002",
       "chainType": "DOT",
       "chainName": "Polkadot",
+      "symbol": "WND",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "chainDecimals": 12,
       "minReserved": 0.01,

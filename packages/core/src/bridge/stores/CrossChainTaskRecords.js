@@ -69,6 +69,7 @@ class CrossChainTaskRecords {
       ccTask.fee[type].value = value;
       if (rectify) {
         ccTask.fee[type].isRatio = false;
+        ccTask.fee[type].discount = "1";
       }
     } else {
       console.error("task %d fee data is damaged", ccTaskId);

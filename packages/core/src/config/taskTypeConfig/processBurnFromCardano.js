@@ -56,8 +56,8 @@ module.exports = class ProcessBurnFromCardano {
         this.storemanService.getCardanoCostModelParameters()
       ]);
       // adjust FeeTooSmallUTxO
-      epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA * 2).toString();
-      epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB * 2).toString();
+      epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA).toString();
+      epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB).toString();
 
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
@@ -245,6 +245,8 @@ module.exports = class ProcessBurnFromCardano {
 
   async buildTx(paymentAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder) {
     const wasm = this.wasm;
+    const priceMem = epochParameters.priceMem.replace(/\"/g, "").split("/");
+    const priceStep = epochParameters.priceStep.replace(/\"/g, "").split("/");
     const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
     .coins_per_utxo_byte(
       wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte)
@@ -262,8 +264,8 @@ module.exports = class ProcessBurnFromCardano {
     .max_tx_size(epochParameters.maxTxSize)
     .max_value_size(epochParameters.maxValSize)
     .ex_unit_prices(wasm.ExUnitPrices.new(
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
+      wasm.UnitInterval.new(wasm.BigNum.from_str(priceMem[0]), wasm.BigNum.from_str(priceMem[1])),
+      wasm.UnitInterval.new(wasm.BigNum.from_str(priceStep[0]), wasm.BigNum.from_str(priceStep[1]))
     ))
     // .collateral_percentage(epochParameters.collateralPercentage)
     // .max_collateral_inputs(epochParameters.maxCollateralInputs)

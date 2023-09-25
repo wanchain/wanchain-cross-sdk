@@ -151,16 +151,6 @@ function getStandardAddressInfo(chainType, address, extension = null) {
   }
 }
 
-function getCoinSymbol(chainType, chainName) {
-  if ((chainType === "DOT") && ["PolkaTestnet", "testnet"].includes(chainName)) {
-    return "WND";
-  } else if ((chainType === "MOVR") && ["Moonbase Alpha", "testnet"].includes(chainName)) {
-    return "DEV";
-  } else {
-    return chainType;
-  }
-}
-
 function parseFee(fee, amount, unit, options) {
   options = Object.assign({formatWithDecimals: true}, options);
   let result = new BigNumber(0), networkFee = new BigNumber(0), decimals = 0, tmp;
@@ -360,7 +350,6 @@ module.exports = {
   isValidXrpAddress,
   isValidXdcAddress,
   getStandardAddressInfo,
-  getCoinSymbol,
   parseFee,
   sha256,
   cmpAddress,

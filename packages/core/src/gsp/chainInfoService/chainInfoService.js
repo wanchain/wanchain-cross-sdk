@@ -45,5 +45,10 @@ module.exports = class ChainInfoService {
     let obj = this.m_mapChainTypeObj.get(chainType);
     return obj;
   }
+
+  getCoinSymbol(chainType) {
+    let chain = this.m_mapChainTypeObj.get(chainType);
+    return chain.symbol || chainType;
+  }
 }
 
