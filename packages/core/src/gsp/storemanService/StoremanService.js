@@ -110,37 +110,51 @@ class StoremanService {
       if (chainInfo._isEVM) { // evm support multicall
         let evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
         if (tool.isValidEthAddress(evmAddress)) {
-          let mcs = [];
+          let mcs = [], subgraphs = [];
           for (let asset in assets) {
             let tokenInfo = assets[asset];
-            if (tokenInfo.address == 0) { // coin
-              mcs.push({
-                call: ['getEthBalance(address)(uint256)', evmAddress],
-                returns: [[asset]]
-              });
-            } else { // token
-              mcs.push({
-                target: tokenInfo.address,
-                call: ['balanceOf(address)(uint256)', evmAddress],
-                returns: [[asset]]
-              });
+            if (tokenInfo.protocol === "Erc1155") {
+              subgraphs.push({asset, call: this.getErc1155Balance(chainType, addr, tokenInfo.address)});
+            } else { // Erc20 and Erc721
+              if (tokenInfo.address == 0) { // coin
+                mcs.push({
+                  call: ['getEthBalance(address)(uint256)', evmAddress],
+                  returns: [[asset]]
+                });
+              } else { // token
+                mcs.push({
+                  target: tokenInfo.address,
+                  call: ['balanceOf(address)(uint256)', evmAddress],
+                  returns: [[asset]]
+                });
+              }
             }
           };
-          let res = await this.iwan.multiCall(chainType, mcs);
-          let balances = res.results.transformed;
-          for (let asset in assets) {
-            let tokenInfo = assets[asset];
-            let balance = balances[asset];
-            if (typeof(balance) === "string") { // Tron
-              // do nothing
-            } else if (typeof(balance._hex) === "string") { // other EVMs
-              balance = balance._hex;
-            } else {
-              console.error("unrecognized %s %s balance: %O", chain, asset, balance);
-              balance = "";
-              continue;
-            }
-            result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
+          // multicall
+          let res;
+          if (mcs.length) {
+            res = await this.iwan.multiCall(chainType, mcs);
+            let balances = res.results.transformed;
+            mcs.forEach(mc => {
+              let asset = mc.returns[0][0];
+              let tokenInfo = assets[asset];
+              let balance = balances[asset];
+              if (typeof(balance) === "string") { // Tron
+                // do nothing
+              } else if (typeof(balance._hex) === "string") { // other EVMs
+                balance = balance._hex;
+              } else {
+                console.error("unrecognized %s %s balance: %O", chain, asset, balance);
+                balance = "";
+                return;
+              }
+              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
+            })
+          }
+          // subgraph
+          if (subgraphs.length) {
+            res = await Promise.all(subgraphs.map(v => v.call));
+            res.forEach((v, i) => result[subgraphs[i].asset] = v);
           }
         }
       } else if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {

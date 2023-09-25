@@ -390,20 +390,20 @@ class WanBridge extends EventEmitter {
   async getChainAssets(options) { // options should contain wallet for non-EVM chain
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
-    let assetNameSet = new Set();
-    let assetPairList = this.stores.assetPairs.assetPairList;
-    assetPairList.forEach(pair => {
-      if (options.protocols.includes(pair.protocol)) {
-        if (chains.includes(pair.fromChainName) || chains.includes(pair.toChainName)) {
-          assetNameSet.add(pair.assetAlias || pair.assetType);
-        }
-      }
-    });
     let prices = {};
     if (options.account && options.protocols.includes("Erc20")) {
+      let assetNameSet = new Set();
+      let assetPairList = this.stores.assetPairs.assetPairList;
+      assetPairList.forEach(pair => {
+        if (options.protocols.includes(pair.protocol)) {
+          if (chains.includes(pair.fromChainName) || chains.includes(pair.toChainName)) {
+            assetNameSet.add(pair.assetAlias || pair.assetType);
+          }
+        }
+      });
       prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
+      // console.log("getChainAssets prices: %O", prices);
     }
-    // console.log("getChainAssets prices: %O", prices);
     let ts1 = Date.now();
     console.debug("getAssetPrice consume %s ms", ts1 - ts0);
     let assetInfos = await Promise.all(chains.map(chain => this._getChainAssets(chain, prices, options, ts1)));
