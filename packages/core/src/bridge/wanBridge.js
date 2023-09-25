@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2309181618", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2308241150", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -400,7 +400,7 @@ class WanBridge extends EventEmitter {
       }
     });
     let prices = {};
-    if (options.account) {
+    if (options.account && options.protocols.includes("Erc20")) {
       prices = await this.tokenPairService.getAssetPrice(Array.from(assetNameSet));
     }
     // console.log("getChainAssets prices: %O", prices);
@@ -476,8 +476,10 @@ class WanBridge extends EventEmitter {
         price: prices[asset] || ""
       });
     }
-    // let ts = Date.now();
-    // console.debug("%s _getChainAssets consume %s ms", chainName, ts - startTime);
+    let time = Date.now() - startTime;
+    if (time >= 3000) {
+      console.debug("%s _getChainAssets %O consume %s ms", chainName, options, time);
+    }
     return assetInfos;
   }
 
