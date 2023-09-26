@@ -279,7 +279,7 @@
       "chainId": "1073741840",
       "chainType": "VC",
       "chainName": "VinuChain",
-      "crossScAddr": "",
+      "crossScAddr": "0x72cCF64EE5E2C7629eE4eEe3e6AD6990289178ae",
       "chainDecimals": 18,
       "MaskChainId": 207,
       "ScScanInfo": {
