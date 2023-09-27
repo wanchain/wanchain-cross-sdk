@@ -440,6 +440,7 @@ class WanBridge extends EventEmitter {
       chain: tokenPair.fromChainName,
       symbol: tokenPair.fromSymbol,
       address: this.formatTokenAccount(tokenPair.fromChainName, tokenPair.fromAccount),
+      decimals: tokenPair.fromDecimals,
       isNative: tokenPair.fromIsNative,
       issuer: tokenPair.fromIssuer
     };
@@ -447,6 +448,7 @@ class WanBridge extends EventEmitter {
       chain: tokenPair.toChainName,
       symbol: tokenPair.toSymbol,
       address: this.formatTokenAccount(tokenPair.toChainName, tokenPair.toAccount),
+      decimals: tokenPair.toDecimals,
       isNative: tokenPair.toIsNative,
       issuer: tokenPair.toIssuer
     };
@@ -471,6 +473,7 @@ class WanBridge extends EventEmitter {
         asset,
         symbol: assets[asset].symbol,
         address: this.formatTokenAccount(chainName, assets[asset].address),
+        decimals: assets[asset].decimals,
         protocol: assets[asset].protocol,
         balance: balances[asset] || "",
         price: prices[asset] || ""
