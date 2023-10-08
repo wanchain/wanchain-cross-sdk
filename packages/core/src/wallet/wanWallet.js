@@ -29,11 +29,19 @@ class WanWallet {
 
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
-      window.web3.eth.sendTransaction(txData, (err, data) => {
+      window.web3.eth.signTx(txData, (err, signedTx) => {
         if (err) {
           reject(err);
         } else {
-          resolve(data);
+          console.log("wanWallet signedTx: %O", signedTx);
+          window.web3.eth.sendRawTransaction(signedTx, (err, txHash) => {
+            if (err) {
+              reject(err);
+            } else {
+              console.log("wanWallet sendRawTransaction txHash: %O", txHash);
+              resolve(txHash);
+            }
+          })
         }
       });
     })
