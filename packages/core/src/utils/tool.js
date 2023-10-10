@@ -54,7 +54,7 @@ function ascii2letter(asciiStr) {
     let tmp = str.substr(i, 2);
     if (tmp !== '00') {
       let char = String.fromCharCode(parseInt(tmp, 16));
-      if (/[a-zA-Z0-9]/.test(char)) {
+      if (/[a-zA-Z0-9\.]/.test(char)) {
         letterStr.push(char);
       }
     }
