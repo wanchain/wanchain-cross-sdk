@@ -287,6 +287,22 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741841",
+      "chainType": "BASE",
+      "chainName": "Base",
+      "symbol": "ETH",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "CircleBridge": {
+        "domain": 6,
+        "crossScAddr": "0x50133f6836CB91237E17177E2985cBDAD51f0cf2"
+      },
+      "chainDecimals": 18,
+      "MaskChainId": 84531,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
