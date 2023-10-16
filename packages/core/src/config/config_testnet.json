@@ -293,10 +293,10 @@
       "chainType": "BASEETH",
       "chainName": "Base",
       "symbol": "ETH",
-      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "crossScAddr": "0x1B71456BF3A0A7BEb8Ec07A8E322C0c2D088C322",
       "CircleBridge": {
         "domain": 6,
-        "crossScAddr": "0x50133f6836CB91237E17177E2985cBDAD51f0cf2"
+        "crossScAddr": "0xBe5187C2A7eb776c1CaEeD2C37E7599fb05000D3"
       },
       "chainDecimals": 18,
       "MaskChainId": 84531,
