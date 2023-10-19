@@ -74,7 +74,6 @@ module.exports = class ProcessAdaMintFromCardano {
         );
         tempTxOutput.set_plutus_data(this.tool.genPlutusData());
         let minAda = this.tool.minAdaRequired(tempTxOutput, epochParameters.coinsPerUtxoByte);
-        console.debug({minAda});
         output.amount[0].quantity = minAda;
       }
       let txOutput = this.wasm.TransactionOutput.new(
@@ -87,6 +86,7 @@ module.exports = class ProcessAdaMintFromCardano {
         throw new Error("No available utxos");
       }
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
+      console.debug("cardano mint tx output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       if (inputs.length) {
@@ -96,6 +96,8 @@ module.exports = class ProcessAdaMintFromCardano {
           throw new Error("UTXOs unavailable, please try again later");
         }
       } else {
+        this.tool.showUtxos(utxos, "wallet");
+        console.debug("cardano mint tx epochParameters: %O", epochParameters);
         throw new Error("Not enough utxos");
       }
 
