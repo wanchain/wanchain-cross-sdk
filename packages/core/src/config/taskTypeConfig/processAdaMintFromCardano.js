@@ -49,8 +49,6 @@ module.exports = class ProcessAdaMintFromCardano {
     let params = stepData.params;
     try {
       let epochParameters = await this.storemanService.getCardanoEpochParameters();
-      // epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA * 2).toString();
-      // epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB * 2).toString();
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
@@ -86,7 +84,7 @@ module.exports = class ProcessAdaMintFromCardano {
         throw new Error("No available utxos");
       }
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
-      console.debug("cardano mint tx output: %O", output);
+      console.debug("cardano mint tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       if (inputs.length) {
@@ -96,8 +94,7 @@ module.exports = class ProcessAdaMintFromCardano {
           throw new Error("UTXOs unavailable, please try again later");
         }
       } else {
-        this.tool.showUtxos(utxos, "wallet");
-        console.debug("cardano mint tx epochParameters: %O", epochParameters);
+        this.tool.showUtxos(utxos, "mint tx wallet");
         throw new Error("Not enough utxos");
       }
 
