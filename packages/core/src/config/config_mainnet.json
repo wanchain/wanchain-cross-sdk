@@ -294,7 +294,7 @@
       "crossScAddr": "0x2715aA7156634256aE75240C2c5543814660CD04",
       "CircleBridge": {
         "domain": 6,
-        "crossScAddr": ""
+        "crossScAddr": "0x012297F3d1Cb0D685B195A70231730F4c8c86F86"
       },
       "chainDecimals": 18,
       "MaskChainId": 8453,
