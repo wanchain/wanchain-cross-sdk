@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2310191448", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2310301734", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -517,7 +517,8 @@ class WanBridge extends EventEmitter {
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let pair = assetPairList[i];
-      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && (!options.assetPairId) || (options.assetPairId === pair.assetPairId)) {
+      // sometimes there are temporary two bridges for the same asset crosschain, need to be specified by assetPairId
+      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && ((!options.assetPairId) || (options.assetPairId === pair.assetPairId))) {
         // if fromChainName and toChainName are the same, find any one of related pairs
         if ([pair.fromChainName, pair.toChainName].includes(fromChainName) && [pair.fromChainName, pair.toChainName].includes(toChainName)) {
           let tokenPair = this.tokenPairService.getTokenPair(pair.assetPairId);
