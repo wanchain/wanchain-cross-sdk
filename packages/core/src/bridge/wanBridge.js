@@ -437,7 +437,7 @@ class WanBridge extends EventEmitter {
 
   getAssetPairInfo(assetType, fromChainName, toChainName, options) {
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
-    let fromInfo = {
+    let from = {
       chain: tokenPair.fromChainName,
       symbol: tokenPair.fromSymbol,
       address: this.formatTokenAccount(tokenPair.fromChainName, tokenPair.fromAccount),
@@ -445,7 +445,7 @@ class WanBridge extends EventEmitter {
       isNative: tokenPair.fromIsNative,
       issuer: tokenPair.fromIssuer
     };
-    let toInfo = {
+    let to = {
       chain: tokenPair.toChainName,
       symbol: tokenPair.toSymbol,
       address: this.formatTokenAccount(tokenPair.toChainName, tokenPair.toAccount),
@@ -453,7 +453,8 @@ class WanBridge extends EventEmitter {
       isNative: tokenPair.toIsNative,
       issuer: tokenPair.toIssuer
     };
-    let result = (tokenPair.fromChainName === fromChainName)? [fromInfo, toInfo] : [toInfo, fromInfo];
+    let result = (tokenPair.fromChainName === fromChainName)? {from: from, to: to} : {from: to, to: from};
+    result.bridge = tokenPair.bridge;
     return result;
   }
 
