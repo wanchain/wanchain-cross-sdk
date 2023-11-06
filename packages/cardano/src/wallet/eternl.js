@@ -2,11 +2,8 @@ const wasm = require("../wasm");
 const tool = require("../tool.js");
 
 class Eternl {
-  constructor(provider) {
+  constructor() {
     this.name = "Eternl";
-    if (!['mainnet', 'testnet'].includes(provider)) {
-      throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
-    }
     this.wallet = window.cardano.eternl;
     this.wasm = wasm.getWasm();
   }
@@ -18,7 +15,7 @@ class Eternl {
     return cardano.getNetworkId();
   }
 
-  async getAccounts(network) {
+  async getAccounts() {
     try {
       let cardano = await this.wallet.enable();
       let accounts = await cardano.getUsedAddresses();
@@ -48,7 +45,7 @@ class Eternl {
     }
   }
 
-  async sendTransaction(tx, sender) {
+  async sendTransaction(tx) {
     let cardano = await this.wallet.enable();
     tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await cardano.signTx(tx.to_hex(), true);

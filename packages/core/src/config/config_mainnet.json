@@ -279,9 +279,25 @@
       "chainId": "1073741840",
       "chainType": "VC",
       "chainName": "VinuChain",
-      "crossScAddr": "",
+      "crossScAddr": "0x72cCF64EE5E2C7629eE4eEe3e6AD6990289178ae",
       "chainDecimals": 18,
-      "MaskChainId": 27,
+      "MaskChainId": 207,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741841",
+      "chainType": "BASEETH",
+      "chainName": "Base",
+      "symbol": "ETH",
+      "crossScAddr": "0x2715aA7156634256aE75240C2c5543814660CD04",
+      "CircleBridge": {
+        "domain": 6,
+        "crossScAddr": "0x012297F3d1Cb0D685B195A70231730F4c8c86F86"
+      },
+      "chainDecimals": 18,
+      "MaskChainId": 8453,
       "ScScanInfo": {
         "taskInterval": 15000
       }

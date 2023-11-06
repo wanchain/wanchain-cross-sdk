@@ -55,10 +55,6 @@ module.exports = class ProcessBurnFromCardano {
         this.storemanService.getCardanoEpochParameters(),
         this.storemanService.getCardanoCostModelParameters()
       ]);
-      // adjust FeeTooSmallUTxO
-      epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA).toString();
-      epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB).toString();
-
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let output = {
@@ -76,13 +72,11 @@ module.exports = class ProcessBurnFromCardano {
         unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
         quantity: params.value
       });
-
       let tempTxOutput = this.wasm.TransactionOutput.new(
         this.wasm.Address.from_bech32(params.crossScAddr),
         this.tool.assetsToValue(output.amount)
       );
       let minAda = this.tool.minAdaRequired(tempTxOutput, epochParameters.coinsPerUtxoByte);
-      console.debug({minAda});
       output.amount[0].quantity = minAda;
 
       let utxos = await wallet.getUtxos();
@@ -91,6 +85,7 @@ module.exports = class ProcessBurnFromCardano {
       }
       utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
+      console.debug("cardano burn tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       if (inputs.length) {
@@ -100,6 +95,7 @@ module.exports = class ProcessBurnFromCardano {
           throw new Error("UTXOs unavailable, please try again later");
         }
       } else {
+        this.tool.showUtxos(utxos, "burn tx wallet");
         throw new Error("Not enough utxos");
       }
 
@@ -193,17 +189,18 @@ module.exports = class ProcessBurnFromCardano {
 
   async buildCollateral(wallet) {
     let utxos = await wallet.getCollateral();
-    if (utxos.length === 0) {
+    if (utxos.length) {
+      console.log("get %d collateral utxos", utxos.length);
+      utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
+      this.tool.showUtxos(utxos, "burn tx collateral");
+      let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 120000);
+      if (!checkUtxos) {
+        throw new Error("Collateral utxos unavailable, please try again later");
+      }
+    } else {
       throw new Error("No collateral utxos");
     }
-    console.log("get %d collateral utxos", utxos.length);
-    utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
-    this.tool.showUtxos(utxos, "burn tx collateral");
-    let checkUtxos = await this.tool.checkUtxos(this.network, utxos, 120000);
-    if (!checkUtxos) {
-      throw new Error("Collateral utxos unavailable, please try again later");
-    }
-    let builder = this.wasm.TxInputsBuilder.new();
+    const builder = this.wasm.TxInputsBuilder.new();
     for (let utxo of utxos) {
       builder.add_input(
         utxo.output().address(),

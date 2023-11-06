@@ -647,7 +647,8 @@ class WanBridge extends EventEmitter {
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let pair = assetPairList[i];
-      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && (!options.assetPairId) || (options.assetPairId === pair.assetPairId)) {
+      // sometimes there are temporary two bridges for the same asset crosschain, need to be specified by assetPairId
+      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && ((!options.assetPairId) || (options.assetPairId === pair.assetPairId))) {
         // if fromChainName and toChainName are the same, find any one of related pairs
         if ([pair.fromChainName, pair.toChainName].includes(fromChainName) && [pair.fromChainName, pair.toChainName].includes(toChainName)) {
           let tokenPair = this.tokenPairService.getTokenPair(pair.assetPairId);

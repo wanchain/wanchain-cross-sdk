@@ -3,6 +3,7 @@ const NamiWallet = require("./src/wallet/nami");
 const YoroiWallet = require("./src/wallet/yoroi");
 const EternlWallet = require("./src/wallet/eternl");
 const GeroWallet = require("./src/wallet/gero");
+const Cip30Wallet = require("./src/wallet/cip30");
 const tool = require("./src/tool");
 const CoinSelection = require("./src/coinSelection");
 
@@ -20,6 +21,7 @@ module.exports = {
   YoroiWallet,
   EternlWallet,
   GeroWallet,
+  Cip30Wallet,
   tool,
   init
 };

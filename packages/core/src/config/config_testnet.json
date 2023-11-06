@@ -271,7 +271,7 @@
       "chainName": "VinuChain",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 27,
+      "MaskChainId": 206,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -284,6 +284,22 @@
       "crossScAddr": "0x318dD97B7712AFA80FE40Becc0dC0d309BA607f1",
       "chainDecimals": 18,
       "MaskChainId": 1442,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741841",
+      "chainType": "BASEETH",
+      "chainName": "Base",
+      "symbol": "ETH",
+      "crossScAddr": "0x1B71456BF3A0A7BEb8Ec07A8E322C0c2D088C322",
+      "CircleBridge": {
+        "domain": 6,
+        "crossScAddr": "0xBe5187C2A7eb776c1CaEeD2C37E7599fb05000D3"
+      },
+      "chainDecimals": 18,
+      "MaskChainId": 84531,
       "ScScanInfo": {
         "taskInterval": 15000
       }

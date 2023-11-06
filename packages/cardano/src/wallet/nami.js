@@ -2,11 +2,8 @@ const wasm = require("../wasm");
 const tool = require("../tool.js");
 
 class Nami {
-  constructor(provider) {
+  constructor() {
     this.name = "Nami";
-    if (!['mainnet', 'testnet'].includes(provider)) {
-      throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
-    }
     this.cardano = window.cardano;
     this.wasm = wasm.getWasm();
   }
@@ -17,7 +14,7 @@ class Nami {
     return this.cardano.getNetworkId();
   }
 
-  async getAccounts(network) {
+  async getAccounts() {
     try {
       await this.cardano.enable();
       let accounts = await this.cardano.getUsedAddresses();
@@ -46,7 +43,7 @@ class Nami {
     }
   }
 
-  async sendTransaction(tx, sender) {
+  async sendTransaction(tx) {
     tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await this.cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
