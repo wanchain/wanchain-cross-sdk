@@ -257,7 +257,7 @@
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
       "symbol": "ETH",
-      "crossScAddr": "",
+      "crossScAddr": "0x102F0ce7a439d51247167D6233A0a44c3f8389a1",
       "chainDecimals": 18,
       "MaskChainId": 324,
       "ScScanInfo": {
