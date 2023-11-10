@@ -52,19 +52,20 @@ module.exports = class ProcessAdaMintFromCardano {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
+      let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
       let output = {
         address: params.crossScAddr,
         amount: [
           {
             unit: 'lovelace',
-            quantity: isCoin? params.value : '10000000' // actual or probable locked quantity
+            quantity: isCoin? crossValue : '10000000' // actual or probable locked quantity
           }
         ]
       };
       if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
         output.amount.push({
           unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.fromAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
-          quantity: params.value
+          quantity: crossValue
         });
         let tempTxOutput = this.wasm.TransactionOutput.new(
           this.wasm.Address.from_bech32(params.crossScAddr),
@@ -83,7 +84,7 @@ module.exports = class ProcessAdaMintFromCardano {
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
-      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
+      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus(params.networkFee).plus("2000000").toFixed(); // add network and gas fee to select utxos
       console.debug("cardano mint tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
@@ -100,7 +101,18 @@ module.exports = class ProcessAdaMintFromCardano {
 
       let metaData = await this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
 
-      let tx = this.buildTx(params.fromAddr, inputs, txOutput, epochParameters, metaData);
+      let networkFeeOutput = null;
+      if (params.networkFee != 0) {
+        networkFeeOutput = this.wasm.TransactionOutput.new(
+          this.wasm.Address.from_bech32(params.feeHolder),
+          this.tool.assetsToValue([{
+            unit: 'lovelace',
+            quantity: params.networkFee
+          }])
+        );
+      }
+
+      let tx = this.buildTx(params.fromAddr, inputs, txOutput, networkFeeOutput, epochParameters, metaData);
       console.debug("ProcessAdaMintFromCardano tx: %O", tx.to_json());
 
       // sign and send
@@ -146,7 +158,7 @@ module.exports = class ProcessAdaMintFromCardano {
     return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
 
-  buildTx(paymentAddr, inputs, output, epochParameters, metaData) {
+  buildTx(paymentAddr, inputs, output, networkFeeOutput, epochParameters, metaData) {
     const wasm = this.wasm;
     const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
     .coins_per_utxo_byte(
@@ -188,6 +200,9 @@ module.exports = class ProcessAdaMintFromCardano {
 
     output.set_plutus_data(this.tool.genPlutusData());
     txBuilder.add_output(output);
+    if (networkFeeOutput) {
+      txBuilder.add_output(networkFeeOutput);
+    }
 
     txBuilder.set_ttl(epochParameters.slot + (3600 * 6)); // 6h from current slot
     txBuilder.add_change_if_needed(

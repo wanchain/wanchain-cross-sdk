@@ -408,6 +408,7 @@
       "chainType": "ADA",
       "chainName": "Cardano",
       "crossScAddr": "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
+      "feeHolder": "addr1qyxqtjnck8f0gyzys6kwpydd5lrcjue6tg8f2elqhs65ffy7trczz375trxwfgc7zvkvxrxcr4plz8tnqv6qre7u722qhe650r",
       "mintFromChainHandle": "MintAdaFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
