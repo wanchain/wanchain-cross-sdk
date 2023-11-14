@@ -303,6 +303,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741842",
+      "chainType": "LINEAETH",
+      "chainName": "Linea",
+      "symbol": "ETH",
+      "crossScAddr": "0x4bAfCf6dd1f05a90Ea80E2A0419cf1d9c79e0049",
+      "chainDecimals": 18,
+      "MaskChainId": 59140,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
