@@ -303,6 +303,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741842",
+      "chainType": "LINEAETH",
+      "chainName": "Linea",
+      "symbol": "ETH",
+      "crossScAddr": "0x4bAfCf6dd1f05a90Ea80E2A0419cf1d9c79e0049",
+      "chainDecimals": 18,
+      "MaskChainId": 59140,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -411,6 +423,7 @@
       "chainType": "ADA",
       "chainName": "Cardano",
       "crossScAddr": "addr_test1xqweycval58x8ryku838tjqypgjzfs3t4qjj0pwju6prgmjwsw5k2ttkze7e9zd3jr00x5nkhmpx97cv6xx25jsgxh2swlkfgp",
+      "feeHolder": "addr_test1qqhmy64hrjva3f4v7w3dwt8djc2frf39hvk9wprdz6uqvhs3r7u5m5rasa0xdrfkr7zf2dee79cyy7ugn6asl5xfy7sshfrg0z",
       "mintFromChainHandle": "MintAdaFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,

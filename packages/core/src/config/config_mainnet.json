@@ -257,7 +257,7 @@
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
       "symbol": "ETH",
-      "crossScAddr": "",
+      "crossScAddr": "0x102F0ce7a439d51247167D6233A0a44c3f8389a1",
       "chainDecimals": 18,
       "MaskChainId": 324,
       "ScScanInfo": {
@@ -408,6 +408,7 @@
       "chainType": "ADA",
       "chainName": "Cardano",
       "crossScAddr": "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
+      "feeHolder": "addr1qyxqtjnck8f0gyzys6kwpydd5lrcjue6tg8f2elqhs65ffy7trczz375trxwfgc7zvkvxrxcr4plz8tnqv6qre7u722qhe650r",
       "mintFromChainHandle": "MintAdaFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
