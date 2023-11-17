@@ -18,7 +18,7 @@ class TokenPairService {
         this.tokenIssuer = new Map();
         this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
         this.assetAlias2Type = new Map(); // for logo
-        this.chainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
+        this.fromChainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
     }
 
     async init(frameworkService, options) {
@@ -463,26 +463,31 @@ class TokenPairService {
 
     updateChainAssets(tokenPair) {
       let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
-      // fromChain
-      let protocol = this.chainAssets.get(tokenPair.protocol);
+      // protocol
+      let protocol = this.fromChainAssets.get(tokenPair.protocol);
       if (!protocol) {
         protocol = new Map();
-        this.chainAssets.set(tokenPair.protocol, protocol);
+        this.fromChainAssets.set(tokenPair.protocol, protocol);
       }
-      let chain = protocol.get(tokenPair.fromChainType);
-      if (!chain) {
-        chain = new Map();
-        protocol.set(tokenPair.fromChainType, chain);
-      }
-      chain.set(assetName, {symbol: tokenPair.fromSymbol, address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol});
-      // toChain
-      if (tokenPair.toChainType !== tokenPair.fromChainType) { // USDC.e
-        chain = protocol.get(tokenPair.toChainType);
+      // fromChain
+      if (tokenPair.direction !== "t2f") {
+        let chain = protocol.get(tokenPair.fromChainType);
         if (!chain) {
           chain = new Map();
-          protocol.set(tokenPair.toChainType, chain);
+          protocol.set(tokenPair.fromChainType, chain);
         }
-        chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol});
+        chain.set(assetName, {symbol: tokenPair.fromSymbol, address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol});
+      }
+      // toChain
+      if (tokenPair.direction !== "f2t") {
+        if (tokenPair.toChainType !== tokenPair.fromChainType) { // USDC.e
+          chain = protocol.get(tokenPair.toChainType);
+          if (!chain) {
+            chain = new Map();
+            protocol.set(tokenPair.toChainType, chain);
+          }
+          chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol});
+        }
       }
     }
 
@@ -531,7 +536,7 @@ class TokenPairService {
     getChainAssets(chainType, options) {
       let assets = {};
       options.protocols.forEach(p => {
-        let protocol = this.chainAssets.get(p);
+        let protocol = this.fromChainAssets.get(p);
         if (protocol) {
           let chain = protocol.get(chainType);
           if (chain) {
