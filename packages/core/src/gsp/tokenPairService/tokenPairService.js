@@ -481,7 +481,7 @@ class TokenPairService {
       // toChain
       if (tokenPair.direction !== "f2t") {
         if (tokenPair.toChainType !== tokenPair.fromChainType) { // USDC.e
-          chain = protocol.get(tokenPair.toChainType);
+          let chain = protocol.get(tokenPair.toChainType);
           if (!chain) {
             chain = new Map();
             protocol.set(tokenPair.toChainType, chain);
