@@ -12,14 +12,16 @@ class StoremanService {
     constructor() {
     }
 
-    async init(frameworkService) {
-        this.m_frameworkService = frameworkService;
-        this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
+    async init(frameworkService, options) {
+        this.isTestMode = options.isTestMode || false;
+        this.frameworkService = frameworkService;
+        this.configService = frameworkService.getService("ConfigService");
+        this.iwan = frameworkService.getService("iWanConnectorService");
     }
 
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
         try {
-            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+            let tokenPairService = this.frameworkService.getService("TokenPairService");
             let tokenPair = tokenPairService.getTokenPair(tokenPairId);
             if (tokenPair) {
                 let toChainType = (fromChainType === tokenPair.fromChainType)? tokenPair.toChainType : tokenPair.fromChainType;
@@ -35,9 +37,11 @@ class StoremanService {
                     minAmountChain = tokenPair.toChainType;
                 }
                 let minAmountDecimals = (minAmountChain === tokenPair.fromChainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
+                let network = this.configService.getNetwork();
+                let ignoreReservation = (this.isTestMode && (network === "mainnet"));
                 let [quota, min] = await Promise.all([
-                    this.m_iwanBCConnector.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType),
-                    this.m_iwanBCConnector.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
+                    this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation),
+                    this.iwan.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
                 ]);
                 // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
                 let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
@@ -52,7 +56,7 @@ class StoremanService {
 
     async getAccountBalance(assetPairId, chainType, addr, options = {}) {
         try {
-            let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+            let tokenPairService = this.frameworkService.getService("TokenPairService");
             let tokenPair = tokenPairService.getTokenPair(assetPairId);
             if (!tokenPair) {
                 return new BigNumber(0);
@@ -64,7 +68,7 @@ class StoremanService {
                 if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                     balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                 } else {
-                    balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
+                    balance = await this.iwan.getBalance(chainType, addr);
                 }
             } else {
                 decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
@@ -73,7 +77,7 @@ class StoremanService {
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                         balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
                     } else {
-                        balance = await this.m_iwanBCConnector.getBalance(chainType, addr);
+                        balance = await this.iwan.getBalance(chainType, addr);
                     }
                 } else if (tokenPair.protocol === "Erc1155") {
                     balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
@@ -81,7 +85,7 @@ class StoremanService {
                     if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
                         balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
                     } else {
-                        balance = await this.m_iwanBCConnector.getTokenBalance(chainType, addr, tokenAccount);
+                        balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
                     }
                 }
             }
@@ -104,7 +108,7 @@ class StoremanService {
 
     async getXrpTokenTrustLine(tokenAccount, userAccount) {
       let [currency, issuer] = tool.parseXrpTokenPairAccount(tokenAccount, false);
-      let lines = await this.m_iwanBCConnector.getTrustLines(userAccount);
+      let lines = await this.iwan.getTrustLines(userAccount);
       let line = lines.find(v => (v.account === issuer) && (v.currency === currency));
       if (line) {
         return {
@@ -152,7 +156,7 @@ class StoremanService {
       })
       if (mcs.length) {
         try {
-          let res = await this.m_iwanBCConnector.multiCall(chain, mcs);
+          let res = await this.iwan.multiCall(chain, mcs);
           let data = res.results.transformed;
           tokenIds.forEach(v => {
             let id = "0x" + new BigNumber(v).toString(16);
@@ -199,7 +203,7 @@ class StoremanService {
         variables: {tokenAddr, owner, limit, skip}
       };
       let tokens = [];
-      let urls = await this.m_iwanBCConnector.getRegisteredSubgraph({chainType: chain, keywords: [tokenAddr]});
+      let urls = await this.iwan.getRegisteredSubgraph({chainType: chain, keywords: [tokenAddr]});
       console.debug("get %s token %s subgraph: %O", chain, tokenAddr, urls);
       let res = await axios.post(urls[0].subgraph, JSON.stringify(query));
       if (res && res.data && res.data.data && res.data.data.tokenBalances) {
@@ -220,7 +224,7 @@ class StoremanService {
         }
       })
       if (uriCalls.length) {
-        let res = await this.m_iwanBCConnector.multiCall(chain, uriCalls);
+        let res = await this.iwan.multiCall(chain, uriCalls);
         let uris = res.results.transformed;
         result.forEach(v => {
           v.uri = uris[v.id].replace(/\{id\}/g, tool.hexStrip0x(v.id));
@@ -246,8 +250,8 @@ class StoremanService {
     }
 
     async getCardanoEpochParameters() {
-      let latestBlock = await this.m_iwanBCConnector.getLatestBlock("ADA");
-      let p = await this.m_iwanBCConnector.getEpochParameters("ADA", {epochID: "latest"});
+      let latestBlock = await this.iwan.getLatestBlock("ADA");
+      let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
       let epochParameters = {
         linearFee: {
           minFeeA: p.min_fee_a.toString(),
@@ -269,7 +273,7 @@ class StoremanService {
     }
 
     async getCardanoCostModelParameters() {
-      let p = await this.m_iwanBCConnector.getCostModelParameters("ADA", {epochID: "latest"});
+      let p = await this.iwan.getCostModelParameters("ADA", {epochID: "latest"});
       console.debug("getCardanoCostModelParameters: %O", p);
       return p;
     }
@@ -278,7 +282,7 @@ class StoremanService {
       let blockNumber = 0;
       if (!API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
         // only for EVM chains
-        blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
+        blockNumber = await this.iwan.getBlockNumber(chainType);
       }
       return blockNumber;
     }

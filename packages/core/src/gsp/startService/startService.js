@@ -103,7 +103,7 @@ class StartService {
             frameworkService.registerService("CheckAdaTxService", checkAdaTxService);            
 
             let storemanService = new StoremanService();
-            await storemanService.init(frameworkService);
+            await storemanService.init(frameworkService, options);
             frameworkService.registerService("StoremanService", storemanService);
 
             let tokenPairService = new TokenPairService();
