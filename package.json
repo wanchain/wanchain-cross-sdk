@@ -43,6 +43,7 @@
     "web3": "1.8.1",
     "ws": "^8.11.0",
     "@cosmjs/proto-signing": "^0.31.1",
-    "@cosmjs/stargate": "^0.31.1"
+    "@cosmjs/stargate": "^0.31.1",
+    "osmojs": "^16.5.1"
   }
 }
