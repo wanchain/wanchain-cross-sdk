@@ -17,7 +17,8 @@
   "dependencies": {
     "@cosmjs/proto-signing": "^0.31.1",
     "@cosmjs/stargate": "^0.31.1",
-    "elliptic": "^6.5.4"
+    "elliptic": "^6.5.4",
+    "osmojs": "^16.5.1"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
