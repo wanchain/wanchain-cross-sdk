@@ -12,7 +12,8 @@ class StoremanService {
     constructor() {
     }
 
-    async init(frameworkService) {
+    async init(frameworkService, options) {
+      this.isTestMode = options.isTestMode || false;
       this.frameworkService = frameworkService;
       this.iwan = frameworkService.getService("iWanConnectorService");
       this.chainInfoService = frameworkService.getService("ChainInfoService");
@@ -37,8 +38,10 @@ class StoremanService {
             minAmountChain = tokenPair.toChainType;
           }
           let minAmountDecimals = (minAmountChain === tokenPair.fromChainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
+          let network = this.configService.getNetwork();
+          let ignoreReservation = (this.isTestMode && (network === "mainnet"));
           let [quota, min] = await Promise.all([
-            this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType),
+            this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation),
             this.iwan.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
           ]);
           // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);

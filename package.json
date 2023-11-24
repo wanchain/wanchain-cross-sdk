@@ -24,8 +24,8 @@
   "dependencies": {
     "@polkadot/api": "10.9.1",
     "@polkadot/extension-dapp": "0.46.5",
-    "@polkadot/util": "12.3.2",
-    "@polkadot/util-crypto": "12.3.2",
+    "@polkadot/util": "12.5.1",
+    "@polkadot/util-crypto": "12.5.1",
     "axios": "^1.5.1",
     "bignumber.js": "^9.1.1",
     "bitcoinjs-lib": "6.1.0",
@@ -41,6 +41,8 @@
     "urql": "3.0.3",
     "wanchain-util": "^1.2.0",
     "web3": "1.8.1",
-    "ws": "^8.11.0"
+    "ws": "^8.11.0",
+    "@cosmjs/proto-signing": "^0.31.1",
+    "@cosmjs/stargate": "^0.31.1"
   }
 }

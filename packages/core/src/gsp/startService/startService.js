@@ -23,6 +23,7 @@ let ChainInfoService = require("../chainInfoService/chainInfoService");
 let GlobalConstant = require("../globalConstantService/globalConstant");
 let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
 let CheckAdaTxService = require("../checkAdaTxService/checkAdaTxService");
+let CheckAtomTxService = require("../checkAtomTxService/checkAtomTxService");
 
 class StartService {
     constructor() {
@@ -100,10 +101,14 @@ class StartService {
 
             let checkAdaTxService = new CheckAdaTxService();
             await checkAdaTxService.init(frameworkService);
-            frameworkService.registerService("CheckAdaTxService", checkAdaTxService);            
+            frameworkService.registerService("CheckAdaTxService", checkAdaTxService);
+
+            let checkAtomTxService = new CheckAtomTxService();
+            await checkAtomTxService.init(frameworkService);
+            frameworkService.registerService("CheckAtomTxService", checkAtomTxService);   
 
             let storemanService = new StoremanService();
-            await storemanService.init(frameworkService);
+            await storemanService.init(frameworkService, options);
             frameworkService.registerService("StoremanService", storemanService);
 
             let tokenPairService = new TokenPairService();
@@ -180,8 +185,11 @@ class StartService {
             await checkPhaTxService.start();
 
             let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
-            await checkAdaTxService.start();            
-        } catch (err) {
+            await checkAdaTxService.start();
+
+            let checkAtomTxService = frameworkService.getService("CheckAtomTxService");
+            await checkAtomTxService.start();
+          } catch (err) {
             console.error("startService start err:", err);
         }
     }

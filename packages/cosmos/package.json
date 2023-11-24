@@ -1,0 +1,33 @@
+{
+  "name": "@wandevs/cross-cosmos",
+  "version": "1.0.0",
+  "description": "Wanchain Cross-Chain SDK cosmos extension",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wanchain/wanchain-cross-sdk.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@cosmjs/proto-signing": "^0.31.1",
+    "@cosmjs/stargate": "^0.31.1",
+    "elliptic": "^6.5.4"
+  },
+  "bugs": {
+    "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
+  },
+  "homepage": "https://github.com/wanchain/wanchain-cross-sdk#readme",
+  "author": "wandevs",
+  "keywords": [
+    "WanBridge",
+    "cross-chain",
+    "cosmos",
+    "extension"
+  ]
+}

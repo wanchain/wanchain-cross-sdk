@@ -436,6 +436,17 @@
       "TxScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "chainId": "2147483766",
+      "chainType": "ATOM",
+      "chainName": "Cosmos",
+      "mintFromChainHandle": "MintFromCosmos",
+      "chainDecimals": 6,
+      "MaskChainId": "theta-testnet-001",
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
     }
   ],
   "tokenPairCfg": [
