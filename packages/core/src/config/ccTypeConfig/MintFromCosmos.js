@@ -27,7 +27,7 @@ module.exports = class MintFromCosmos {
         storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessAdaMintFromCardano",
+        taskType: "ProcessMintFromCosmos",
         fee,
         networkFee,
         fromAddr: convert.fromAddr

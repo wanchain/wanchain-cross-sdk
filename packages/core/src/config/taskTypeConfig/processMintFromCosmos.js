@@ -42,19 +42,14 @@ module.exports = class ProcessMintFromCosmos {
 
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
-    // console.debug("ProcessMintFromCosmos stepData:", stepData);
     let params = stepData.params;
     try {
       let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount);
       console.debug("ProcessMintFromCosmos memo: %s", memo);
 
-      let api = await wallet.getApi();
-
-      // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
       let smgAddr = this.extension.tool.gpk2Address(params.storemanGroupGpk, "Cosmos");
-      //console.log({smgAddr});
+      console.log({smgAddr});
 
-      // 2 生成交易串
       let txs = [{
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
         value: {
@@ -68,21 +63,27 @@ module.exports = class ProcessMintFromCosmos {
           ],
         },
       }];
-      // console.debug("txs:", txs);
+      console.debug("txs:", txs);
 
-      let client = await wallet.getClient();
+      let stargateClient = await wallet.getStargateClient();
+      let singingClient = await wallet.getSigningClient()
       let key = await wallet.getKey();
       let base64Pk = Amino.encodeSecp256k1Pubkey(key.pubKey);
-      let { accountNumber, sequence } = await client.getSequence(params.fromAddr);
-      let gasPrice = Strgate.GasPrice.fromString('0.025uatom');
-      let anyMsgs = txs.map(tx => client.registry.encodeAsAny(tx));
 
-      let { gasInfo } = await client.forceGetQueryClient().tx.simulate(anyMsgs, memo, base64Pk, sequence);
+      console.log("stargateClient: %O", stargateClient)
+
+      let { accountNumber, sequence } = await stargateClient.getSequence(params.fromAddr);
+      console.log("stargateClient return sequence: %O", { accountNumber, sequence });
+
+      let gasPrice = Strgate.GasPrice.fromString('0.025uatom');
+      let anyMsgs = txs.map(tx => singingClient.registry.encodeAsAny(tx));
+
+      let { gasInfo } = await stargateClient.forceGetQueryClient().tx.simulate(anyMsgs, memo, base64Pk, sequence);
       let gasUsed = Math.Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
       let fee = Strgate.calculateFee(Math.round(gasUsed * 1.35), gasPrice);
 
-      let height = await client.getHeight();
-      const txBodyEncodeObject = {
+      let height = await stargateClient.getHeight();
+      let txBody = {
         typeUrl: "/cosmos.tx.v1beta1.TxBody",
         value: {
           messages: txs,
@@ -90,7 +91,7 @@ module.exports = class ProcessMintFromCosmos {
           timeoutHeight: new pkg_Long(height + 100)
         },
       };
-      let txBodyBytes = client.registry.encode(txBodyEncodeObject);
+      let txBodyBytes = singingClient.registry.encode(txBody);
       let gasLimit = Math.Int53.fromString(fee.gas).toNumber();
       let pubkey_for_authinfo = ProtoSigning.encodePubkey(base64Pk);
       let authInfoBytes = ProtoSigning.makeAuthInfoBytes([{ pubkey_for_authinfo, sequence }], fee.amount, gasLimit);

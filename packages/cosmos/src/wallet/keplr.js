@@ -1,8 +1,9 @@
+const Osmosis = require("osmojs");
 const Stargate = require("@cosmjs/stargate");
 const Txs = require("cosmjs-types/cosmos/tx/v1beta1/tx.js");
 
 const DefaultRpc = {
-  "theta-testnet-001": "rpc.sentry-01.theta-testnet.polypore.xyz:26657"
+  "theta-testnet-001": "https://rpc.sentry-01.theta-testnet.polypore.xyz"
 }
 
 class Keplr {
@@ -14,6 +15,7 @@ class Keplr {
       throw new Error("Not support this chain");
     }
     this.wallet = window.keplr;
+    this.stargateClient = null;
   }
 
   // standard function
@@ -34,7 +36,7 @@ class Keplr {
 
   async getBalance(addr) {
     let balance = "0";
-    let client = await this.getClient();
+    let client = await this.getStargateClient();
     let balances = await client.getAllBalances(addr);
     console.log("Keplr getBalances: %O", balances);
     for (let b of balances) {
@@ -66,9 +68,20 @@ class Keplr {
     return key;
   }
 
-  async getClient() {
-    let client = await Stargate.StargateClient.connect(this.rpc);
-    return client;
+  async getStargateClient() {
+    if (!this.stargateClient) {
+      let client = await Stargate.StargateClient.connect(this.rpc);
+      this.stargateClient = client;
+    }
+    return this.stargateClient;
+  }
+
+  async getSigningClient() {
+    if (!this.signingClient) {
+      let client = await Osmosis.getSigningCosmosClient({rpcEndpoint: this.rpc});
+      this.signingClient = client;
+    }
+    return this.signingClient;
   }
 
   async estimateFee(sender, txs) {
