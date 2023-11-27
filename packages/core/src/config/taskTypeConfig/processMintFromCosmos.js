@@ -3,8 +3,9 @@
 const tool = require("../../utils/tool.js");
 const Amino = require("@cosmjs/amino");
 const Strgate = require("@cosmjs/stargate");
-const Math = require("@cosmjs/math");
+const CosmMath = require("@cosmjs/math");
 const ProtoSigning = require("@cosmjs/proto-signing");
+const Long = require("long");
 
 /* metadata format:
   userLock:
@@ -79,7 +80,7 @@ module.exports = class ProcessMintFromCosmos {
       let anyMsgs = txs.map(tx => singingClient.registry.encodeAsAny(tx));
 
       let { gasInfo } = await stargateClient.forceGetQueryClient().tx.simulate(anyMsgs, memo, base64Pk, sequence);
-      let gasUsed = Math.Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
+      let gasUsed = CosmMath.Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
       let fee = Strgate.calculateFee(Math.round(gasUsed * 1.35), gasPrice);
 
       let height = await stargateClient.getHeight();
@@ -88,14 +89,14 @@ module.exports = class ProcessMintFromCosmos {
         value: {
           messages: txs,
           memo: memo,
-          timeoutHeight: new pkg_Long(height + 100)
+          timeoutHeight: new Long(height + 100)
         },
       };
       let txBodyBytes = singingClient.registry.encode(txBody);
-      let gasLimit = Math.Int53.fromString(fee.gas).toNumber();
+      let gasLimit = CosmMath.Int53.fromString(fee.gas).toNumber();
       let pubkey_for_authinfo = ProtoSigning.encodePubkey(base64Pk);
       let authInfoBytes = ProtoSigning.makeAuthInfoBytes([{ pubkey_for_authinfo, sequence }], fee.amount, gasLimit);
-      let signDoc = ProtoSigning.makeSignDoc(txBodyBytes, authInfoBytes, chainId, accountNumber);
+      let signDoc = ProtoSigning.makeSignDoc(txBodyBytes, authInfoBytes, wallet.chainId, accountNumber);
       let txHash = await wallet.sendTransaction(signDoc);
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
