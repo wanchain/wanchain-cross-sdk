@@ -1,10 +1,6 @@
 'use strict';
 
 const tool = require("../../utils/tool.js");
-const Amino = require("@cosmjs/amino");
-const Strgate = require("@cosmjs/stargate");
-const CosmMath = require("@cosmjs/math");
-const ProtoSigning = require("@cosmjs/proto-signing");
 const Long = require("long");
 
 /* metadata format:
@@ -66,24 +62,9 @@ module.exports = class ProcessMintFromCosmos {
       }];
       console.debug("txs:", txs);
 
-      let stargateClient = await wallet.getStargateClient();
-      let singingClient = await wallet.getSigningClient()
-      let key = await wallet.getKey();
-      let base64Pk = Amino.encodeSecp256k1Pubkey(key.pubKey);
+      let fee = await wallet.estimateFee(txs, memo);
 
-      console.log("stargateClient: %O", stargateClient)
-
-      let { accountNumber, sequence } = await stargateClient.getSequence(params.fromAddr);
-      console.log("stargateClient return sequence: %O", { accountNumber, sequence });
-
-      let gasPrice = Strgate.GasPrice.fromString('0.025uatom');
-      let anyMsgs = txs.map(tx => singingClient.registry.encodeAsAny(tx));
-
-      let { gasInfo } = await stargateClient.forceGetQueryClient().tx.simulate(anyMsgs, memo, base64Pk, sequence);
-      let gasUsed = CosmMath.Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
-      let fee = Strgate.calculateFee(Math.round(gasUsed * 1.35), gasPrice);
-
-      let height = await stargateClient.getHeight();
+      let height = await wallet.getHeight();
       let txBody = {
         typeUrl: "/cosmos.tx.v1beta1.TxBody",
         value: {
@@ -92,11 +73,7 @@ module.exports = class ProcessMintFromCosmos {
           timeoutHeight: new Long(height + 100)
         },
       };
-      let txBodyBytes = singingClient.registry.encode(txBody);
-      let gasLimit = CosmMath.Int53.fromString(fee.gas).toNumber();
-      let pubkey_for_authinfo = ProtoSigning.encodePubkey(base64Pk);
-      let authInfoBytes = ProtoSigning.makeAuthInfoBytes([{ pubkey_for_authinfo, sequence }], fee.amount, gasLimit);
-      let signDoc = ProtoSigning.makeSignDoc(txBodyBytes, authInfoBytes, wallet.chainId, accountNumber);
+      let signDoc = await wallet.makeSignDoc(txBody, fee);
       let txHash = await wallet.sendTransaction(signDoc);
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
@@ -114,7 +91,7 @@ module.exports = class ProcessMintFromCosmos {
       let checkAtomTxService = this.frameworkService.getService("CheckAtomTxService");
       await checkAtomTxService.addTask(checkPara);
     } catch (err) {
-      if (err.message === "Cancelled") {
+      if (err.message === "Request rejected") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessMintFromCosmos error: %O", err);
@@ -128,12 +105,8 @@ module.exports = class ProcessMintFromCosmos {
       tokenPairID: Number(tokenPair),
       toAccount : userAccount,
       type: TX_TYPE.userLock
-    };  
+    };
     console.debug("ProcessMintFromCosmos buildUserLockData: %O", data);
     return JSON.stringify(data);
-  }
-
-  buildTx(paymentAddr, inputs, output, networkFeeOutput, epochParameters, metaData) {
- 
   }
 };
