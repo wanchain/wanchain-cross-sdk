@@ -207,6 +207,10 @@ class IWanBCConnector {
     async getRegisteredCoinGecko(options) {
       return this.apiClient.getRegisteredCoinGecko(options);
     }
+
+    async hasHackerAccount(address) {
+      return this.apiClient.hasHackerAccount(address);
+    }
 };
 
 module.exports = IWanBCConnector;
