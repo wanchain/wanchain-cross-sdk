@@ -2,7 +2,7 @@ const Osmosis = require("osmojs");
 const Amino = require("@cosmjs/amino");
 const Stargate = require("@cosmjs/stargate");
 const CosmMath = require("@cosmjs/math");
-const Txs = require("cosmjs-types/cosmos/tx/v1beta1/tx.js");
+const Tx = require("cosmjs-types/cosmos/tx/v1beta1/tx.js");
 const ProtoSigning = require("@cosmjs/proto-signing");
 
 const DefaultRpc = {
@@ -54,14 +54,14 @@ class Keplr {
   async sendTransaction(signDoc) {
     let key = await this.wallet.getKey(this.chainId);
     let signed = await this.wallet.signDirect(this.chainId, key.bech32Address, signDoc);
-    console.log("keplr %s sign %O: %O", key.bech32Address, signDoc, signed);
-    let tx = Txs.TxRaw.fromPartial({
+    let txRaw = Tx.TxRaw.fromPartial({
       bodyBytes: signed.signed.bodyBytes,
       authInfoBytes: signed.signed.authInfoBytes,
       signatures: [Buffer.from(signed.signature.signature, "base64")],
     });
-    let txHash = await keplr.sendTx(this.chainId, tx, "sync");
-    console.log("keplr sendTx %O", txHash);
+    let tx = Tx.TxRaw.encode(txRaw).finish();
+    let txHash = await this.wallet.sendTx(this.chainId, tx, "sync");
+    txHash = Buffer.from(txHash).toString("hex");
     return txHash;
   }
 
