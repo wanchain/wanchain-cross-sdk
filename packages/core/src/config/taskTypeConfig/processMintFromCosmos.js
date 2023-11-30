@@ -41,9 +41,12 @@ module.exports = class ProcessMintFromCosmos {
     let webStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
     try {
-      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount);
-      console.debug("ProcessMintFromCosmos memo: %s", memo);
-
+      let tokenPairService = this.frameworkService.getService("TokenPairService");
+      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+      let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
+      if (!isCoin) {
+        throw new Error("Not support token");
+      }
       let smgAddr = this.extension.tool.gpk2Address(params.storemanGroupGpk, "Cosmos");
       console.log({smgAddr});
 
@@ -62,8 +65,8 @@ module.exports = class ProcessMintFromCosmos {
       }];
       console.debug("txs:", txs);
 
+      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount);
       let fee = await wallet.estimateFee(txs, memo);
-
       let height = await wallet.getHeight();
       let txBody = {
         typeUrl: "/cosmos.tx.v1beta1.TxBody",
