@@ -572,7 +572,7 @@ class TokenPairService {
         if (res && res.data) {
           for (let symbol in symbol2id) {
             let id = symbol2id[symbol];
-            if (res.data[id]) {
+            if (res.data[id] && res.data[id]['usd']) {
               prices[symbol] = res.data[id]['usd'].toString();
             } else {
               prices[symbol] = "0";
