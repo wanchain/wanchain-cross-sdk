@@ -70,6 +70,10 @@
       "chainName": "Polygon",
       "chainDecimals": 18,
       "crossScAddr": "0xB5bf1013898a93f0BD902F6e346Ed6cBB627b791",
+      "CircleBridge": {
+        "domain": 7,
+        "crossScAddr": "0x3A880B37cdC960FB14f17f5C4a41c91fD6E6355C"
+      },
       "MaskChainId": 80001,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -223,8 +227,8 @@
     {
       "chainId": "1073741835",
       "chainType": "OKB",
-      "chainName": "OKB Chain",
-      "crossScAddr": "0x4a9F99ceb037E8C4FBEC272D17D40282aA67d9c6",
+      "chainName": "X1",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
       "MaskChainId": 195,
       "ScScanInfo": {
