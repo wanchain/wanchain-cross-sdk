@@ -24,9 +24,10 @@ class TokenPairService {
     async init(frameworkService, options) {
         try {
             this.isTestMode = options.isTestMode || false;
-            this.crossAssets = options.crossAssets || [];
-            this.crossChains = options.crossChains || [];
-            this.crossProtocols = options.crossProtocols || [];
+            this.crossAssets = (options.crossAssets || []).map(v => v.toLowerCase());
+            this.crossChains = (options.crossChains || []).map(v => v.toLowerCase());
+            this.crossProtocols = (options.crossProtocols || []).map(v => v.toLowerCase());
+            this.crossTypes = (options.crossTypes || []).map(v => v.toLowerCase());
             this.frameworkService = frameworkService;
             this.iwanBCConnector = frameworkService.getService("iWanConnectorService");
             this.eventService = frameworkService.getService("EventService");
@@ -118,18 +119,30 @@ class TokenPairService {
     }
 
     checkCustomization(tp) {
-      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.protocol)) {
+      if (this.crossProtocols.length && !this.crossProtocols.includes(tp.protocol.toLowerCase())) {
         return false;
       }
-      if (this.crossAssets.length && !this.crossAssets.includes(tp.readableSymbol)) {
+      if (this.crossAssets.length && !this.crossAssets.includes(tp.readableSymbol.toLowerCase())) {
         return false;
       }
       if (this.crossChains.length) {
         let chains = [tp.ancestorChainType, tp.ancestorChainName, tp.fromChainType, tp.fromChainName, tp.toChainType, tp.toChainName]; 
         for (let chain of chains) {
-          if (!this.crossChains.includes(chain)) {
+          if (!this.crossChains.includes(chain.toLowerCase())) {
             return false;
           }
+        }
+      }
+      if (this.crossTypes.length) {
+        let crossType = "other";
+        if (tp.bridge === "Circle") {
+          crossType = "cctp";
+        } else if (tp.fromIsNative && tp.toIsNative) {
+          crossType = "xflows";
+        }
+        if (!this.crossTypes.includes(crossType)) {
+          console.log("ignore tokenpair %s: bridge=%s, fromIsNative=%s, toIsNative=%s", tp.id, tp.bridge, tp.fromIsNative, tp.toIsNative)
+          return false;
         }
       }
       return true;
@@ -572,7 +585,7 @@ class TokenPairService {
         if (res && res.data) {
           for (let symbol in symbol2id) {
             let id = symbol2id[symbol];
-            if (res.data[id]) {
+            if (res.data[id] && res.data[id]['usd']) {
               prices[symbol] = res.data[id]['usd'].toString();
             } else {
               prices[symbol] = "0";
