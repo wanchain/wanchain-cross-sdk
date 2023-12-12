@@ -3,8 +3,7 @@
 const CheckScEvent = require("./checkScEvent");
 const CheckBtcTx = require("./checkBtcTx");
 const CheckXrpTx = require("./checkXrpTx");
-const CheckDotTx = require("./checkDotTx");
-const CheckAdaTx = require("./checkAdaTx");
+const CheckApiServerTx = require("./checkApiServerTx");
 
 module.exports = class ScEventScanService {
   constructor() {
@@ -41,17 +40,21 @@ module.exports = class ScEventScanService {
     await checkXrpTx.init("XRP");
     this.m_mapCheckHandle.set("XRP", checkXrpTx);
 
-    let checkDotTx = new CheckDotTx(this.m_frameworkService, "DOT");
+    let checkDotTx = new CheckApiServerTx(this.m_frameworkService, "DOT");
     await checkDotTx.init();
     this.m_mapCheckHandle.set("DOT", checkDotTx);
 
-    let checkPhaTx = new CheckDotTx(this.m_frameworkService, "PHA");
+    let checkPhaTx = new CheckApiServerTx(this.m_frameworkService, "PHA");
     await checkPhaTx.init();
     this.m_mapCheckHandle.set("PHA", checkPhaTx);
 
-    let checkAdaTx = new CheckAdaTx(this.m_frameworkService);
-    await checkAdaTx.init("ADA");
+    let checkAdaTx = new CheckApiServerTx(this.m_frameworkService, "ADA");
+    await checkAdaTx.init();
     this.m_mapCheckHandle.set("ADA", checkAdaTx);
+
+    let checkAtomTx = new CheckApiServerTx(this.m_frameworkService, "ATOM");
+    await checkAtomTx.init();
+    this.m_mapCheckHandle.set("ATOM", checkAtomTx);
   }
 
   async loadTradeTask(dataAry) {

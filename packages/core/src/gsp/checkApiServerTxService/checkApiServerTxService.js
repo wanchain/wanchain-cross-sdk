@@ -2,8 +2,8 @@
 
 const axios = require("axios");
 
-module.exports = class CheckDotTxService {
-    constructor(chainType = "DOT") {
+module.exports = class CheckApiServerTxService {
+    constructor(chainType) {
         this.chainType = chainType;
         this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "TxService";
         this.checkArray = [];
@@ -51,6 +51,8 @@ module.exports = class CheckDotTxService {
                     console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
                     if (ret.data.success && ret.data.data) {
                       task.uniqueID = ret.data.data.hashX;
+                      task.fromChain = this.chainType;
+                      task.chainHash = task.txHash;
                       await this.eventService.emitEvent("TaskStepResult", {
                         ccTaskId: task.ccTaskId,
                         stepIndex: task.stepIndex,

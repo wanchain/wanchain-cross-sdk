@@ -21,9 +21,7 @@ let TxTaskHandleService = require("../txTaskHandleService/txTaskHandleService");
 let TokenPairService = require("../tokenPairService/tokenPairService");
 let ChainInfoService = require("../chainInfoService/chainInfoService");
 let GlobalConstant = require("../globalConstantService/globalConstant");
-let CheckDotTxService = require("../checkDotTxService/checkDotTxService");
-let CheckAdaTxService = require("../checkAdaTxService/checkAdaTxService");
-let CheckAtomTxService = require("../checkAtomTxService/checkAtomTxService");
+let CheckApiServerTxService = require("../checkApiServerTxService/checkApiServerTxService");
 
 class StartService {
     constructor() {
@@ -91,19 +89,19 @@ class StartService {
             await iwanBCConnector.init(frameworkService);
             frameworkService.registerService("iWanConnectorService", iwanBCConnector);
 
-            let checkDotTxService = new CheckDotTxService("DOT");
+            let checkDotTxService = new CheckApiServerTxService("DOT");
             await checkDotTxService.init(frameworkService);
             frameworkService.registerService("CheckDotTxService", checkDotTxService);
 
-            let checkPhaTxService = new CheckDotTxService("PHA");
+            let checkPhaTxService = new CheckApiServerTxService("PHA");
             await checkPhaTxService.init(frameworkService);
             frameworkService.registerService("CheckPhaTxService", checkPhaTxService);
 
-            let checkAdaTxService = new CheckAdaTxService();
+            let checkAdaTxService = new CheckApiServerTxService("ADA");
             await checkAdaTxService.init(frameworkService);
             frameworkService.registerService("CheckAdaTxService", checkAdaTxService);
 
-            let checkAtomTxService = new CheckAtomTxService();
+            let checkAtomTxService = new CheckApiServerTxService("ATOM");
             await checkAtomTxService.init(frameworkService);
             frameworkService.registerService("CheckAtomTxService", checkAtomTxService);   
 
