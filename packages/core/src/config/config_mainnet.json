@@ -291,6 +291,18 @@
       }
     },
     {
+      "chainId": "1073741838",
+      "chainType": "MATICETH",
+      "chainName": "Polygon zkEVM",
+      "symbol": "ETH",
+      "crossScAddr": "0xB13aFe3e965DcD483022b1CC3Adf03Eea039A754",
+      "chainDecimals": 18,
+      "MaskChainId": 1101,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
       "chainId": "1073741841",
       "chainType": "BASEETH",
       "chainName": "Base",
