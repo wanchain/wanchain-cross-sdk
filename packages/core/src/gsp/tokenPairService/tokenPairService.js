@@ -141,7 +141,6 @@ class TokenPairService {
           crossType = "xflows";
         }
         if (!this.crossTypes.includes(crossType)) {
-          console.log("ignore tokenpair %s: bridge=%s, fromIsNative=%s, toIsNative=%s", tp.id, tp.bridge, tp.fromIsNative, tp.toIsNative)
           return false;
         }
       }
