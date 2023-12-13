@@ -97,6 +97,7 @@ class TokenPairService {
               }
               return false;
             });
+            tokenPairs.forEach(tp => this.updateChainAssets(tp));
             let ts1 = Date.now();
             let ps = [
               this.getSmgs(ts1)
@@ -355,7 +356,6 @@ class TokenPairService {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
                 this.updateTokenPairCcHandle(tokenPair);
-                this.updateChainAssets(tokenPair);
                 return true;
             } catch (err) {
                 console.error("ignore unavailable token pair %s(%s, %s<->%s): %O", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName, err);
