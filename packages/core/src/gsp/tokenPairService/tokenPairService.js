@@ -134,7 +134,8 @@ class TokenPairService {
           }
         }
       }
-      if (this.crossTypes.length) {
+      // crossTypes is only for erc20
+      if (this.crossTypes.length && (tp.protocol === "Erc20")) {
         let crossType = "other";
         if (tp.bridge === "Circle") {
           crossType = "cctp";
