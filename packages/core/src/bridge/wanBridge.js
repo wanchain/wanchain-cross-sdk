@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2309181618", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2312011445", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -37,6 +37,7 @@ class WanBridge extends EventEmitter {
     this.tokenPairService = this._service.getService("TokenPairService");
     this.txTaskHandleService = this._service.getService("TxTaskHandleService");
     this.cctHandleService = this._service.getService("CCTHandleService");
+    this.iwan = this._service.getService("iWanConnectorService");
     this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
     this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
@@ -358,6 +359,14 @@ class WanBridge extends EventEmitter {
     }
   }
 
+  async checkHackerAccount(addresses) {
+    let isHacker = await this.iwan.hasHackerAccount(addresses);
+    if (isHacker) {
+      console.error("SDK: checkHackerAccount true, addresses: %O", addresses);
+    }
+    return isHacker;
+  }
+
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
@@ -517,7 +526,8 @@ class WanBridge extends EventEmitter {
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let i = 0; i < assetPairList.length; i++) {
       let pair = assetPairList[i];
-      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && (!options.assetPairId) || (options.assetPairId === pair.assetPairId)) {
+      // sometimes there are temporary two bridges for the same asset crosschain, need to be specified by assetPairId
+      if (((pair.assetAlias || pair.assetType) === assetType) && (pair.protocol === protocol) && ((!options.assetPairId) || (options.assetPairId === pair.assetPairId))) {
         // if fromChainName and toChainName are the same, find any one of related pairs
         if ([pair.fromChainName, pair.toChainName].includes(fromChainName) && [pair.fromChainName, pair.toChainName].includes(toChainName)) {
           let tokenPair = this.tokenPairService.getTokenPair(pair.assetPairId);

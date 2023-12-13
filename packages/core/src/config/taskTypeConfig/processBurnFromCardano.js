@@ -55,10 +55,6 @@ module.exports = class ProcessBurnFromCardano {
         this.storemanService.getCardanoEpochParameters(),
         this.storemanService.getCardanoCostModelParameters()
       ]);
-      // adjust FeeTooSmallUTxO
-      epochParameters.linearFee.minFeeA = (epochParameters.linearFee.minFeeA).toString();
-      epochParameters.linearFee.minFeeB = (epochParameters.linearFee.minFeeB).toString();
-
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let output = {
@@ -76,13 +72,11 @@ module.exports = class ProcessBurnFromCardano {
         unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
         quantity: params.value
       });
-
       let tempTxOutput = this.wasm.TransactionOutput.new(
         this.wasm.Address.from_bech32(params.crossScAddr),
         this.tool.assetsToValue(output.amount)
       );
       let minAda = this.tool.minAdaRequired(tempTxOutput, epochParameters.coinsPerUtxoByte);
-      console.debug({minAda});
       output.amount[0].quantity = minAda;
 
       let utxos = await wallet.getUtxos();
@@ -90,7 +84,8 @@ module.exports = class ProcessBurnFromCardano {
         throw new Error("No available utxos");
       }
 
-      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus("2000000").toFixed(); // add fee to select utxos
+      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus(params.networkFee).plus("2000000").toFixed(); // add fee to select utxos
+      console.debug("cardano burn tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessBurnFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
       if (inputs.length) {
@@ -100,12 +95,25 @@ module.exports = class ProcessBurnFromCardano {
           throw new Error("UTXOs unavailable, please try again later");
         }
       } else {
+        this.tool.showUtxos(utxos, "burn tx wallet");
         throw new Error("Not enough utxos");
       }
 
       let metaData = this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
       let mintBuilder = this.buildMint(tokenId, params.value);
-      let tx = await this.buildTx(params.fromAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
+
+      let networkFeeOutput = null;
+      if (params.networkFee != 0) {
+        networkFeeOutput = this.wasm.TransactionOutput.new(
+          this.wasm.Address.from_bech32(params.feeHolder),
+          this.tool.assetsToValue([{
+            unit: 'lovelace',
+            quantity: params.networkFee
+          }])
+        );
+      }
+
+      let tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
       console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
 
       let evaluateTx = await this.tool.evaluateTx(this.network, tx.to_hex());
@@ -123,7 +131,7 @@ module.exports = class ProcessBurnFromCardano {
 
       // rebuild tx
       mintBuilder = this.buildMint(tokenId, params.value, executionUnits);
-      tx = await this.buildTx(params.fromAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
+      tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
 
       // sign and send
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
@@ -243,7 +251,7 @@ module.exports = class ProcessBurnFromCardano {
     return builder;
   }
 
-  async buildTx(paymentAddr, inputs, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder) {
+  async buildTx(paymentAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder) {
     const wasm = this.wasm;
     const priceMem = epochParameters.priceMem.replace(/\"/g, "").split("/");
     const priceStep = epochParameters.priceStep.replace(/\"/g, "").split("/");
@@ -294,6 +302,10 @@ module.exports = class ProcessBurnFromCardano {
 
     txBuilder.set_collateral(collateralBuilder);
     txBuilder.set_total_collateral_and_return(txBuilder.min_fee().checked_mul(this.wasm.BigNum.from_str('2')), selfAddress);
+
+    if (networkFeeOutput) {
+      txBuilder.add_output(networkFeeOutput);
+    }
 
     txBuilder.set_ttl(epochParameters.slot + (3600 * 6)); // 6h from current slot
     txBuilder.add_change_if_needed(selfAddress);

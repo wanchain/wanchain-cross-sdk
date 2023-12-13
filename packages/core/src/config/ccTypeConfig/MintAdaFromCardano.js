@@ -14,11 +14,13 @@ module.exports = class MintAdaFromCardano {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+      let networkFee = tool.parseFee(convert.fee, convert.value, "ADA", {formatWithDecimals: false, feeType: "networkFee"});
       let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType,
         crossScAddr: tokenPair.fromScInfo.crossScAddr,
+        feeHolder: tokenPair.fromScInfo.feeHolder,
         userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
@@ -27,6 +29,7 @@ module.exports = class MintAdaFromCardano {
         value,
         taskType: "ProcessAdaMintFromCardano",
         fee,
+        networkFee,
         fromAddr: convert.fromAddr
       };
       console.debug("Mint %s FromCardano params: %O", tokenPair.readableSymbol, params);

@@ -80,6 +80,10 @@
       "chainName": "Polygon",
       "chainDecimals": 18,
       "crossScAddr": "0x2216072A246A84f7b9CE0f1415Dd239C9bF201aB",
+      "CircleBridge": {
+        "domain": 7,
+        "crossScAddr": "0x30b8d9e757595B5cbAEcdFD81e9Eeccf4B31e53D"
+      },
       "MaskChainId": 137,
       "ScScanInfo": {
         "taskInterval": 10000
@@ -257,7 +261,7 @@
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
       "symbol": "ETH",
-      "crossScAddr": "",
+      "crossScAddr": "0x102F0ce7a439d51247167D6233A0a44c3f8389a1",
       "chainDecimals": 18,
       "MaskChainId": 324,
       "ScScanInfo": {
@@ -279,9 +283,49 @@
       "chainId": "1073741840",
       "chainType": "VC",
       "chainName": "VinuChain",
-      "crossScAddr": "",
+      "crossScAddr": "0x72cCF64EE5E2C7629eE4eEe3e6AD6990289178ae",
       "chainDecimals": 18,
-      "MaskChainId": 27,
+      "MaskChainId": 207,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741838",
+      "chainType": "MATICETH",
+      "chainName": "Polygon zkEVM",
+      "symbol": "ETH",
+      "crossScAddr": "0xB13aFe3e965DcD483022b1CC3Adf03Eea039A754",
+      "chainDecimals": 18,
+      "MaskChainId": 1101,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741841",
+      "chainType": "BASEETH",
+      "chainName": "Base",
+      "symbol": "ETH",
+      "crossScAddr": "0x2715aA7156634256aE75240C2c5543814660CD04",
+      "CircleBridge": {
+        "domain": 6,
+        "crossScAddr": "0x012297F3d1Cb0D685B195A70231730F4c8c86F86"
+      },
+      "chainDecimals": 18,
+      "MaskChainId": 8453,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741842",
+      "chainType": "LINEAETH",
+      "chainName": "Linea",
+      "symbol": "ETH",
+      "crossScAddr": "0xFFB876Bd5Bee99e992cAc826A04396002f5f4a65",
+      "chainDecimals": 18,
+      "MaskChainId": 59144,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -392,6 +436,7 @@
       "chainType": "ADA",
       "chainName": "Cardano",
       "crossScAddr": "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
+      "feeHolder": "addr1qyxqtjnck8f0gyzys6kwpydd5lrcjue6tg8f2elqhs65ffy7trczz375trxwfgc7zvkvxrxcr4plz8tnqv6qre7u722qhe650r",
       "mintFromChainHandle": "MintAdaFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,

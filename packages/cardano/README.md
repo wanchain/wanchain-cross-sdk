@@ -13,7 +13,8 @@ npm install --save @wandevs/cross-cardano
 
 [Nami](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo),
 [Yoroi](https://chrome.google.com/webstore/detail/yoroi/ffnbelfdoeiohenkjibnmadjiehjhajb),
-[Eternl](https://chrome.google.com/webstore/detail/eternl/kmhcihpebfmpgmihbkipmjlmmioameka)
+[Eternl](https://chrome.google.com/webstore/detail/eternl/kmhcihpebfmpgmihbkipmjlmmioameka),
+[Gero](https://chrome.google.com/webstore/detail/gerowallet/bgpipimickeadkjlklgciifhnalhdjhe)
 
 ## Usage
 Step 1: Import WanBridge and cardano extension, create a bridge instance and initialize it with the extension.
@@ -36,13 +37,15 @@ bridge.init(iwanAuth, {extensions: [CardanoExtension]});
 Step 2: Connect a wallet.
 
 ```javascript
-let namiWallet = new CardanoExtension.NamiWallet("testnet");
-// let yoroiWallet = new CardanoExtension.YoroiWallet("testnet");
-// let eternlWallet = new CardanoExtension.EternlWallet("testnet");
+let wallet = new CardanoExtension.NamiWallet();
+// let wallet = new CardanoExtension.YoroiWallet();
+// let wallet = new CardanoExtension.EternlWallet();
+// let wallet = new CardanoExtension.GeroWallet();
+// let wallet = new CardanoExtension.Cip30Wallet();
 ```
 
 Step 3: Select a related asset pair and create cross-chain task.
 
 ```javascript
-let task = await bridge.createTask("ADA", 'Cardano', "Wanchain", 10, "cardano-address", "wanchain-address", {wallet: namiWallet});
+let task = await bridge.createTask("ADA", 'Cardano', "Wanchain", 10, cardano-address, wanchain-address, {wallet});
 ```

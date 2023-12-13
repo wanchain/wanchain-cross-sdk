@@ -131,8 +131,8 @@ class IWanBCConnector {
         return ret;
     }
 
-    async getStoremanGroupQuota(chainType, groupId, symbol, targetChainType) {
-        let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol, {targetChainType});
+    async getStoremanGroupQuota(chainType, groupId, symbol, targetChainType, ignoreReservation = false) {
+        let ret = await this.apiClient.getStoremanGroupQuota(chainType, groupId, symbol, {targetChainType, ignoreReservation});
         return ret;
     }
 
@@ -206,6 +206,10 @@ class IWanBCConnector {
 
     async getRegisteredCoinGecko(options) {
       return this.apiClient.getRegisteredCoinGecko(options);
+    }
+
+    async hasHackerAccount(address) {
+      return this.apiClient.hasHackerAccount(address);
     }
 };
 

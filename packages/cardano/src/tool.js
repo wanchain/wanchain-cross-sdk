@@ -124,12 +124,17 @@ function selectUtxos(utxos, rawOutput, protocolParameters) {
   );
   const outputs = wasm.TransactionOutputs.new();
   outputs.add(output); // adapt to CoinSelection api
-  const selection = CoinSelection.randomImprove(
-    utxos,
-    outputs,
-    20 + totalAssets
-  );
-  return selection.input;
+  try {
+    const selection = CoinSelection.randomImprove(
+      utxos,
+      outputs,
+      20 + totalAssets
+    );
+    return selection.input;
+  } catch (err) {
+    console.error("cardano selectUtxos error: %O", err);
+    return [];
+  }
 }
 
 function genPlutusData() { // just dummy data
