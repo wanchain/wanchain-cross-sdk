@@ -508,7 +508,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onLockTxHash(taskLockHash) {
+  _onLockTxHash(taskLockHash) { // only for third-party wallet lockTx to update txHash and result
     console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
@@ -530,6 +530,7 @@ class WanBridge extends EventEmitter {
     records.setTaskLockTxHash(taskId, txHash, value, taskLockHash.sender, taskLockHash.uniqueId);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("lock", {taskId, txHash});
+    this.emit("locked", {taskId, txHash});
   }
 
   _onLockTxTimeout(taskLockTimeout) {
@@ -626,7 +627,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onTaskStepResult(taskStepResult) { // only for async tx receipt
+  _onTaskStepResult(taskStepResult) { // only for async tx receipt to update lockTx result
     console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
@@ -637,11 +638,16 @@ class WanBridge extends EventEmitter {
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
       this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
-      let isLockTx = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
+      let {isLockTx, isLocked} = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId, txHash};
         console.debug("lockEvent: %O", lockEvent);
         this.emit("lock", lockEvent);
+      }
+      if (isLocked) {
+        let lockedEvent = {taskId, txHash};
+        console.debug("lockedEvent: %O", lockedEvent);
+        this.emit("locked", lockedEvent);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }

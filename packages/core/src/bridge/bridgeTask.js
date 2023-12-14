@@ -410,15 +410,20 @@ class BridgeTask {
     console.debug("%s OTA: %O", chainType, ota);
   }
 
-  _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // for sync step result
+  _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // only for sync step result to update lockTx hash
     let records = this._bridge.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(this.id);
     if (ccTask) {
-      let isLockTx = records.updateTaskByStepResult(this.id, stepIndex, txHash, stepResult, errInfo);
+      let {isLockTx, isLocked} = records.updateTaskByStepResult(this.id, stepIndex, txHash, stepResult, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId: this.id, txHash};
         console.debug("lockTxHash: %O", lockEvent);
         this._bridge.emit("lock", lockEvent);
+      }
+      if (isLocked) {
+        let lockedEvent = {taskId: this.id, txHash};
+        console.debug("lockedEvent: %O", lockedEvent);
+        this._bridge.emit("locked", lockedEvent);
       }
       this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
     }

@@ -36,7 +36,7 @@ class CrossChainTaskRecords {
 
   // stepData has already been updated, only need to update task info
   updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo = "") {
-    let isLockTx = false;
+    let isLockTx = false, isLocked = false;
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
       for (let i = 0; i < ccTask.stepData.length; i++) {
@@ -52,14 +52,15 @@ class CrossChainTaskRecords {
               isLockTx = !ccTask.lockHash;
               ccTask.lockHash = txHash; // may repriced, always update lockHash
             }
-            if (result) { // on evm do not change status until receipt with resule
+            if (result) { // on evm do not change status until receipt with result
+              isLocked = (ccTask.status !== "Converting");
               ccTask.status = "Converting";
             }
           }
         }
       }
     }
-    return isLockTx;
+    return {isLockTx, isLocked};
   }
 
   updateTaskFee(ccTaskId, type, value, rectify = false) {
