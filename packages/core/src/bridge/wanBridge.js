@@ -212,21 +212,27 @@ class WanBridge extends EventEmitter {
 
   async getQuota(assetType, fromChainName, toChainName, options = {}) {
     console.debug("SDK: getQuota, assetType: %s, fromChainName: %s, toChainName: %s, options: %O", assetType, fromChainName, toChainName, options);
-    let quota;
+    let quota, hideQuota = false;
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
+      let toChainID = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainID : tokenPair.fromChainID;
+      let hideQuotaChains = await this.iwan.getChainQuotaHiddenFlags(toChainID);
+      hideQuota = (hideQuotaChains && hideQuotaChains[toChainID])? true : false;
       if (tokenPair.bridge) { // other bridge, such as Circle
-        quota = {maxQuota: Infinity.toString(), minQuota: "0"};
+        quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
         let fromChainType = this.tokenPairService.getChainType(fromChainName);
         let smg = await this.getSmgInfo();
         quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
+        if (hideQuota) {
+          quota.maxQuota = "0";
+        }
       }
     } else {
       quota = {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0"};
     }
-    console.debug("SDK: getQuota, result: %O", quota);
+    console.debug("SDK: getQuota, hide: %s, result: %O", hideQuota, quota);
     return quota;
   }
 

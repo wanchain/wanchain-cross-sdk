@@ -124,7 +124,7 @@ class BridgeTask {
   }
 
   async start() {
-    console.debug("bridgeTask start at %s ms", tool.getCurTimestamp());
+    console.debug("bridgeTask tokenpair %s start at %s ms", this._tokenPair.id, tool.getCurTimestamp());
     // build
     let steps = await this._buildTaskSteps();
     this._task.initSteps(steps);
