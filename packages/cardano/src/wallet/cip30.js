@@ -1,10 +1,10 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
 
-class Gero {
-  constructor() {
-    this.name = "Gero";
-    this.wallet = window.cardano.gerowallet;
+class Cip30 {
+  constructor(wallet) {
+    this.name = "Cip30";
+    this.wallet = wallet;
     this.wasm = wasm.getWasm();
   }
 
@@ -22,7 +22,7 @@ class Gero {
       accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
     } catch (err) {
-      console.error("%s wallet not installed or not allowed: %O", this.name, err);
+      console.error("this %s wallet not installed or not allowed: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
   }
@@ -40,14 +40,14 @@ class Gero {
         return value.coin().to_str(); // TODO: sub token locked coin
       }
     } else {
-      console.log("%s is not used address", addr);
+      console.error("%s is not used address", addr);
       throw new Error("Not used address");
     }
   }
 
   async sendTransaction(tx) {
     let cardano = await this.wallet.enable();
-    let witnessSet = await cardano.signTx(tx.to_hex(), true);
+    let witnessSet = await cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
     if (redeemers) {
@@ -66,11 +66,11 @@ class Gero {
     return utxos.map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 
-  async getCollateral() {
+  async getCollateral(amount = "3000000") {
     let cardano = await this.wallet.enable();
-    let utxos = await cardano.getCollateral();
+    let utxos = await cardano.getCollateral(amount);
     return utxos.slice(0, 3).map(utxo => this.wasm.TransactionUnspentOutput.from_hex(utxo));
   }
 }
 
-module.exports = Gero;
+module.exports = Cip30;

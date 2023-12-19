@@ -2,11 +2,8 @@ const wasm = require("../wasm");
 const tool = require("../tool.js");
 
 class Yoroi {
-  constructor(provider) {
+  constructor() {
     this.name = "Yoroi";
-    if (!['mainnet', 'testnet'].includes(provider)) {
-      throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
-    }
     this.wallet = window.cardano.yoroi;
     this.wasm = wasm.getWasm();
   }
@@ -18,7 +15,7 @@ class Yoroi {
     return cardano.getNetworkId();
   }
 
-  async getAccounts(network) {
+  async getAccounts() {
     try {
       let cardano = await this.wallet.enable();
       let accounts = await cardano.getUsedAddresses();
@@ -48,7 +45,7 @@ class Yoroi {
     }
   }
 
-  async sendTransaction(tx, sender) {
+  async sendTransaction(tx) {
     let cardano = await this.wallet.enable();
     let witnessSet = await cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
