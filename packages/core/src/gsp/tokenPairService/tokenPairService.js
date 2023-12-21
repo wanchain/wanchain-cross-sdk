@@ -97,7 +97,7 @@ class TokenPairService {
               }
               return false;
             });
-            tokenPairs.forEach(tp => this.updateChainAssets(tp));
+            let activeTokenPairs = tokenPairs.filter(tp => this.updateChainAssets(tp));
             let ts1 = Date.now();
             let ps = [
               this.getSmgs(ts1)
@@ -110,7 +110,7 @@ class TokenPairService {
             let ts2 = Date.now();
             console.debug("readAssetPair consume %s/%s ms", ts2 - ts1, ts2 - ts0);
             // console.debug("available tokenPairMap: %O", tokenPairMap.values());
-            this.webStores.assetPairs.setAssetPairs(Array.from(tokenPairMap.values()), smgList, this.configService);
+            this.webStores.assetPairs.setAssetPairs(activeTokenPairs, smgList, this.configService);
             this.m_mapTokenPair = tokenPairMap;
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
         } catch (err) {
@@ -134,7 +134,21 @@ class TokenPairService {
           }
         }
       }
-      // crossTypes is only for erc20
+      return true;
+    }
+
+    setCrossTypes(crossTypes) { // dynamically change crossTypes, only for erc20
+      if (this.m_mapTokenPair.size === 0) {
+        return false; // not initialized
+      }
+      this.crossTypes = (crossTypes || []).map(v => v.toLowerCase());
+      this.fromChainAssets = new Map(); // clear old data
+      let activeTokenPairs = Array.from(this.m_mapTokenPair.values()).filter(tp => this.updateChainAssets(tp));
+      this.webStores.assetPairs.setAssetPairs(activeTokenPairs, undefined, this.configService);
+      return true;
+    }
+
+    checkActive(tp) { // only for erc20
       if (this.crossTypes.length && (tp.protocol === "Erc20")) {
         let crossType = "other";
         if (tp.bridge === "Circle") {
@@ -475,6 +489,9 @@ class TokenPairService {
     }
 
     updateChainAssets(tokenPair) {
+      if (!this.checkActive(tokenPair)) {
+        return false;
+      }
       let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
       // protocol
       let protocol = this.fromChainAssets.get(tokenPair.protocol);
@@ -502,6 +519,7 @@ class TokenPairService {
           chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol});
         }
       }
+      return true;
     }
 
     // for internal call

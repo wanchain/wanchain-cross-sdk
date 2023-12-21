@@ -50,6 +50,12 @@ class WanBridge extends EventEmitter {
     return this.stores.assetPairs.isReady();
   }
 
+  setCrossTypes(crossTypes) {
+    let success = this.tokenPairService.setCrossTypes(crossTypes);
+    console.debug("SDK: setCrossTypes %s: %O", success, crossTypes);
+    return success;
+  }
+
   async getSmgInfo() {
     let changed = false;
     let smg = this.selectSmg();
@@ -237,23 +243,28 @@ class WanBridge extends EventEmitter {
       console.error("SDK: validateToAccount, chainName: %s, account: %s, result: is token account", chainName, account);
       return false;
     }
+    let result;
     if (extension && extension.tool && extension.tool.validateAddress) {
-      return extension.tool.validateAddress(account, this.network, chainName);
+      result = extension.tool.validateAddress(account, this.network, chainName);
     } else if ("WAN" === chainType) {
-      return tool.isValidWanAddress(account);
+      result = tool.isValidWanAddress(account);
     } else if ("BTC" === chainType) {
-      return tool.isValidBtcAddress(account, this.network);
+      result = tool.isValidBtcAddress(account, this.network);
     } else if ("LTC" === chainType) {
-      return tool.isValidLtcAddress(account, this.network);
+      result = tool.isValidLtcAddress(account, this.network);
     } else if ("DOGE" === chainType) {
-      return tool.isValidDogeAddress(account, this.network);
+      result = tool.isValidDogeAddress(account, this.network);
     } else if ("XRP" === chainType) {
-      return tool.isValidXrpAddress(account);
+      result = tool.isValidXrpAddress(account);
     } else if ("XDC" === chainType) {
-      return tool.isValidXdcAddress(account);
+      result = tool.isValidXdcAddress(account);
     } else { // default as EVM
-      return tool.isValidEthAddress(account);
+      result = tool.isValidEthAddress(account);
     }
+    if (result === false) {
+      console.log("SDK: validateToAccount, chainName: %s, account: %s, result: %s", chainName, account, result);
+    }
+    return result;
   }
 
   validateXrpTokenAmount(amount) {
