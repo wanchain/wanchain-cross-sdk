@@ -21,7 +21,8 @@
     "@osmonauts/math": "^1.7.0",
     "@cosmjs/encoding": "^0.30.1",
     "osmojs": "^16.5.1",
-    "elliptic": "^6.5.4"
+    "elliptic": "^6.5.4",
+    "protobufjs": "^7.2.5"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
