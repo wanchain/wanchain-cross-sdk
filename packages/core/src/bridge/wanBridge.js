@@ -277,7 +277,10 @@ class WanBridge extends EventEmitter {
     let token = (chainName === tokenPair.fromChainName)? tokenPair.fromAccount : tokenPair.toAccount;
     let chainType = this.tokenPairService.getChainType(chainName);
     let infos = await this.storemanService.getNftInfo(tokenPair.protocol, chainType, token, account, options);
-    infos.forEach(v => v.ancestorChainName = tokenPair.ancestorChainName); // frontend need to show ancestorChainName
+    infos.forEach(v => {
+      v.ancestorChainName = tokenPair.ancestorChainName; // frontend show ancestorChainName
+      v.ancestorChainType = tokenPair.ancestorChainType; // frontend get icon
+    });
     console.debug("SDK: getNftInfo, result: %O", infos);
     return infos;
   }
