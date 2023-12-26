@@ -145,6 +145,7 @@ class TokenPairService {
       this.fromChainAssets = new Map(); // clear old data
       let activeTokenPairs = Array.from(this.m_mapTokenPair.values()).filter(tp => this.updateChainAssets(tp));
       this.webStores.assetPairs.setAssetPairs(activeTokenPairs, undefined, this.configService);
+      this.eventService.emitEvent("StoremanServiceInitComplete", true);
       return true;
     }
 
