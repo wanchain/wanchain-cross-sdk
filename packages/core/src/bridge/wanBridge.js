@@ -513,11 +513,13 @@ class WanBridge extends EventEmitter {
 
   async getChainInfo(chainName) {
     let chainInfo = this.chainInfoService.getChainInfoByName(chainName);
-    let result = null;
     if (chainInfo) {
-      result.symbol = chainInfo.symbol || chainInfo.chainType;
+      return {
+        chainName,
+        symbol: chainInfo.symbol || chainInfo.chainType,
+      }
     }
-    return result;
+    return null;
   }
 
   _onStoremanInitilized(success) {

@@ -43,7 +43,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
         }
       }
       console.debug({cctpMsg, feeMsg});
-      let txHash = "7197E807968543FBB5D0652FD644C9EE23655C78F325CD7E7A51D98BD2EC469C"; // await wallet.sendTransaction([cctpMsg, feeMsg], {timeoutHeight: 100});
+      let txHash = await wallet.sendTransaction([cctpMsg, feeMsg], {timeoutHeight: 100});
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
