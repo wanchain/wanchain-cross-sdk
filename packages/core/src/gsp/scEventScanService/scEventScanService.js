@@ -55,6 +55,10 @@ module.exports = class ScEventScanService {
     let checkAtomTx = new CheckApiServerTx(this.m_frameworkService, "ATOM");
     await checkAtomTx.init();
     this.m_mapCheckHandle.set("ATOM", checkAtomTx);
+
+    let checkNobleTx = new CheckApiServerTx(this.m_frameworkService, "NOBLE");
+    await checkNobleTx.init();
+    this.m_mapCheckHandle.set("NOBLE", checkNobleTx);
   }
 
   async loadTradeTask(dataAry) {

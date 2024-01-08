@@ -173,16 +173,36 @@ module.exports = class CheckScEvent {
 
   async prepareTask(task) {
     if ((task.taskType === "circleMINT") && (task.depositNonce === undefined)) {
-      let receipt = await this.iwan.getTransactionReceipt(task.depositChain, task.uniqueID);
-      // DepositForBurn has discontinuous indexes, can not  get correct hash by getEventHash, so define const for simplify
+      // DepositForBurn has discontinuous indexes, can not get correct hash by getEventHash, so define const for simplify
       let depositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
-      for (let log of receipt.logs) {
-        if (log.topics[0] === depositEventHash) {
-          let decoded = tool.parseEvmLog(log, this.circleBridgeDepositAbi);
-          console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.depositChain, task.uniqueID, decoded);
-          task.depositNonce = decoded.args.nonce;
-          task.depositAmount = decoded.args.amount;
-          break;
+      let receipt = await this.iwan.getTransactionReceipt(task.depositChain, task.txHash);
+      if (task.depositChain === "NOBLE") {
+        let event = receipt.events.find(v => (v.type === "circle.cctp.v1.DepositForBurn"));
+        if (event) {
+          console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.depositChain, task.uniqueID, event);
+          let nonce = null, amount = null;
+          for (let attr of event.attributes) {
+            if (attr.key === "nonce") {
+              nonce = attr.value; // string
+            } else if (attr.key === "amount") {
+              amount = attr.value; // string
+            }
+            if (nonce && amount) {
+              task.depositNonce = nonce.replace(/\"/g, "");
+              task.depositAmount = amount.replace(/\"/g, "");
+              break;
+            }
+          }
+        }
+      } else {
+        for (let log of receipt.logs) {
+          if (log.topics[0] === depositEventHash) {
+            let decoded = tool.parseEvmLog(log, this.circleBridgeDepositAbi);
+            console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.depositChain, task.uniqueID, decoded);
+            task.depositNonce = decoded.args.nonce;
+            task.depositAmount = decoded.args.amount;
+            break;
+          }
         }
       }
       if (task.depositNonce === undefined) {

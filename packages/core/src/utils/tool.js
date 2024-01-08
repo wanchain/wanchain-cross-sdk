@@ -138,11 +138,19 @@ function getXdcAddressInfo(address) {
   return {native, evm, ascii: evm};
 }
 
+/*
+  there are several address format:
+  native: mainly for ui 
+  evm: cross from evm, encode recipient as ascii hex for non-evm chain
+  ascii: cross from non-evm, encode recipient as text, it is mostly the same as native address,
+         except for tron and xdc is standard evm address (without prefix) to adapt for storeman agent
+  cctp: used for cctp to instead evm address, cctp encode non-evm recipient as evm address, it is different with wanbridge
+*/
 function getStandardAddressInfo(chainType, address, extension = null) {
   if (chainType === "XDC") {
     return getXdcAddressInfo(address);
   } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) {
-    return extension.tool.getStandardAddressInfo(address);
+    return extension.tool.getStandardAddressInfo(address, chainType);
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
     return {native: address, evm: address, ascii: address};
   } else {
@@ -300,8 +308,9 @@ function parseEvmLog(log, abi) {
   if (abiJson) {
     try {
       // topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
-      log.topics.splice(0, 1);
-      let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, log.topics);
+      let topics = log.topics.concat();
+      topics.splice(0, 1);
+      let args = web3.eth.abi.decodeLog(abiJson.inputs, log.data, topics);
       for (var index = 0; index < abiJson.inputs.length; index++) {
         if (args.hasOwnProperty(index)) {
           delete args[index];

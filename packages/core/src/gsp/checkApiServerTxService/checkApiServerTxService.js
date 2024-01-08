@@ -46,7 +46,7 @@ module.exports = class CheckApiServerTxService {
                 let index = count - idx - 1;
                 let task = this.checkArray[index];
                 try {
-                    let queryUrl = url + task.smgPublicKey + "/" + task.txHash;
+                    let queryUrl = url + task.smgPublicKey + "/" + task.txHash.toLowerCase();
                     let ret = await axios.get(queryUrl);
                     console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
                     if (ret.data.success && ret.data.data) {

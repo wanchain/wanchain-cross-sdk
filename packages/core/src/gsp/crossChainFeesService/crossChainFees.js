@@ -1,7 +1,6 @@
 'use strict';
 
 const BigNumber = require("bignumber.js");
-const tool = require('../../utils/tool.js');
 
 module.exports = class crossChainFees {
   async init(frameworkService) {

@@ -1,7 +1,6 @@
 'use strict';
 
 const tool = require("../../utils/tool.js");
-const Long = require("long");
 
 /* metadata format:
   userLock:
@@ -35,6 +34,7 @@ module.exports = class ProcessMintFromCosmos {
     this.frameworkService = frameworkService;
     this.configService  = frameworkService.getService("ConfigService");
     this.extension = this.configService.getExtension("ATOM");
+    this.storemanService = frameworkService.getService("StoremanService");
   }
 
   async process(stepData, wallet) {
@@ -63,26 +63,13 @@ module.exports = class ProcessMintFromCosmos {
           ],
         },
       }];
-      console.debug("txs:", txs);
-
       let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount);
-      let fee = await wallet.estimateFee(txs, memo);
-      let height = await wallet.getHeight();
-      let txBody = {
-        typeUrl: "/cosmos.tx.v1beta1.TxBody",
-        value: {
-          messages: txs,
-          memo: memo,
-          timeoutHeight: new Long(height + 100)
-        },
-      };
-      let signDoc = await wallet.makeSignDoc(txBody, fee);
-      let txHash = await wallet.sendTransaction(signDoc);
+      // console.debug({txs, memo});
+      let txHash = await wallet.sendTransaction(txs, {memo, timeoutHeight: 100});
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
-      let iwan = this.frameworkService.getService("iWanConnectorService");
-      let blockNumber = await iwan.getBlockNumber(params.toChainType);
-      let checkPara = {
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
+      let checker = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         fromBlockNumber: blockNumber,
@@ -92,7 +79,7 @@ module.exports = class ProcessMintFromCosmos {
         taskType: "MINT"
       };
       let checkAtomTxService = this.frameworkService.getService("CheckAtomTxService");
-      await checkAtomTxService.addTask(checkPara);
+      await checkAtomTxService.addTask(checker);
     } catch (err) {
       if (err.message === "Request rejected") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");

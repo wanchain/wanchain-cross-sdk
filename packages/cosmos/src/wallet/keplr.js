@@ -1,19 +1,28 @@
-const Osmosis = require("osmojs");
-const Amino = require("@cosmjs/amino");
 const Stargate = require("@cosmjs/stargate");
-const CosmMath = require("@cosmjs/math");
-const Tx = require("cosmjs-types/cosmos/tx/v1beta1/tx.js");
 const ProtoSigning = require("@cosmjs/proto-signing");
+const { MsgDepositForBurn } = require("../cctp/message");
+const Long = require("long");
 
-const DefaultRpc = {
-  "theta-testnet-001": "https://rpc.sentry-01.theta-testnet.polypore.xyz"
+const DefaultChainInfo = {
+  "theta-testnet-001": {
+    rpc: "https://rpc.sentry-01.theta-testnet.polypore.xyz",
+    denom: "uatom"
+  },
+  "grand-1": {
+    rpc: "https://rpc.testnet.noble.strange.love",
+    denom: "uusdc"
+  }
 }
+
+const MyRegistry = new ProtoSigning.Registry(Stargate.defaultRegistryTypes.concat([
+  ["/circle.cctp.v1.MsgDepositForBurn", MsgDepositForBurn],
+]));
 
 class Keplr {
   constructor(chainId, rpc) {
     this.name = "Keplr";
-    this.chainId = chainId; // Polkadot, Phala
-    this.rpc = rpc || DefaultRpc[chainId];
+    this.chainId = chainId;
+    this.rpc = rpc || (DefaultChainInfo[chainId] && DefaultChainInfo[chainId].rpc);
     if (!this.rpc) {
       throw new Error("Not support this chain");
     }
@@ -37,13 +46,14 @@ class Keplr {
     } 
   }
 
-  async getBalance(addr) {
+  async getBalance(addr, denom) {
     let balance = "0";
+    denom = denom || (DefaultChainInfo[this.chainId] && DefaultChainInfo[this.chainId].denom) || "uatom";
     let client = await this.getStargateClient();
     let balances = await client.getAllBalances(addr);
     console.log("Keplr getBalances: %O", balances);
     for (let b of balances) {
-      if (b.denom === "uatom") {
+      if (b.denom === denom) {
         balance = b.amount;
         break;
       }
@@ -51,68 +61,43 @@ class Keplr {
     return balance;
   }
 
-  async sendTransaction(signDoc) {
+  // options = {memo, timeoutHeight, gasPrice}
+  async sendTransaction(messages, options) {
+    options = options || {};
+    let memo = options.memo || "";
+    let timeoutHeight = options.timeoutHeight || 0;
+    let gasPrice = options.gasPrice;
+    if (!gasPrice) {
+      let chains = await this.wallet.getChainInfosWithoutEndpoints();
+      let chainInfo = chains.find(v => v.chainId === this.chainId);
+      let feeCurrency = chainInfo.feeCurrencies[0];
+      gasPrice = feeCurrency.gasPriceStep.average + feeCurrency.coinMinimalDenom;
+    }
     let key = await this.wallet.getKey(this.chainId);
-    let signed = await this.wallet.signDirect(this.chainId, key.bech32Address, signDoc);
-    let txRaw = Tx.TxRaw.fromPartial({
-      bodyBytes: signed.signed.bodyBytes,
-      authInfoBytes: signed.signed.authInfoBytes,
-      signatures: [Buffer.from(signed.signature.signature, "base64")],
-    });
-    let tx = Tx.TxRaw.encode(txRaw).finish();
-    let txHash = await this.wallet.sendTx(this.chainId, tx, "sync");
-    txHash = Buffer.from(txHash).toString("hex");
+    let client = await this.getStargateClient();
+    // fee
+    let gasUsed = await client.simulate(key.bech32Address, messages, memo);
+    console.debug({gasUsed, gasPrice});
+    let fee = (0, Stargate.calculateFee)(Math.round(gasUsed * 1.35), gasPrice);
+    // timeoutHeight
+    let maxHeight = new Long(0);
+    if (timeoutHeight) {
+      let height = await client.getHeight();
+      maxHeight = new Long(height + timeoutHeight);
+    }
+    let txHash = await client.signAndBroadcastSync(key.bech32Address, messages, fee, memo, maxHeight);
     return txHash;
   }
 
   // customized function
+
   async getStargateClient() {
     if (!this.stargateClient) {
-      let client = await Stargate.StargateClient.connect(this.rpc);
+      let offlineSigner = this.wallet.getOfflineSigner(this.chainId);
+      let client = await Stargate.SigningStargateClient.connectWithSigner(this.rpc, offlineSigner, {registry: MyRegistry});
       this.stargateClient = client;
     }
     return this.stargateClient;
-  }
-
-  async getSigningClient() {
-    if (!this.signingClient) {
-      let client = await Osmosis.getSigningCosmosClient({rpcEndpoint: this.rpc});
-      this.signingClient = client;
-    }
-    return this.signingClient;
-  }
-
-  async getHeight() {
-    let stargateClient = await this.getStargateClient();
-    let height = await stargateClient.getHeight();
-    return height;
-  }
-
-  async estimateFee(txs, memo) {
-    let key = await this.wallet.getKey(this.chainId);
-    let base64Pk = Amino.encodeSecp256k1Pubkey(key.pubKey);
-    let stargateClient = await this.getStargateClient();
-    let { sequence } = await stargateClient.getSequence(key.bech32Address);
-    let signingClient = await this.getSigningClient();
-    let anyMsgs = txs.map(tx => signingClient.registry.encodeAsAny(tx));
-    let { gasInfo } = await stargateClient.forceGetQueryClient().tx.simulate(anyMsgs, memo, base64Pk, sequence);
-    let gasUsed = CosmMath.Uint53.fromString(gasInfo.gasUsed.toString()).toNumber();
-    let gasPrice = Stargate.GasPrice.fromString('0.025uatom');
-    let fee = (0, Stargate.calculateFee)(Math.round(gasUsed * 1.35), gasPrice);
-    return fee;
-  }
-
-  async makeSignDoc(txBody, fee) {
-    let key = await this.wallet.getKey(this.chainId);
-    let base64Pk = Amino.encodeSecp256k1Pubkey(key.pubKey);
-    let stargateClient = await this.getStargateClient();
-    let { accountNumber, sequence } = await stargateClient.getSequence(key.bech32Address);
-    let signingClient = await this.getSigningClient();
-    let txBodyBytes = signingClient.registry.encode(txBody);
-    let gasLimit = CosmMath.Int53.fromString(fee.gas).toNumber();
-    let authInfoBytes = ProtoSigning.makeAuthInfoBytes([{pubkey: ProtoSigning.encodePubkey(base64Pk), sequence }], fee.amount, gasLimit);
-    let signDoc = ProtoSigning.makeSignDoc(txBodyBytes, authInfoBytes, this.chainId, accountNumber);
-    return signDoc;
   }
 }
 

@@ -45,5 +45,9 @@ module.exports = [
     {
       "name": "MintFromCosmos",
       "handle": require("./MintFromCosmos")
+    },
+    {
+      "name": "CircleBridgeNobleDeposit",
+      "handle": require("./CircleBridgeNobleDeposit")
     }
 ]

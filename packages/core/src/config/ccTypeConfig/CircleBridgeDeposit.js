@@ -27,6 +27,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+    let toAddressInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -34,7 +35,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       crossScAddr: tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr,
       tokenPairID: convert.tokenPairId,
       value,
-      userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).evm,
+      userAccount: toAddressInfo.cctp || toAddressInfo.evm,
       toAddr: convert.toAddr, // for readability
       taskType: "ProcessCircleBridgeDeposit",
       networkFee,

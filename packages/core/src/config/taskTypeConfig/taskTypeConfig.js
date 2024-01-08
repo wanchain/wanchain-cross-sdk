@@ -58,4 +58,8 @@ module.exports = [
       "name": "ProcessMintFromCosmos",
       "handle": require("./processMintFromCosmos")
     },
+    {
+      "name": "ProcessCircleBridgeNobleDeposit",
+      "handle": require("./ProcessCircleBridgeNobleDeposit")
+    },
 ]

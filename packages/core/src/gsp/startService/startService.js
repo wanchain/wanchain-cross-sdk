@@ -103,7 +103,7 @@ class StartService {
 
             let checkAtomTxService = new CheckApiServerTxService("ATOM");
             await checkAtomTxService.init(frameworkService);
-            frameworkService.registerService("CheckAtomTxService", checkAtomTxService);   
+            frameworkService.registerService("CheckAtomTxService", checkAtomTxService);
 
             let storemanService = new StoremanService();
             await storemanService.init(frameworkService, options);

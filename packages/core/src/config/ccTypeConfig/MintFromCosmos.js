@@ -12,8 +12,6 @@ module.exports = class MintFromCosmos {
   async process(tokenPair, convert) {
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
-      // fee is not necessary, storeman agent get fee from config contract
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
       let networkFee = tool.parseFee(convert.fee, convert.value, "ADA", {formatWithDecimals: false, feeType: "networkFee"});
       let toChainType = tokenPair.toChainType;
       let params = {
@@ -28,7 +26,6 @@ module.exports = class MintFromCosmos {
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessMintFromCosmos",
-        fee,
         networkFee,
         fromAddr: convert.fromAddr
       };

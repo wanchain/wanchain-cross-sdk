@@ -40,8 +40,8 @@ module.exports = class CheckTxReceiptService {
           result = await this.checkEvent(obj);
         }
         if (result) {
-          console.debug("CheckTxReceiptService result: %O", result);
-          if (result.txHash && (obj.txHash !== result.txHash)) { // repriced
+          console.debug("%s CheckTxReceiptService result: %O", obj.chain, result);
+          if (result.txHash && (obj.txHash !== result.txHash)) { // evm repriced, update txHash
             console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
             obj.txHash = result.txHash;
             if (obj.convertCheckInfo) {
@@ -66,7 +66,9 @@ module.exports = class CheckTxReceiptService {
         let result = "Failed";
         let errInfo = "Transaction failed";
         let isSuccess = false;
-        if (obj.chain === "TRX") {
+        if (obj.chain === "NOBLE") {
+          isSuccess = (txReceipt.code === 0);
+        } else if (obj.chain === "TRX") {
           isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
         } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false

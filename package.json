@@ -45,9 +45,8 @@
     "@cosmjs/proto-signing": "^0.32.2",
     "@cosmjs/stargate": "^0.32.2",
     "@cosmjs/amino": "^0.32.2",
-    "@osmonauts/math": "^1.8.0",
     "@cosmjs/encoding": "^0.32.2",
-    "osmojs": "^16.5.1",
-    "protobufjs": "^7.2.5"
+    "protobufjs": "^7.2.5",
+    "bech32": "^2.0.0"
   }
 }

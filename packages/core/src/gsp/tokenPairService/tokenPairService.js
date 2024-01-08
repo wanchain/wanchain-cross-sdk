@@ -437,8 +437,8 @@ class TokenPairService {
         if (tokenPair.bridge) {
           let bridgeKey = tokenPair.bridge + "Bridge";
           if (fromChainInfo[bridgeKey] && toChainInfo[bridgeKey]) {
-            tokenPair.ccType["MINT"] = bridgeKey + "Deposit";
-            tokenPair.ccType["BURN"] = bridgeKey + "Deposit";
+            tokenPair.ccType["MINT"] = fromChainInfo._isEVM? (bridgeKey + "Deposit") : (bridgeKey + fromChainInfo.chainName + "Deposit");
+            tokenPair.ccType["BURN"] = toChainInfo._isEVM? (bridgeKey + "Deposit") : (bridgeKey + toChainInfo.chainName + "Deposit");
           } else {
             throw new Error(bridgeKey + " unavailable");
           }
