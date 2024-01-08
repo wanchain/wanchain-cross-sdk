@@ -517,6 +517,7 @@ class WanBridge extends EventEmitter {
       return {
         chainName,
         symbol: chainInfo.symbol || chainInfo.chainType,
+        chainId: chainInfo.MaskChainId
       }
     }
     return null;
