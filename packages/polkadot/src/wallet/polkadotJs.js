@@ -16,15 +16,9 @@ const DefaultProvider = {
 class PolkadotJs {
   constructor(provider, chain = "Polkadot") {
     this.name = "polkadot{.js}";
-    this.chain = chain; // Polkadot, Phala
-    if (typeof(provider) === "string") {
-      if (["mainnet", "testnet"].includes(provider)) {
-        provider = DefaultProvider[chain][provider];
-      }
-      console.debug("new %s polkadot.js wallet, provider: %s", chain, provider);
-      provider = new WsProvider(provider);
-    }
-    this.api = new ApiPromise({provider});
+    this.chain = ""; // Polkadot, Phala
+    this.provider = null; // WsProvider
+    this.api = null; // ApiPromise
   }
 
   // standard function
@@ -46,16 +40,16 @@ class PolkadotJs {
   }
 
   async getBalance(addr) {
-    await this.getApi();
-    let { data: balance } = await this.api.query.system.account(addr);
+    let api = await this.getApi();
+    let { data: balance } = await api.query.system.account(addr);
     return balance.free;
   }
 
   async sendTransaction(txs, sender) {
     return new Promise(async (resolve, reject) => {
-      await this.getApi();
+      let api = await this.getApi();
       let injector = await web3FromAddress(sender);
-      this.api.tx.utility.batchAll(txs).signAndSend(sender, {signer: injector.signer}, ({txHash, status}) => {
+      api.tx.utility.batchAll(txs).signAndSend(sender, {signer: injector.signer}, ({txHash, status}) => {
         txHash = txHash.toString();
         if (status.isBroadcast) {
           console.debug("%s sendTransaction tx %s status: %s", this.chain, txHash, status.type);
@@ -72,14 +66,30 @@ class PolkadotJs {
   }
 
   // customized function
+  setChain(chainName, provider) {
+    this.chain = chainName;
+    if (typeof(provider) === "string") {
+      if (["mainnet", "testnet"].includes(provider)) {
+        provider = DefaultProvider[chainName][provider];
+      }
+      console.debug("set polkadot.js wallet chain %s provider: %s", chainName, provider);
+      provider = new WsProvider(provider);
+    }
+    this.provider = provider;
+    this.api = null;
+  }
 
   async getApi() {
-    return this.api.isReady;
+    if (!this.api) {
+      this.api = new ApiPromise({provider: this.provider});
+    }
+    await this.api.isReady;
+    return this.api;
   }
 
   async estimateFee(sender, txs) {
-    await this.getApi();
-    let info = await this.api.tx.utility.batch(txs).paymentInfo(sender);
+    let api = await this.getApi();
+    let info = await api.tx.utility.batch(txs).paymentInfo(sender);
     let fee = new BigNumber(info.partialFee.toHex());
     return fee;
   }

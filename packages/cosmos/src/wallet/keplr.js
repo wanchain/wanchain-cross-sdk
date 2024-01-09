@@ -19,13 +19,10 @@ const MyRegistry = new ProtoSigning.Registry(Stargate.defaultRegistryTypes.conca
 ]));
 
 class Keplr {
-  constructor(chainId, rpc) {
+  constructor() {
     this.name = "Keplr";
-    this.chainId = chainId;
-    this.rpc = rpc || (DefaultChainInfo[chainId] && DefaultChainInfo[chainId].rpc);
-    if (!this.rpc) {
-      throw new Error("Not support this chain");
-    }
+    this.chainId = "";
+    this.rpc = "";
     this.wallet = window.keplr;
     this.stargateClient = null;
   }
@@ -90,6 +87,15 @@ class Keplr {
   }
 
   // customized function
+
+  setChainId(chainId, rpc) {
+    this.chainId = chainId;
+    this.rpc = rpc || (DefaultChainInfo[chainId] && DefaultChainInfo[chainId].rpc);
+    if (!this.rpc) {
+      throw new Error("Not support this chain");
+    }
+    this.stargateClient = null;
+  }
 
   async getStargateClient() {
     if (!this.stargateClient) {
