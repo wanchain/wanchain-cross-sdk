@@ -309,6 +309,8 @@ class TokenPairService {
         return "Djed Test USD";
       } else if (symbol === "GEROV2") {
         return "GERO";
+      } else if (symbol === "worldmobiletoken") {
+        return "WMT";
       } else {
         return symbol;
       }
@@ -319,7 +321,7 @@ class TokenPairService {
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
         tokenPair.toScInfo = this.chainInfoService.getChainInfoById(tokenPair.toChainID);
         if (ancestorChainInfo && tokenPair.fromScInfo && tokenPair.toScInfo) {
-            // (xrp) ancestorSymbol keep original format for iwan api
+            // ancestorSymbol keep original format for iwan api
             tokenPair.readableSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.ancestorChainID, tokenPair.ancestorSymbol));
             tokenPair.ancestorChainType = ancestorChainInfo.chainType;
             tokenPair.ancestorChainName = ancestorChainInfo.chainName;
