@@ -211,6 +211,10 @@ class IWanBCConnector {
     async hasHackerAccount(address) {
       return this.apiClient.hasHackerAccount(address);
     }
+
+    async getChainQuotaHiddenFlags(chainIds) {
+      return this.apiClient.getChainQuotaHiddenFlags(chainIds);
+    }
 };
 
 module.exports = IWanBCConnector;

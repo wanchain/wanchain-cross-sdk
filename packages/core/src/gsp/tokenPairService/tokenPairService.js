@@ -331,15 +331,18 @@ class TokenPairService {
         tokenPair.assetAlias = "BTC.a";
         this.assetAlias2Type.set("BTC.a", "BTC");
         direction = "t2f";
-      } if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
+      } else if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
         tokenPair.assetAlias = "wanBTC";
         this.assetAlias2Type.set("wanBTC", "BTC");
         direction = "t2f";
-      } if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
+      } else if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
         tokenPair.assetAlias = "USDC.e";
         tokenPair.fromSymbol = "USDC.e";
         this.assetAlias2Type.set("USDC.e", "USDC");
         direction = "f2t"; // fromChain and toChain are the same, only support f2t
+      } else if (tokenPair.id === "660") { // cardano token symbol is unreasonable, but tokenPair ancestorSymbol must be consistent with the chain
+        tokenPair.assetAlias = "WMT"; // only cardano symbol is "worldmobiletoken", logo name is WMT, not need call assetAlias2Type
+        direction = "t2f";
       }
       tokenPair.direction = direction;
     }
