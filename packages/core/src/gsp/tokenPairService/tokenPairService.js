@@ -296,9 +296,9 @@ class TokenPairService {
       // readableSymbol affect both ui and sdk
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
-      } if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
+      } else if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
         tokenPair.assetAlias = "wanBTC";
-      } if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
+      } else if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
         tokenPair.assetAlias = "USDC.e";
         tokenPair.fromSymbol = "USDC.e";
       }
