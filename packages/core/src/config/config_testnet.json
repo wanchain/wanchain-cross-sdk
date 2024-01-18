@@ -15,7 +15,7 @@
       "chainId": "2147483708",
       "chainType": "ETH",
       "chainName": "Ethereum",
-      "crossScAddr": "0xb8460Eeaa06Bc6668dad9fd42B661C0B96b3bE57",
+      "crossScAddr": "0x589E12D073020f99FEBF32B739e58216748c9ed4",
       "CircleBridge": {
         "domain": 0,
         "crossScAddr": "0xb78aa2a5194B9608544b625322f6688FFB058789"
@@ -85,7 +85,7 @@
       "chainName": "Arbitrum",
       "symbol": "ETH",
       "chainDecimals": 18,
-      "crossScAddr": "0x3E18014F7c11F4D70b0023d8f61350A3Ef8f0978",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 3,
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f"
@@ -111,7 +111,7 @@
       "chainType": "OETH",
       "chainName": "Optimism",
       "symbol": "ETH",
-      "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 2,
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f"
@@ -251,7 +251,7 @@
       "chainType": "ZKETH",
       "chainName": "zkSync Era",
       "symbol": "ETH",
-      "crossScAddr": "0x954C53Abe8E7F06B36F00Db2ea3C0950A5b200CB",
+      "crossScAddr": "0x18De061bB6B635d114a9EA8721a6C63D0F6F3571",
       "chainDecimals": 18,
       "MaskChainId": 280,
       "ScScanInfo": {
@@ -297,7 +297,7 @@
       "chainType": "BASEETH",
       "chainName": "Base",
       "symbol": "ETH",
-      "crossScAddr": "0x1B71456BF3A0A7BEb8Ec07A8E322C0c2D088C322",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 6,
         "crossScAddr": "0x3ecc2399611A26E70dbac73714395b13Bc3B69fA"
