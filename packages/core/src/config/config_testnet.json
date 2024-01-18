@@ -21,7 +21,7 @@
         "crossScAddr": "0xb78aa2a5194B9608544b625322f6688FFB058789"
       },
       "chainDecimals": 18,
-      "MaskChainId": 5,
+      "MaskChainId": 11155111,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -90,7 +90,7 @@
         "domain": 3,
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f"
       },
-      "MaskChainId": 421613,
+      "MaskChainId": 421614,
       "ScScanInfo": {
         "taskInterval": 10000
       }
@@ -117,7 +117,7 @@
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f"
       },
       "chainDecimals": 18,
-      "MaskChainId": 420,
+      "MaskChainId": 11155420,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -253,7 +253,7 @@
       "symbol": "ETH",
       "crossScAddr": "0x18De061bB6B635d114a9EA8721a6C63D0F6F3571",
       "chainDecimals": 18,
-      "MaskChainId": 280,
+      "MaskChainId": 300,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -303,7 +303,7 @@
         "crossScAddr": "0x3ecc2399611A26E70dbac73714395b13Bc3B69fA"
       },
       "chainDecimals": 18,
-      "MaskChainId": 84531,
+      "MaskChainId": 84532,
       "ScScanInfo": {
         "taskInterval": 15000
       }
