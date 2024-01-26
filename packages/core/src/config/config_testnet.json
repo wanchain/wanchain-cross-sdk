@@ -319,6 +319,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741845",
+      "chainType": "OPBNB",
+      "chainName": "opBNB",
+      "symbol": "BNB",
+      "crossScAddr": "0x34Cd1Ce396C29075381fD2c61B0959Ce640FECc9",
+      "chainDecimals": 18,
+      "MaskChainId": 5611,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
