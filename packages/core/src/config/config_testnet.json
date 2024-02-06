@@ -331,6 +331,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147536400",
+      "chainType": "CELO",
+      "chainName": "Celo",
+      "crossScAddr": "0xc12cF8cC8Eff1F39c9e60dA81d11745c25c59501",
+      "chainDecimals": 18,
+      "MaskChainId": 44787,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
