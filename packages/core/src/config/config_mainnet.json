@@ -329,6 +329,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741845",
+      "chainType": "OPBNB",
+      "chainName": "opBNB",
+      "symbol": "BNB",
+      "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
+      "chainDecimals": 18,
+      "MaskChainId": 204,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -343,7 +355,7 @@
     "MintDesc": "MintDesc",
     "BurnTitle": "BurnTitle",
     "BurnDesc": "BurnDesc",
-    "CacheVersion": "4"
+    "CacheVersion": "5"
   },
   "iWanConnectorService": {
     "iWanOption": {
