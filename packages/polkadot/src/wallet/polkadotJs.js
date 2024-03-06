@@ -14,11 +14,9 @@ const DefaultProvider = {
 }
 
 class PolkadotJs {
-  constructor(provider, chain = "Polkadot") {
+  constructor(provider, chain) { // Polkadot, Phala
     this.name = "polkadot{.js}";
-    this.chain = ""; // Polkadot, Phala
-    this.provider = null; // WsProvider
-    this.api = null; // ApiPromise
+    this.setChain(chain, provider);
   }
 
   // standard function
@@ -68,7 +66,7 @@ class PolkadotJs {
   // customized function
   setChain(chainName, provider) {
     this.chain = chainName;
-    if (typeof(provider) === "string") {
+    if (provider && typeof(provider) === "string") {
       if (["mainnet", "testnet"].includes(provider)) {
         provider = DefaultProvider[chainName][provider];
       }
