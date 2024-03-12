@@ -343,6 +343,10 @@ class TokenPairService {
       } else if (tokenPair.id === "660") { // cardano token symbol is unreasonable, but tokenPair ancestorSymbol must be consistent with the chain
         tokenPair.assetAlias = "WMT"; // only cardano symbol is "worldmobiletoken", logo name is WMT, not need call assetAlias2Type
         direction = "t2f";
+      } else if (tokenPair.id === "721") { // CARDS ethereum -> cardano
+        direction = "t2f";
+      } else if (tokenPair.id === "722") { // CARDS ethereum -> wanchain
+        direction = "f2t";
       }
       tokenPair.direction = direction;
     }
