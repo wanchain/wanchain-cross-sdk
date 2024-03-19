@@ -345,7 +345,7 @@
     },
     {
       "chainId": "1073741846",
-      "chainType": "BLAST",
+      "chainType": "BLASTETH",
       "chainName": "Blast",
       "symbol": "ETH",
       "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
