@@ -1,24 +1,24 @@
-wanchain-cross-sdk polkadot extension
+wanchain-cross-sdk cosmos extension
 ========
 
-extension of wanchain-cross-sdk for cross-chain between polkadot and other chains.
+extension of wanchain-cross-sdk for cross-chain between cosmos and other chains.
 
 ## Installation
 Use NPM or Yarn to install the package:
 ```bash
-npm install --save @wandevs/cross-polkadot
+npm install --save @wandevs/cross-cosmos
 ```
 ## Prerequisites
-<li>Install polkadot{.js} wallet from Chrome Web Store:
+<li>Install Keplr wallet from Chrome Web Store:
 
-[polkadot{.js}](https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd)
+[Keplr](https://chromewebstore.google.com/detail/keplr/dmkamcknogkgcdfhhbddcghachkejeap)
 
 ## Usage
-Step 1: Import WanBridge and polkadot extension, create a bridge instance and initialize it with the extension.
+Step 1: Import WanBridge and cosmos extension, create a bridge instance and initialize it with the extension.
 
 ```javascript
 import { WanBridge } from '@wandevs/cross-core'
-import PolkadotExtension from '@wandevs/cross-polkadot'
+import CosmosExtension from '@wandevs/cross-cosmos'
 
 let bridge = new WanBridge("testnet");
 // TODO: add code to process bridge events
@@ -28,18 +28,17 @@ let iwanAuth = {
   secretKey: "your-secret-key"
 };
 
-bridge.init(iwanAuth, {extensions: [PolkadotExtension]});
+bridge.init(iwanAuth, {extensions: [CosmosExtension]});
 ```
 
-Step 2: Connect the polkadot{.js} wallet.
+Step 2: Connect the Keplr wallet.
 
 ```javascript
-let polkadotJsWallet = new PolkadotExtension.PolkadotJsWallet("testnet");
+let cosmosWallet = new CosmosExtension.KeplrWallet("testnet");
 ```
 
 Step 3: Select a related asset pair and create cross-chain task.
 
 ```javascript
-// NOTE that testnt asset symbol is WND, and mainnet is DOT
-let task = await bridge.createTask("WND", 'Polkadot', "Wanchain", 10, "polkadot-address", "wanchain-address", {wallet: polkadotJsWallet});
+let task = await bridge.createTask("ATOM", 'Cosmos', "Wanchain", 10, "cosmos-address", "wanchain-address", {wallet: cosmosWallet});
 ```
