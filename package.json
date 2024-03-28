@@ -37,7 +37,7 @@
     "multicoin-address-validator": "^0.5.10",
     "ripple-keypairs": "^1.0.2",
     "tiny-secp256k1": "^2.2.1",
-    "tronweb": "4.4.0",
+    "tronweb": "5.3.1",
     "urql": "3.0.3",
     "wanchain-util": "^1.2.0",
     "web3": "1.8.1",
@@ -47,6 +47,9 @@
     "@cosmjs/amino": "^0.32.2",
     "@cosmjs/encoding": "^0.32.2",
     "protobufjs": "^7.2.5",
-    "bech32": "^2.0.0"
+    "bech32": "^2.0.0",
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/spl-token": "^0.4.3",
+    "@solana/web3.js": "1.91.2"
   }
 }
