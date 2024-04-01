@@ -329,6 +329,29 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741845",
+      "chainType": "OPBNB",
+      "chainName": "opBNB",
+      "symbol": "BNB",
+      "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
+      "chainDecimals": 18,
+      "MaskChainId": 204,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2147536400",
+      "chainType": "CELO",
+      "chainName": "Celo",
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "chainDecimals": 18,
+      "MaskChainId": 42220,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
