@@ -93,6 +93,8 @@ class AssetPairs {
   getTokenAccount(chainType, account, configService) {
     if (chainType === "XRP") {
       return tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
+    } else if (chainType === "SOL") { // ascii
+      return tool.ascii2letter(account);
     } else { // ADA chain is policyId.name, not address
       return tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }

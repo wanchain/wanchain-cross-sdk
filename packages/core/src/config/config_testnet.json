@@ -501,6 +501,23 @@
       "TxScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "chainId": "2147484149",
+      "chainType": "SOL",
+      "chainName": "Solana",
+      "CircleBridge": {
+        "domain": 5,
+        "crossScAddr": "EKRNN8uUvQLedfnmhFcP3Fi3KFnyibWVvcYSCLC5W56F",
+        "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
+        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3"
+      },
+      "feeHolder": "EEJPPgVPWMPHvZ4pKYpZz9foLaQ4LS5gmPbFD5mTgZDL",
+      "adminProgram": "7k2Ye2S5ZF9TvmknA4Q5bFViCit1pB8Z5sHscaVH7FBp",
+      "chainDecimals": 9,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
     }
   ],
   "tokenPairCfg": [

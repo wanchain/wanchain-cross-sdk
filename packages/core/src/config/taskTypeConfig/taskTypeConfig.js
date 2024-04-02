@@ -62,4 +62,8 @@ module.exports = [
       "name": "ProcessCircleBridgeNobleDeposit",
       "handle": require("./ProcessCircleBridgeNobleDeposit")
     },
+    {
+      "name": "ProcessCircleBridgeSolanaDeposit",
+      "handle": require("./ProcessCircleBridgeSolanaDeposit")
+    }
 ]

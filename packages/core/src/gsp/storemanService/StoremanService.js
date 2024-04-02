@@ -4,9 +4,9 @@ const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
 
-const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA", "ATOM", "NOBLE"]; // TRX has self wallet but also be supported by rpc
+const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"]; // TRX has self wallet but also be supported by rpc
 
-const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE"];
+const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
 class StoremanService {
     constructor() {

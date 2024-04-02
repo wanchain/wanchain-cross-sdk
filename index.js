@@ -5,6 +5,7 @@ const CardanoExtension = require('./packages/cardano');
 const PolkadotExtension = require('./packages/polkadot');
 const TronExtension = require('./packages/tron');
 const CosmosExtension = require('./packages/cosmos');
+const SolanaExtension = require('./packages/solana');
 
 module.exports = {
   WanBridge,
@@ -12,5 +13,6 @@ module.exports = {
   CardanoExtension,
   PolkadotExtension,
   TronExtension,
-  CosmosExtension
+  CosmosExtension,
+  SolanaExtension
 };
