@@ -1,7 +1,7 @@
 const anchor = require('@coral-xyz/anchor');
 const { bs58 } = require('@coral-xyz/anchor/dist/cjs/utils/bytes');
-const { PublicKey } = require('@solana/web3.js');
-const cctpProxyIdl = require("./cctp/circle_cctp_proxy_contract.json");
+const spl = require("@solana/spl-token");
+const { PublicKey, Keypair } = require('@solana/web3.js');
 
 function validateAddress(address) {
   try {
@@ -46,12 +46,16 @@ function hex2bytes(hex) {
   return bytes;
 }
 
-function getProgram(name, id, provider) {
-  if (name === "cctp") {
-    return new anchor.Program(cctpProxyIdl, id, provider);
-  } else {
-    return null;
-  }
+function toBigNumber(value) {
+  return new anchor.BN(value);
+}
+
+function getSystemProgramId() {
+  return anchor.web3.SystemProgram.programId;
+}
+
+function getTokenProgramId() {
+  return spl.TOKEN_PROGRAM_ID;
 }
 
 function findProgramAddress(label, programId, extraSeeds) {
@@ -78,11 +82,28 @@ function getPda(key, id, programId, idBytes) {
   return {publicKey: res[0], bump: res[1]};
 }
 
+function getPublicKey(address) {
+  return new PublicKey(address);
+}
+
+function getKeypair() {
+  return Keypair.generate();
+}
+
+function setComputeUnitLimit(units) {
+  return anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({units});
+}
+
 module.exports = {
   validateAddress,
   getStandardAddressInfo,
   hex2bytes,
-  getProgram,
+  toBigNumber,
+  getSystemProgramId,
+  getTokenProgramId,
   findProgramAddress,
-  getPda
+  getPda,
+  getPublicKey,
+  getKeypair,
+  setComputeUnitLimit
 }

@@ -1,9 +1,14 @@
+const anchor = require('@coral-xyz/anchor');
 const Web3 = require('@solana/web3.js');
+const cctpProxyIdl = require("../cctp/circle_cctp_proxy_contract.json");
+const { getOrCreateAssociatedTokenAccount } = require("@solana/spl-token");
+const { PublicKey, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
 
 class Phantom {
   constructor(network) {
     this.name = "Phantom";
     this.network = (network === "mainnet")? "mainnet-beta" : "devnet";
+    this.connection = new Web3.Connection(Web3.clusterApiUrl(this.network), 'confirmed');
   }
 
   // standard function
@@ -23,32 +28,33 @@ class Phantom {
     }
   }
 
-  async getBalance(addr, tokenAccount = "") {
+  async getBalance(address, tokenAccount = "") {
     let balance = "0";
-    let provider = this.getProvider();
-    let connection = new Web3.Connection(Web3.clusterApiUrl(this.network), 'confirmed');
+    let publicKey = new PublicKey(address);
     if (tokenAccount) {
-      let data = await connection.getParsedTokenAccountsByOwner(provider.publicKey, {mint: new Web3.PublicKey(tokenAccount)});
+      let data = await this.connection.getParsedTokenAccountsByOwner(publicKey, {mint: new Web3.PublicKey(tokenAccount)});
       let tokenInfo = data && data.value && data.value[0];
       if (tokenInfo) {
         balance = tokenInfo.account.data.parsed.info.tokenAmount.amount;
       }
     } else {
-      balance = await connection.getBalance(provider.publicKey);
+      balance = await this.connection.getBalance(publicKey);
     }
     return balance;
   }
 
-  async sendTransaction(tx, otherSigner = null) {
-    let provider = this.getProvider();
-    let otherSig = tx.signatures[1];
-    let signedTx = await provider.signTransaction(tx);
-    if (otherSigner) {
-      signedTx.addSignature(otherSigner, otherSig);
+  async sendTransaction(tx, secondSigner = null) {
+    let secondSig = null;
+    if (secondSigner) {
+      tx.sign([secondSigner]);
+      secondSig = tx.signatures[1];
     }
-    console.debug({tx3: JSON.parse(JSON.stringify(signedTx))});
-    let connect = this.getConnection();
-    let signature = await connect.sendRawTransaction(signedTx.serialize(),  { skipPreflight: true });
+    let provider = this.getProvider();
+    let signedTx = await provider.signTransaction(tx);
+    if (secondSig) {
+      signedTx.addSignature(secondSigner.publicKey, secondSig);
+    }
+    let signature = await this.connection.sendRawTransaction(signedTx.serialize(),  { skipPreflight: true });
     return signature;
   }
 
@@ -69,8 +75,26 @@ class Phantom {
     throw new Error("Not installed or not allowed");
   }
 
-  getConnection() {
-    return new Web3.Connection(Web3.clusterApiUrl(this.network), 'confirmed');
+  getProgram(name, id) {
+    let provider = this.getProvider();
+    if (name === "cctp") {
+      return new anchor.Program(cctpProxyIdl, id, provider);
+    } else {
+      return null;
+    }
+  }
+
+  async getOrCreateAssociatedTokenAccount(tokenAddress) {
+    let provider = this.getProvider();
+    let account = await getOrCreateAssociatedTokenAccount(this.connection, provider, tokenAddress, provider.publicKey);
+    return account;
+  }
+
+  async buildTransaction(instructions) {
+    let payerKey = this.getPublicKey();
+    let recentBlockHash = await this.connection.getLatestBlockhash();
+    let messageV0 = new TransactionMessage({payerKey, recentBlockhash: recentBlockHash.blockhash, instructions}).compileToV0Message();
+    return new VersionedTransaction(messageV0);
   }
 }
 

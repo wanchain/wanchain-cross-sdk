@@ -1,41 +1,36 @@
 'use strict';
 
 const tool = require("../../utils/tool.js");
-const anchor = require("@coral-xyz/anchor");
-const { PublicKey, Keypair, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
-const { getOrCreateAssociatedTokenAccount } = require("@solana/spl-token");
-const spl = require("@solana/spl-token");
 
 module.exports = class ProcessCircleBridgeSolanaDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
+    this.webStores = this.frameworkService.getService("WebStores");
     this.configService  = frameworkService.getService("ConfigService");
-    this.extension = this.configService.getExtension("SOL");
-    this.tool = this.extension.tool;
+    let extension = this.configService.getExtension("SOL");
+    this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
+    this.tokenPairService = frameworkService.getService("TokenPairService");
   }
 
   async process(stepData, wallet) {
-    let webStores = this.frameworkService.getService("WebStores");
+
     let params = stepData.params;
     try {
-      let tokenPairService = this.frameworkService.getService("TokenPairService");
-      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let usdcAccount = (tokenPair.fromChainType === "SOL")? tokenPair.fromAccount : tokenPair.toAccount;
-      let fromChainInfo = (tokenPair.fromChainType === "SOL")? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let toChainInfo = (tokenPair.fromChainType === "SOL")? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
+      let direction = (tokenPair.fromChainType === "SOL");
+      let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
       let destinationDomain = Number(toChainInfo.CircleBridge.domain);
-      let destChain = Number(toChainInfo.chainId);
-      let amount = new anchor.BN(params.value);
-      let mintRecipient = new PublicKey(this.tool.hex2bytes(params.userAccount.replace(/^0x/, '').padStart(64, '0')));
-      let messageSentEventAccountKeypair = Keypair.generate();
-      let usdcAddress = new PublicKey(tool.ascii2letter(usdcAccount));
-      let walletProvider = wallet.getProvider();
-      let walletConnection = wallet.getConnection();
-      let userTokenAccount = await getOrCreateAssociatedTokenAccount(walletConnection, walletProvider, usdcAddress, walletProvider.publicKey);
-      let messageTransmitterProgramId = new PublicKey(fromChainInfo.CircleBridge.messageTransmitter);
-      let tokenMessengerMinterProgramId = new PublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
-      let crossProxyProgram = this.tool.getProgram("cctp", fromChainInfo.CircleBridge.crossScAddr, walletProvider);
+      let destChain = 0x80001000; // Number(toChainInfo.chainId); // TODO: AVAX test
+      let amount = this.tool.toBigNumber(params.value);
+      let mintRecipient = this.tool.getPublicKey(this.tool.hex2bytes(params.userAccount.replace(/^0x/, '').padStart(64, '0')));
+      let messageSentEventAccountKeypair = this.tool.getKeypair();
+      let usdcAddress = this.tool.getPublicKey(tool.ascii2letter(direction? tokenPair.fromAccount : tokenPair.toAccount));
+      let userTokenAccount = await wallet.getOrCreateAssociatedTokenAccount(usdcAddress);
+      let messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitter);
+      let tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
+      let crossProxyProgram = wallet.getProgram("cctp", fromChainInfo.CircleBridge.crossScAddr);
       let messageTransmitterAccount = this.tool.findProgramAddress("message_transmitter", messageTransmitterProgramId);
       let tokenMessenger = this.tool.findProgramAddress("token_messenger", tokenMessengerMinterProgramId);
       let tokenMinter = this.tool.findProgramAddress("token_minter", tokenMessengerMinterProgramId);
@@ -43,14 +38,14 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let remoteTokenMessengerKey = this.tool.findProgramAddress("remote_token_messenger", tokenMessengerMinterProgramId, [destinationDomain.toString()]);
       let authorityPda = this.tool.findProgramAddress("sender_authority", tokenMessengerMinterProgramId);
       let tokenMessengerEventAuthority = this.tool.findProgramAddress("__event_authority", tokenMessengerMinterProgramId);
-      let adminProgramId = new PublicKey(fromChainInfo.adminProgram);
-      const domainPda = this.tool.getPda("DomainData", destinationDomain, adminProgramId, 4);
-      const feePda = this.tool.getPda("FeeData", destChain, adminProgramId, 4);
-      const config_program_admin_pda = this.tool.findProgramAddress("admin_roles", adminProgramId);
-      const proxy_config_pda = this.tool.findProgramAddress("ConfigData", crossProxyProgram.programId);
+      let adminProgramId = this.tool.getPublicKey(fromChainInfo.adminProgram);
+      let domainPda = this.tool.getPda("DomainData", destinationDomain, adminProgramId, 4);
+      let feePda = this.tool.getPda("FeeData", destChain, adminProgramId, 4);
+      let cfgAdminPda = this.tool.findProgramAddress("admin_roles", adminProgramId);
+      let cfgDataPda = this.tool.findProgramAddress("ConfigData", crossProxyProgram.programId);
 
       let walletPublicKey = wallet.getPublicKey();
-      const accounts_arg = {
+      let accounts = {
         owner: walletPublicKey,
         eventRentPayer: walletPublicKey,
         senderAuthorityPda: authorityPda.publicKey,
@@ -64,16 +59,16 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         messageSentEventData: messageSentEventAccountKeypair.publicKey,
         messageTransmitterProgram: messageTransmitterProgramId,
         tokenMessengerMinterProgram: tokenMessengerMinterProgramId,
-        tokenProgram: spl.TOKEN_PROGRAM_ID,
-        systemProgram: anchor.web3.SystemProgram.programId,
+        tokenProgram: this.tool.getTokenProgramId(),
+        systemProgram: this.tool.getSystemProgramId(),
         // additional: 
         eventAuthority: tokenMessengerEventAuthority.publicKey,
         program: tokenMessengerMinterProgramId, // the same as "tokenMessengerMinterProgram"
         // proxy
-        configAccount: proxy_config_pda.publicKey,      
-        feeReceiver: new PublicKey(fromChainInfo.feeHolder),
+        configAccount: cfgDataPda.publicKey,
+        feeReceiver: this.tool.getPublicKey(fromChainInfo.feeHolder),
         // accounts for configure program:
-        configProgramAdminRolesAccount: config_program_admin_pda.publicKey,
+        configProgramAdminRolesAccount: cfgAdminPda.publicKey,
         configProgramDomainDataAccount: domainPda.publicKey,
         configProgramFeeDataAccount: feePda.publicKey,
         configProgram: adminProgramId,
@@ -81,16 +76,12 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         circleCctpProgram: tokenMessengerMinterProgramId
       };
 
-      let instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts_arg).instruction();
-      let unitLimit = anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({units: 800_000});
+      let instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts).instruction();
+      let unitLimit = this.tool.setComputeUnitLimit(800_000);
 
-      let recentBlockHash = await walletConnection.getLatestBlockhash();
-
-      let messageV0 = new TransactionMessage({payerKey: walletPublicKey, recentBlockhash: recentBlockHash.blockhash, instructions: [unitLimit, instruction]}).compileToV0Message();
-      let tx = new VersionedTransaction(messageV0);
-      tx.sign([messageSentEventAccountKeypair]);
-      let txHash = await wallet.sendTransaction(tx, messageSentEventAccountKeypair.publicKey);
-      webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      let tx = await wallet.buildTransaction([unitLimit, instruction]);
+      let txHash = await wallet.sendTransaction(tx, messageSentEventAccountKeypair);
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
@@ -115,11 +106,12 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      if (err.message === "Request rejected") {
-        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+      console.error("error: %s", err.message)
+      if (["User rejected the request."].includes(err.message)) {
+        this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessCircleBridgeSolanaDeposit error: %O", err);
-        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+        this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
