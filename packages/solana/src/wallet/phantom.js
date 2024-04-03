@@ -2,7 +2,6 @@ const anchor = require('@coral-xyz/anchor');
 const Web3 = require('@solana/web3.js');
 const cctpProxyIdl = require("../cctp/circle_cctp_proxy_contract.json");
 const messageTransmitterIdl = require("../cctp/idl_message_transmitter.json");
-const { getOrCreateAssociatedTokenAccount } = require("@solana/spl-token");
 const { PublicKey, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
 
 const CctpMsgMapping = [
@@ -103,12 +102,6 @@ class Phantom {
     }
   }
 
-  async getOrCreateAssociatedTokenAccount(tokenAddress) {
-    let provider = this.getProvider();
-    let account = await getOrCreateAssociatedTokenAccount(this.connection, provider, tokenAddress, provider.publicKey);
-    return account;
-  }
-
   async buildTransaction(instructions) {
     let payerKey = this.getPublicKey();
     let recentBlockHash = await this.connection.getLatestBlockhash();
@@ -117,8 +110,6 @@ class Phantom {
   }
 
   async parseCctpMessage(txHash, messageTransmitterProgramId, messageSentPublicKey) {
-    // let status = await this.connection.getSignatureStatus(txHash);
-    // console.log({status})
     let messageTransmitterProgram = this.getProgram("messageTransmitter", messageTransmitterProgramId);
     let messageData = await messageTransmitterProgram.account.messageSent.fetch(messageSentPublicKey);
     let messageBytes = messageData.message;

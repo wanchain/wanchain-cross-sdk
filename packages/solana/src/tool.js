@@ -77,6 +77,10 @@ function findProgramAddress(label, programId, extraSeeds) {
   return {publicKey: res[0], bump: res[1]};
 }
 
+function getAssociatedTokenAddressSync(tokenAddress, owner) {
+  return spl.getAssociatedTokenAddressSync(tokenAddress, owner);
+}
+
 function getPda(key, id, programId, idBytes) {
   const res = PublicKey.findProgramAddressSync([Buffer.from(key), new anchor.BN(id).toArrayLike(Buffer, "le", idBytes)], programId);
   return {publicKey: res[0], bump: res[1]};
@@ -102,6 +106,7 @@ module.exports = {
   getSystemProgramId,
   getTokenProgramId,
   findProgramAddress,
+  getAssociatedTokenAddressSync,
   getPda,
   getPublicKey,
   getKeypair,

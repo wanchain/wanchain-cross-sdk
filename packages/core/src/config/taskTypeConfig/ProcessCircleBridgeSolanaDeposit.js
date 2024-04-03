@@ -26,8 +26,9 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let amount = this.tool.toBigNumber(params.value);
       let mintRecipient = this.tool.getPublicKey(this.tool.hex2bytes(params.userAccount.replace(/^0x/, '').padStart(64, '0')));
       let messageSentKeypair = this.tool.getKeypair();
+      let walletPublicKey = wallet.getPublicKey();
       let usdcAddress = this.tool.getPublicKey(tool.ascii2letter(direction? tokenPair.fromAccount : tokenPair.toAccount));
-      let userTokenAccount = await wallet.getOrCreateAssociatedTokenAccount(usdcAddress);
+      let userTokenAccount = this.tool.getAssociatedTokenAddressSync(usdcAddress, walletPublicKey);
       let messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitter);
       let tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
       let crossProxyProgram = wallet.getProgram("cctpProxy", fromChainInfo.CircleBridge.crossScAddr);
@@ -43,13 +44,11 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let feePda = this.tool.getPda("FeeData", destChain, adminProgramId, 4);
       let cfgAdminPda = this.tool.findProgramAddress("admin_roles", adminProgramId);
       let cfgDataPda = this.tool.findProgramAddress("ConfigData", crossProxyProgram.programId);
-
-      let walletPublicKey = wallet.getPublicKey();
       let accounts = {
         owner: walletPublicKey,
         eventRentPayer: walletPublicKey,
         senderAuthorityPda: authorityPda.publicKey,
-        burnTokenAccount: userTokenAccount.address,
+        burnTokenAccount: userTokenAccount,
         messageTransmitter: messageTransmitterAccount.publicKey,
         tokenMessenger: tokenMessenger.publicKey,
         remoteTokenMessenger: remoteTokenMessengerKey.publicKey,
