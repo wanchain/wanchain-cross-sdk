@@ -68,6 +68,8 @@ module.exports = class CheckTxReceiptService {
         let isSuccess = false;
         if (obj.chain === "NOBLE") {
           isSuccess = (txReceipt.code === 0);
+        } else if (obj.chain === "SOL") {
+          isSuccess = (txReceipt.meta.err === null);
         } else if (obj.chain === "TRX") {
           isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
         } else {
@@ -162,7 +164,14 @@ module.exports = class CheckTxReceiptService {
 
   async add(obj) {
     let storageService = this.frameworkService.getService("StorageService");
+    let wallet = obj.convertCheckInfo && obj.convertCheckInfo.wallet;
+    if (wallet) {
+      obj.convertCheckInfo.wallet = undefined;
+    }
     await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
+    if (wallet) {
+      obj.convertCheckInfo.wallet = wallet;
+    }
     this.taskArray.push(obj);
   }
 

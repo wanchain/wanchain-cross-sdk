@@ -1,8 +1,24 @@
 const anchor = require('@coral-xyz/anchor');
 const Web3 = require('@solana/web3.js');
 const cctpProxyIdl = require("../cctp/circle_cctp_proxy_contract.json");
+const messageTransmitterIdl = require("../cctp/idl_message_transmitter.json");
 const { getOrCreateAssociatedTokenAccount } = require("@solana/spl-token");
 const { PublicKey, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
+
+const CctpMsgMapping = [
+  ["version", 4],
+  ["sourceDomain", 4],
+  ["destinationDomain", 4],
+  ["nonce", 8],
+  ["sender", 32],
+  ["recipient", 32],
+  ["destinationCaller", 32],
+  ["version", 4],
+  ["burnToken", 32],
+  ["mintRecipient", 32],
+  ["amount", 32],
+  ["messageSender", 32]
+]
 
 class Phantom {
   constructor(network) {
@@ -69,6 +85,7 @@ class Phantom {
     if (window.phantom) {
       let provider = window.phantom.solana;
       if (provider && provider.isPhantom) {
+        provider.connection = this.connection;
         return provider;
       }
     }
@@ -77,8 +94,10 @@ class Phantom {
 
   getProgram(name, id) {
     let provider = this.getProvider();
-    if (name === "cctp") {
+    if (name === "cctpProxy") {
       return new anchor.Program(cctpProxyIdl, id, provider);
+    } else if (name === "messageTransmitter") {
+      return new anchor.Program(messageTransmitterIdl, id, provider);
     } else {
       return null;
     }
@@ -95,6 +114,21 @@ class Phantom {
     let recentBlockHash = await this.connection.getLatestBlockhash();
     let messageV0 = new TransactionMessage({payerKey, recentBlockhash: recentBlockHash.blockhash, instructions}).compileToV0Message();
     return new VersionedTransaction(messageV0);
+  }
+
+  async parseCctpMessage(txHash, messageTransmitterProgramId, messageSentPublicKey) {
+    // let status = await this.connection.getSignatureStatus(txHash);
+    // console.log({status})
+    let messageTransmitterProgram = this.getProgram("messageTransmitter", messageTransmitterProgramId);
+    let messageData = await messageTransmitterProgram.account.messageSent.fetch(messageSentPublicKey);
+    let messageBytes = messageData.message;
+    let begin = 0, msg = {};
+    for (let i = 0; i < CctpMsgMapping.length; i++) {
+      let end = begin + CctpMsgMapping[i][1];
+      msg[CctpMsgMapping[i][0]] = messageBytes.subarray(begin, end);
+      begin = end;
+    }
+    return msg;
   }
 }
 

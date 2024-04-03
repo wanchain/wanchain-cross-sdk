@@ -5,6 +5,10 @@ const tool = require("../../utils/tool");
 
 const EventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
 
+// CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
+const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
+const CctpEvmReceiveEventHash = "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d";
+
 module.exports = class CheckScEvent {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -173,8 +177,6 @@ module.exports = class CheckScEvent {
 
   async prepareTask(task) {
     if ((task.taskType === "circleMINT") && (task.depositNonce === undefined)) {
-      // DepositForBurn has discontinuous indexes, can not get correct hash by getEventHash, so define const for simplify
-      let depositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
       let receipt = await this.iwan.getTransactionReceipt(task.depositChain, task.txHash);
       if (task.depositChain === "NOBLE") {
         let event = receipt.events.find(v => (v.type === "circle.cctp.v1.DepositForBurn"));
@@ -194,9 +196,19 @@ module.exports = class CheckScEvent {
             }
           }
         }
+      } else if (task.depositChain === "SOL") {
+        let chainInfoService = this.frameworkService.getService("ChainInfoService");
+        let chainInfo = chainInfoService.getChainInfoByType("SOL");
+        let cctpMsg = await task.wallet.parseCctpMessage(task.txHash, chainInfo.CircleBridge.messageTransmitter, task.ota);
+        console.log("SOL tx %s cctpMsg: %O", task.txHash, cctpMsg);
+        if (cctpMsg) {
+          task.depositNonce = parseInt("0x" + cctpMsg.nonce.toString("hex"));
+          task.depositAmount = parseInt("0x" + cctpMsg.amount.toString("hex"));
+          delete task.wallet;
+        }
       } else {
         for (let log of receipt.logs) {
-          if (log.topics[0] === depositEventHash) {
+          if (log.topics[0] === CctpEvmDepositEventHash) {
             let decoded = tool.parseEvmLog(log, this.circleBridgeDepositAbi);
             console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.depositChain, task.uniqueID, decoded);
             task.depositNonce = decoded.args.nonce;
@@ -224,12 +236,10 @@ module.exports = class CheckScEvent {
     if (events.length) {
       let txHash = events[0].transactionHash;
       let mintEventDecoded = tool.parseEvmLog(events[0], this.circleBridgeProxyAbi);
-      // MessageReceived has discontinuous indexes, can not  get correct hash by getEventHash, so define const for simplify
-      let receiveEventHash = "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d";
       let receipt = await this.iwan.getTransactionReceipt(this.chainInfo.chainType, txHash);
       let toAccount = "";
       for (let log of receipt.logs) {
-        if (log.topics[0] === receiveEventHash) {
+        if (log.topics[0] === CctpEvmReceiveEventHash) {
           let decoded = tool.parseEvmLog(log, this.circleBridgeReceiveAbi);
           if ((decoded.args.sourceDomain == depositDomain) && (decoded.args.nonce == depositNonce)) {
             toAccount = "0x" + mintEventDecoded.args.mintRecipient.substr(-40);

@@ -59,6 +59,10 @@ module.exports = class ScEventScanService {
     let checkNobleTx = new CheckApiServerTx(this.m_frameworkService, "NOBLE");
     await checkNobleTx.init();
     this.m_mapCheckHandle.set("NOBLE", checkNobleTx);
+
+    let checkSolTx = new CheckApiServerTx(this.m_frameworkService, "SOL");
+    await checkSolTx.init();
+    this.m_mapCheckHandle.set("SOL", checkSolTx);
   }
 
   async loadTradeTask(dataAry) {
@@ -75,8 +79,15 @@ module.exports = class ScEventScanService {
 
   async add(obj) {
     //console.log("scEventScanService add obj:", obj);
+    let wallet = obj.wallet;
+    if (wallet) {
+      obj.wallet = undefined;
+    }
     let storageService = this.m_frameworkService.getService("StorageService");
     await storageService.save("ScEventScanService", obj.uniqueID, obj);
+    if (wallet) {
+      obj.wallet = wallet;
+    }
     let handle = this.m_mapCheckHandle.get(obj.chain);
     if (handle) {
       await handle.add(obj);

@@ -25,12 +25,12 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let destChain = 0x80001000; // Number(toChainInfo.chainId); // TODO: AVAX test
       let amount = this.tool.toBigNumber(params.value);
       let mintRecipient = this.tool.getPublicKey(this.tool.hex2bytes(params.userAccount.replace(/^0x/, '').padStart(64, '0')));
-      let messageSentEventAccountKeypair = this.tool.getKeypair();
+      let messageSentKeypair = this.tool.getKeypair();
       let usdcAddress = this.tool.getPublicKey(tool.ascii2letter(direction? tokenPair.fromAccount : tokenPair.toAccount));
       let userTokenAccount = await wallet.getOrCreateAssociatedTokenAccount(usdcAddress);
       let messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitter);
       let tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
-      let crossProxyProgram = wallet.getProgram("cctp", fromChainInfo.CircleBridge.crossScAddr);
+      let crossProxyProgram = wallet.getProgram("cctpProxy", fromChainInfo.CircleBridge.crossScAddr);
       let messageTransmitterAccount = this.tool.findProgramAddress("message_transmitter", messageTransmitterProgramId);
       let tokenMessenger = this.tool.findProgramAddress("token_messenger", tokenMessengerMinterProgramId);
       let tokenMinter = this.tool.findProgramAddress("token_minter", tokenMessengerMinterProgramId);
@@ -56,7 +56,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         tokenMinter: tokenMinter.publicKey,
         localToken: localToken.publicKey,
         burnTokenMint: usdcAddress,
-        messageSentEventData: messageSentEventAccountKeypair.publicKey,
+        messageSentEventData: messageSentKeypair.publicKey,
         messageTransmitterProgram: messageTransmitterProgramId,
         tokenMessengerMinterProgram: tokenMessengerMinterProgramId,
         tokenProgram: this.tool.getTokenProgramId(),
@@ -80,9 +80,8 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let unitLimit = this.tool.setComputeUnitLimit(800_000);
 
       let tx = await wallet.buildTransaction([unitLimit, instruction]);
-      let txHash = await wallet.sendTransaction(tx, messageSentEventAccountKeypair);
+      let txHash = await wallet.sendTransaction(tx, messageSentKeypair);
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
         chain: "SOL",
@@ -100,7 +99,9 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
           depositChain: fromChainInfo.chainType,
           depositDomain: fromChainInfo.CircleBridge.domain,
           depositNonce: undefined, // deposit nonce is really uniqueID
-          depositAmount: 0
+          depositAmount: 0,
+          wallet,
+          ota: messageSentKeypair.publicKey.toString()
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
