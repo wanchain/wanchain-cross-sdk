@@ -12,17 +12,24 @@ function validateAddress(address) {
   }
 }
 
-function getStandardAddressInfo(address) {
+function getStandardAddressInfo(address) { // support bs58 encoded native or decoded format
   let native = "", evm = "", cctp = "";
-  if (bs58.decode(address)) {
+  try {
+    bs58.decode(address); // throw exception while it is decoded format
     native = address;
+  } catch (err) { // decoded
+    native = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
   }
-  if (native) {
-    evm = asciiToHex(native);
-    cctp = '0x' + Buffer.from(bs58.decode(native)).toString('hex');
-  }
-  console.log("sol getStandardAddressInfo: %O", {address, native, evm, ascii: native, cctp})
+  evm = asciiToHex(native);
+  cctp = '0x' + Buffer.from(bs58.decode(native)).toString('hex');
   return {native, evm, ascii: native, cctp};
+}
+
+function hexStrip0x(hexStr) {
+  if (0 == hexStr.indexOf('0x')) {
+      return hexStr.slice(2);
+  }
+  return hexStr;
 }
 
 // according to web3.utils.asciiToHex

@@ -117,6 +117,21 @@ class CrossChainTaskRecords {
     }
   }
 
+  // should always be called together with finishTaskStep to trigger saving task information. use a separate API for simplicity
+  setExtraInfo(ccTaskId, info) {
+    // innerToAccount: real toAccount in transaction used by solana cctp
+    let ccTask = this.ccTaskRecords.get(ccTaskId);
+    if (ccTask) {
+      for (let k in info) {
+        if (!ccTask[k]) {
+          ccTask[k] = info[k];
+        } else {
+          console.error("task %s reject overwrite key %s", ccTaskId, k);
+        }
+      }
+    }
+  }
+
   // maybe only update txHash, not really finished
   finishTaskStep(ccTaskId, stepIndex, txHash, stepResult, errInfo = "") {
     let ccTask = this.ccTaskRecords.get(ccTaskId);

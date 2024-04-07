@@ -143,8 +143,10 @@ function getXdcAddressInfo(address) {
   native: mainly for ui 
   evm: cross from evm, encode recipient as ascii hex for non-evm chain
   ascii: cross from non-evm, encode recipient as text, it is mostly the same as native address,
-         except for tron and xdc is standard evm address (without prefix) to adapt for storeman agent
-  cctp: used for cctp to instead evm address, cctp encode non-evm recipient as evm address, it is different with wanbridge
+        except for tron and xdc is standard evm address (without prefix) to adapt for storeman agent
+  cctp: used for cctp to instead evm address, cctp's encode for non-evm recipient is different from wanbridge:
+        noble - evm format
+        solana - bs58 decoded
 */
 function getStandardAddressInfo(chainType, address, extension = null) {
   if (chainType === "XDC") {

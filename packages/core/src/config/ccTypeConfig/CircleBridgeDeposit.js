@@ -45,6 +45,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       value,
       userAccount: toAddressInfo.cctp || toAddressInfo.evm,
       toAddr: convert.toAddr, // for readability
+      innerToAddr, // for cctp to solana
       taskType: "ProcessCircleBridgeDeposit",
       networkFee,
       tokenAccount,

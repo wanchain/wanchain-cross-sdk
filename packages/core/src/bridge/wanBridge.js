@@ -591,7 +591,7 @@ class WanBridge extends EventEmitter {
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount !== undefined) {
       let toChainType = ccTask.toChainType;
-      let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.toAccount, this.configService.getExtension(toChainType)).native;
+      let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
       let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
       if (!tool.cmpAddress(expectedToAccount, actualToAccount)) {
         console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
