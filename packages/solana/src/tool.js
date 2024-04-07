@@ -5,27 +5,23 @@ const { PublicKey, Keypair } = require('@solana/web3.js');
 
 function validateAddress(address) {
   try {
-    bs58.decode(address);
-    return true;
-  } catch (err) {
-    console.error("solana validateAddress %s error: %O", address, err);
+    let pk = new PublicKey(address);
+    return PublicKey.isOnCurve(pk.toBytes());
+  } catch (error) {
     return false;
   }
 }
 
 function getStandardAddressInfo(address) {
   let native = "", evm = "", cctp = "";
-  if (/^0x[0-9a-fA-F]{40}$/.test(address)) { // standard evm address
-    native = bs58.encode(Buffer.from(address.substr(2), "hex"));
-  } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
-    native = bs58.encode(Buffer.from(address, "hex"));
-  } else if (validateAddress(address)) {
+  if (bs58.decode(address)) {
     native = address;
   }
   if (native) {
     evm = asciiToHex(native);
     cctp = '0x' + Buffer.from(bs58.decode(native)).toString('hex');
   }
+  console.log("sol getStandardAddressInfo: %O", {address, native, evm, ascii: native, cctp})
   return {native, evm, ascii: native, cctp};
 }
 

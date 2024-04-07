@@ -39,10 +39,10 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let remoteTokenMessengerKey = this.tool.findProgramAddress("remote_token_messenger", tokenMessengerMinterProgramId, [destinationDomain.toString()]);
       let authorityPda = this.tool.findProgramAddress("sender_authority", tokenMessengerMinterProgramId);
       let tokenMessengerEventAuthority = this.tool.findProgramAddress("__event_authority", tokenMessengerMinterProgramId);
-      let adminProgramId = this.tool.getPublicKey(fromChainInfo.adminProgram);
-      let domainPda = this.tool.getPda("DomainData", destinationDomain, adminProgramId, 4);
-      let feePda = this.tool.getPda("FeeData", destChain, adminProgramId, 4);
-      let cfgAdminPda = this.tool.findProgramAddress("admin_roles", adminProgramId);
+      let configProgramId = this.tool.getPublicKey(fromChainInfo.configProgram);
+      let domainPda = this.tool.getPda("DomainData", destinationDomain, configProgramId, 4);
+      let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
+      let cfgAdminPda = this.tool.findProgramAddress("admin_roles", configProgramId);
       let cfgDataPda = this.tool.findProgramAddress("ConfigData", crossProxyProgram.programId);
       let accounts = {
         owner: walletPublicKey,
@@ -70,7 +70,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         configProgramAdminRolesAccount: cfgAdminPda.publicKey,
         configProgramDomainDataAccount: domainPda.publicKey,
         configProgramFeeDataAccount: feePda.publicKey,
-        configProgram: adminProgramId,
+        configProgram: configProgramId,
         // cctp program:
         circleCctpProgram: tokenMessengerMinterProgramId
       };
