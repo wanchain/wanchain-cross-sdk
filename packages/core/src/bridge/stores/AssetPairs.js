@@ -69,19 +69,19 @@ class AssetPairs {
 
   sortBy(a, b) {
     if (a.assetType < b.assetType) {
-        return -1;
+      return -1;
     } else if (a.assetType > b.assetType) {
-        return 1;
+      return 1;
     }
     if (a.fromChainName < b.fromChainName) {
-        return -1;
+      return -1;
     } else if (a.fromChainName > b.fromChainName) {
-        return 1;
+      return 1;
     }
     if (a.toChainName < b.toChainName) {
-        return -1;
+      return -1;
     } else if (a.toChainName > b.toChainName) {
-        return 1;
+      return 1;
     }
     return 0;
   }
@@ -91,13 +91,22 @@ class AssetPairs {
   }
 
   getTokenAccount(chainType, account, configService) {
-    if (chainType === "XRP") {
-      return tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
-    } else if (chainType === "SOL") { // ascii
-      return tool.ascii2letter(account);
-    } else { // ADA chain is policyId.name, not address
-      return tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
+    let result = "";
+    if (account === "0x0000000000000000000000000000000000000000") {
+      result = account;
+    } else if (chainType === "XRP") {
+      result = tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
+    } else if (chainType === "NOBLE") { // ascii of token name
+      result = tool.ascii2letter(account);
+    } else if (chainType === "SOL") { // ascii of token account
+      result = tool.ascii2letter(account);
+    } else if (chainType === "ADA") { // ascii of policyId.name, not address
+      result = tool.ascii2letter(account);
+    } else {
+      result = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
+    // console.log("getTokenAccount: %s, %s => %s", chainType, account, result);
+    return result;
   }
 
   isTokenAccount(chainType, account, extension) {

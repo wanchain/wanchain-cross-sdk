@@ -245,10 +245,6 @@ class WanBridge extends EventEmitter {
   validateToAccount(chainName, account) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let extension = this.configService.getExtension(chainType);
-    if (this.stores.assetPairs.isTokenAccount(chainType, account, extension)) {
-      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: is token account", chainName, account);
-      return false;
-    }
     let result;
     if (extension && extension.tool && extension.tool.validateAddress) {
       result = extension.tool.validateAddress(account, this.network, chainName);
@@ -269,8 +265,13 @@ class WanBridge extends EventEmitter {
     }
     if (result === false) {
       console.log("SDK: validateToAccount, chainName: %s, account: %s, result: %s", chainName, account, result);
+      return false;
     }
-    return result;
+    if (this.stores.assetPairs.isTokenAccount(chainType, account, extension)) {
+      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: is token account", chainName, account);
+      return false;
+    }
+    return true;
   }
 
   validateXrpTokenAmount(amount) {

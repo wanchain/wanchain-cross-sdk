@@ -17,7 +17,7 @@ const CctpMsgMapping = [
   ["mintRecipient", 32],
   ["amount", 32],
   ["messageSender", 32]
-]
+];
 
 class Phantom {
   constructor(network) {
