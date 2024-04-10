@@ -101,6 +101,32 @@ function setComputeUnitLimit(units) {
   return anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({units});
 }
 
+const CctpMsgMapping = [
+  ["version", 4],
+  ["sourceDomain", 4],
+  ["destinationDomain", 4],
+  ["nonce", 8],
+  ["sender", 32],
+  ["recipient", 32],
+  ["destinationCaller", 32],
+  ["version", 4],
+  ["burnToken", 32],
+  ["mintRecipient", 32],
+  ["amount", 32],
+  ["messageSender", 32]
+];
+
+function parseCctpDepositMessage(messageHex) {
+  let messageBytes = Buffer.from(hexStrip0x(messageHex), "hex")
+  let begin = 0, msg = {};
+  for (let i = 0; i < CctpMsgMapping.length; i++) {
+    let end = begin + CctpMsgMapping[i][1];
+    msg[CctpMsgMapping[i][0]] = messageBytes.subarray(begin, end);
+    begin = end;
+  }
+  return msg;
+}
+
 module.exports = {
   validateAddress,
   getStandardAddressInfo,
@@ -113,5 +139,6 @@ module.exports = {
   getPda,
   getPublicKey,
   getKeypair,
-  setComputeUnitLimit
+  setComputeUnitLimit,
+  parseCctpDepositMessage
 }

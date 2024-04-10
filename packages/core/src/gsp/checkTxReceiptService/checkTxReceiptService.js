@@ -164,14 +164,7 @@ module.exports = class CheckTxReceiptService {
 
   async add(obj) {
     let storageService = this.frameworkService.getService("StorageService");
-    let wallet = obj.convertCheckInfo && obj.convertCheckInfo.wallet;
-    if (wallet) {
-      obj.convertCheckInfo.wallet = undefined;
-    }
     await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
-    if (wallet) {
-      obj.convertCheckInfo.wallet = wallet;
-    }
     this.taskArray.push(obj);
   }
 

@@ -215,6 +215,10 @@ class IWanBCConnector {
     async getChainQuotaHiddenFlags(chainIds) {
       return this.apiClient.getChainQuotaHiddenFlags(chainIds);
     }
+
+    async parseCctpMessageSent(chainType, address) {
+      return this.apiClient.parseCctpMessageSent(chainType, address);
+    }
 };
 
 module.exports = IWanBCConnector;

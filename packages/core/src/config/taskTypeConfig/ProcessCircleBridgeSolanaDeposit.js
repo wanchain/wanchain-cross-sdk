@@ -99,7 +99,6 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
           depositDomain: fromChainInfo.CircleBridge.domain,
           depositNonce: undefined, // deposit nonce is really uniqueID
           depositAmount: 0,
-          wallet,
           ota: messageSentKeypair.publicKey.toString()
         }
       };

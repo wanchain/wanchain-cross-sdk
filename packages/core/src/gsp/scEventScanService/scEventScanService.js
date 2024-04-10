@@ -79,15 +79,8 @@ module.exports = class ScEventScanService {
 
   async add(obj) {
     //console.log("scEventScanService add obj:", obj);
-    let wallet = obj.wallet;
-    if (wallet) {
-      obj.wallet = undefined;
-    }
     let storageService = this.m_frameworkService.getService("StorageService");
     await storageService.save("ScEventScanService", obj.uniqueID, obj);
-    if (wallet) {
-      obj.wallet = wallet;
-    }
     let handle = this.m_mapCheckHandle.get(obj.chain);
     if (handle) {
       await handle.add(obj);

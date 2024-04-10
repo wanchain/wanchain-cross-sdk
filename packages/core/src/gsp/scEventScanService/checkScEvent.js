@@ -29,11 +29,11 @@ module.exports = class CheckScEvent {
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.ScScanInfo.taskInterval);
     this.eventService = this.frameworkService.getService("EventService");
-    let configService = this.frameworkService.getService("ConfigService");
-    this.crossScAbi = configService.getAbi("crossSc");
-    this.circleBridgeProxyAbi = configService.getAbi("circleBridgeProxy");
-    this.circleBridgeDepositAbi = configService.getAbi("circleBridgeDeposit");
-    this.circleBridgeReceiveAbi = configService.getAbi("circleBridgeReceive");
+    this.configService = this.frameworkService.getService("ConfigService");
+    this.crossScAbi = this.configService.getAbi("crossSc");
+    this.circleBridgeProxyAbi = this.configService.getAbi("circleBridgeProxy");
+    this.circleBridgeDepositAbi = this.configService.getAbi("circleBridgeDeposit");
+    this.circleBridgeReceiveAbi = this.configService.getAbi("circleBridgeReceive");
   }
 
   async add(obj) {
@@ -197,14 +197,13 @@ module.exports = class CheckScEvent {
           }
         }
       } else if (task.depositChain === "SOL") {
-        let chainInfoService = this.frameworkService.getService("ChainInfoService");
-        let chainInfo = chainInfoService.getChainInfoByType("SOL");
-        let cctpMsg = await task.wallet.parseCctpMessage(task.txHash, chainInfo.CircleBridge.messageTransmitter, task.ota);
-        console.log("SOL tx %s cctpMsg: %O", task.txHash, cctpMsg);
+        let depositMsg = await this.iwan.parseCctpMessageSent("SOL", task.ota);
+        let sol = this.configService.getExtension("SOL");
+        let cctpMsg = sol.tool.parseCctpDepositMessage(depositMsg);
+        console.log("SOL tx %s evnet %s cctpMsg: %O", task.txHash, task.ota, cctpMsg);
         if (cctpMsg) {
           task.depositNonce = parseInt("0x" + cctpMsg.nonce.toString("hex"));
           task.depositAmount = parseInt("0x" + cctpMsg.amount.toString("hex"));
-          delete task.wallet;
         }
       } else {
         for (let log of receipt.logs) {
