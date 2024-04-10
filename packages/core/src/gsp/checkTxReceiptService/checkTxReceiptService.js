@@ -39,8 +39,8 @@ module.exports = class CheckTxReceiptService {
         if ((!result) && obj.txCheckInfo) {
           result = await this.checkEvent(obj);
         }
+        console.debug("%s %s CheckTxReceiptService result: %O", obj.chain, obj.txHash, result);
         if (result) {
-          console.debug("%s CheckTxReceiptService result: %O", obj.chain, result);
           if (result.txHash && (obj.txHash !== result.txHash)) { // evm repriced, update txHash
             console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
             obj.txHash = result.txHash;
