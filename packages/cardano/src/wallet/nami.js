@@ -43,6 +43,25 @@ class Nami {
     }
   }
 
+  async getBalances(addr, tokenIds) {
+    let accounts = await this.getAccounts();
+    if (addr === accounts[0]) {
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      return tokenIds.map(id => {
+        if (id) {
+          let [policyId, assetName] = id.split(".");
+          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        } else {
+          return value.coin().to_str(); // TODO: sub token locked coin
+        }
+      })
+    } else {
+      console.log("%s is not used address", addr);
+      throw new Error("Not used address");
+    }
+  }
+
   async sendTransaction(tx) {
     tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await this.cardano.signTx(tx.to_hex());

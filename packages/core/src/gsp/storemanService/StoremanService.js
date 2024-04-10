@@ -164,13 +164,23 @@ class StoremanService {
         let extension = this.configService.getExtension(chainType);
         let network = this.configService.getNetwork();
         if (extension && extension.tool && extension.tool.validateAddress && extension.tool.validateAddress(addr, network, chainType)) {
-          let assetArray = [], ps = [];
+          let assetArray = [], balances;
           try { // input addr format maybe not match wallet
-            for (let asset in assets) {
-              assetArray.push(asset);
-              ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
+            if (options.wallet.getBalances) { // fix cardano Eternl too many requests error
+              let tokens = []; // includes coin
+              for (let asset in assets) {
+                assetArray.push(asset);
+                tokens.push(tool.ascii2letter(tool.hexStrip0x(assets[asset].address)));
+              }
+              balances = await options.wallet.getBalances(addr, tokens);
+            } else {
+              let ps = [];
+              for (let asset in assets) {
+                assetArray.push(asset);
+                ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
+              }
+              balances = await Promise.all(ps);
             }
-            let balances = await Promise.all(ps);
             for (let i = 0; i < assetArray.length; i++) {
               let asset = assetArray[i];
               result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();

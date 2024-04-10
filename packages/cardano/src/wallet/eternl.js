@@ -45,6 +45,26 @@ class Eternl {
     }
   }
 
+  async getBalances(addr, tokenIds) {
+    let accounts = await this.getAccounts();
+    if (accounts.includes(addr)) {
+      let cardano = await this.wallet.enable();
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      return tokenIds.map(id => {
+        if (id) {
+          let [policyId, assetName] = id.split(".");
+          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        } else {
+          return value.coin().to_str(); // TODO: sub token locked coin
+        }
+      })
+    } else {
+      console.log("%s is not used address", addr);
+      throw new Error("Not used address");
+    }
+  }
+
   async sendTransaction(tx) {
     let cardano = await this.wallet.enable();
     tx = this.wasm.Transaction.from_hex(tx);
