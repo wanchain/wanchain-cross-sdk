@@ -219,6 +219,10 @@ class IWanBCConnector {
     async parseCctpMessageSent(chainType, address) {
       return this.apiClient.parseCctpMessageSent(chainType, address);
     }
+
+    async getAssociatedTokenAddress(chainType, address, tokenScAddr) {
+      return this.apiClient.getAssociatedTokenAddress(chainType, address, tokenScAddr);
+    }
 };
 
 module.exports = IWanBCConnector;

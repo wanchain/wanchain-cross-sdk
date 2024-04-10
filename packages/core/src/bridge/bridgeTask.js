@@ -321,6 +321,17 @@ class BridgeTask {
         return msg;
       }
     }
+    // check solana token ata address
+    if ((this._toChainInfo.chainType === "SOL") && (this._tokenPair.readableSymbol !== "SOL")) {
+      let tokenAccount = tool.ascii2letter((this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount);
+      let ataInfo = await this._bridge.iwan.getAssociatedTokenAddress("SOL", this._toAccount, tokenAccount);
+      console.debug("user %s token %s ataInfo: %O", this._toAccount, tokenAccount, ataInfo);
+      if (!ataInfo.exists) {
+        let msg = util.format("%s token account for user %s is not found", this._tokenPair.readableSymbol, this._toAccount);
+        console.debug("%s, ata: %s", msg, ataInfo.address);
+        return msg;
+      }
+    }
     return "";
   }
 

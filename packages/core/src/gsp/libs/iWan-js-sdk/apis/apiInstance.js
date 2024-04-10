@@ -8867,6 +8867,27 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
+  getAssociatedTokenAddress(chainType, address, tokenScAddr, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getAssociatedTokenAddress';
+    let params = { chainType, address, tokenScAddr, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
 }
 
 module.exports = ApiInstance;
