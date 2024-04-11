@@ -46,7 +46,7 @@ class Nami {
   async getBalances(addr, tokenIds) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
-      let balance = await cardano.getBalance();
+      let balance = await this.cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       return tokenIds.map(id => {
         if (id) {
