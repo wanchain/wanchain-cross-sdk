@@ -53,11 +53,10 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
             chain: checkChain,
             fromBlockNumber: blockNumber,
             taskType: "circleMINT",
-            depositChain, // for evm chain
+            fromChain: depositChain,
             depositDomain: depositChainInfo.CircleBridge.domain,
             depositNonce: undefined, // deposit nonce is really uniqueID
-            depositAmount: 0,
-            fromChain: depositChain, // for non-evm chain
+            depositAmount: 0
         };
         return {txEventTopics, convertCheckInfo};
     }

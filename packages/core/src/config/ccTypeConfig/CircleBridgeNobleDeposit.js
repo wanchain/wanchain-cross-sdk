@@ -15,13 +15,21 @@ module.exports = class CircleBridgeNobleDeposit {
       let networkFee = tool.parseFee(convert.fee, convert.value, "USDC", {formatWithDecimals: false, feeType: "networkFee"});
       let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
       let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
-      let toAddressInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
+      let innerToAddr = convert.toAddr;
+      if (toChainType === "SOL") {
+        let sol = this.configService.getExtension(toChainType);
+        let toAccount = tool.ascii2letter((convert.convertType === "MINT")? tokenPair.toAccount : tokenPair.fromAccount);
+        innerToAddr = sol.tool.getAssociatedTokenAddressSync(sol.tool.getPublicKey(toAccount), sol.tool.getPublicKey(convert.toAddr)).toString();
+        console.log({innerToAddr});
+      }
+      let toAddressInfo = tool.getStandardAddressInfo(toChainType, innerToAddr, this.configService.getExtension(toChainType));
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType,
         feeHolder: chainInfo.feeHolder,
         userAccount: toAddressInfo.cctp || toAddressInfo.evm,
         toAddr: convert.toAddr, // for readability
+        innerToAddr, // for cctp to solana
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessCircleBridgeNobleDeposit",

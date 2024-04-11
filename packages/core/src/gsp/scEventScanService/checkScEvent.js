@@ -177,11 +177,11 @@ module.exports = class CheckScEvent {
 
   async prepareTask(task) {
     if ((task.taskType === "circleMINT") && (task.depositNonce === undefined)) {
-      let receipt = await this.iwan.getTransactionReceipt(task.depositChain, task.txHash);
-      if (task.depositChain === "NOBLE") {
+      let receipt = await this.iwan.getTransactionReceipt(task.fromChain, task.txHash);
+      if (task.fromChain === "NOBLE") {
         let event = receipt.events.find(v => (v.type === "circle.cctp.v1.DepositForBurn"));
         if (event) {
-          console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.depositChain, task.uniqueID, event);
+          console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.fromChain, task.uniqueID, event);
           let nonce = null, amount = null;
           for (let attr of event.attributes) {
             if (attr.key === "nonce") {
@@ -196,7 +196,7 @@ module.exports = class CheckScEvent {
             }
           }
         }
-      } else if (task.depositChain === "SOL") {
+      } else if (task.fromChain === "SOL") {
         let depositMsg = await this.iwan.parseCctpMessageSent("SOL", task.ota);
         let sol = this.configService.getExtension("SOL");
         let cctpMsg = sol.tool.parseCctpDepositMessage(depositMsg);
@@ -209,7 +209,7 @@ module.exports = class CheckScEvent {
         for (let log of receipt.logs) {
           if (log.topics[0] === CctpEvmDepositEventHash) {
             let decoded = tool.parseEvmLog(log, this.circleBridgeDepositAbi);
-            console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.depositChain, task.uniqueID, decoded);
+            console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.fromChain, task.uniqueID, decoded);
             task.depositNonce = decoded.args.nonce;
             task.depositAmount = decoded.args.amount;
             break;

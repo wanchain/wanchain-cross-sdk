@@ -91,11 +91,11 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         convertCheckInfo: {
           ccTaskId: params.ccTaskId,
           txHash,
-          uniqueID: '0x' + txHash.toLowerCase(),
+          uniqueID: txHash.toLowerCase(),
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: "circleMINT",
-          depositChain: fromChainInfo.chainType,
+          fromChain: fromChainInfo.chainType,
           depositDomain: fromChainInfo.CircleBridge.domain,
           depositNonce: undefined, // deposit nonce is really uniqueID
           depositAmount: 0,
