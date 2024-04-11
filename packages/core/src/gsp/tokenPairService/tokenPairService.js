@@ -149,7 +149,7 @@ class TokenPairService {
       return true;
     }
 
-    checkActive(tp) { // only for erc20
+    checkActive(assetName, tp) { // only for erc20
       if (this.crossTypes.length && (tp.protocol === "Erc20")) {
         let crossType = "other";
         if (tp.bridge === "Circle") {
@@ -159,6 +159,11 @@ class TokenPairService {
         }
         if (!this.crossTypes.includes(crossType)) {
           return false;
+        }
+        if (crossType === "xflows") { // xflows only contains wellknown asset
+          if (!["BTC", "ETH", "USDC", "USDT"].includes(assetName)) {
+            return false;
+          }
         }
       }
       return true;
@@ -503,10 +508,10 @@ class TokenPairService {
     }
 
     updateChainAssets(tokenPair) {
-      if (!this.checkActive(tokenPair)) {
+      let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
+      if (!this.checkActive(assetName, tokenPair)) {
         return false;
       }
-      let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
       // protocol
       let protocol = this.fromChainAssets.get(tokenPair.protocol);
       if (!protocol) {
