@@ -2,6 +2,7 @@
 
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
+const axios = require("axios");
 
 module.exports = class ProcessCircleBridgeNobleDeposit {
   constructor(frameworkService) {
