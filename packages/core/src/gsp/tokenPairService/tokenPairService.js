@@ -478,33 +478,8 @@ class TokenPairService {
         }
 
         // 2、common rule for tokenPairs
-        // 2.1 MINT direction
-        if (fromChainInfo.mintFromChainHandle) {
-            // mintFromChainHandle is used for non-EVM to EVM, include coin and token
-            tokenPair.ccType["MINT"] = fromChainInfo.mintFromChainHandle;
-        } else if (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000") {
-            // coin
-            tokenPair.ccType["MINT"] = "MintCoin";
-        } else if (tokenPair.fromChainID === tokenPair.ancestorChainID) {
-            // orig token
-            tokenPair.ccType["MINT"] = "MintErc20";
-        } else { // EVM coin and token, fromAccount maybe coin or orignal token which has different chain from ancestor
-            tokenPair.ccType["MINT"] = this.getTokenBurnHandler(tokenPair, "MINT");
-        }
-
-        // 2.2 BURN direction
-        if (toChainInfo.burnFromChainHandle) {
-            // burn token from non-EVM chain, such as Cardano
-            tokenPair.ccType["BURN"] = toChainInfo.burnFromChainHandle;
-        } else if (tokenPair.toAccount === "0x0000000000000000000000000000000000000000") {
-            // cross coin between ETH layer 2
-            tokenPair.ccType["BURN"] = "MintCoin";
-        } else if (tokenPair.toChainID === tokenPair.ancestorChainID) {
-            // orig token, should not be configured like this
-            tokenPair.ccType["BURN"] = "MintErc20";
-        } else { // token which has different chain from ancestor
-            tokenPair.ccType["BURN"] = this.getTokenBurnHandler(tokenPair, "BURN");
-        }
+        this.setTokenCrossHandler(tokenPair, "MINT");
+        this.setTokenCrossHandler(tokenPair, "BURN");
     }
 
     updateChainAssets(tokenPair) {
@@ -542,21 +517,21 @@ class TokenPairService {
     }
 
     // for internal call
-    getTokenBurnHandler(tokenPair, direction) {
-      let chainType = (direction === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
+    setTokenCrossHandler(tokenPair, direction) {
+      let chainInfo = (direction === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
       let tokenAccount = (direction === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-      let key = chainType + "-" + tokenAccount;
-      let origToken = this.multiChainOrigToken.get(key);
-      if (origToken) {
-        // if (direction === "BURN") {
-        //   console.debug("tokenpair %s %s(%s<-%s) handler is MintErc20", tokenPair.id, origToken.symbol, tokenPair.fromChainType, tokenPair.toChainType);
-        // }
-        return "MintErc20";
+      if (tokenAccount === "0x0000000000000000000000000000000000000000") {
+        tokenPair.ccType[direction] = chainInfo.mintFromChainHandle || "MintCoin";
+      } else if (chainInfo.chainId === tokenPair.ancestorChainID) {
+        tokenPair.ccType[direction] = chainInfo.mintFromChainHandle || "MintErc20";
       } else {
-        // if (direction === "MINT") {
-        //   console.debug("tokenpair %s %s(%s->%s) handler is BurnErc20", tokenPair.id, tokenPair.fromSymbol, tokenPair.fromChainType, tokenPair.toChainType);
-        // }
-        return "BurnErc20";
+        let key = chainInfo.chainType + "-" + tokenAccount;
+        let origToken = this.multiChainOrigToken.get(key);
+        if (origToken) {
+          tokenPair.ccType[direction] = chainInfo.mintFromChainHandle || "MintErc20";
+        } else {
+          tokenPair.ccType[direction] = chainInfo.burnFromChainHandle || "BurnErc20";
+        }
       }
     }
 

@@ -67,7 +67,8 @@ module.exports = class ProcessBurnFromCardano {
         ]
       };      
       // for token, to construct multiassets and calculate minAda to lock
-      let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenPair.toAccount));
+      let tokenAccount = (tokenPair.fromChainType === "ADA")? tokenPair.fromAccount : tokenPair.toAccount;
+      let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       output.amount.push({
         unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
         quantity: params.value
@@ -138,7 +139,8 @@ module.exports = class ProcessBurnFromCardano {
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // check receipt
-      let taskType = tokenPairService.getTokenEventType(params.tokenPairID, "BURN");
+      let direction = (tokenPair.fromChainType === "ADA")? "MINT" : "BURN";
+      let taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,

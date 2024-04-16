@@ -11,21 +11,21 @@ const tool = require("../../utils/tool.js");
 // Type: 4, abnomral smg transfer for tag_userLock; Data: tag
 // Type: 5, smg debt transfer; Data: srcSmg
 const TX_TYPE = {
-  UserLock:   1,
-  SmgRelease: 2,
-  smgDebt:    5,
-  Invalid:    -1
+  userLock2Evm:    1,
+  smgRelease:      2,
+  userLock2NonEvm: 10
 }
 
 const MemoTypeLen = 2;
 const TokenPairIDLen = 4;
-const ToAccountLen = 40; // without '0x'
 
 module.exports = class ProcessDotMintFromPolka {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService  = frameworkService.getService("ConfigService");
     this.extension = this.configService.getExtension("DOT");
+    this.storemanService = frameworkService.getService("StoremanService");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
   async process(stepData, wallet) {
@@ -33,7 +33,8 @@ module.exports = class ProcessDotMintFromPolka {
     // console.debug("ProcessDotMintFromPolka stepData:", stepData);
     let params = stepData.params;
     try {
-      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount, params.fee);
+      let toChainInfo = this.chainInfoService.getChainInfoByType(params.toChainType);
+      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount, toChainInfo);
       console.debug("ProcessDotMintFromPolka memo: %s", memo);
 
       let api = await wallet.getApi();
@@ -54,8 +55,7 @@ module.exports = class ProcessDotMintFromPolka {
       // 3 check balance >= (value + gasFee + minReserved)
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
-      let chainInfoService = this.frameworkService.getService("ChainInfoService");
-      let chainInfo = chainInfoService.getChainInfoByType("DOT");
+      let chainInfo = this.chainInfoService.getChainInfoByType("DOT");
       let minReserved = new BigNumber(chainInfo.minReserved);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
       let totalNeed = new BigNumber(params.value).plus(gasFee).plus(minReserved);
@@ -70,8 +70,7 @@ module.exports = class ProcessDotMintFromPolka {
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // 查询目的链当前blockNumber
-      let iwan = this.frameworkService.getService("iWanConnectorService");
-      let blockNumber = await iwan.getBlockNumber(params.toChainType);
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checkPara = {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
@@ -94,15 +93,20 @@ module.exports = class ProcessDotMintFromPolka {
     }
   }
 
-  buildUserLockData(tokenPair, userAccount, fee) {
-    let memo = "";
+  buildUserLockData(tokenPair, userAccount, toChainInfo) {
+    let memo = "", txType;
     tokenPair = Number(tokenPair);
-    userAccount = tool.hexStrip0x(userAccount);
-    fee = new BigNumber(fee).toString(16);
-    if ((tokenPair !== NaN) && (userAccount.length === ToAccountLen)) {
-      let type = TX_TYPE.UserLock.toString(16).padStart(MemoTypeLen, 0);
+    if (toChainInfo._isEVM) {
+      userAccount = tool.hexStrip0x(userAccount);
+      txType = TX_TYPE.userLock2Evm;
+    } else {
+      userAccount = Buffer.from(userAccount).toString("hex");
+      txType = TX_TYPE.userLock2NonEvm;
+    }
+    if ((tokenPair !== NaN) && userAccount) {
+      let type = txType.toString(16).padStart(MemoTypeLen, 0);
       tokenPair = parseInt(tokenPair).toString(16).padStart(TokenPairIDLen, 0);
-      memo = type + tokenPair + userAccount + fee;
+      memo = type + tokenPair + userAccount;
     } else {
       console.error("buildUserlockMemo parameter invalid");
     }
