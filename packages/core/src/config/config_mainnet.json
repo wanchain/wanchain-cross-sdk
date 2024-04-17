@@ -237,8 +237,8 @@
     {
       "chainId": "1073741835",
       "chainType": "OKB",
-      "chainName": "OKB Chain",
-      "crossScAddr": "",
+      "chainName": "X Layer",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "chainDecimals": 18,
       "MaskChainId": 196,
       "ScScanInfo": {
