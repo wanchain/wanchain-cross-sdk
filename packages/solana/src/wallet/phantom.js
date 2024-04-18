@@ -43,18 +43,12 @@ class Phantom {
     return balance;
   }
 
-  async sendTransaction(tx, secondSigner = null) {
-    let secondSig = null;
-    if (secondSigner) {
-      tx.sign([secondSigner]);
-      secondSig = tx.signatures[1];
+  async sendTransaction(tx, otherSigner = null) {
+    if (otherSigner) {
+      tx.sign([otherSigner]);
     }
     let provider = this.getProvider();
-    let signedTx = await provider.signTransaction(tx);
-    if (secondSig) {
-      signedTx.addSignature(secondSigner.publicKey, secondSig);
-    }
-    let signature = await this.connection.sendRawTransaction(signedTx.serialize(),  { skipPreflight: true });
+    let { signature } = await provider.signAndSendTransaction(tx,  { skipPreflight: true });
     return signature;
   }
 
