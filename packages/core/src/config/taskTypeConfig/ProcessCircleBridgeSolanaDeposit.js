@@ -91,7 +91,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         convertCheckInfo: {
           ccTaskId: params.ccTaskId,
           txHash,
-          uniqueID: txHash.toLowerCase(),
+          uniqueID: tool.sha256(txHash),
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: "circleMINT",
