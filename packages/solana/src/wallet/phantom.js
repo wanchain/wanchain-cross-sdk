@@ -81,6 +81,11 @@ class Phantom {
     }
   }
 
+  async getRecentPrioritizationFees() {
+    let recentFees = await this.connection.getRecentPrioritizationFees();
+    return recentFees;
+  }
+
   async buildTransaction(instructions) {
     let payerKey = this.getPublicKey();
     let latestBlockhash = await this.connection.getLatestBlockhash();
