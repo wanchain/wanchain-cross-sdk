@@ -13,7 +13,7 @@ module.exports = class CircleBridgeSolanaDeposit {
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.toDecimals)).toFixed(0);
       let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let networkFee = tool.parseFee(convert.fee, convert.value, chainInfo.symbol, {formatWithDecimals: false, feeType: "networkFee"});
+      let networkFee = tool.parseFee(convert.fee, convert.value, "SOL", {formatWithDecimals: false, feeType: "networkFee"});
       let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       let toAddressInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
       let params = {

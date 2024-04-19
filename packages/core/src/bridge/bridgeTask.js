@@ -263,19 +263,19 @@ class BridgeTask {
       requiredAsset = this._amount;
       this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
-    if (chainInfo.minReserve) {
+    if (chainInfo.minReserved) {
       requiredCoin = requiredCoin.plus(chainInfo.minReserved);
     }
     if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // depositForBurn messageSentEventData rent
       requiredCoin = requiredCoin.plus("0.00295104");
     }
+    console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
     if (coinBalance.lt(requiredCoin)) {
-      console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
       return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
     if (this._tokenPair.protocol === "Erc20") {
+      console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       if (assetBalance.lt(requiredAsset)) {
-        console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
         return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
       }
     }
