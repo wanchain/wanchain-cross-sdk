@@ -75,7 +75,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         circleCctpProgram: tokenMessengerMinterProgramId
       };
 
-      let unitLimit = this.tool.setComputeUnitLimit(160_000);
+      let unitLimit = this.tool.setComputeUnitLimit(200_000);
       let unitPrice = this.tool.setComputeUnitPrice(1_000);
       let instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts).instruction();
 
