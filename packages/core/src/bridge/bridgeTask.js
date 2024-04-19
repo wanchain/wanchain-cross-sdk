@@ -78,7 +78,6 @@ class BridgeTask {
     if (!validWallet) {
       throw new Error("Invalid wallet");
     }
-    this._initToWallet();
     let err = await this._checkFee(options.isSubsidy);
     if (err) {
       throw new Error(err);
@@ -136,15 +135,6 @@ class BridgeTask {
     await bridge.storageService.save("crossChainTaskRecords", ccTaskData.ccTaskId, ccTaskData);
     // process
     this._procTaskSteps();
-  }
-
-  async _initToWallet() {
-    let chainType = this._toChainInfo.chainType;
-    if (["DOT", "PHA"].includes(chainType)) {
-      let provider = this._bridge.network;
-      let extension = this._bridge.configService.getExtension(chainType);
-      this._toWallet = new extension.PolkadotJsWallet(provider, this._toChainInfo.chainName);
-    }
   }
 
   async _checkFee(isSubsidy) {
@@ -238,7 +228,7 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((fromChainType === "XRP") && (this._direction === "MINT") && (this._tokenPair.fromAccount != 0)) { // only mint token from xrp need to check smg trust line
+    if ((fromChainType === "XRP") && (this._tokenPair.readableSymbol !== "XRP")) { // XRP token need to check smg trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
@@ -258,6 +248,7 @@ class BridgeTask {
       return "";
     }
     let chainType = this._fromChainInfo.chainType;
+    let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
     let coinSymbol = this._bridge.chainInfoService.getCoinSymbol(chainType);
@@ -272,13 +263,19 @@ class BridgeTask {
       requiredAsset = this._amount;
       this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
+    if (chainInfo.minReserved) {
+      requiredCoin = requiredCoin.plus(chainInfo.minReserved);
+    }
+    if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // depositForBurn messageSentEventData rent
+      requiredCoin = requiredCoin.plus("0.00295104");
+    }
+    console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
     if (coinBalance.lt(requiredCoin)) {
-      console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
       return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
     }
     if (this._tokenPair.protocol === "Erc20") {
+      console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       if (assetBalance.lt(requiredAsset)) {
-        console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
         return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
       }
     }
@@ -286,10 +283,11 @@ class BridgeTask {
   }
 
   async _checkToAccount() {
+    let chainType = this._toChainInfo.chainType;
     // check activating balance
-    let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
-    if (chainInfo.minReserved) {
-      let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, this._toChainInfo.chainType, this._toAccount, {wallet: this._toWallet, isCoin: true});
+    let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
+    if (chainInfo.minReserved && (chainType !== "SOL")) { // solana do not limit on toChain
+      let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._toAccount, {isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;
       let isReleaseCoin = (this._tokenPair.fromAccount == 0); // only release coin would change balance
@@ -308,7 +306,7 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((this._toChainInfo.chainType === "XRP") && (this._direction === "BURN") && (this._tokenPair.fromAccount != 0)) { // only burn token to xrp need to check recipient trust line
+    if ((chainType === "XRP") && (this._tokenPair.readableSymbol !== "XRP")) { // XRP token need to check recipient trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
@@ -321,17 +319,6 @@ class BridgeTask {
         return msg;
       }
     }
-    // check solana token ata address
-    // if ((this._toChainInfo.chainType === "SOL") && (this._tokenPair.readableSymbol !== "SOL")) {
-    //   let tokenAccount = tool.ascii2letter((this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount);
-    //   let ataInfo = await this._bridge.iwan.getAssociatedTokenAddress("SOL", this._toAccount, tokenAccount);
-    //   console.debug("user %s token %s ataInfo: %O", this._toAccount, tokenAccount, ataInfo);
-    //   if (!ataInfo.exists) {
-    //     let msg = util.format("%s token account for user %s is not found", this._tokenPair.readableSymbol, this._toAccount);
-    //     console.debug("%s, ata: %s", msg, ataInfo.address);
-    //     return msg;
-    //   }
-    // }
     return "";
   }
 
