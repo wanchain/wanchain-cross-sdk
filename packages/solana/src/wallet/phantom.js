@@ -83,8 +83,9 @@ class Phantom {
 
   async buildTransaction(instructions) {
     let payerKey = this.getPublicKey();
-    let recentBlockHash = await this.connection.getLatestBlockhash();
-    let messageV0 = new TransactionMessage({payerKey, recentBlockhash: recentBlockHash.blockhash, instructions}).compileToV0Message();
+    let latestBlockhash = await this.connection.getLatestBlockhash();
+    console.debug("%s %s latestBlockhash: %O", this.name, this.network, latestBlockhash);
+    let messageV0 = new TransactionMessage({payerKey, recentBlockhash: latestBlockhash.blockhash, instructions}).compileToV0Message();
     return new VersionedTransaction(messageV0);
   }
 }

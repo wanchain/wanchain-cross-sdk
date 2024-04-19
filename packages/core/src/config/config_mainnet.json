@@ -498,6 +498,7 @@
       "feeHolder": "3yaCPbYPPWNZYUBYa8mMLo9QeQqQB6hR9XXHXnXfKEvH",
       "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
       "chainDecimals": 9,
+      "minReserved": 0.0009,
       "TxScanInfo": {
         "taskInterval": 10000
       }
