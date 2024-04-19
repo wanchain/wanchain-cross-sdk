@@ -101,6 +101,10 @@ function setComputeUnitLimit(units) {
   return anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({units});
 }
 
+function setComputeUnitPrice(microLamports) {
+  return anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({microLamports});
+}
+
 const CctpMsgMapping = [
   ["version", 4],
   ["sourceDomain", 4],
@@ -140,5 +144,6 @@ module.exports = {
   getPublicKey,
   getKeypair,
   setComputeUnitLimit,
+  setComputeUnitPrice,
   parseCctpDepositMessage
 }
