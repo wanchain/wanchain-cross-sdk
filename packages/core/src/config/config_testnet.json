@@ -515,6 +515,7 @@
       "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg",
       "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
       "chainDecimals": 9,
+      "minReserved": 0.0009,
       "TxScanInfo": {
         "taskInterval": 10000
       }

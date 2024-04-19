@@ -5,7 +5,7 @@ const tool = require("../../utils/tool");
 const axios = require("axios");
 
 const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"]; // TRX has self wallet but also be supported by rpc
-
+const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "ATOM", "NOBLE"]; // TRX has self wallet but also be supported by rpc
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
 class StoremanService {
@@ -66,7 +66,7 @@ class StoremanService {
         let kaChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
         if (options.isCoin) { // isCoin is internal use only
           decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
-          if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
+          if (SELF_WALLET_COIN_BALANCE_CHAINS.includes(chainType)) {
               balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
           } else {
               balance = await this.iwan.getBalance(chainType, addr);
