@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2404221100", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2404231558", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -121,7 +121,7 @@ class WanBridge extends EventEmitter {
   async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
     console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
                   tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
-    if ((this.network === "testnet") && (this.smgName !== "dev")) {
+    if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
       let devChains = ["Cardano", "Cosmos"];
       if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
         throw new Error("Dev group only");
