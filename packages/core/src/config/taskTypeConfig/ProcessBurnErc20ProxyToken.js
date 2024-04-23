@@ -50,7 +50,7 @@ module.exports = class ProcessBurnErc20ProxyToken extends ProcessBase {
     let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
     let direction = (params.scChainType === tokenPair.fromChainType);
     let chainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
-    let blockNumber = await this.m_iwanBCConnector.getBlockNumber(chainType);
+    let blockNumber = await this.m_storemanService.getChainBlockNumber(chainType);
     let nativeToken = direction? tokenPair.toNativeToken : tokenPair.fromNativeToken;
     let taskType = nativeToken? "MINT" : "BURN"; // adapt to CheckScEvent task to scan SmgMintLogger or SmgReleaseLogger
     let srcToken = direction? tokenPair.fromAccount : tokenPair.toAccount;

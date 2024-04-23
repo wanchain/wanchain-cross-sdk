@@ -30,6 +30,7 @@ module.exports = class CheckScEvent {
     this.taskService.addTask(this, this.chainInfo.ScScanInfo.taskInterval);
     this.eventService = this.frameworkService.getService("EventService");
     this.configService = this.frameworkService.getService("ConfigService");
+    this.storemanService = this.frameworkService.getService("StoremanService");
     this.crossScAbi = this.configService.getAbi("crossSc");
     this.circleBridgeProxyAbi = this.configService.getAbi("circleBridgeProxy");
     this.circleBridgeDepositAbi = this.configService.getAbi("circleBridgeDeposit");
@@ -128,6 +129,21 @@ module.exports = class CheckScEvent {
       let cur = count - idx - 1; // backwards
       let obj = ary[cur];
       try {
+        if (obj.fromBlockNumber == 0) { // retry get block number firstly
+          let delay = parseInt((Date.now() - obj.ccTaskId) / 1000);
+          let blockNumber = await this.storemanService.getChainBlockNumber(this.chainInfo.chainType);
+          console.log("task %d processScLogger %s delay %ds retry %s blockNumber: %d", obj.ccTaskId, type, delay, this.chainInfo.chainType, blockNumber);
+          if (blockNumber) {
+            blockNumber = blockNumber - delay;
+            if (blockNumber < 0) {
+              blockNumber = 1;
+            }
+            obj.fromBlockNumber = blockNumber;
+            await storageService.save("ScEventScanService", obj.uniqueID, obj);
+          } else {
+            throw new Error("task " + task.ccTaskId + " retry block number error");
+          }
+        }
         await this.prepareTask(obj);
         let latestBlockNumber = await this.iwan.getBlockNumber(this.chainInfo.chainType);
         let fromBlockNumber = obj.fromBlockNumber - 30; // for rollback

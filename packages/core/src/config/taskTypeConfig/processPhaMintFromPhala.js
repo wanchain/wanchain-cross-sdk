@@ -6,15 +6,15 @@ const configAbi = require("../abi/crossConfig.json");
 
 module.exports = class ProcessPhaMintFromPhala {
   constructor(frameworkService) {
-    this.m_frameworkService = frameworkService;
+    this.frameworkService = frameworkService;
   }
 
   async process(stepData, wallet) {
     // console.debug("ProcessPhaMintFromPhala stepData:", stepData);
-    let webStores = this.m_frameworkService.getService("WebStores");
-    let configService = this.m_frameworkService.getService("ConfigService");
+    let webStores = this.frameworkService.getService("WebStores");
+    let configService = this.frameworkService.getService("ConfigService");
     let configScAddr = configService.getGlobalConfig("crossConfigAddress");
-    let iwan = this.m_frameworkService.getService("iWanConnectorService");
+    let iwan = this.frameworkService.getService("iWanConnectorService");
     let params = stepData.params;
 
     try {
@@ -60,7 +60,7 @@ module.exports = class ProcessPhaMintFromPhala {
       // 3 check balance >= (value + gasFee + minReserved)
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
-      let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
+      let chainInfoService = this.frameworkService.getService("ChainInfoService");
       let chainInfo = chainInfoService.getChainInfoByType("PHA");
       let minReserved = new BigNumber(chainInfo.minReserved || 0);
       minReserved = minReserved.multipliedBy(Math.pow(10, chainInfo.chainDecimals));
@@ -76,8 +76,9 @@ module.exports = class ProcessPhaMintFromPhala {
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       // 查询目的链当前blockNumber
-      let blockNumber = await iwan.getBlockNumber(params.toChainType);
-      let tokenPairService = this.m_frameworkService.getService("TokenPairService");
+      let storemanService = this.frameworkService.getService("StoremanService");
+      let blockNumber = await storemanService.getChainBlockNumber(params.toChainType);
+      let tokenPairService = this.frameworkService.getService("TokenPairService");
       let taskType = tokenPairService.getTokenEventType(params.tokenPairID, "MINT");
       let checkPara = {
         ccTaskId: params.ccTaskId,
@@ -89,7 +90,7 @@ module.exports = class ProcessPhaMintFromPhala {
         taskType
       };
 
-      let checkPhaTxService = this.m_frameworkService.getService("CheckPhaTxService");
+      let checkPhaTxService = this.frameworkService.getService("CheckPhaTxService");
       await checkPhaTxService.addTask(checkPara);
     } catch (err) {
       if (err.message === "Cancelled") {
