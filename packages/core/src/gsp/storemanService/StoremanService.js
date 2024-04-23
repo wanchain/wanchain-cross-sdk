@@ -368,12 +368,17 @@ class StoremanService {
     }
 
     async getChainBlockNumber(chainType) {
-      let blockNumber = 0;
-      if (!API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
-        // only for EVM chains
-        blockNumber = await this.iwan.getBlockNumber(chainType);
+      if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
+        return 0;
       }
-      return blockNumber;
+      // only for EVM chains
+      try {
+        let blockNumber = await this.iwan.getBlockNumber(chainType);
+        return blockNumber;
+      } catch (err) {
+        console.log("%s getChainBlockNumber error: %O", chainType, err);
+        return 0; // should retry later
+      }
     }
 }
 
