@@ -75,14 +75,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       };
 
       let unitLimit = this.tool.setComputeUnitLimit(200_000);
-      let price = await this.getComputeUnitPrice(wallet);
-      if (price < 10) {
-        price = 10; // min
-      } else if (price > 100000) {
-        price = 100000; // max
-      }
-      console.debug("ProcessCircleBridgeSolanaDeposit price: %s", price);
-      let unitPrice = this.tool.setComputeUnitPrice(price);
+      let unitPrice = this.tool.setComputeUnitPrice(100_000);
       let instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts).instruction();
       let tx = await wallet.buildTransaction([unitLimit, unitPrice, instruction]);
       let txHash = await wallet.sendTransaction(tx, messageSentKeypair);
