@@ -76,7 +76,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
 
       let unitLimit = this.tool.setComputeUnitLimit(200_000);
       let price = await this.getComputeUnitPrice(wallet);
-      if (price === 0) {
+      if (price < 10) {
         price = 10; // min
       } else if (price > 100000) {
         price = 100000; // max
