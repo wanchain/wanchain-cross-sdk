@@ -69,12 +69,12 @@
       "chainType": "MATIC",
       "chainName": "Polygon",
       "chainDecimals": 18,
-      "crossScAddr": "0xB5bf1013898a93f0BD902F6e346Ed6cBB627b791",
+      "crossScAddr": "0xFb06346e587ffB494438102515D576086bE750F4",
       "CircleBridge": {
         "domain": 7,
         "crossScAddr": "0x2c88f07Ae3b7B6bb2Ecd62dEF2Dc2E139cE22194"
       },
-      "MaskChainId": 80001,
+      "MaskChainId": 80002,
       "ScScanInfo": {
         "taskInterval": 10000
       }
