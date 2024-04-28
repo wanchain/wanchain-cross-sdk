@@ -217,9 +217,9 @@
       "chainId": "1073741834",
       "chainType": "METIS",
       "chainName": "Metis",
-      "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 599,
+      "MaskChainId": 59902,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -285,9 +285,9 @@
       "chainType": "MATICETH",
       "chainName": "Polygon zkEVM",
       "symbol": "ETH",
-      "crossScAddr": "0x318dD97B7712AFA80FE40Becc0dC0d309BA607f1",
+      "crossScAddr": "0xD21F22E9E434F3814A950Ad136D882fCFfB9685c",
       "chainDecimals": 18,
-      "MaskChainId": 1442,
+      "MaskChainId": 2442,
       "ScScanInfo": {
         "taskInterval": 15000
       }
