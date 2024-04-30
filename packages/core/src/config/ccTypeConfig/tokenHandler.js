@@ -37,8 +37,14 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max;
-    let wanBridgeCrossSc = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
-    let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : wanBridgeCrossSc;
+    let crossScAddr = chainInfo.crossScAddr; // default
+    if (tokenPair.bridge) { // cctp
+      crossScAddr = chainInfo[tokenPair.bridge + "Bridge"].crossScAddr;
+    } else if (convert.fee.networkFee.isSubsidy) { // subsidy
+      crossScAddr = chainInfo.subsidyCrossSc;
+    } else if (convert.dapp && chainInfo.dapp && chainInfo.dapp[convert.dapp.name]) {
+      crossScAddr = chainInfo.dapp[convert.dapp.name].scAddr;
+    }
     let approveParams = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -107,7 +113,12 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
-    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let crossScAddr = chainInfo.crossScAddr; // default
+    if (convert.fee.networkFee.isSubsidy) { // subsidy
+      crossScAddr = chainInfo.subsidyCrossSc;
+    } else if (convert.dapp && chainInfo.dapp && chainInfo.dapp[convert.dapp.name]) {
+      crossScAddr = chainInfo.dapp[convert.dapp.name].scAddr;
+    }
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -122,7 +133,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fee: networkFee,
       tokenAccount,
       userBurnFee: operateFee,
-      tokenType
+      tokenType,
+      dapp: convert.dapp
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
     let mintTitle = this.uiStrService.getStrByName("MintTitle");
@@ -140,7 +152,12 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
-    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let crossScAddr = chainInfo.crossScAddr; // default
+    if (convert.fee.networkFee.isSubsidy) { // subsidy
+      crossScAddr = chainInfo.subsidyCrossSc;
+    } else if (convert.dapp && chainInfo.dapp && chainInfo.dapp[convert.dapp.name]) {
+      crossScAddr = chainInfo.dapp[convert.dapp.name].scAddr;
+    }
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -155,7 +172,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       fee: networkFee,
       tokenAccount,
       userBurnFee: operateFee,
-      tokenType
+      tokenType,
+      dapp: convert.dapp
     };
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

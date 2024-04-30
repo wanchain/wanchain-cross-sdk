@@ -32,7 +32,8 @@ module.exports = class MintCoinHandle {
       toAddr: convert.toAddr, // only for readability
       taskType: "ProcessCoinUserFastMint",
       fee,
-      networkFee
+      networkFee,
+      dapp: convert.dapp
     };
     console.debug("MintCoinHandle params: %O", params);
     params.chainId = await convert.wallet.getChainId();

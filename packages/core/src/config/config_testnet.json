@@ -9,6 +9,11 @@
       "MaskChainId": 999,
       "ScScanInfo": {
         "taskInterval": 10000
+      },
+      "dapp": {
+        "swap": {
+          "scAddr": "0xB139c4913823Da46012C154D115F7Fa744310842"
+        }
       }
     },
     {
@@ -474,6 +479,11 @@
       },
       "TxScanInfo": {
         "taskInterval": 10000
+      },
+      "dapp": {
+        "swap": {
+          "assets": ["ADA", "USDT"]
+        }
       }
     },
     {

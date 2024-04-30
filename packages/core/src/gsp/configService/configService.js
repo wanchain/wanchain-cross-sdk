@@ -9,6 +9,7 @@ const config = {
 
 const abis = {
   "crossSc": require("../../config/abi/crossDelegate.json"),
+  "crossDappSc": require("../../config/abi/crossDappDelegate.json"),
   "erc20": require("../../config/abi/erc20.json"),
   "erc721": require("../../config/abi/erc721.json"),
   "circleBridgeProxy": require("../../config/abi/circleBridge/circleBridgeProxy.json"),

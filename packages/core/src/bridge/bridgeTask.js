@@ -116,7 +116,8 @@ class BridgeTask {
       toChainType: this._toChainInfo.chainType,
       isOtaTx: !this._wallet,
       fee: this._fee,
-      smg: this._smg
+      smg: this._smg,
+      dapp: this._initDapp(options.dapp)
     };
     // console.debug({taskData});
     this._task.setTaskData(taskData);
@@ -322,6 +323,24 @@ class BridgeTask {
     return "";
   }
 
+  _initDapp(dapp) {
+    let result = {};
+    if ((!dapp) || (!dapp.name)) {
+      return null;
+    }
+    result.name = dapp.name;
+    if (result.name === "swap") {
+      result.asset = dapp.asset;
+      let tp = this._bridge._matchTokenPair(result.asset, this._toChainInfo.chainName, this._fromChainInfo.chainName);
+      result.tokenPair = tp.id;
+      let decimals = (this._direction == 'MINT')? tp.toDecimals : tp.fromDecimals;
+      result.amount = new BigNumber(dapp.amount).times(Math.pow(10, decimals)).toFixed(0);
+      result.recipient = dapp.recipient || this._fromAccount;
+    }
+    console.debug("init dapp: %O", result);
+    return result;
+  }
+
   async _buildTaskSteps() {
     let ccTaskData = this._task.ccTaskData;
     // to get the stepsFunc from server api
@@ -337,7 +356,8 @@ class BridgeTask {
       gpkInfo: this._gpkInfo,
       value: ccTaskData.amount,
       fee: this._fee,
-      wallet: this._wallet
+      wallet: this._wallet,
+      dapp: ccTaskData.dapp
     };
     // console.debug("checkTaskSteps: %O", convert);
     let steps = await this._bridge.cctHandleService.getConvertInfo(convert);

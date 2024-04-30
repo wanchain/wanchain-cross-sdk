@@ -340,7 +340,8 @@ class WanBridge extends EventEmitter {
         redeemHash: task.redeemHash,
         uniqueId: task.uniqueId || "",
         status: task.status,
-        errInfo: task.errInfo
+        errInfo: task.errInfo,
+        dapp: task.dapp
       };
       if (task.assetAlias) {
         item.assetAlias = task.assetAlias;
@@ -536,6 +537,36 @@ class WanBridge extends EventEmitter {
       }
     }
     return null;
+  }
+
+  getToDapps(assetType, fromChainName, toChainName) {
+    let dapps = [];
+    let fromChainInfo = this.chainInfoService.getChainInfoByName(fromChainName);
+    let toChainInfo = this.chainInfoService.getChainInfoByName(toChainName);
+    if (!toChainInfo.dapp) {
+      return [];
+    }
+    if (toChainInfo.dapp.swap && fromChainInfo.dapp.swap) {
+      let swap = toChainInfo.dapp.swap;
+      if (swap && swap.assets.includes(assetType)) {
+        let assets = [];
+        swap.assets.forEach(a => {
+          try {
+            if (a !== assetType) {
+              let tp = this._matchTokenPair(a, toChainName, fromChainName);
+              let decimals = (tp.fromDecimals > tp.toDecimals)? tp.toDecimals : tp.fromDecimals;
+              assets.push({name: tp.assetAlias || tp.readableSymbol, decimals});
+            }
+          } catch (err) { // do nothing
+          }
+          return false;
+        });
+        if (assets.length) {
+          dapps.push({name: "swap", assets});
+        }
+      }
+    }
+    return dapps;
   }
 
   _onStoremanInitilized(success) {

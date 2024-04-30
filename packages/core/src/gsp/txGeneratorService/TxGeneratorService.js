@@ -98,14 +98,25 @@ module.exports = class TxGeneratorService{
     // nft event: UserBurnNFT(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, string[] keys, bytes[] values)
     // nft topic[0]: 0x988781dff960cf5a144a15c9b0c4d1346196e415e64ea7ebd609c6ac0559bbbb
     async generateUserBurnData(crossScAddr, smgID, tokenPairID, value, fee, tokenAccount, userAccount, extInfo = {}) {
-      let abi = this.configService.getAbi("crossSc");
+      let dapp = extInfo.dapp;
+      let abiName = dapp? "crossDappSc" : "crossSc";
+      let abi = this.configService.getAbi(abiName);
       let scAddr = crossScAddr.toLowerCase();
       let crossScInst = new web3.eth.Contract(abi, scAddr);
       let data, tokenType = extInfo.tokenType;
       if (tokenType === "Erc20") {
         value = "0x" + new BigNumber(value).toString(16);
         fee = "0x" + new BigNumber(fee).toString(16);
-        data = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
+        if (dapp) {
+          console.log(dapp)
+          let swapParams = web3.eth.abi.encodeParameters(["uint256"], [dapp.amount]);
+          console.log("swapParams:", swapParams);
+          // recipient/tokenPairId/constraintCBOR
+          let dappData = web3.eth.abi.encodeParameters(["address", "uint256", "bytes"], [dapp.recipient, dapp.tokenPair, swapParams]);
+          data = crossScInst.methods.crossUserBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount, dappData).encodeABI();
+        } else {
+          data = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
+        }
       } else {
         let tokenIDs = [], tokenValues = [];
         value.forEach(v => {
