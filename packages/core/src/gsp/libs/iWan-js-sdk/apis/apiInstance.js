@@ -8826,7 +8826,7 @@ class ApiInstance extends WsInstance {
     });
   }
 
-  getChainQuotaHiddenFlags(chainIds, options, callback) {
+  getChainQuotaHiddenFlagDirectionally(chainIds, options, callback) {
     if (typeof(options) === "function") {
       callback = options;
       options = {};
@@ -8834,7 +8834,7 @@ class ApiInstance extends WsInstance {
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
-    let method = 'getChainQuotaHiddenFlags';
+    let method = 'getChainQuotaHiddenFlagDirectionally';
     let params = { chainIds: chainIds, ...options };
 
     return utils.promiseOrCallback(callback, cb => {

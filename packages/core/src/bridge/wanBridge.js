@@ -228,9 +228,16 @@ class WanBridge extends EventEmitter {
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
+      let fromChainID = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainID : tokenPair.toChainID;
       let toChainID = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainID : tokenPair.fromChainID;
-      let hideQuotaChains = await this.iwan.getChainQuotaHiddenFlags(toChainID);
-      hideQuota = (hideQuotaChains && hideQuotaChains[toChainID])? true : false;
+      let hideQuotaChains = await this.iwan.getChainQuotaHiddenFlagDirectionally([fromChainID, toChainID]);
+      if (hideQuotaChains) {
+        if (hideQuotaChains[fromChainID] && (hideQuotaChains[fromChainID].hiddenSourceChainQuota === true)) {
+          hideQuota = true;
+        } else if (hideQuotaChains[toChainID] && (hideQuotaChains[toChainID].hiddenTargetChainQuota === true)) {
+          hideQuota = true;
+        }
+      }
       if (tokenPair.bridge) { // other bridge, such as Circle
         quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
