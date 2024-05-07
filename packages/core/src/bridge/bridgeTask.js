@@ -94,7 +94,7 @@ class BridgeTask {
     if (err) {
       throw new Error(err);
     }
-
+    let dapp = this._initDapp(options.dapp);
     // set task data
     let taskData = {
       assetPairId: this._tokenPair.id,
@@ -105,7 +105,7 @@ class BridgeTask {
       amount: this._amount,
       bridge: this._tokenPair.bridge,
       fromAccount: this._fromAccount,
-      toAccount: this._toAccount,
+      toAccount: this._toAccount || dapp.scAddr,
       fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
@@ -117,7 +117,7 @@ class BridgeTask {
       isOtaTx: !this._wallet,
       fee: this._fee,
       smg: this._smg,
-      dapp: this._initDapp(options.dapp)
+      dapp
     };
     // console.debug({taskData});
     this._task.setTaskData(taskData);
@@ -331,6 +331,8 @@ class BridgeTask {
     result.name = dapp.name;
     if (result.name === "swap") {
       result.asset = dapp.asset;
+      let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
+      result.scAddr = chainInfo.dapp.swap.scAddr;
       let tp = this._bridge._matchTokenPair(result.asset, this._toChainInfo.chainName, this._fromChainInfo.chainName);
       result.tokenPair = tp.id;
       let decimals = (this._direction == 'MINT')? tp.toDecimals : tp.fromDecimals;

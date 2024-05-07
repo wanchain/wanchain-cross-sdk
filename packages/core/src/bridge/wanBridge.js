@@ -140,8 +140,10 @@ class WanBridge extends EventEmitter {
       throw new Error("Missing fromAccount");
     }
     // check toAccount
-    if (!(toAccount && this.validateToAccount(toChainName, toAccount))) {
-      throw new Error("Invalid toAccount");
+    if (!options.dapp) {
+      if (!(toAccount && this.validateToAccount(toChainName, toAccount))) {
+        throw new Error("Invalid toAccount");
+      }
     }
     // check wallet
     let wallet = options.wallet;

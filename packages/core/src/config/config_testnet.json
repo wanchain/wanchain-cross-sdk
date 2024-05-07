@@ -482,6 +482,7 @@
       },
       "dapp": {
         "swap": {
+          "scAddr": "addr_test1wqk0z6ytud0v2s3g62zddt3fw093572j2u4ypxywqpnszjcsh4t5r",
           "assets": ["ADA", "USDT"]
         }
       }
