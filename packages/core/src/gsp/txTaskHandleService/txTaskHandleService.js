@@ -23,16 +23,16 @@ module.exports = class TxTaskHandleService {
     }
 
     async processTxTask(taskParas, wallet) {
+        let taskType = taskParas.params.taskType;
         try {
-            let params = taskParas.params;
-            let TxTaskHandler = this.m_mapTaskTypeToHandler.get(params.taskType);
+            let TxTaskHandler = this.m_mapTaskTypeToHandler.get(taskType);
             let txHandler = new TxTaskHandler(this.m_frameworkService);
             let result = await txHandler.process(taskParas, wallet);
-            return result;
+            return result; // error info
         } catch (err) {
             let errMsg = tool.getErrMsg(err, "processTxTask failed");
-            console.error("TxTaskHandleService processTxTask error:", errMsg);
-            return result;
+            console.error("TxTaskHandleService processTxTask %s error:", taskType, errMsg);
+            return errMsg;
         }
     }
 };
