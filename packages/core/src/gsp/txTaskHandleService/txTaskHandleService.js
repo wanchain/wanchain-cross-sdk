@@ -28,10 +28,10 @@ module.exports = class TxTaskHandleService {
             let TxTaskHandler = this.m_mapTaskTypeToHandler.get(taskType);
             let txHandler = new TxTaskHandler(this.m_frameworkService);
             let result = await txHandler.process(taskParas, wallet);
-            return result; // error info
+            return result;
         } catch (err) {
+            console.error("TxTaskHandleService processTxTask %s error: %O", taskType, err);
             let errMsg = tool.getErrMsg(err, "processTxTask failed");
-            console.error("TxTaskHandleService processTxTask %s error:", taskType, errMsg);
             return errMsg;
         }
     }
