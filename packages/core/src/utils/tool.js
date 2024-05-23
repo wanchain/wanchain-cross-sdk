@@ -206,9 +206,9 @@ function parseFee(fee, amount, unit, options) {
   }
 }
 
-function sha256(str) {
+function sha256(str, addPrefix = true) {
   let hash = crypto.createHash('sha256').update(str).digest('hex');
-  return '0x' + hash;
+  return addPrefix? ('0x' + hash) : hash;
 }
 
 function cmpAddress(address1, address2) {

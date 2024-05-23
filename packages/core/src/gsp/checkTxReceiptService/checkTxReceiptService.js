@@ -169,7 +169,7 @@ module.exports = class CheckTxReceiptService {
   }
 
   async finishTask(taskIndex, task, result, errInfo) {
-    await this.eventService.emitEvent("TaskStepResult", {
+    await this.eventService.emitEvent(task.event || "TaskStepResult", {
       ccTaskId: task.ccTaskId,
       stepIndex: task.stepIndex,
       txHash: task.txHash,

@@ -3,6 +3,7 @@
 const crypto = require('crypto');
 const bitcoin = require('bitcoinjs-lib');
 const axios = require("axios");
+const tool = require("../../utils/tool.js");
 
 const names = {
   BTC: "ProcessMintBtcFromBitcoin",
@@ -116,10 +117,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let network = networks[fromChainType][chainInfo.network];
 
       const randomId = '0x' + crypto.randomBytes(32).toString('hex');
-      const hashValue = crypto.createHash('sha256').update(randomId + chainAddr).digest('hex');
-      if (hashValue.startsWith('0x')) {
-        hashValue = ret.slice(2);
-      }
+      const hashValue = tool.sha256(randomId + chainAddr, false);
 
       let tmpGPK = gpkInfo.gpk;
       if (tmpGPK.startsWith('0x')) {
