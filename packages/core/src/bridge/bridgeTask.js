@@ -116,7 +116,7 @@ class BridgeTask {
       toChainType: this._toChainInfo.chainType,
       isOtaTx: !this._wallet,
       fee: this._fee,
-      smg: {name: this._smg.name, id: this._smg.id}
+      smg: {name: this._smg? this._smg.name : "", gpk: this._gpkInfo? this._gpkInfo.gpk : ""}
     };
     // console.debug({taskData});
     this._task.setTaskData(taskData);
@@ -172,17 +172,18 @@ class BridgeTask {
   // depends on fee
   async _checkSmg() {
     // get active smg
-    this._smg = await this._bridge.getSmgInfo();
+    let smg = await this._bridge.getSmgInfo();
+    this._smg = smg;
     if (this._tokenPair.bridge) { // only for unifying process flow, other bridge do not care smg
       return "";
     }
     let gpk = "", curve = gpkCurves.secp256, algo = gpkAlgs.ecdsa;
-    if ((this._fromChainInfo.chainType === 'BTC') && this._smg.gpk3) {
+    if ((this._fromChainInfo.chainType === 'BTC') && smg.gpk3) {
       algo = gpkAlgs.schnorr340;
     }
-    for (let i = 1; this._smg["gpk" + i]; i++) {
-      if (curve == this._smg["curve" + i] && algo == this._smg["algo" + i]) {
-        gpk = this._smg["gpk" + i];
+    for (let i = 1; smg["gpk" + i]; i++) {
+      if (curve == smg["curve" + i] && algo == smg["algo" + i]) {
+        gpk = smg["gpk" + i];
         break;
       }
     }
@@ -195,8 +196,8 @@ class BridgeTask {
     }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    if (this._smg.changed) { // optimize for mainnet getQuota performance issue
-      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._tokenPair.id, this._smg.id);
+    if (smg.changed) { // optimize for mainnet getQuota performance issue
+      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._tokenPair.id, smg.id);
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._tokenPair.readableSymbol, this._quota);
       let networkFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol, {feeType: "networkFee"});
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
@@ -333,7 +334,7 @@ class BridgeTask {
       fromAddr: ccTaskData.fromAccount,
       toSymbol: ccTaskData.toSymbol,
       toAddr: ccTaskData.toAccount,
-      storemanGroupId: ccTaskData.smg.id,
+      storemanGroupId: this._smg.id,
       gpkInfo: this._gpkInfo,
       value: ccTaskData.amount,
       fee: this._fee,
