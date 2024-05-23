@@ -116,7 +116,7 @@ class BridgeTask {
       toChainType: this._toChainInfo.chainType,
       isOtaTx: !this._wallet,
       fee: this._fee,
-      smg: this._smg
+      smg: {name: this._smg.name, id: this._smg.id}
     };
     // console.debug({taskData});
     this._task.setTaskData(taskData);
