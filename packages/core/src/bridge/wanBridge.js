@@ -43,6 +43,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
+    this.eventService.addEventListener("ReclaimTxHash", this._onReclaimTxHash.bind(this)); // for tx receipt service to notify reclaim result
     await this._service.start();
   }
 
@@ -347,6 +348,8 @@ class WanBridge extends EventEmitter {
         redeemHash: task.redeemHash,
         uniqueId: task.uniqueId || "",
         status: task.status,
+        reclaimStatus: task.reclaimStatus,
+        reclaimHash: task.reclaimHash,
         errInfo: task.errInfo
       };
       if (task.assetAlias) {
@@ -545,6 +548,35 @@ class WanBridge extends EventEmitter {
     return null;
   }
 
+  async reclaim(taskId, wallet) {
+    let records = this.stores.crossChainTaskRecords;
+    let task = records.getTaskById(taskId);
+    if (!task) {
+      throw new Error("Task does not exist");
+    }
+    if (!["Ready", "Failed"].includes(task.reclaimStatus)) {
+      throw new Error("Not ready");
+    }
+    if (["Processing", "Succeeded"].includes(task.reclaimStatus)) {
+      throw new Error("Already reclaimed");
+    }
+    let taskType = "";
+    if ((task.fromChainType === "SOL") && (task.bridge === "Circle")) {
+      taskType = "ProcessCircleBridgeSolanaReclaim";
+    } else {
+      throw new Error("Not reclaimable");
+    }
+    let params = {taskType, lockHash: task.lockHash, ccTaskId: taskId};
+    let err = await this.txTaskHandleService.processTxTask({params}, wallet);
+    if (err) {
+      console.error("reclaim task %s error: %O", taskId, err);
+      throw err;
+    } else {
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, {reclaimStatus: "Processing"}, true);
+      this.storageService.save("crossChainTaskRecords", taskId, task);
+    }
+  }
+
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
@@ -636,6 +668,9 @@ class WanBridge extends EventEmitter {
     }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
+    if ((ccTask.fromChainType === "SOL") && (ccTask.bridge === "Circle")) {
+      records.setExtraInfo(taskId, {reclaimStatus: "Ready"});
+    }
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
   }
@@ -696,6 +731,29 @@ class WanBridge extends EventEmitter {
         let lockedEvent = {taskId, txHash};
         console.debug("lockedEvent: %O", lockedEvent);
         this.emit("locked", lockedEvent);
+      }
+      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    }
+  }
+
+  _onReclaimTxHash(taskReclaimHash) {
+    console.debug("_onReclaimTxHash: %O", taskReclaimHash);
+    let taskId = taskReclaimHash.ccTaskId;
+    let txHash = taskReclaimHash.txHash;
+    let result = taskReclaimHash.result; // Succeeded / Failed
+    let errInfo = taskReclaimHash.errInfo || "";
+    let records = this.stores.crossChainTaskRecords;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (ccTask) {
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, {reclaimStatus: result, reclaimHash: txHash}, true);
+      if (errInfo) {
+        let event = {taskId, txHash, reason: "Reclaim failed"};
+        console.error("reclaimEvent: %O", event);
+        this.emit("error", event);
+      } else {
+        let event = {taskId, txHash};
+        console.debug("reclaimEvent: %O", event);
+        this.emit("reclaim", event);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }

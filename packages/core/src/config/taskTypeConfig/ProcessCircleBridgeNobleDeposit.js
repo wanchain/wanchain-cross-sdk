@@ -9,7 +9,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
     let configService = frameworkService.getService("ConfigService");
-    this.apiServerConfig = configService.getGlobalConfig("apiServer");
+    this.apiServer = configService.getGlobalConfig("apiServer");
   }
 
   async process(stepData, wallet) {
@@ -88,7 +88,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
   }
 
   async pushSolWalletAddress(ataAddr, walletAddr) {
-    let url = this.apiServerConfig.url + "/api/sol/addCctpWalletAddr";
+    let url = this.apiServer.url + "/api/sol/addCctpWalletAddr";
     let data = {ataAddr, walletAddr};
     let ret = await axios.post(url, data);
     if (ret.data.success) {
