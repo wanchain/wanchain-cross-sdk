@@ -24,7 +24,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2405231748", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2405241006", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -554,17 +554,21 @@ class WanBridge extends EventEmitter {
     if (!task) {
       throw new Error("Task does not exist");
     }
-    if (!["Ready", "Failed"].includes(task.reclaimStatus)) {
-      throw new Error("Not ready");
-    }
     if (["Processing", "Succeeded"].includes(task.reclaimStatus)) {
       throw new Error("Already reclaimed");
+    }
+    if (!["Ready", "Failed"].includes(task.reclaimStatus)) {
+      throw new Error("Not ready");
     }
     let taskType = "";
     if ((task.fromChainType === "SOL") && (task.bridge === "Circle")) {
       taskType = "ProcessCircleBridgeSolanaReclaim";
     } else {
       throw new Error("Not reclaimable");
+    }
+    let addresses = await wallet.getAccounts();
+    if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
+      throw new Error("Invalid wallet account");
     }
     let params = {taskType, lockHash: task.lockHash, ccTaskId: taskId};
     let err = await this.txTaskHandleService.processTxTask({params}, wallet);
