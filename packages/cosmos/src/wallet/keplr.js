@@ -11,7 +11,11 @@ const DefaultChainInfo = {
   "grand-1": {
     rpc: "https://rpc.testnet.noble.strange.love",
     denom: "uusdc"
-  }
+  },
+  "noble-1": {
+    rpc: "https://rpc.mainnet.noble.strange.love",
+    denom: "uusdc"
+  },
 }
 
 const MyRegistry = new ProtoSigning.Registry(Stargate.defaultRegistryTypes.concat([
