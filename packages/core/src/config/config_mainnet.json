@@ -486,6 +486,21 @@
       }
     },
     {
+      "chainId": "1073741844",
+      "chainType": "NOBLE",
+      "chainName": "Noble",
+      "symbol": "USDC",
+      "CircleBridge": {
+        "domain": 4
+      },
+      "feeHolder": "noble1esq4y8zj8u78yrx9h799mkfd5he5jrjgrcl6fn",
+      "chainDecimals": 6,
+      "MaskChainId": "noble-1",
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
       "chainId": "2147484149",
       "chainType": "SOL",
       "chainName": "Solana",
