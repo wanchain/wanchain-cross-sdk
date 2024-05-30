@@ -54,7 +54,7 @@ module.exports = class CheckApiServerTx {
         console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
           let data = ret.data.data;
-          // when noble cctp claim tx is sent by other provider, value and toAccount are invalid
+          // when noble cctp claim tx is sent by other provider, txHash is empty, toAddr and value are invalid
           let toAccount = data.txHash? data.toAddr : "";
           let value = data.txHash? data.value : "";
           await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount, value});
