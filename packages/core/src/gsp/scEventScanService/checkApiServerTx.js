@@ -54,7 +54,8 @@ module.exports = class CheckApiServerTx {
         console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
         if (ret.data.success && ret.data.data) {
           let data = ret.data.data;
-          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount: data.toAddr, value: data.value});
+          let value = isNaN(data.value)? "" : data.value; // value is error string when noble cctp claim tx is sent by other provider
+          await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount: data.toAddr, value});
           let storageService = this.m_frameworkService.getService("StorageService");
           storageService.delete("ScEventScanService", obj.uniqueID);
           this.m_CheckAry.splice(index, 1);
