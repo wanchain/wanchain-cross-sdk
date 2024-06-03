@@ -101,10 +101,6 @@ class StartService {
             await checkAdaTxService.init(frameworkService);
             frameworkService.registerService("CheckAdaTxService", checkAdaTxService);
 
-            let checkAtomTxService = new CheckApiServerTxService("ATOM");
-            await checkAtomTxService.init(frameworkService);
-            frameworkService.registerService("CheckAtomTxService", checkAtomTxService);
-
             let storemanService = new StoremanService();
             await storemanService.init(frameworkService, options);
             frameworkService.registerService("StoremanService", storemanService);
@@ -184,9 +180,6 @@ class StartService {
 
             let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
             await checkAdaTxService.start();
-
-            let checkAtomTxService = frameworkService.getService("CheckAtomTxService");
-            await checkAtomTxService.start();
           } catch (err) {
             console.error("startService start err:", err);
         }
