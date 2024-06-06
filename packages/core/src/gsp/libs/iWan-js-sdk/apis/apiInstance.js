@@ -8888,6 +8888,30 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
+  getWanBridgeDiscounts(options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getWanBridgeDiscounts';
+    let params = {...options};
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
 }
 
 module.exports = ApiInstance;

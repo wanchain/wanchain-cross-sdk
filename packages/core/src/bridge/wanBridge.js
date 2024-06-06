@@ -581,6 +581,15 @@ class WanBridge extends EventEmitter {
     }
   }
 
+  async getDiscounts() {
+    let discounts = await this.iwan.getWanBridgeDiscounts();
+    discounts.forEach(v => {
+      v.amount = new BigNumber(v.amount).div(10 ** 18).toFixed();
+      v.discount = new BigNumber(v.discount).div(10 ** 18).toFixed();
+    })
+    return discounts;
+  }
+
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
