@@ -223,6 +223,10 @@ class IWanBCConnector {
     async getAssociatedTokenAddress(chainType, address, tokenScAddr) {
       return this.apiClient.getAssociatedTokenAddress(chainType, address, tokenScAddr);
     }
+
+    async getWanBridgeDiscounts(options) {
+      return this.apiClient.getWanBridgeDiscounts(options);
+    }
 };
 
 module.exports = IWanBCConnector;
