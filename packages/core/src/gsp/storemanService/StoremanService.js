@@ -62,27 +62,22 @@ class StoremanService {
         if (!tokenPair) {
           return new BigNumber(0);
         }
-        let balance, decimals, tokenAccount = "", direction = (chainType === tokenPair.fromChainType);
-        let kaChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-        if (options.isCoin) { // isCoin is internal use only
+        let balance, decimals;
+        let direction = (chainType === tokenPair.fromChainType);
+        let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+        let isCoin = options.isCoin || (tokenAccount === "0x0000000000000000000000000000000000000000");
+        if (isCoin) {
           decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
           if (SELF_WALLET_COIN_BALANCE_CHAINS.includes(chainType)) {
-              balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
+            balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
           } else {
-              balance = await this.iwan.getBalance(chainType, addr);
+            balance = await this.iwan.getBalance(chainType, addr);
           }
         } else {
           decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
-          tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-          if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
-            if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-              balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
-            } else {
-              balance = await this.iwan.getBalance(chainType, addr);
-            }
-          } else if (tokenPair.protocol === "Erc1155") {
+          if (tokenPair.protocol === "Erc1155") {
             balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
-          } else {
+          } else { // Erc20
             if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
               balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
             } else {
@@ -91,15 +86,7 @@ class StoremanService {
           }
         }
         balance = new BigNumber(balance).div(Math.pow(10, decimals));
-        if (kaChainInfo && options.keepAlive) {
-          if (kaChainInfo.minReserved) {
-            balance = balance.minus(kaChainInfo.minReserved);
-            if (balance.lt(0)) {
-              balance = new BigNumber(0);
-            }
-          }
-        }
-        console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, tokenAccount? ("token " + tokenAccount) : "coin", addr, balance.toFixed());
+        console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, isCoin? "coin" : ("token " + tokenAccount), addr, balance.toFixed());
         return balance;
       } catch (err) {
         console.error("get tokenPair %s %s address %s balance error: %O", assetPairId, chainType, addr, err);

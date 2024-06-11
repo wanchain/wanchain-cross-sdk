@@ -250,7 +250,7 @@ class BridgeTask {
     }
     let chainType = this._fromChainInfo.chainType;
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true});
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
     let coinSymbol = this._bridge.chainInfoService.getCoinSymbol(chainType);
     let requiredCoin = new BigNumber(0);
