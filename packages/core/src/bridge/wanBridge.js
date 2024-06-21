@@ -531,7 +531,7 @@ class WanBridge extends EventEmitter {
   async checkHackerAccount(addresses) {
     let isHacker = await this.iwan.hasHackerAccount(addresses);
     if (isHacker) {
-      console.error("SDK: checkHackerAccount true, addresses: %O", addresses);
+      console.debug("SDK: checkAccountServiceInavailability true, addresses: %O", addresses);
     }
     return isHacker;
   }
