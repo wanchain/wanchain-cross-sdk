@@ -69,5 +69,9 @@ module.exports = [
     {
       "name": "ProcessCircleBridgeSolanaReclaim",
       "handle": require("./ProcessCircleBridgeSolanaReclaim")
+    },
+    {
+      "name": "ProcessMintFromAlgorand",
+      "handle": require("./ProcessMintFromAlgorand")
     }
 ]

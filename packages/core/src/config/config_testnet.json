@@ -519,6 +519,23 @@
       "TxScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "chainId": "2147483931",
+      "chainType": "ALGO",
+      "chainName": "Algorand",
+      "symbol": "ALGO",
+      "crossScAddr": 627255629,
+      "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
+      "mintFromChainHandle": "MintFromAlgorand",
+      "chainDecimals": 6,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      },
+      "rpc": {
+        "url" : "https://testnet-api.algonode.cloud",
+        "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
+      }
     }
   ],
   "tokenPairCfg": [

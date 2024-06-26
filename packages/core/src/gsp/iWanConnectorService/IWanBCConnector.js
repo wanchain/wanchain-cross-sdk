@@ -227,6 +227,10 @@ class IWanBCConnector {
     async getWanBridgeDiscounts(options) {
       return this.apiClient.getWanBridgeDiscounts(options);
     }
+
+    async call(method, options) {
+      return this.apiClient.call(method, options);
+    }
 };
 
 module.exports = IWanBCConnector;

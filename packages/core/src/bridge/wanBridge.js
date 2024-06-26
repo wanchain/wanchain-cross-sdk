@@ -134,14 +134,14 @@ class WanBridge extends EventEmitter {
     if (this._isThirdPartyWallet(fromChainType)) {
       fromAccount = "";
     } else if (fromAccount) {
-      if (!this.validateToAccount(fromChainName, fromAccount)) {
+      if (!this.validateAddress(fromChainName, fromAccount)) {
         throw new Error("Invalid fromAccount");
       }
     } else {
       throw new Error("Missing fromAccount");
     }
     // check toAccount
-    if (!(toAccount && this.validateToAccount(toChainName, toAccount))) {
+    if (!(toAccount && this.validateAddress(toChainName, toAccount))) {
       throw new Error("Invalid toAccount");
     }
     // check wallet
@@ -256,33 +256,36 @@ class WanBridge extends EventEmitter {
     return quota;
   }
 
-  validateToAccount(chainName, account) {
+  validateAddress(chainName, address, options = {}) {
+    options = Object.assign({debug: true, checkToken: true}, options);
     let chainType = this.tokenPairService.getChainType(chainName);
     let extension = this.configService.getExtension(chainType);
     let result;
     if (extension && extension.tool && extension.tool.validateAddress) {
-      result = extension.tool.validateAddress(account, this.network, chainName);
+      result = extension.tool.validateAddress(address, this.network, chainName);
     } else if ("WAN" === chainType) {
-      result = tool.isValidWanAddress(account);
+      result = tool.isValidWanAddress(address);
     } else if ("BTC" === chainType) {
-      result = tool.isValidBtcAddress(account, this.network);
+      result = tool.isValidBtcAddress(address, this.network);
     } else if ("LTC" === chainType) {
-      result = tool.isValidLtcAddress(account, this.network);
+      result = tool.isValidLtcAddress(address, this.network);
     } else if ("DOGE" === chainType) {
-      result = tool.isValidDogeAddress(account, this.network);
+      result = tool.isValidDogeAddress(address, this.network);
     } else if ("XRP" === chainType) {
-      result = tool.isValidXrpAddress(account);
+      result = tool.isValidXrpAddress(address);
     } else if ("XDC" === chainType) {
-      result = tool.isValidXdcAddress(account);
+      result = tool.isValidXdcAddress(address);
     } else { // default as EVM
-      result = tool.isValidEthAddress(account);
+      result = tool.isValidEthAddress(address);
     }
     if (result === false) {
-      console.log("SDK: validateToAccount, chainName: %s, account: %s, result: %s", chainName, account, result);
+      if (options.debug) {
+        console.log("SDK: validateAddress, chainName: %s, address: %s, result: %s", chainName, address, result);
+      }
       return false;
     }
-    if (this.stores.assetPairs.isTokenAccount(chainType, account, extension)) {
-      console.error("SDK: validateToAccount, chainName: %s, account: %s, result: is token account", chainName, account);
+    if (options.checkToken && this.stores.assetPairs.isTokenAccount(chainType, address, extension)) {
+      console.error("SDK: validateAddress, chainName: %s, address: %s, result: is token address", chainName, address);
       return false;
     }
     return true;
@@ -350,7 +353,9 @@ class WanBridge extends EventEmitter {
         status: task.status,
         reclaimStatus: task.reclaimStatus,
         reclaimHash: task.reclaimHash,
-        errInfo: task.errInfo
+        errInfo: task.errInfo,
+        fromAccountId: task.fromAccountId,
+        toAccountId: task.toAccountId,
       };
       if (task.assetAlias) {
         item.assetAlias = task.assetAlias;
@@ -531,7 +536,7 @@ class WanBridge extends EventEmitter {
   async checkHackerAccount(addresses) {
     let isHacker = await this.iwan.hasHackerAccount(addresses);
     if (isHacker) {
-      console.error("SDK: checkHackerAccount true, addresses: %O", addresses);
+      console.debug("SDK: checkAccountServiceInavailability true, addresses: %O", addresses);
     }
     return isHacker;
   }
@@ -588,6 +593,41 @@ class WanBridge extends EventEmitter {
       v.discount = new BigNumber(v.discount).div(10 ** 18).toFixed();
     })
     return discounts;
+  }
+
+  async accountAddress2Id(addresses) {
+    let data = await this.iwan.call("getMultiAccountIdentity", {identityParams: addresses});
+    let result = {};
+    data.forEach(v => {
+      if (v.id) {
+        result[v.account] = v.id;
+      }
+    });
+    return result;
+  }
+
+  async accountId2Address(id, chainName) {
+    let data = await this.iwan.call("getMultiAccountByIdentity", {identityParams:[id]});
+    let result = [];
+    let chainInfo = chainName? this.chainInfoService.getChainInfoByName(chainName) : null;
+    data.forEach(v => {
+      let ci = this.chainInfoService.getChainInfoByType(v.chainType);
+      if (ci) { // wanbridge support this chain
+        if (chainName) {
+          let checkFormat = this.validateAddress(chainName, v.account, {debug: false, checkToken: false});
+          if (checkFormat) {
+            if (ci.chainType === chainInfo.chainType) {
+              result.unshift({chainName: ci.chainName, address: v.account});
+            } else {
+              result.push({chainName: ci.chainName, address: v.account});
+            }
+          }
+        } else {
+          result.push({chainName: ci.chainName, address: v.account});
+        }
+      }
+    });
+    return result;
   }
 
   _onStoremanInitilized(success) {

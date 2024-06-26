@@ -258,11 +258,9 @@ class BridgeTask {
     if (this._tokenPair.readableSymbol === coinSymbol) { // asset is coin
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
-      this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
-      this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
     if (chainInfo.minReserved) {
       requiredCoin = requiredCoin.plus(chainInfo.minReserved);

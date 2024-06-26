@@ -1,0 +1,401 @@
+{
+  "name": "bridge",
+  "methods": [
+      {
+          "name": "addAdmin",
+          "args": [
+              {
+                  "type": "address",
+                  "name": "adminAccount"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "removeAdmin",
+          "args": [
+              {
+                  "type": "address",
+                  "name": "adminAccount"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "transferOwner",
+          "args": [
+              {
+                  "type": "address",
+                  "name": "_newOwner"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "transferUpdateOwner",
+          "args": [
+              {
+                  "type": "address",
+                  "name": "_newOwner"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setHalt",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "_halt"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setTokenPairFee",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "tokenPairID"
+              },
+              {
+                  "type": "uint64",
+                  "name": "contractFee"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setTokenPairFees",
+          "args": [
+              {
+                  "type": "uint64[]",
+                  "name": "tokenPairID"
+              },
+              {
+                  "type": "uint64[]",
+                  "name": "contractFee"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setFee",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "srcChainID"
+              },
+              {
+                  "type": "uint64",
+                  "name": "destChainID"
+              },
+              {
+                  "type": "uint64",
+                  "name": "contractFee"
+              },
+              {
+                  "type": "uint64",
+                  "name": "agentFee"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setFees",
+          "args": [
+              {
+                  "type": "uint64[]",
+                  "name": "srcChainID"
+              },
+              {
+                  "type": "uint64[]",
+                  "name": "destChainID"
+              },
+              {
+                  "type": "uint64[]",
+                  "name": "contractFee"
+              },
+              {
+                  "type": "uint64[]",
+                  "name": "agentFee"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "userLock",
+          "args": [
+              {
+                  "type": "byte[32]",
+                  "name": "smgID"
+              },
+              {
+                  "type": "uint64",
+                  "name": "tokenPairID"
+              },
+              {
+                  "type": "string",
+                  "name": "userAccount"
+              },
+              {
+                  "type": "uint64",
+                  "name": "value"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setSmgFeeProxy",
+          "args": [
+              {
+                  "type": "address",
+                  "name": "proxy"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "acquireReadySmgInfo",
+          "args": [
+              {
+                  "type": "byte[32]",
+                  "name": "smgID"
+              }
+          ],
+          "returns": {
+              "type": "byte[64]"
+          }
+      },
+      {
+          "name": "smgRelease",
+          "args": [
+              {
+                  "type": "byte[32]",
+                  "name": "uniqueID"
+              },
+              {
+                  "type": "byte[32]",
+                  "name": "smgID"
+              },
+              {
+                  "type": "uint64",
+                  "name": "tokenPairID"
+              },
+              {
+                  "type": "uint64",
+                  "name": "value"
+              },
+              {
+                  "type": "uint64",
+                  "name": "fee"
+              },
+              {
+                  "type": "uint64",
+                  "name": "tokenAccount"
+              },
+              {
+                  "type": "address",
+                  "name": "userAccount"
+              },
+              {
+                  "type": "byte[64]",
+                  "name": "r"
+              },
+              {
+                  "type": "byte[32]",
+                  "name": "s"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "opt_in_token_id",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "id"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "addTokenPair",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "id"
+              },
+              {
+                  "type": "uint64",
+                  "name": "from_chain_id"
+              },
+              {
+                  "type": "byte[]",
+                  "name": "from_account"
+              },
+              {
+                  "type": "uint64",
+                  "name": "to_chain_id"
+              },
+              {
+                  "type": "byte[]",
+                  "name": "to_account"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "removeTokenPair",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "id"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "updateTokenPair",
+          "args": [
+              {
+                  "type": "uint64",
+                  "name": "id"
+              },
+              {
+                  "type": "uint64",
+                  "name": "from_chain_id"
+              },
+              {
+                  "type": "byte[]",
+                  "name": "from_account"
+              },
+              {
+                  "type": "uint64",
+                  "name": "to_chain_id"
+              },
+              {
+                  "type": "byte[]",
+                  "name": "to_account"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "initialize",
+          "args": [
+              {
+                  "type": "address",
+                  "name": "owner"
+              },
+              {
+                  "type": "address",
+                  "name": "updateOwner"
+              },
+              {
+                  "type": "address",
+                  "name": "admin"
+              },
+              {
+                  "type": "address",
+                  "name": "feeProxy"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "update",
+          "args": [],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "delete",
+          "args": [],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setStoremanGroupConfig",
+          "args": [
+              {
+                  "type": "byte[32]",
+                  "name": "id"
+              },
+              {
+                  "type": "uint8",
+                  "name": "status"
+              },
+              {
+                  "type": "byte[64]",
+                  "name": "gpk"
+              },
+              {
+                  "type": "uint64",
+                  "name": "startTime"
+              },
+              {
+                  "type": "uint64",
+                  "name": "endTime"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      },
+      {
+          "name": "setStoremanGroupStatus",
+          "args": [
+              {
+                  "type": "byte[32]",
+                  "name": "id"
+              },
+              {
+                  "type": "uint8",
+                  "name": "status"
+              }
+          ],
+          "returns": {
+              "type": "void"
+          }
+      }
+  ],
+  "networks": {},
+  "desc": "Cross chain entry point"
+}

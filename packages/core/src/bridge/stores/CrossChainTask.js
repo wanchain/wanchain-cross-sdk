@@ -28,13 +28,15 @@ class CrossChainTask {
       lockHash: '',
       redeemHash: '',
       uniqueId: '',
-      fromAccountBalance: '',
       fee: null, 
       isOtaTx: false, // adapted to BTC/XRP crosschain task on 2021.0111 
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
       reclaimStatus: '',
       reclaimHash: '',
-      errInfo: ''
+      errInfo: '',
+      // options
+      fromAccountId: '',
+      toAccountId: '',
     };
   }
 
