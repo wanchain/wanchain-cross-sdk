@@ -23,7 +23,7 @@ module.exports = class MintFromAlgorand {
         crossScId: chainInfo.crossScAddr,
         userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
         toAddr: convert.toAddr, // for readability
-        storemanGroupId: "0x000000000000000000000000000000000000000000746573746e65745f303634", // convert.storemanGroupId,
+        storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
