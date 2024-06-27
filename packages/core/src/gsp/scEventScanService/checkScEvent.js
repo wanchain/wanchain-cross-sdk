@@ -3,7 +3,7 @@
 const wanUtil = require("wanchain-util");
 const tool = require("../../utils/tool");
 
-const EventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
+const EventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "algoBURN"];
 
 // CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
@@ -24,6 +24,7 @@ module.exports = class CheckScEvent {
     this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
     this.mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
     this.mapEventHandler.set("circleMINT", this.processCircleMint.bind(this));
+    this.mapEventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
     EventTypes.forEach(v => this.mapCheckArray.set(v, []));
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
@@ -35,6 +36,10 @@ module.exports = class CheckScEvent {
     this.circleBridgeProxyAbi = this.configService.getAbi("circleBridgeProxy");
     this.circleBridgeDepositAbi = this.configService.getAbi("circleBridgeDeposit");
     this.circleBridgeReceiveAbi = this.configService.getAbi("circleBridgeReceive");
+    if (chainInfo.chainType === "ALGO") {
+      let extension = this.configService.getExtension("ALGO");
+      this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
+    }
   }
 
   async add(obj) {
@@ -99,6 +104,12 @@ module.exports = class CheckScEvent {
     await this.processScLogger("circleMINT", eventHash, eventName);
   }
 
+  async processAlgoBurn() {
+    let eventHash = ""; // not used
+    let eventName = "SmgReleaseLogger";
+    await this.processScLogger("algoBURN", eventHash, eventName);
+  }
+
   getEventHash(abi, eventName) {
     let prototype = "";
     for (let i = 0; i < abi.length; ++i) {
@@ -156,10 +167,16 @@ module.exports = class CheckScEvent {
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
+          /* In theory, uniqueID should be a lowercase hash value with prefix '0x',
+             but in historical implementations, some uniqueIDs are uppercase or (and) without '0x', such as Tron and XRP
+             so reserve the compatible code temporarily
+          */
           let event;
           if (obj.taskType === "circleMINT") {
             let topics = [eventHash];
             event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, topics, obj.depositDomain, obj.depositNonce);
+          } else if (obj.taskType === "algoBURN") {
+            event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, obj.uniqueID);
           } else if (this.chainInfo.chainType === "TRX") {
             let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
@@ -330,6 +347,62 @@ module.exports = class CheckScEvent {
     let args = log.args;
     if (["SmgMintNFT", "SmgReleaseNFT"].includes(log.eventName)) {
       args.userAccount = args.values[args.keys.indexOf("userAccount:address")];
+    }
+  }
+
+  async scanAlgoScEvent(fromBlock, toBlock, uniqueID) {
+    let events = [], nextToken = "";
+    for ( ; nextToken !== undefined; ) {
+      let options =  {fromBlock, toBlock};
+      if (nextToken) {
+        options.nextToken = nextToken;
+      }
+      let logs = await this.iwan.getScEvent(this.chainInfo.chainType, this.chainInfo.crossScAddr, [], options);
+      if (logs['log-data'] && logs['log-data'].length) {
+        events.push(...logs['log-data']);
+      }
+      nextToken = logs['next-token'];
+    }
+    for (let i = 0; i < events.length; i++) {
+      let log = events[i];
+      for (let i = 0; i < log.logs.length; i++) {
+        let ccInfo = this.algoDecodeSmgReleaseLogger(Buffer.from(log.logs[i], 'base64'), uniqueID);
+        if (ccInfo) {
+          return {txHash: log.txid, toAccount: ccInfo.to, value: ccInfo.value};
+        }
+      }
+    }
+    return null;
+  }
+
+  algoDecodeSmgReleaseLogger(u8Array, uniqueID) {
+    // class SmgReleaseLogger(abi.NamedTuple):
+    //     name:           abi.Field[abi.String]
+    //     uniqueID:       abi.Field[abi.StaticBytes[Literal[32]]]
+    //     smgID:          abi.Field[abi.StaticBytes[Literal[32]]]
+    //     tokenPairID:    abi.Field[abi.Uint64]
+    //     value:          abi.Field[abi.Uint64]
+    //     tokenAccount:   abi.Field[abi.Uint64]
+    //     userAccount:    abi.Field[abi.Address]
+    try {
+      let decoded = this.smgReleaseCodec.decode(u8Array);
+      let [name, u8ArrayUniqueID, u8ArraySmgID, bigIntTokenPairID, bigIntValue, bigIntTokenAccount, userAccount] = decoded;
+      if (name === "SmgReleaseLogger") {
+        let unique = '0x' + Buffer.from(u8ArrayUniqueID).toString("hex");
+        if (unique === uniqueID) {
+          // let smg = '0x' + Buffer.from(u8ArraySmgID).toString("hex");
+          // let tokenPair = bigIntTokenPairID.toString(10);
+          let value = bigIntValue.toString(10);
+          // let tokenAccount = bigIntTokenAccount.toString(10);
+          return {to: userAccount, value};
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } catch (err) {
+      return null;
     }
   }
 

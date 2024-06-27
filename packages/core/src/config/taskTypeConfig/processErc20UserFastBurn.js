@@ -62,7 +62,7 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         txEventTopics.push("0x" + tool.hexStrip0x(srcToken).toLowerCase().padStart(64, '0'));         // tokenAccount
         let convertCheckInfo = {
             ccTaskId: params.ccTaskId,
-            uniqueID: stepData.txHash,
+            uniqueID: "0x" + tool.hexStrip0x(stepData.txHash),
             userAccount: params.userAccount,
             smgID: params.storemanGroupId,
             tokenPairID: params.tokenPairID,

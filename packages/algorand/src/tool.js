@@ -47,9 +47,14 @@ function getPrefixKey(prefix, id) {
   return new Uint8Array(b);
 }
 
+function getLogCodec(types) {
+  return algosdk.ABIType.from(types);
+}
+
 module.exports = {
   validateAddress,
   getStandardAddressInfo,
   getAlgoSdk,
-  getPrefixKey
+  getPrefixKey,
+  getLogCodec
 }

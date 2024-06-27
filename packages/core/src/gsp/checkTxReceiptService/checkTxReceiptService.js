@@ -45,7 +45,7 @@ module.exports = class CheckTxReceiptService {
             console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
             obj.txHash = result.txHash;
             if (obj.convertCheckInfo) {
-              obj.convertCheckInfo.uniqueID = result.txHash;
+              obj.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
             }
           }
           if (result.result === "Succeeded") {
