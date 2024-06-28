@@ -1,7 +1,7 @@
-const anchor = require('@coral-xyz/anchor');
-const { bs58 } = require('@coral-xyz/anchor/dist/cjs/utils/bytes');
-const spl = require("@solana/spl-token");
-const { PublicKey, Keypair } = require('@solana/web3.js');
+import * as anchor from '@coral-xyz/anchor';
+import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { PublicKey, Keypair } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync as getAssociatedTokenAddressSyncFn } from '@solana/spl-token';
 
 function validateAddress(address) {
   try {
@@ -58,7 +58,7 @@ function getSystemProgramId() {
 }
 
 function getTokenProgramId() {
-  return spl.TOKEN_PROGRAM_ID;
+  return TOKEN_PROGRAM_ID;
 }
 
 function findProgramAddress(label, programId, extraSeeds) {
@@ -81,7 +81,7 @@ function findProgramAddress(label, programId, extraSeeds) {
 }
 
 function getAssociatedTokenAddressSync(tokenAddress, owner) {
-  return spl.getAssociatedTokenAddressSync(tokenAddress, owner);
+  return getAssociatedTokenAddressSyncFn(tokenAddress, owner);
 }
 
 function getPda(key, id, programId, idBytes) {
@@ -131,7 +131,7 @@ function parseCctpDepositMessage(messageHex) {
   return msg;
 }
 
-module.exports = {
+const tools = {
   validateAddress,
   getStandardAddressInfo,
   hex2bytes,
@@ -147,3 +147,5 @@ module.exports = {
   setComputeUnitPrice,
   parseCctpDepositMessage
 }
+
+export default tools;
