@@ -1,3 +1,4 @@
+const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 
 class AssetPairs {
@@ -102,6 +103,8 @@ class AssetPairs {
       result = tool.ascii2letter(account);
     } else if (chainType === "ADA") { // ascii of policyId.name, not address
       result = tool.ascii2letter(account);
+    } else if (chainType === "ALGO") { // ALGO token is id, not address
+      result = new BigNumber(account).toFixed();
     } else {
       result = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
