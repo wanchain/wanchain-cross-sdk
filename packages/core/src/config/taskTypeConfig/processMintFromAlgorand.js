@@ -38,6 +38,18 @@ module.exports = class ProcessMintFromAlgorand {
         amount: BigInt(coinValue),
       });
 
+      let assetTx = null;
+      if (!isCoin) {
+        let tokenAccount = (tokenPair.fromChainType === "ALGO")? tokenPair.fromAccount : tokenPair.toAccount;
+        assetTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
+          from: params.fromAddr,
+          suggestedParams,
+          to: crossScAddr,
+          assetIndex: Number(tokenAccount),
+          amount: BigInt(crossValue),
+        });
+      }
+
       let abi = this.configService.getAbi("algorandBridge");
       let contract = new algosdk.ABIContract(abi);
       let method = contract.getMethodByName('userLock');
@@ -66,11 +78,10 @@ module.exports = class ProcessMintFromAlgorand {
         ]
       }
       let appTx = algosdk.makeApplicationCallTxnFromObject(options);
-    
-      let txs = algosdk.assignGroupID([payTx, appTx]);
-      let txGroups = [{txn: txs[0], signers: [params.fromAddr]}, {txn: txs[1], signers: [params.fromAddr]}];
+      let txs = algosdk.assignGroupID([payTx, assetTx, appTx].filter(v => v));
+      let txGroups = txs.map(v => {return {txn: v, signers: [params.fromAddr]}});
       let signedTxs = await wallet.signTransaction([txGroups]);
-      let txId = algosdk.decodeSignedTransaction(signedTxs[1]).txn.txID();
+      let txId = algosdk.decodeSignedTransaction(signedTxs[signedTxs.length - 1]).txn.txID();
       await client.sendRawTransaction(signedTxs).do();
       this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txId, ""); // only update txHash, no result
 

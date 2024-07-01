@@ -3,7 +3,8 @@
 const wanUtil = require("wanchain-util");
 const tool = require("../../utils/tool");
 
-const EventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "algoBURN"];
+const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
+const AlgoEventTypes = ["algoBURN"];
 
 // CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
@@ -19,13 +20,6 @@ module.exports = class CheckScEvent {
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.scanBatchSize = (chainInfo.chainType === "SGB")? 30 : 300; // OKTC limit 300
-    this.mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
-    this.mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
-    this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
-    this.mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
-    this.mapEventHandler.set("circleMINT", this.processCircleMint.bind(this));
-    this.mapEventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
-    EventTypes.forEach(v => this.mapCheckArray.set(v, []));
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.ScScanInfo.taskInterval);
@@ -37,9 +31,19 @@ module.exports = class CheckScEvent {
     this.circleBridgeDepositAbi = this.configService.getAbi("circleBridgeDeposit");
     this.circleBridgeReceiveAbi = this.configService.getAbi("circleBridgeReceive");
     if (chainInfo.chainType === "ALGO") {
+      this.eventTypes = AlgoEventTypes;
+      this.mapEventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
       let extension = this.configService.getExtension("ALGO");
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
+    } else {
+      this.eventTypes = EvmEventTypes;
+      this.mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
+      this.mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
+      this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
+      this.mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
+      this.mapEventHandler.set("circleMINT", this.processCircleMint.bind(this));
     }
+    this.eventTypes.forEach(v => this.mapCheckArray.set(v, []));
   }
 
   async add(obj) {
@@ -59,7 +63,7 @@ module.exports = class CheckScEvent {
     try {
       let connected = await this.iwan.isConnected();
       if (connected) {
-        for (let v of EventTypes) {
+        for (let v of this.eventTypes) {
           let fn = this.mapEventHandler.get(v);
           if (fn) {
             await fn();

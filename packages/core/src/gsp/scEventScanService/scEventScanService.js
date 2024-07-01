@@ -17,8 +17,11 @@ module.exports = class ScEventScanService {
     this.m_mapCheckHandle = new Map();
 
     let chainsInfo = this.m_configService.getGlobalConfig("StoremanService");
+    let algoExtension = this.m_configService.getExtension("ALGO");
     let algoInfo = this.chainInfoService.getChainInfoByType("ALGO");
-    chainsInfo.push(algoInfo);
+    if (algoExtension && algoInfo) {
+      chainsInfo.push(algoInfo);
+    }
     // console.debug("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];
