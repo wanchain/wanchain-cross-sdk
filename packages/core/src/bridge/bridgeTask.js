@@ -318,6 +318,28 @@ class BridgeTask {
         return msg;
       }
     }
+    // check algo status and opt in
+    if (chainType === "ALGO") {
+      let aInfo = await this._bridge.iwan.getAccountInfo("ALGO", this._toAccount);
+      if (aInfo) {
+        if (aInfo.deleted) {
+          return "Recipient account is inactive";
+        }
+        if (this._tokenPair.readableSymbol !== "ALGO") { // algorand token need to check recipient opt in
+          let tokenAccount = (this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount;
+          let assetId = Number(tokenAccount), optIn = null;
+          if ((aInfo['total-assets-opted-in'] > 0) && aInfo.assets) {
+            optIn = aInfo.assets.find(v => ((v['asset-id'] === assetId) && (v['opted-in-at-round'] > 0)));
+          }
+          if (!optIn) {
+            let msg = "No opt-in for token " + assetId;
+            return msg;
+          }
+        }
+      } else {
+        return "Recipient account is not found";
+      }
+    }
     return "";
   }
 

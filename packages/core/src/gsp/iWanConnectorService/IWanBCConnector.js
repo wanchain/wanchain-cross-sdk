@@ -231,6 +231,10 @@ class IWanBCConnector {
     async call(method, options) {
       return this.apiClient.call(method, options);
     }
+
+    async getAccountInfo(chainType, address) {
+      return this.apiClient.getAccountInfo(chainType, address);
+    }
 };
 
 module.exports = IWanBCConnector;
