@@ -259,31 +259,14 @@ class WanBridge extends EventEmitter {
   validateAddress(chainName, address, options = {}) {
     options = Object.assign({debug: true, checkToken: true}, options);
     let chainType = this.tokenPairService.getChainType(chainName);
-    let extension = this.configService.getExtension(chainType);
-    let result;
-    if (extension && extension.tool && extension.tool.validateAddress) {
-      result = extension.tool.validateAddress(address, this.network, chainName);
-    } else if ("WAN" === chainType) {
-      result = tool.isValidWanAddress(address);
-    } else if ("BTC" === chainType) {
-      result = tool.isValidBtcAddress(address, this.network);
-    } else if ("LTC" === chainType) {
-      result = tool.isValidLtcAddress(address, this.network);
-    } else if ("DOGE" === chainType) {
-      result = tool.isValidDogeAddress(address, this.network);
-    } else if ("XRP" === chainType) {
-      result = tool.isValidXrpAddress(address);
-    } else if ("XDC" === chainType) {
-      result = tool.isValidXdcAddress(address);
-    } else { // default as EVM
-      result = tool.isValidEthAddress(address);
-    }
+    let result = this.storemanService.validateAddress(chainType, address);
     if (result === false) {
       if (options.debug) {
         console.log("SDK: validateAddress, chainName: %s, address: %s, result: %s", chainName, address, result);
       }
       return false;
     }
+    let extension = this.configService.getExtension(chainType);
     if (options.checkToken && this.stores.assetPairs.isTokenAccount(chainType, address, extension)) {
       console.error("SDK: validateAddress, chainName: %s, address: %s, result: is token address", chainName, address);
       return false;

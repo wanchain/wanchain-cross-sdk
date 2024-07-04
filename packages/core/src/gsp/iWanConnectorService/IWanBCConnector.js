@@ -228,12 +228,16 @@ class IWanBCConnector {
       return this.apiClient.getWanBridgeDiscounts(options);
     }
 
-    async call(method, options) {
-      return this.apiClient.call(method, options);
-    }
-
     async getAccountInfo(chainType, address) {
       return this.apiClient.getAccountInfo(chainType, address);
+    }
+
+    async getAllBalances(chainType, address) {
+      return this.apiClient.getAllBalances(chainType, address);
+    }
+
+    async call(method, options) {
+      return this.apiClient.call(method, options);
     }
 };
 

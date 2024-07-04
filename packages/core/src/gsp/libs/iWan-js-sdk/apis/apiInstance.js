@@ -8913,6 +8913,28 @@ class ApiInstance extends WsInstance {
     });
   }
 
+  getAllBalances(chainType, address, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    options = Object.assign({}, {}, options);
+    let method = 'getAllBalances';
+    let params = { chainType: chainType, address: address, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
   call(method, options, callback) {
     if (typeof(options) === "function") {
       callback = options;
