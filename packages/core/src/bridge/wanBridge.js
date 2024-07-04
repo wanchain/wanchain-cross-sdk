@@ -406,6 +406,8 @@ class WanBridge extends EventEmitter {
         return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
       } else if (chainType === "SOL") {
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+      } else if (chainType === "ALGO") {
+        return Number(tokenAccount);
       } else {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
       }
