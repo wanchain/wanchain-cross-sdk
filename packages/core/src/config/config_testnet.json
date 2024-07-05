@@ -525,7 +525,7 @@
       "chainType": "ALGO",
       "chainName": "Algorand",
       "symbol": "ALGO",
-      "crossScAddr": 627255629,
+      "crossScAddr": 694523398,
       "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
       "mintFromChainHandle": "MintFromAlgorand",
       "chainDecimals": 6,
