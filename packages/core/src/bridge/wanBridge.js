@@ -588,6 +588,7 @@ class WanBridge extends EventEmitter {
         result[v.account] = v.id;
       }
     });
+    console.debug("SDK: accountAddress2Id, addresses: %O, result: %O", addresses, result);
     return result;
   }
 
@@ -612,6 +613,7 @@ class WanBridge extends EventEmitter {
         }
       }
     });
+    console.debug("SDK: accountId2Address, id: %s, chainName: %s, result: %O", id, chainName, result);
     return result;
   }
 
