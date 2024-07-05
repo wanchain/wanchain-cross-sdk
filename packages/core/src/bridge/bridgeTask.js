@@ -210,14 +210,16 @@ class BridgeTask {
       }
     }
     // check activating balance
+    let tokenAccount = (this._direction === "MINT")? this._tokenPair.fromAccount : this._tokenPair.toAccount;
+    let isLockCoin = (tokenAccount == 0);
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    if ((!chainInfo.crossScAddr) && chainInfo.minReserved && (this._direction === "MINT") && (this._tokenPair.fromAccount == 0)) { // only mint coin on not-sc-chain need to check smg balance
+    let crossScAddr = chainInfo.crossScAddr || (chainInfo.CircleBridge && chainInfo.CircleBridge.crossScAddr);
+    if ((!crossScAddr) && chainInfo.minReserved) { // do not check contract as it only set once
       let smgAddr = this._getSmgAddress(fromChainType);
       let smgBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, fromChainType, smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance;
-      let isLockCoin = (this._tokenPair.fromAccount == 0); // only release coin would change balance
-      if (isLockCoin) {
+      if (isLockCoin) { // only lock coin would change balance, ignore lock token networkFee
         estimateBalance = estimateBalance.plus(this._amount);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {
@@ -231,14 +233,14 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((fromChainType === "XRP") && (this._tokenPair.readableSymbol !== "XRP")) { // XRP token need to check smg trust line
+    if ((fromChainType === "XRP") && !isLockCoin) { // XRP token need to check smg trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
       let smgAddr = this._getSmgAddress(fromChainType);
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._tokenPair.fromAccount, smgAddr);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(this._tokenPair.fromAccount, true).join(".");
+        let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
         console.debug("Storeman has no trust line for %s: smg=%s, liquidity=%s", token, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
         return "The XRPL token crosschain is being activated. Please try again later";
       }
@@ -285,19 +287,20 @@ class BridgeTask {
 
   async _checkToAccount() {
     let chainType = this._toChainInfo.chainType;
+    let tokenAccount = (this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount;
+    let isRedeemCoin = (tokenAccount == 0);
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.minReserved && (chainType !== "SOL")) { // solana do not limit on toChain
       let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._toAccount, {isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;
-      let isReleaseCoin = (this._tokenPair.fromAccount == 0); // only release coin would change balance
-      if (isReleaseCoin) {
+      if (isRedeemCoin) { // only redeem coin would change balance
         let fee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol);
         estimateBalance = estimateBalance.plus(this._amount).minus(fee);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {
-        if (isReleaseCoin) {
+        if (isRedeemCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(balance);
           console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
           return "Amount is too small to activate recipient account";
@@ -307,13 +310,13 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((chainType === "XRP") && (this._tokenPair.readableSymbol !== "XRP")) { // XRP token need to check recipient trust line
+    if ((chainType === "XRP") && !isRedeemCoin) { // XRP token need to check recipient trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._tokenPair.fromAccount, this._toAccount);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, this._toAccount);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(this._tokenPair.fromAccount, true).join(".");
+        let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
         let reason = line? "Liquidity is not enough" : "No trust line";
         let msg = util.format("%s for %s", reason, token);
         console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
@@ -327,8 +330,7 @@ class BridgeTask {
         if (aInfo.deleted) {
           return "Recipient account is inactive";
         }
-        if (this._tokenPair.readableSymbol !== "ALGO") { // algorand token need to check recipient opt in
-          let tokenAccount = (this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount;
+        if (!isRedeemCoin) { // algorand token need to check recipient opt in
           let assetId = Number(tokenAccount), optIn = null;
           if ((aInfo['total-assets-opted-in'] > 0) && aInfo.assets) {
             optIn = aInfo.assets.find(v => ((v['asset-id'] === assetId) && (v['opted-in-at-round'] > 0)));
