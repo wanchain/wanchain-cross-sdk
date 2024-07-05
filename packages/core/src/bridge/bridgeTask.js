@@ -324,21 +324,19 @@ class BridgeTask {
       }
     }
     // check algo status and opt in
-    if (chainType === "ALGO") {
+    if ((chainType === "ALGO") && !isRedeemCoin) { // algorand token need to check recipient opt in
       let aInfo = await this._bridge.iwan.getAccountInfo("ALGO", this._toAccount);
       if (aInfo) {
         if (aInfo.deleted) {
           return "Recipient account is inactive";
         }
-        if (!isRedeemCoin) { // algorand token need to check recipient opt in
-          let assetId = Number(tokenAccount), optIn = null;
-          if ((aInfo['total-assets-opted-in'] > 0) && aInfo.assets) {
-            optIn = aInfo.assets.find(v => ((v['asset-id'] === assetId) && (v['opted-in-at-round'] > 0)));
-          }
-          if (!optIn) {
-            let msg = "No opt-in for token " + assetId;
-            return msg;
-          }
+        let assetId = Number(tokenAccount), optIn = null;
+        if ((aInfo['total-assets-opted-in'] > 0) && aInfo.assets) {
+          optIn = aInfo.assets.find(v => ((v['asset-id'] === assetId) && (v['opted-in-at-round'] > 0)));
+        }
+        if (!optIn) {
+          let msg = "No opt-in for token " + assetId;
+          return msg;
         }
       } else {
         return "Recipient account is not found";
