@@ -45,7 +45,7 @@ module.exports = class CheckTxReceiptService {
             console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
             obj.txHash = result.txHash;
             if (obj.convertCheckInfo) {
-              obj.convertCheckInfo.uniqueID = result.txHash;
+              obj.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
             }
           }
           if (result.result === "Succeeded") {
@@ -72,6 +72,8 @@ module.exports = class CheckTxReceiptService {
           isSuccess = (txReceipt.meta.err === null);
         } else if (obj.chain === "TRX") {
           isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
+        } else if (obj.chain === "ALGO") {
+          isSuccess = (txReceipt['confirmed-round'] > 0);
         } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }

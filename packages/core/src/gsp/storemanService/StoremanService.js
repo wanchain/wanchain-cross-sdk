@@ -4,8 +4,8 @@ const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
 
-const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"]; // TRX has self wallet but also be supported by rpc
-const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "ATOM", "NOBLE"]; // TRX has self wallet but also be supported by rpc
+const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA"];
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
 class StoremanService {
@@ -55,6 +55,30 @@ class StoremanService {
       return {maxQuota: "0", minQuota: "0"};
     }
 
+    validateAddress(chainType, address) {
+      let result;
+      let extension = this.configService.getExtension(chainType);
+      let network = this.configService.getNetwork();
+      if (extension && extension.tool && extension.tool.validateAddress) {
+        result = extension.tool.validateAddress(address, network, chainType);
+      } else if ("WAN" === chainType) {
+        result = tool.isValidWanAddress(address);
+      } else if ("BTC" === chainType) {
+        result = tool.isValidBtcAddress(address, this.network);
+      } else if ("LTC" === chainType) {
+        result = tool.isValidLtcAddress(address, this.network);
+      } else if ("DOGE" === chainType) {
+        result = tool.isValidDogeAddress(address, this.network);
+      } else if ("XRP" === chainType) {
+        result = tool.isValidXrpAddress(address);
+      } else if ("XDC" === chainType) {
+        result = tool.isValidXdcAddress(address);
+      } else { // default as EVM
+        result = tool.isValidEthAddress(address);
+      }
+      return result;
+    }
+
     async getAccountBalance(assetPairId, chainType, addr, options = {}) {
       try {
         let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -62,14 +86,18 @@ class StoremanService {
         if (!tokenPair) {
           return new BigNumber(0);
         }
-        let balance, decimals;
+        let balance = 0, decimals;
         let direction = (chainType === tokenPair.fromChainType);
         let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+        let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
         let isCoin = options.isCoin || (tokenAccount === "0x0000000000000000000000000000000000000000");
         if (isCoin) {
           decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
           if (SELF_WALLET_COIN_BALANCE_CHAINS.includes(chainType)) {
-            balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
+            if (options.wallet) {
+              // ogmius only provide pure ADA utxo balance
+              balance = await options.wallet.getBalance(addr);
+            }
           } else {
             balance = await this.iwan.getBalance(chainType, addr);
           }
@@ -77,11 +105,14 @@ class StoremanService {
           decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
           if (tokenPair.protocol === "Erc1155") {
             balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
-          } else { // Erc20
-            if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-              balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
-            } else {
+          } else { // Erc20, Erc721
+            if (chainInfo._isEVM) {
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
+            } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
+              // ALGO do not need format tokenAccount
+              balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
+            } else if (options.wallet) {
+              balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
             }
           }
         }
@@ -97,7 +128,7 @@ class StoremanService {
     async getAccountBalances(chainType, addr, assets, options) {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
       let result = {};
-      if (chainInfo._isEVM) { // evm support multicall
+      if (chainInfo._isEVM) { // evm support multicall, include Tron
         let evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
         if (tool.isValidEthAddress(evmAddress)) {
           let mcs = [], subgraphs = [];
@@ -147,10 +178,20 @@ class StoremanService {
             res.forEach((v, i) => result[subgraphs[i].asset] = v);
           }
         }
-      } else if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-        let extension = this.configService.getExtension(chainType);
-        let network = this.configService.getNetwork();
-        if (extension && extension.tool && extension.tool.validateAddress && extension.tool.validateAddress(addr, network, chainType)) {
+      } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) { // format of non-evm chains is different and needs to parse separately
+        if (this.validateAddress(chainType, addr)) {
+          if (chainType === "ALGO") {
+            let balances = await this.iwan.getAllBalances(chainType, addr);
+            let bMap = new Map();
+            balances.forEach(v => bMap.set(v.assetId, v.amount));
+            for (let asset in assets) {
+              let tokenInfo = assets[asset]; // include coin
+              result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
+            }
+          }
+        }
+      } else if (options.wallet) {
+        if (this.validateAddress(chainType, addr)) {
           let assetArray = [], balances;
           try { // input addr format maybe not match wallet
             if (options.wallet.getBalances) { // fix cardano Eternl too many requests error
@@ -176,8 +217,6 @@ class StoremanService {
             console.error("get %s %s balances error: %O", chainType, addr, err);
           }
         }
-      } else {
-        // console.debug("not support to get %s balance", chainType);
       }
       return result;
     }

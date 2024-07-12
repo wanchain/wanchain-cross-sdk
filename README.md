@@ -18,3 +18,9 @@ Support cross-chain between specific chain and other chains. Each extension inte
 [@wandevs/cross-polkadot](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/polkadot)
 
 [@wandevs/cross-tron](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/tron)
+
+[@wandevs/cross-cosmos](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/cosmos)
+
+[@wandevs/cross-solana](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/solana)
+
+[@wandevs/cross-algorand](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/algorand)

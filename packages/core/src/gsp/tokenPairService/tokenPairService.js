@@ -539,6 +539,9 @@ class TokenPairService {
     getTokenEventType(tokenPairId, direction) {
       let tokenPair = this.getTokenPair(tokenPairId);
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+      if (chainType === "ALGO") {
+        return "algoBURN";
+      }
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
       let key = chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);

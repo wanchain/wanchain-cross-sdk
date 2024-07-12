@@ -57,7 +57,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
         ];
         let convertCheckInfo = {
             ccTaskId: params.ccTaskId,
-            uniqueID: stepData.txHash,
+            uniqueID: "0x" + tool.hexStrip0x(stepData.txHash),
             userAccount: params.userAccount,
             smgID: params.storemanGroupId,
             tokenPairID: params.tokenPairID,

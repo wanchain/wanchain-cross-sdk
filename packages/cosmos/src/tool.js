@@ -11,10 +11,10 @@ const AddressPrefix = {
   NOBLE: "noble"
 }
 
-function validateAddress(address) {
+function validateAddress(address, network, chain) {
   try {
     encoding.fromBech32(address);
-    return true;
+    return (address.indexOf(AddressPrefix[chain]) === 0);
   } catch (err) {
     // console.error("cosmos validateAddress %s error: %O", address, err);
     return false;

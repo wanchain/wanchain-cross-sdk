@@ -354,6 +354,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147483961",
+      "chainType": "ZIL",
+      "chainName": "Zilliqa",
+      "symbol": "ZIL",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 33101,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -518,6 +530,23 @@
       "minReserved": 0.0009,
       "TxScanInfo": {
         "taskInterval": 10000
+      }
+    },
+    {
+      "chainId": "2147483931",
+      "chainType": "ALGO",
+      "chainName": "Algorand",
+      "symbol": "ALGO",
+      "crossScAddr": 694523398,
+      "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
+      "mintFromChainHandle": "MintFromAlgorand",
+      "chainDecimals": 6,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      },
+      "rpc": {
+        "url" : "https://testnet-api.algonode.cloud",
+        "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
       }
     }
   ],

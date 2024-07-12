@@ -4,31 +4,31 @@
 module.exports = [
     {
       "name": "ProcessErc20UserFastMint",
-      "handle": require("./processErc20UserFastMint.js")
+      "handle": require("./ProcessErc20UserFastMint.js")
     },
     {
       "name": "ProcessErc20Approve",
-      "handle": require("./processErc20Approve")
+      "handle": require("./ProcessErc20Approve")
     },
     {
       "name": "ProcessErc20UserFastBurn",
-      "handle": require("./processErc20UserFastBurn")
+      "handle": require("./ProcessErc20UserFastBurn")
     },
     {
       "name": "ProcessCoinUserFastMint",
-      "handle": require("./processCoinUserFastMint")
+      "handle": require("./ProcessCoinUserFastMint")
     },
     {
       "name": "ProcessMintBtcFromBitcoin",
-      "handle": require("./processMintBtcFromBitcoin")
+      "handle": require("./ProcessMintBtcFromBitcoin")
     },
     {
       "name": "ProcessXrpMintFromRipple",
-      "handle": require("./processXrpMintFromRipple")
+      "handle": require("./ProcessXrpMintFromRipple")
     },
     {
       "name": "ProcessDotMintFromPolka",
-      "handle": require("./processDotMintFromPolka")
+      "handle": require("./ProcessDotMintFromPolka")
     },
     {
       "name": "ProcessBurnErc20ProxyToken",
@@ -36,27 +36,27 @@ module.exports = [
     },
     {
       "name": "ProcessErc721Approve",
-      "handle": require("./processErc721Approve")
+      "handle": require("./ProcessErc721Approve")
     },
     {
       "name": "ProcessAdaMintFromCardano",
-      "handle": require("./processAdaMintFromCardano")
+      "handle": require("./ProcessAdaMintFromCardano")
     },
     {
       "name": "ProcessBurnFromCardano",
-      "handle": require("./processBurnFromCardano")
+      "handle": require("./ProcessBurnFromCardano")
     },
     {
       "name": "ProcessPhaMintFromPhala",
-      "handle": require("./processPhaMintFromPhala")
+      "handle": require("./ProcessPhaMintFromPhala")
     },
     {
       "name": "ProcessCircleBridgeDeposit",
-      "handle": require("./processCircleBridgeDeposit")
+      "handle": require("./ProcessCircleBridgeDeposit")
     },
     {
       "name": "ProcessMintFromCosmos",
-      "handle": require("./processMintFromCosmos")
+      "handle": require("./ProcessMintFromCosmos")
     },
     {
       "name": "ProcessCircleBridgeNobleDeposit",
@@ -69,5 +69,9 @@ module.exports = [
     {
       "name": "ProcessCircleBridgeSolanaReclaim",
       "handle": require("./ProcessCircleBridgeSolanaReclaim")
+    },
+    {
+      "name": "ProcessMintFromAlgorand",
+      "handle": require("./ProcessMintFromAlgorand")
     }
 ]

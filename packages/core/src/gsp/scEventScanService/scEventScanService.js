@@ -12,10 +12,16 @@ module.exports = class ScEventScanService {
   async init(frameworkService) {
     this.m_frameworkService = frameworkService;
     this.m_configService = frameworkService.getService("ConfigService");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
 
     this.m_mapCheckHandle = new Map();
 
     let chainsInfo = this.m_configService.getGlobalConfig("StoremanService");
+    let algoExtension = this.m_configService.getExtension("ALGO");
+    let algoInfo = this.chainInfoService.getChainInfoByType("ALGO");
+    if (algoExtension && algoInfo) {
+      chainsInfo.push(algoInfo);
+    }
     // console.debug("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {
       let obj = chainsInfo[idx];

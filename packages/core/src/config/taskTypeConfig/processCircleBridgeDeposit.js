@@ -49,7 +49,7 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
         let convertCheckInfo = {
             ccTaskId: params.ccTaskId,
             txHash: stepData.txHash,
-            uniqueID: stepData.txHash,
+            uniqueID: "0x" + tool.hexStrip0x(stepData.txHash),
             chain: checkChain,
             fromBlockNumber: blockNumber,
             taskType: "circleMINT",
