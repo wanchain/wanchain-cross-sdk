@@ -88,7 +88,7 @@ class BridgeTask {
     }
     let [fromAccountErr, toAccountErr] = await Promise.all([
       this._checkFromAccount(),
-      this._checkToAccount()
+      this._checkToAccount(options)
     ]);
     err = fromAccountErr || toAccountErr;
     if (err) {
@@ -285,10 +285,17 @@ class BridgeTask {
     return "";
   }
 
-  async _checkToAccount() {
+  async _checkToAccount(options) {
     let chainType = this._toChainInfo.chainType;
     let tokenAccount = (this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount;
     let isRedeemCoin = (tokenAccount == 0);
+    // check address id
+    if (options.toAccountId) {
+      let addresses = await this._bridge.accountId2Address(options.toAccountId, this._toChainInfo.chainName);
+      if (!addresses.find(v => v.address === this._toAccount)) {
+        return "Recipient address and id do not match";
+      }
+    }
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.minReserved && (chainType !== "SOL")) { // solana do not limit on toChain
