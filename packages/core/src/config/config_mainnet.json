@@ -119,7 +119,7 @@
     {
       "chainId": "2147484262",
       "chainType": "OETH",
-      "chainName": "Optimism",
+      "chainName": "OP Mainnet",
       "symbol": "ETH",
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "CircleBridge": {

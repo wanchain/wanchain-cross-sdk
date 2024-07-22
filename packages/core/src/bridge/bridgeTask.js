@@ -274,12 +274,12 @@ class BridgeTask {
     }
     console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
     if (coinBalance.lt(requiredCoin)) {
-      return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
+      return "Insufficient balance";
     }
     if (this._tokenPair.protocol === "Erc20") {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       if (assetBalance.lt(requiredAsset)) {
-        return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
+        return "Insufficient asset";
       }
     }
     return "";
