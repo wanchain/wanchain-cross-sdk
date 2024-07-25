@@ -541,6 +541,7 @@
       "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
       "mintFromChainHandle": "MintFromAlgorand",
       "chainDecimals": 6,
+      "minReserved": 0.1,
       "ScScanInfo": {
         "taskInterval": 15000
       },
