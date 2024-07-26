@@ -540,6 +540,7 @@
       "crossScAddr": 694523398,
       "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
       "mintFromChainHandle": "MintFromAlgorand",
+      "burnFromChainHandle": "MintFromAlgorand",
       "chainDecimals": 6,
       "minReserved": 0.1,
       "ScScanInfo": {
