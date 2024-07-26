@@ -145,10 +145,7 @@ class StartService {
         try {
             let frameworkService = this.frameworkService;
 
-            console.log("frameworkService serviceRegistry: %O", JSON.stringify(Object.keys(frameworkService.serviceRegistry)));
-
             let storageService = frameworkService.getService("StorageService");
-            console.log("start storageService: %O", storageService)
             await storageService.init_load();
 
             let checkTxReceiptService = frameworkService.getService("CheckTxReceiptService");
