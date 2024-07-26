@@ -64,11 +64,11 @@ class StoremanService {
       } else if ("WAN" === chainType) {
         result = tool.isValidWanAddress(address);
       } else if ("BTC" === chainType) {
-        result = tool.isValidBtcAddress(address, this.network);
+        result = tool.isValidBtcAddress(address, network);
       } else if ("LTC" === chainType) {
-        result = tool.isValidLtcAddress(address, this.network);
+        result = tool.isValidLtcAddress(address, network);
       } else if ("DOGE" === chainType) {
-        result = tool.isValidDogeAddress(address, this.network);
+        result = tool.isValidDogeAddress(address, network);
       } else if ("XRP" === chainType) {
         result = tool.isValidXrpAddress(address);
       } else if ("XDC" === chainType) {
