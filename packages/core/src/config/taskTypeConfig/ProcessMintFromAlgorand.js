@@ -27,7 +27,8 @@ module.exports = class ProcessMintFromAlgorand {
 
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let isCoin = [tokenPair.fromAccount, tokenPair.toAccount].includes("0x0000000000000000000000000000000000000000");
+      let tokenAccount = (tokenPair.fromChainType === "ALGO")? tokenPair.fromAccount : tokenPair.toAccount;
+      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
       let coinValue = isCoin? params.value : params.networkFee;
       let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
 
@@ -40,7 +41,6 @@ module.exports = class ProcessMintFromAlgorand {
 
       let assetTx = null;
       if (!isCoin) {
-        let tokenAccount = (tokenPair.fromChainType === "ALGO")? tokenPair.fromAccount : tokenPair.toAccount;
         assetTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
           from: params.fromAddr,
           suggestedParams,
