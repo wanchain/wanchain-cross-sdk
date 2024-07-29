@@ -86,6 +86,7 @@ module.exports = class ProcessMintFromAlgorand {
       this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txId, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
+      let direction = (tokenPair.fromChainType === "ALGO")? "MINT" : "BURN";
       let checker = {
         chain: "ALGO",
         ccTaskId: params.ccTaskId,
@@ -98,7 +99,11 @@ module.exports = class ProcessMintFromAlgorand {
           uniqueID: '0x' + Buffer.from(base32.decode.asBytes(txId)).toString('hex'),
           fromBlockNumber: blockNumber,
           chain: params.toChainType,
-          taskType: "MINT"
+          taskType: tokenPairService.getTokenEventType(tokenPairID, direction),
+          fromChain: "ALGO",
+          fromAddr: params.fromAddr,
+          chainHash: txId,
+          toAddr: params.toAddr
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
