@@ -408,12 +408,11 @@ class StoremanService {
     }
 
     async getBtcTxSender(chainType, txid) {
-      let iwan = this.frameworkService.getService("iWanConnectorService");
-      let txInfo = await iwan.getTxInfo(chainType, txid, {format: true});
+      let txInfo = await this.iwan.getTxInfo(chainType, txid, {format: true});
       let inputLen = txInfo.vin.length;
       let sender = "";
       for (let i = 0; i < inputLen; i++) {
-          let inputTxInfo = await iwan.getTxInfo(chainType, txInfo.vin[i].txid, {format: true});
+          let inputTxInfo = await this.iwan.getTxInfo(chainType, txInfo.vin[i].txid, {format: true});
           let senders = inputTxInfo.vout[txInfo.vin[i].vout].scriptPubKey.addresses;
           if (senders && senders.length) {
               sender = senders[0];
