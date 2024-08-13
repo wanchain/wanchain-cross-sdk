@@ -364,6 +364,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741851",
+      "chainType": "WATER",
+      "chainName": "Waterfall",
+      "symbol": "WATER",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "chainDecimals": 18,
+      "MaskChainId": 181,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
