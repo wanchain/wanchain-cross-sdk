@@ -34,6 +34,7 @@ class CrossChainTask {
       reclaimStatus: '',
       reclaimHash: '',
       errInfo: '',
+      wanPoints: '',
       // options
       fromAccountId: '',
       toAccountId: '',

@@ -64,11 +64,11 @@ class StoremanService {
       } else if ("WAN" === chainType) {
         result = tool.isValidWanAddress(address);
       } else if ("BTC" === chainType) {
-        result = tool.isValidBtcAddress(address, this.network);
+        result = tool.isValidBtcAddress(address, network);
       } else if ("LTC" === chainType) {
-        result = tool.isValidLtcAddress(address, this.network);
+        result = tool.isValidLtcAddress(address, network);
       } else if ("DOGE" === chainType) {
-        result = tool.isValidDogeAddress(address, this.network);
+        result = tool.isValidDogeAddress(address, network);
       } else if ("XRP" === chainType) {
         result = tool.isValidXrpAddress(address);
       } else if ("XDC" === chainType) {
@@ -406,6 +406,23 @@ class StoremanService {
         return 0; // should retry later
       }
     }
+
+    async getBtcTxSender(chainType, txid) {
+      let txInfo = await this.iwan.getTxInfo(chainType, txid, {format: true});
+      let inputLen = txInfo.vin.length;
+      let sender = "";
+      for (let i = 0; i < inputLen; i++) {
+          let inputTxInfo = await this.iwan.getTxInfo(chainType, txInfo.vin[i].txid, {format: true});
+          let senders = inputTxInfo.vout[txInfo.vin[i].vout].scriptPubKey.addresses;
+          if (senders && senders.length) {
+              sender = senders[0];
+              if (senders.length === 1) {
+                  break;
+              }
+          }
+      }
+      return sender;
+  }
 }
 
 module.exports = StoremanService;

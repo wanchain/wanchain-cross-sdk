@@ -27,7 +27,8 @@ module.exports = class ProcessMintFromAlgorand {
 
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let isCoin = [tokenPair.fromAccount, tokenPair.toAccount].includes("0x0000000000000000000000000000000000000000");
+      let tokenAccount = (tokenPair.fromChainType === "ALGO")? tokenPair.fromAccount : tokenPair.toAccount;
+      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
       let coinValue = isCoin? params.value : params.networkFee;
       let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
 
@@ -40,7 +41,6 @@ module.exports = class ProcessMintFromAlgorand {
 
       let assetTx = null;
       if (!isCoin) {
-        let tokenAccount = (tokenPair.fromChainType === "ALGO")? tokenPair.fromAccount : tokenPair.toAccount;
         assetTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
           from: params.fromAddr,
           suggestedParams,
@@ -86,6 +86,7 @@ module.exports = class ProcessMintFromAlgorand {
       this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txId, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
+      let direction = (tokenPair.fromChainType === "ALGO")? "MINT" : "BURN";
       let checker = {
         chain: "ALGO",
         ccTaskId: params.ccTaskId,
@@ -98,7 +99,11 @@ module.exports = class ProcessMintFromAlgorand {
           uniqueID: '0x' + Buffer.from(base32.decode.asBytes(txId)).toString('hex'),
           fromBlockNumber: blockNumber,
           chain: params.toChainType,
-          taskType: "MINT"
+          taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction),
+          fromChain: "ALGO",
+          fromAddr: params.fromAddr,
+          chainHash: txId,
+          toAddr: params.toAddr
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");

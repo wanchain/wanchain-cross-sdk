@@ -366,6 +366,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741851",
+      "chainType": "WATER",
+      "chainName": "Waterfall",
+      "symbol": "WATER",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 1501869,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -540,7 +552,9 @@
       "crossScAddr": 694523398,
       "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
       "mintFromChainHandle": "MintFromAlgorand",
+      "burnFromChainHandle": "MintFromAlgorand",
       "chainDecimals": 6,
+      "minReserved": 0.1,
       "ScScanInfo": {
         "taskInterval": 15000
       },
@@ -573,5 +587,6 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigAddress": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D"
+  "crossConfigAddress": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D",
+  "wanPointsServer": ""
 }

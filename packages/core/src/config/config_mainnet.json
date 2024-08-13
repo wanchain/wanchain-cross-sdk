@@ -554,5 +554,6 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigAddress": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6"
+  "crossConfigAddress": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
+  "wanPointsServer": "https://wanpoints.wanscan.org"
 }

@@ -5,6 +5,7 @@ const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
 const tool = require('../utils/tool.js');
 const BigNumber = require("bignumber.js");
+const axios = require("axios");
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
@@ -24,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2407151825", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 248121636", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -33,7 +34,6 @@ class WanBridge extends EventEmitter {
     this.storageService = this._service.getService("StorageService");
     this.feesService = this._service.getService("CrossChainFeesService");
     this.chainInfoService = this._service.getService("ChainInfoService");
-    this.globalConstant = this._service.getService("GlobalConstant");
     this.tokenPairService = this._service.getService("TokenPairService");
     this.txTaskHandleService = this._service.getService("TxTaskHandleService");
     this.cctHandleService = this._service.getService("CCTHandleService");
@@ -337,6 +337,7 @@ class WanBridge extends EventEmitter {
         reclaimStatus: task.reclaimStatus,
         reclaimHash: task.reclaimHash,
         errInfo: task.errInfo,
+        wanPoints: task.wanPoints,
         fromAccountId: task.fromAccountId,
         toAccountId: task.toAccountId,
       };
@@ -666,7 +667,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onRedeemTxHash(taskRedeemHash) {
+  async _onRedeemTxHash(taskRedeemHash) {
     console.debug("_onRedeemTxHash: %O", taskRedeemHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskRedeemHash.ccTaskId;
@@ -710,6 +711,23 @@ class WanBridge extends EventEmitter {
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     if ((ccTask.fromChainType === "SOL") && (ccTask.bridge === "Circle")) {
       records.setExtraInfo(taskId, {reclaimStatus: "Ready"});
+    }
+    let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
+    if (wanPointsServer) {
+      let wanPoints = '0';
+      let url = wanPointsServer + "/api/point/" + txHash;
+      try {
+        let res = await axios.get(url);
+        console.debug("wanPoints %s: %O", url, res);
+        if (res && res.data && res.data.point) {
+          wanPoints = new BigNumber(res.data.point).toFixed();
+        }
+      } catch (err) {
+        console.debug("wanPoints %s error: %O", url, err);
+      }
+      records.setExtraInfo(taskId, {wanPoints});
+    } else {
+      console.debug("%s does not support wanPoints", this.network);
     }
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     this.emit("redeem", {taskId, txHash});
