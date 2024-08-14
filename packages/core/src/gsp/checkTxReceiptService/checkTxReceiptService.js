@@ -106,7 +106,8 @@ module.exports = class CheckTxReceiptService {
       }
     }
     let latestBlock = await this.iwan.getBlockNumber(obj.chain);
-    let fromBlock = txCheckInfo.fromBlock - 30; // for rollback
+    let rewindBlocks = (obj.chain === "SGB")? 10 : 100;
+    let fromBlock = txCheckInfo.fromBlock - rewindBlocks; // for rollback
     if (fromBlock < 1) {
       fromBlock = 1;
     }
