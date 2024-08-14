@@ -187,26 +187,33 @@ const OgmiosUrl = {
 };
 
 async function evaluateTx(network, rawTx) {
-  let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
-  return res.data;
+  try {
+    let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
+    return res.data;
+  } catch (err) {
+    console.error("evaluateTx error: %O", err);
+    throw new Error("Network Instability Detected");
+  }
 }
 
 async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
+  let checkUtxos = utxos.map(v => {
+    let input = v.to_js_value().input;
+    return {
+      txId: input.transaction_id,
+      index: input.index
+    }
+  });
   let t0 = Date.now();
   for ( ; ; ) {
-    let chainUtxos = [];
-    let checkUtxos = utxos.map(v => {
-      let input = v.to_js_value().input;
-      return {
-        txId: input.transaction_id,
-        index: input.index
-      }
-    });
+    let chainUtxos = [], networkErr = false;
     try {
       let res = await axios.post(OgmiosUrl[network] + "/getUTXOs", checkUtxos);
       // console.log("checkUtxos res: %O", res);
       chainUtxos = res.data;
+      networkErr = false;
     } catch (err) {
+      networkErr = true;
       console.error("checkUtxos error: %O", err);
     }
     if (chainUtxos.length >= utxos.length) {
@@ -215,7 +222,11 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
       await sleep(interval);
     } else {
       console.debug("check utxos %d ms unavailable: %O", timeout, checkUtxos);
-      return false;
+      if (networkErr) {
+        throw new Error("Network Instability Detected");
+      } else {
+        return false;
+      }
     }
   }
 }
