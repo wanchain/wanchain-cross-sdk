@@ -20,6 +20,7 @@ module.exports = class CheckScEvent {
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.scanBatchSize = (chainInfo.chainType === "SGB")? 30 : 300; // OKTC limit 300
+    this.rewindBlocks = (chainInfo.chainType === "SGB")? 10 : 100;
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.ScScanInfo.taskInterval);
@@ -161,7 +162,7 @@ module.exports = class CheckScEvent {
         }
         await this.prepareTask(obj);
         let latestBlockNumber = await this.iwan.getBlockNumber(this.chainInfo.chainType);
-        let fromBlockNumber = obj.fromBlockNumber - 30; // for rollback
+        let fromBlockNumber = obj.fromBlockNumber - this.rewindBlocks; // for rollback
         if (fromBlockNumber < 1) {
           fromBlockNumber = 1;
         }
