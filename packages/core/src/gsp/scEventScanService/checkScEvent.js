@@ -3,6 +3,12 @@
 const wanUtil = require("wanchain-util");
 const tool = require("../../utils/tool");
 
+const DefaultScanBatchSize = 1000;
+const CustomizedScanBatchSize = {
+  SGB: 30,
+  OKT: 300,
+};
+
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
 const AlgoEventTypes = ["algoBURN"];
 
@@ -19,8 +25,7 @@ module.exports = class CheckScEvent {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
-    this.scanBatchSize = (chainInfo.chainType === "SGB")? 30 : 300; // OKTC limit 300
-    this.rewindBlocks = (chainInfo.chainType === "SGB")? 10 : 100;
+    this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.ScScanInfo.taskInterval);
@@ -162,15 +167,27 @@ module.exports = class CheckScEvent {
         }
         await this.prepareTask(obj);
         let latestBlockNumber = await this.iwan.getBlockNumber(this.chainInfo.chainType);
-        let fromBlockNumber = obj.fromBlockNumber - this.rewindBlocks; // for rollback
-        if (fromBlockNumber < 1) {
-          fromBlockNumber = 1;
-        }
-        let toBlockNumber = fromBlockNumber;
+        let fromBlockNumber = obj.fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
-          toBlockNumber = fromBlockNumber + this.scanBatchSize;
+          let rewindBlocks = parseInt(this.scanBatchSize * 0.6);
+          let toBlockNumber = fromBlockNumber + this.scanBatchSize;
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
+          }
+          // rewind on recent tx
+          if ((toBlockNumber + this.scanBatchSize) > latestBlockNumber) {
+            fromBlockNumber = fromBlockNumber - rewindBlocks; // rewind default
+            if (fromBlockNumber < 1) {
+              fromBlockNumber = 1;
+            }
+            toBlockNumber = fromBlockNumber + this.scanBatchSize;
+            if (toBlockNumber > latestBlockNumber) { // rewind max
+              toBlockNumber = latestBlockNumber;
+              fromBlockNumber = toBlockNumber - this.scanBatchSize;
+              if (fromBlockNumber < 1) {
+                fromBlockNumber = 1;
+              }
+            }
           }
           /* In theory, uniqueID should be a lowercase hash value with prefix '0x',
              but in historical implementations, some uniqueIDs are uppercase or (and) without '0x', such as Tron and XRP
@@ -197,11 +214,13 @@ module.exports = class CheckScEvent {
           } else { // wait next scan
             obj.fromBlockNumber = toBlockNumber + 1;
           }
+          console.debug("%s block %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
         } else { // rollback
           obj.fromBlockNumber = latestBlockNumber;
+          console.debug("%s no new block %d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
         }
-        console.debug("%s block %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
-                      this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
         await storageService.save("ScEventScanService", obj.uniqueID, obj);
       } catch (err) {
         if (err.message === "log is not ready") {
