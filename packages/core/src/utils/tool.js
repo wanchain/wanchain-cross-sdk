@@ -70,9 +70,7 @@ function isValidEthAddress(address) {
 function isValidWanAddress(address) {
   try {
     let validate;
-    if (/^0x[0-9a-f]{40}$/.test(address)) {
-      validate = true;
-    } else if (/^0x[0-9A-F]{40}$/.test(address)) {
+    if (/^0x[0-9A-Fa-f]{40}$/.test(address)) {
       validate = true;
     } else {
       validate = wanUtil.isValidChecksumAddress(address);
