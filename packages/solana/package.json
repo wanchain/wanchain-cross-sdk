@@ -15,9 +15,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@solana/web3.js": "^1.91.2",
-    "@coral-xyz/anchor": "^0.29.0",
-    "@solana/spl-token": "^0.4.3"
+    "@solana/web3.js": "1.91.2",
+    "@coral-xyz/anchor": "0.29.0",
+    "@solana/spl-token": "0.4.3"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
