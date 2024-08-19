@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 248191522", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 248191712", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -715,7 +715,7 @@ class WanBridge extends EventEmitter {
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
     if (wanPointsServer) {
       let wanPoints = '0';
-      let url = wanPointsServer + "/api/point/" + txHash;
+      let url = wanPointsServer + "/api/point/" + ccTask.lockHash;
       try {
         let res = await axios.get(url);
         console.debug("wanPoints %s: %O", url, res);
