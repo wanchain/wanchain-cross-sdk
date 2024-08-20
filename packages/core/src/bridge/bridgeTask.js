@@ -266,7 +266,19 @@ class BridgeTask {
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
     }
-    if (chainInfo.minReserved) {
+    if (chainType === "ALGO") { // ALGO min-balance includes minReserved
+      let aInfo = await this._bridge.iwan.getAccountInfo("ALGO", this._fromAccount);
+      if (aInfo) {
+        if (aInfo.deleted) {
+          return "Wallet account is inactive";
+        }
+        let minBalance = new BigNumber(aInfo['min-balance'] || 0).div(Math.pow(10, chainInfo.chainDecimals));
+        console.debug("min balance: %s", minBalance.toFixed());
+        requiredCoin = requiredCoin.plus(minBalance);
+      } else {
+        return "Wallet account is not found";
+      }
+    } else if (chainInfo.minReserved) {
       requiredCoin = requiredCoin.plus(chainInfo.minReserved);
     }
     if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // depositForBurn messageSentEventData rent
