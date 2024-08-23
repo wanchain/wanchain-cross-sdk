@@ -365,32 +365,42 @@ class StoremanService {
     }
 
     async getCardanoEpochParameters() {
-      let latestBlock = await this.iwan.getLatestBlock("ADA");
-      let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
-      let epochParameters = {
-        linearFee: {
-          minFeeA: p.min_fee_a.toString(),
-          minFeeB: p.min_fee_b.toString(),
-        },
-        minUtxo: p.min_utxo, // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
-        poolDeposit: p.pool_deposit,
-        keyDeposit: p.key_deposit,
-        coinsPerUtxoByte: p.coins_per_utxo_byte,
-        coinsPerUtxoWord: p.coins_per_utxo_word,
-        maxValSize: p.max_val_size,
-        priceMem: p.price_mem,
-        priceStep: p.price_step,
-        maxTxSize: parseInt(p.max_tx_size),
-        slot: parseInt(latestBlock.slot),
-      };
-      console.debug("getCardanoEpochParameters: %O", epochParameters);
-      return epochParameters;
+      try {
+        let latestBlock = await this.iwan.getLatestBlock("ADA");
+        let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
+        let epochParameters = {
+          linearFee: {
+            minFeeA: p.min_fee_a.toString(),
+            minFeeB: p.min_fee_b.toString(),
+          },
+          minUtxo: p.min_utxo, // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+          poolDeposit: p.pool_deposit,
+          keyDeposit: p.key_deposit,
+          coinsPerUtxoByte: p.coins_per_utxo_byte,
+          coinsPerUtxoWord: p.coins_per_utxo_word,
+          maxValSize: p.max_val_size,
+          priceMem: p.price_mem,
+          priceStep: p.price_step,
+          maxTxSize: parseInt(p.max_tx_size),
+          slot: parseInt(latestBlock.slot),
+        };
+        console.debug("getCardanoEpochParameters: %O", epochParameters);
+        return epochParameters;
+      } catch (err) {
+        console.error("getCardanoEpochParameters error: %O", err);
+        throw new Error("Network Instability Detected");
+      }
     }
 
     async getCardanoCostModelParameters() {
-      let p = await this.iwan.getCostModelParameters("ADA", {epochID: "latest"});
-      console.debug("getCardanoCostModelParameters: %O", p);
-      return p;
+      try {
+        let p = await this.iwan.getCostModelParameters("ADA", {epochID: "latest"});
+        console.debug("getCardanoCostModelParameters: %O", p);
+        return p;
+      } catch (err) {
+        console.error("getCardanoCostModelParameters error: %O", err);
+        throw new Error("Network Instability Detected");
+      }
     }
 
     async getChainBlockNumber(chainType) {
