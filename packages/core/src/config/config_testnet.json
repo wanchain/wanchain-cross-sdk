@@ -378,6 +378,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741852",
+      "chainType": "FTN",
+      "chainName": "Bahamut",
+      "symbol": "FTN",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 4058,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
