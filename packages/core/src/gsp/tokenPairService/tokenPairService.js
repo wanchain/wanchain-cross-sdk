@@ -13,6 +13,7 @@ class TokenPairService {
         this.assetLogo = new Map(); // name => logo
         this.chainLogo = new Map(); // type => logo
         this.storageService = null; // init after token pair service
+        this.indexedDbService = null; // init after token pair service
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
         this.tokenIssuer = new Map();
@@ -78,6 +79,7 @@ class TokenPairService {
 
     async readAssetPair() {
         this.storageService = this.frameworkService.getService("StorageService");
+        this.indexedDbService = this.frameworkService.getService("IndexedDbService");
         try {
             let ts0 = Date.now();
             let tokenPairMap = new Map();
@@ -113,6 +115,9 @@ class TokenPairService {
             this.webStores.assetPairs.setAssetPairs(activeTokenPairs, smgList, this.configService);
             this.m_mapTokenPair = tokenPairMap;
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
+            this.storageService.removeCacheData("AssetLogo");
+            this.storageService.removeCacheData("ChainLogo");
+            this.storageService.removeCacheData("TokenPair");
         } catch (err) {
             console.error("readAssetPair error: %O", err);
             this.eventService.emitEvent("StoremanServiceInitComplete", false);
@@ -176,10 +181,10 @@ class TokenPairService {
       console.debug({uiVer, iwanVer, verCache});
       this.forceRefresh = (verCache.ui !== uiVer);
       let tokenPairs = [];
-      if ((!this.forceRefresh) && (iwanVer === verCache.iwan)) {
-        tokenPairs = this.storageService.getCacheData("TokenPair") || [];
+      if ((!this.forceRefresh) && (iwanVer === verCache.iwan) && this.indexedDbService) {
+        tokenPairs = (await this.indexedDbService.getCacheData("TokenPair", iwanVer)) || [];
       }
-      if (tokenPairs.length) { // maybe localstoreage TokenPair is cleared
+      if (tokenPairs.length) { // maybe indexedDb TokenPair is cleared
         console.debug("all tokenpair hit cache");
       } else {
         let network = this.configService.getNetwork();
@@ -190,7 +195,11 @@ class TokenPairService {
           options = {isAllTokenPairs: true};
         }
         tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
-        this.storageService.setCacheData("TokenPair", tokenPairs);
+        if (this.indexedDbService) {
+          tokenPairs.forEach(v => v._ver = iwanVer);
+          await this.indexedDbService.setCacheData("TokenPair", tokenPairs);
+        }
+        // TODO: clear inactive tokenpairs
         this.storageService.setCacheData("Version", {ui: uiVer, iwan: iwanVer});
       }
       let ts = Date.now();
@@ -230,8 +239,14 @@ class TokenPairService {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
         assetMap.set(tp.readableSymbol + "_" + tp.protocol.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
-      let cache = this.forceRefresh? [] : (this.storageService.getCacheData("AssetLogo") || []);
-      let logoMapCacheOld = new Map(cache);
+      let cache;
+      if ((!this.forceRefresh) && this.indexedDbService) {
+        cache = await this.indexedDbService.getCacheData("AssetLogo");
+      }
+      let logoMapCacheOld = new Map();
+      if (cache) {
+        cache.forEach(v => logoMapCacheOld.set(v.name, {data: v.data, type: v.type}));
+      }
       let logoMapCacheNew = new Map();
       assetMap.forEach((v, k) => {
         let logo = logoMapCacheOld.get(k);
@@ -253,13 +268,22 @@ class TokenPairService {
             logoMapCacheNew.set(asset, {data: v.iconData, type: v.iconType});
           }
         });
+        if (this.indexedDbService) {
+          let newLogos = [];
+          tokenMap.forEach((v, k) => {
+            let logo = logoMapCacheNew.get(v);
+            if (logo) {
+              newLogos.push({name: v, data: logo.data, type: logo.type});
+            }
+          });
+          await this.indexedDbService.setCacheData("AssetLogo", newLogos);
+        }
       } else {
         console.debug("all asset logo hit cache");
       }
       let ts = Date.now();
       console.debug("readAssetLogos %d consume %s ms", tokenScAddr.length, ts - startTime);
       this.assetLogo = logoMapCacheNew;
-      this.storageService.setCacheData("AssetLogo", Array.from(logoMapCacheNew));
     }
 
     async readChainLogos(tokenPairs, startTime) {
@@ -269,8 +293,14 @@ class TokenPairService {
         chainSet.add(tp.fromChainType);
         chainSet.add(tp.toChainType);
       });
-      let cache = this.forceRefresh? [] : (this.storageService.getCacheData("ChainLogo") || []);
+      let cache;
+      if ((!this.forceRefresh) && this.indexedDbService) {
+        cache = await this.indexedDbService.getCacheData("ChainLogo");
+      }
       let logoMapCacheOld = new Map(cache);
+      if (cache) {
+        cache.forEach(v => logoMapCacheOld.set(v.name, {data: v.data, type: v.type}));
+      }
       let logoMapCacheNew = new Map();
       chainSet.forEach(k => {
         let logo = logoMapCacheOld.get(k);
@@ -296,13 +326,22 @@ class TokenPairService {
             logoMapCacheNew.set(v.chainType, {data: v.iconData, type: v.iconType});
           }
         });
+        if (this.indexedDbService) {
+          let newLogos = [];
+          newChains.forEach(v => {
+            let logo = logoMapCacheNew.get(v);
+            if (logo) {
+              newLogos.push({name: v, data: logo.data, type: logo.type});
+            }
+          });
+          await this.indexedDbService.setCacheData("ChainLogo", newLogos);
+        }
       } else {
         console.debug("all chain logo hit cache");
       }
       let ts = Date.now();
       console.debug("readChainLogos %d consume %s ms", newChains.length, ts - startTime);
       this.chainLogo = logoMapCacheNew;
-      this.storageService.setCacheData("ChainLogo", Array.from(logoMapCacheNew));
     }
 
     getTokenPair(id) {
