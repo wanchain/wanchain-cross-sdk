@@ -128,7 +128,7 @@ function selectUtxos(utxos, rawOutput, protocolParameters) {
     const selection = CoinSelection.randomImprove(
       utxos,
       outputs,
-      100 + totalAssets
+      20 + totalAssets
     );
     return selection.input;
   } catch (err) {
