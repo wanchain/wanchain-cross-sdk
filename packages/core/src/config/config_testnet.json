@@ -313,9 +313,9 @@
       "chainType": "LINEAETH",
       "chainName": "Linea",
       "symbol": "ETH",
-      "crossScAddr": "0x4bAfCf6dd1f05a90Ea80E2A0419cf1d9c79e0049",
+      "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
       "chainDecimals": 18,
-      "MaskChainId": 59140,
+      "MaskChainId": 59141,
       "ScScanInfo": {
         "taskInterval": 15000
       }
