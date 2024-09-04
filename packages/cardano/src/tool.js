@@ -21,7 +21,7 @@ function validateAddress(address, network, chain) {
   try {
     let addr = wasm.ByronAddress.from_base58(address);
     // console.debug("%s is ADA Byron base58 address", address);
-    return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
+    return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key));
   } catch (e) {
     // console.debug("%s is not ADA Byron base58 address: %O", address, e);
   }
@@ -32,14 +32,14 @@ function validateAddress(address, network, chain) {
       if (byronAddr) {
         // console.debug("%s is ADA Byron bech32 address", address);
       }
-      return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key)); // byronAddr is undefined to throw error
+      return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key)); // byronAddr is undefined to throw error
     } catch (e) {
       let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
       // console.log("%s is Shelly type %s address", address, prefix);
       if (parseInt(prefix, 2) > 7) {
         return false;
       }
-      return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
+      return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key));
     }
   } catch (e) {
     // console.debug("%s is not ADA bech32 address: %O", address, e);
@@ -117,7 +117,7 @@ function selectUtxos(utxos, rawOutput, protocolParameters) {
   );
   const totalAssets = multiAssetCount(output.amount().multiasset());
   CoinSelection.setProtocolParameters(
-    protocolParameters.coinsPerUtxoWord,
+    protocolParameters.coinsPerUtxoByte,
     protocolParameters.linearFee.minFeeA,
     protocolParameters.linearFee.minFeeB,
     protocolParameters.maxTxSize.toString()
@@ -128,7 +128,8 @@ function selectUtxos(utxos, rawOutput, protocolParameters) {
     const selection = CoinSelection.randomImprove(
       utxos,
       outputs,
-      20 + totalAssets
+      20 + totalAssets,
+      rawOutput.address
     );
     return selection.input;
   } catch (err) {
