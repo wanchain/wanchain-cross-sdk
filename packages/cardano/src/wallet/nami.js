@@ -88,8 +88,7 @@ class Nami {
   }
 
   async getCollateral() {
-    let cardano = await this.wallet.enable();
-    let utxos = await cardano.getCollateral();
+    let utxos = await window.cardano.getCollateral();
     return utxos.slice(0, 3);
   }
 }

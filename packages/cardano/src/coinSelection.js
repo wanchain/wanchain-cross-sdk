@@ -180,7 +180,7 @@ let wasm = null;
 
 /**
  * @typedef {Object} ProtocolParameters
- * @property {int} coinsPerUtxoWord
+ * @property {int} coinsPerUtxoByte
  * @property {int} minFeeA
  * @property {int} minFeeB
  * @property {int} maxTxSize
@@ -201,14 +201,14 @@ const CoinSelection = {
   },
   /**
    * Set protocol parameters required by the algorithm
-   * @param {string} coinsPerUtxoWord
+   * @param {string} coinsPerUtxoByte
    * @param {string} minFeeA
    * @param {string} minFeeB
    * @param {string} maxTxSize
    */
-  setProtocolParameters: (coinsPerUtxoWord, minFeeA, minFeeB, maxTxSize) => {
+  setProtocolParameters: (coinsPerUtxoByte, minFeeA, minFeeB, maxTxSize) => {
     protocolParameters = {
-      coinsPerUtxoWord: coinsPerUtxoWord,
+      coinsPerUtxoByte: coinsPerUtxoByte,
       minFeeA: minFeeA,
       minFeeB: minFeeB,
       maxTxSize: maxTxSize,
@@ -219,9 +219,10 @@ const CoinSelection = {
    * @param {UTxOList} inputs - The set of inputs available for selection.
    * @param {TransactionOutputs} outputs - The set of outputs requested for payment.
    * @param {int} limit - A limit on the number of inputs that can be selected.
+   * @param {Address} outputAddress - Required by algorithm, no specific meaning.
    * @return {SelectionResult} - Coin Selection algorithm return
    */
-  randomImprove: (inputs, outputs, limit) => {
+  randomImprove: (inputs, outputs, limit, outputAddress) => {
     if (!protocolParameters)
       throw new Error(
         'Protocol parameters not set. Use setProtocolParameters().'
@@ -233,6 +234,7 @@ const CoinSelection = {
       remaining: [...inputs], // Shallow copy
       subset: [],
       amount: createEmptyValue(),
+      outputAddress
     };
 
     let mergedOutputsAmounts = mergeOutputsAmounts(outputs);
@@ -278,10 +280,9 @@ const CoinSelection = {
       const change = utxoSelection.amount.checked_sub(mergedOutputsAmounts);
 
       let minAmount = wasm.Value.new(
-        wasm.min_ada_required(
-          change,
-          false,
-          wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
+        wasm.min_ada_for_output(
+          wasm.TransactionOutput.new(wasm.Address.from_bech32(utxoSelection.outputAddress), change),
+          wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))
         )
       );
 
@@ -348,7 +349,7 @@ function select(utxoSelection, outputAmount, limit) {
 function randomSelect(utxoSelection, outputAmount, limit) {
   let nbFreeUTxO = utxoSelection.subset.length;
   // If quantity is met, return subset into remaining list and exit
-  if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO)) {
+  if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO, utxoSelection.outputAddress)) {
     utxoSelection.remaining = [
       ...utxoSelection.remaining,
       ...utxoSelection.subset,
@@ -412,7 +413,8 @@ function descSelect(utxoSelection, outputAmount) {
     !isQtyFulfilled(
       outputAmount,
       utxoSelection.amount,
-      utxoSelection.subset.length - 1
+      utxoSelection.subset.length - 1,
+      utxoSelection.outputAddress
     )
   );
 
@@ -658,15 +660,14 @@ function createSubSet(utxoSelection, output) {
  * @param {int} nbFreeUTxO - Number of free UTxO available.
  * @return {boolean}
  */
-function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO) {
+function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO, outputAddress) {
   let amount = outputAmount;
 
   if (!outputAmount.multiasset() || outputAmount.multiasset().len() <= 0) {
     let minAmount = wasm.Value.new(
-      wasm.min_ada_required(
-        cumulatedAmount,
-        false,
-        wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
+      wasm.min_ada_for_output(
+        wasm.TransactionOutput.new(wasm.Address.from_bech32(outputAddress), cumulatedAmount),
+        wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))
       )
     );
 
@@ -702,6 +703,7 @@ function cloneUTxOSelection(utxoSelection) {
     remaining: cloneUTxOList(utxoSelection.remaining),
     subset: cloneUTxOList(utxoSelection.subset),
     amount: cloneValue(utxoSelection.amount),
+    outputAddress: utxoSelection.outputAddress
   };
 }
 

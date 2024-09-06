@@ -313,9 +313,9 @@
       "chainType": "LINEAETH",
       "chainName": "Linea",
       "symbol": "ETH",
-      "crossScAddr": "0x4bAfCf6dd1f05a90Ea80E2A0419cf1d9c79e0049",
+      "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
       "chainDecimals": 18,
-      "MaskChainId": 59140,
+      "MaskChainId": 59141,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -375,6 +375,18 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
       "MaskChainId": 1501869,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741852",
+      "chainType": "FTN",
+      "chainName": "Bahamut",
+      "symbol": "FTN",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 4058,
       "ScScanInfo": {
         "taskInterval": 15000
       }

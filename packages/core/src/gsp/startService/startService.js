@@ -6,6 +6,7 @@ let ConfigService = require("../configService/configService");
 let CheckiWanSpeed = require("../checkiWanSpeedService/checkiWanSpeed");
 let IWanBCConnector = require("../iWanConnectorService/IWanBCConnector");
 let StorageService = require("../storageService/storageService");
+let IndexedDbService = require("../storageService/indexedDbService");
 let TaskService = require("../taskService/TaskService");
 let StoremanService = require("../storemanService/StoremanService");
 let TxGeneratorService = require("../txGeneratorService/TxGeneratorService");
@@ -132,6 +133,12 @@ class StartService {
             let storageService = new StorageService();
             await storageService.init(frameworkService);
             frameworkService.registerService("StorageService", storageService);
+
+            if (typeof(window) !== "undefined") {
+              let indexedDbService = new IndexedDbService();
+              await indexedDbService.init(frameworkService);
+              frameworkService.registerService("IndexedDbService", indexedDbService);
+            }
 
             let crossChainFeesService = new CrossChainFeesService();
             await crossChainFeesService.init(frameworkService);

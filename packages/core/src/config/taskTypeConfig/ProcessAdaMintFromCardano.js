@@ -188,7 +188,7 @@ module.exports = class ProcessAdaMintFromCardano {
     let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
 
     for (let utxo of inputs) {
-      txBuilder.add_input(
+      txBuilder.add_regular_input(
         utxo.output().address(),
         utxo.input(),
         utxo.output().amount()

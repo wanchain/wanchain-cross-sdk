@@ -383,6 +383,7 @@ class StoremanService {
           priceStep: p.price_step,
           maxTxSize: parseInt(p.max_tx_size),
           slot: parseInt(latestBlock.slot),
+          minFeeRefScriptCostPerByte: p.min_fee_ref_script_cost_per_byte
         };
         console.debug("getCardanoEpochParameters: %O", epochParameters);
         return epochParameters;
