@@ -162,7 +162,7 @@ module.exports = class CheckScEvent {
             obj.fromBlockNumber = blockNumber;
             await storageService.save("ScEventScanService", obj.uniqueID, obj);
           } else {
-            throw new Error("task " + task.ccTaskId + " retry block number error");
+            throw new Error("task " + obj.ccTaskId + " retry block number error");
           }
         }
         await this.prepareTask(obj);
