@@ -73,5 +73,13 @@ module.exports = [
     {
       "name": "ProcessMintFromAlgorand",
       "handle": require("./ProcessMintFromAlgorand")
+    },
+    {
+      "name": "ProcessMintFromSolana",
+      "handle": require("./ProcessMintFromSolana")
+    },
+    {
+      "name": "ProcessBurnFromSolana",
+      "handle": require("./ProcessBurnFromSolana")
     }
 ]

@@ -2,6 +2,7 @@ const anchor = require('@coral-xyz/anchor');
 const Web3 = require('@solana/web3.js');
 const cctpProxyIdl = require("../cctp/circle_cctp_proxy_contract.json");
 const messageTransmitterIdl = require("../cctp/idl_message_transmitter.json");
+const wanBridgeIdl = require("../wanbridge/token_manager.json");
 const { PublicKey, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
 
 class Phantom {
@@ -76,6 +77,8 @@ class Phantom {
       return new anchor.Program(cctpProxyIdl, id, provider);
     } else if (name === "messageTransmitter") {
       return new anchor.Program(messageTransmitterIdl, id, provider);
+    } else if (name === "wanBridge") {
+      return new anchor.Program(wanBridgeIdl, id, provider);
     } else {
       return null;
     }

@@ -57,5 +57,13 @@ module.exports = [
     {
       "name": "MintFromAlgorand",
       "handle": require("./MintFromAlgorand")
+    },
+    {
+      "name": "MintFromSolana",
+      "handle": require("./MintFromSolana")
+    },
+    {
+      "name": "BurnFromSolana",
+      "handle": require("./BurnFromSolana")
     }
 ]

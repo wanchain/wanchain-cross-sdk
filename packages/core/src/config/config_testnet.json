@@ -542,6 +542,9 @@
       "chainId": "2147484149",
       "chainType": "SOL",
       "chainName": "Solana",
+      "crossScAddr": "y2CnQqTWFEHHGJgzzTtAc8KsjNvo3okGdvLzBbgpzEB",
+      "mintFromChainHandle": "MintFromSolana",
+      "burnFromChainHandle": "BurnFromSolana",
       "CircleBridge": {
         "domain": 5,
         "crossScAddr": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
