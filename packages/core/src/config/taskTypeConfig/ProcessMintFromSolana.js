@@ -33,8 +33,8 @@ module.exports = class ProcessMintFromSolana {
       let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
       let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
       let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
-      let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
-      let amount =this.tool.toBigNumber(crossValue);
+      // let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
+      let amount = this.tool.toBigNumber(params.value); // shoud input total value, is different from evm
       let accounts = {
         user: walletPublicKey,
         solVault: solVault.publicKey,
