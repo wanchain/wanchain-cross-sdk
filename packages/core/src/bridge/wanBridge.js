@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2409111758", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2409121622", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -513,9 +513,7 @@ class WanBridge extends EventEmitter {
 
   async checkHackerAccount(addresses) {
     let isHacker = await this.iwan.hasHackerAccount(addresses);
-    if (isHacker) {
-      console.debug("SDK: checkAccountServiceInavailability true, addresses: %O", addresses);
-    }
+    console.debug("SDK: checkAccountServiceInavailability %s, addresses: %O", isHacker, addresses);
     return isHacker;
   }
 

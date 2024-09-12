@@ -18,36 +18,42 @@ module.exports = class ProcessBurnFromSolana {
     let params = stepData.params;
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
-      let fromChainInfo = (tokenPair.fromChainType === "SOL")? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let direction = (tokenPair.fromChainType === "SOL");
+      let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
       let walletPublicKey = wallet.getPublicKey();
       let wanBridgeProgram = wallet.getProgram("wanBridge", fromChainInfo.crossScAddr);
-      let solVault = this.tool.findProgramAddress("vault", wanBridgeProgram.programId);
+      let adminBoardProgramId = this.tool.getPublicKey(fromChainInfo.adminBoardProgram);
+      let tokenpairPda = this.tool.findProgramAddress("TokenPairMap", adminBoardProgramId);
+      let configAccountPda = this.tool.findProgramAddress("ConfigData", adminBoardProgramId)
+      let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
+      let destChain = Number(toChainInfo.chainId);
+      let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
       let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
-      let tokenAccount = (tokenPair.fromChainType === "SOL")? tokenPair.fromAccount : tokenPair.toAccount;
+      let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
       let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
       let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
       let amount = this.tool.toBigNumber(crossValue);
-
-      let method = 'userBurn';
       let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
-      let userTokenAccount = this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey);
       let accounts = {
         user: walletPublicKey,
-        solVault: solVault.publicKey,
-        userAta: userTokenAccount,
-        mappingTokenMint: tokenAddress
+        feeReceiver: this.tool.getPublicKey(fromChainInfo.feeHolder),
+        adminBoardProgram: adminBoardProgramId,
+        configAccount: configAccountPda.publicKey,
+        tokenPairAccount: tokenpairPda.publicKey,
+        cctpAdminBoardFeeAccount: feePda.publicKey,
+        mappingTokenMint: tokenAddress,
+        tokenManagerProgram: this.tool.getPublicKey(fromChainInfo.tokenManagerProgram),
+        userAta: this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey)
       };
       let fee = this.tool.toBigNumber(params.networkFee);
-      let txParams = [smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)];
-
       let unitLimit = this.tool.setComputeUnitLimit(200_000);
       let unitPrice = this.tool.setComputeUnitPrice(100_000);
-      let instruction = await wanBridgeProgram.methods[method](...txParams).accounts(accounts).instruction();
+      let instruction = await wanBridgeProgram.methods.userBurn(smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)).accounts(accounts).instruction();
       let tx = await wallet.buildTransaction([unitLimit, unitPrice, instruction]);
       let txHash = await wallet.sendTransaction(tx);
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
-      let direction = (tokenPair.fromChainType === "SOL")? "MINT" : "BURN";
       let checker = {
         chain: "SOL",
         ccTaskId: params.ccTaskId,
@@ -60,7 +66,7 @@ module.exports = class ProcessBurnFromSolana {
           uniqueID: tool.sha256(txHash),
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
-          taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, direction),
+          taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction? "MINT" : "BURN")),
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");

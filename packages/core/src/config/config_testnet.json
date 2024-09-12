@@ -542,17 +542,20 @@
       "chainId": "2147484149",
       "chainType": "SOL",
       "chainName": "Solana",
-      "crossScAddr": "y2CnQqTWFEHHGJgzzTtAc8KsjNvo3okGdvLzBbgpzEB",
+      "crossScAddr": "Bj6ubFUkcvTTohw29YcTLSYi7r22mHftgAuSrzSZPtBJ",
+      "adminBoardProgram": "AnbZnwcK4T1KvqXB7ETJ1FNhE5dQ3pe1PZwhMzfY2bmK",
+      "tokenManagerProgram": "BPvf6FLz3PaEPJNpgDhdW4wMG9QNRYCxBa8vmZgin1BT",
+      "feeHolder": "2Yx49qE11EmZiS5GoZ8kUTXi8AGBVnLdnG2dxF3XyPig",
       "mintFromChainHandle": "MintFromSolana",
       "burnFromChainHandle": "BurnFromSolana",
       "CircleBridge": {
         "domain": 5,
         "crossScAddr": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
+        "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
         "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
-        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3"
+        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3",
+        "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg"
       },
-      "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg",
-      "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
       "chainDecimals": 9,
       "minReserved": 0.0009,
       "TxScanInfo": {
