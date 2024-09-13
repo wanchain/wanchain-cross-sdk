@@ -50,7 +50,7 @@ module.exports = class ProcessMintFromSolana {
       if (!isCoin) {
         let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
         accounts.mappingTokenMint = tokenAddress;
-        accounts.tokenVault = this.tool.getAssociatedTokenAddressSync(tokenAccount, solVault.publicKey);
+        accounts.tokenVault = this.tool.getAssociatedTokenAddressSync(tokenAddress, solVault.publicKey, true);
         accounts.userAta = this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey);
       }
       let unitLimit = this.tool.setComputeUnitLimit(200_000);
