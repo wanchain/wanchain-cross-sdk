@@ -53,7 +53,7 @@ module.exports = class ProcessMintFromSolana {
         accounts.tokenVault = this.tool.getAssociatedTokenAddressSync(tokenAddress, solVault.publicKey, true);
         accounts.userAta = this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey);
       }
-      let unitLimit = this.tool.setComputeUnitLimit(200_000);
+      let unitLimit = this.tool.setComputeUnitLimit(300_000);
       let unitPrice = this.tool.setComputeUnitPrice(100_000);
       let instruction = await wanBridgeProgram.methods.userLock(smgId, params.tokenPairID, amount, Buffer.from(params.userAccount)).accounts(accounts).instruction();
       let tx = await wallet.buildTransaction([unitLimit, unitPrice, instruction]);
