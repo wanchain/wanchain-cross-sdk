@@ -287,6 +287,10 @@ const CoinSelection = {
       );
 
       if (compare(change, minAmount) < 0) {
+        // It shouldn't happen, the minAda of change must be considered in advance.
+        // Based on the existing utxoSelection.amount cannot be calculated correctly, and selecting new utxos will cause circular calculation problems
+        console.log("select minAda %s for change", minAmount.coin().to_str());
+
         // Not enough, add missing amount and run select one last time
         const minAda = minAmount
           .checked_sub(wasm.Value.new(change.coin()))
@@ -684,7 +688,7 @@ function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO, outputAddress
     // Lovelace min amount to cover assets and number of output need to be met
     if (compare(cumulatedAmount, minAmount) < 0) return false;
 
-    // cumulatedAmount shoud include change minAmount, which should be less if any asset is sent all
+    // The minAda of the change should be considered in advance, although if the asset is sent in full it will be greater than the actual need
     amount = amount.checked_add(minAmount);
 
     // Try covering the max fees, do not include contract execution consumption
