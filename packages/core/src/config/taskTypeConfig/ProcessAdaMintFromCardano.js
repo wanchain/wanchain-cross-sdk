@@ -85,7 +85,7 @@ module.exports = class ProcessAdaMintFromCardano {
         throw new Error("No available utxos");
       }
       utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
-      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus(params.networkFee).plus("2000000").toFixed(); // add network and gas fee to select utxos
+      output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus(params.networkFee).plus("1000000").toFixed(); // add network and gas fee to select utxos
       console.debug("cardano mint tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
       console.log("ProcessAdaMintFromCardano select %d inputs from %d utxos", inputs.length, utxos.length);
