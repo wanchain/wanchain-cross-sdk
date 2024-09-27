@@ -212,10 +212,6 @@ class IWanBCConnector {
       return this.apiClient.hasHackerAccount(address);
     }
 
-    async getChainQuotaHiddenFlagDirectionally(chainIds) {
-      return this.apiClient.getChainQuotaHiddenFlagDirectionally(chainIds);
-    }
-
     async parseCctpMessageSent(chainType, address) {
       return this.apiClient.parseCctpMessageSent(chainType, address);
     }

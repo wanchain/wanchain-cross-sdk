@@ -165,7 +165,7 @@ class StoremanService {
               } else if (typeof(balance._hex) === "string") { // other EVMs
                 balance = balance._hex;
               } else {
-                console.error("unrecognized %s %s balance: %O", chain, asset, balance);
+                console.error("unrecognized %s %s balance: %O", chainType, asset, balance);
                 balance = "";
                 return;
               }

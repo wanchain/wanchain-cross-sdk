@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2409051832", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2409271622", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -229,22 +229,14 @@ class WanBridge extends EventEmitter {
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
-      let fromChainID = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainID : tokenPair.toChainID;
-      let toChainID = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainID : tokenPair.fromChainID;
-      let hideQuotaChains = await this.iwan.getChainQuotaHiddenFlagDirectionally([fromChainID, toChainID]);
-      if (hideQuotaChains) {
-        if (hideQuotaChains[fromChainID] && (hideQuotaChains[fromChainID].hiddenSourceChainQuota === true)) {
-          hideQuota = true;
-        } else if (hideQuotaChains[toChainID] && (hideQuotaChains[toChainID].hiddenTargetChainQuota === true)) {
-          hideQuota = true;
-        }
-      }
+      let chainType = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainType : tokenPair.toChainType;
+      let targetChainType = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainType : tokenPair.fromChainType;
+      hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", {chainType, targetChainType, tokenPairID: tokenPair.id});
       if (tokenPair.bridge) { // other bridge, such as Circle
         quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
-        let fromChainType = this.tokenPairService.getChainType(fromChainName);
         let smg = await this.getSmgInfo();
-        quota = await this.storemanService.getStroremanGroupQuotaInfo(fromChainType, tokenPair.id, smg.id);
+        quota = await this.storemanService.getStroremanGroupQuotaInfo(chainType, tokenPair.id, smg.id);
         if (hideQuota) {
           quota.maxQuota = "0";
         }
@@ -521,9 +513,7 @@ class WanBridge extends EventEmitter {
 
   async checkHackerAccount(addresses) {
     let isHacker = await this.iwan.hasHackerAccount(addresses);
-    if (isHacker) {
-      console.debug("SDK: checkAccountServiceInavailability true, addresses: %O", addresses);
-    }
+    console.debug("SDK: checkAccountServiceInavailability %s, addresses: %O", isHacker, addresses);
     return isHacker;
   }
 
