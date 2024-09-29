@@ -25,8 +25,8 @@ class TronLink {
     if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
       return [this.tronWeb.defaultAddress.base58];
     } else {
-      console.error("%s not installed or locked", this.name);
-      throw new Error("Not installed or locked");
+      console.error("%s not installed or unavailable", this.name);
+      throw new Error("Not installed or unavailable");
     }
   }
 
@@ -93,7 +93,7 @@ class TronLink {
 
   async estimateFeeLimit(sc, fn, options, params) {
     // estimate energy
-    const estimateEnergy = await tronWeb.transactionBuilder.triggerConstantContract(sc, fn, {callValue: options.callValue}, params, this.tronWeb.defaultAddress.base58);
+    const estimateEnergy = await this.tronWeb.transactionBuilder.triggerConstantContract(sc, fn, {callValue: options.callValue}, params, this.tronWeb.defaultAddress.base58);
     if (estimateEnergy.result.result !== true) {
       console.error("estimateEnergy: %O", estimateEnergy);
       throw new Error("estimate energy error");
@@ -108,7 +108,6 @@ class TronLink {
     // cal fee limit by price
     let chainParas = await this.tronWeb.trx.getChainParameters();
     // console.debug({chainParas});
-    let action = fn.substr(0, fn.indexOf('('));
     let bandwidthFee = new BigNumber(chainParas.find(v => v.key === 'getTransactionFee').value).times(estimateBandwidth);
     let energeFee = new BigNumber(chainParas.find(v => v.key === 'getEnergyFee').value).times(estimateEnergy.energy_used);
     return bandwidthFee.plus(energeFee).times(1.1).toFixed(0);
