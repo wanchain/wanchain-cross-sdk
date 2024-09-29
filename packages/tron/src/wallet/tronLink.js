@@ -110,7 +110,7 @@ class TronLink {
     // console.debug({chainParas});
     let bandwidthFee = new BigNumber(chainParas.find(v => v.key === 'getTransactionFee').value).times(estimateBandwidth);
     let energeFee = new BigNumber(chainParas.find(v => v.key === 'getEnergyFee').value).times(estimateEnergy.energy_used);
-    return bandwidthFee.plus(energeFee).times(1.1).toFixed(0);
+    return bandwidthFee.plus(energeFee).times(1.2).toFixed(0);
   }
 }
 
