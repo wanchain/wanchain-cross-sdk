@@ -310,7 +310,7 @@ class BridgeTask {
     }
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
-    if (chainInfo.minReserved && (chainType !== "SOL")) { // solana do not limit on toChain
+    if (chainInfo.minReserved && ((chainType !== "SOL") || isRedeemCoin)) { // solana contract will pay on releasing token, but user should pay on releasing SOL
       let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._toAccount, {isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;

@@ -3,7 +3,7 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
-module.exports = class CircleBridgeSolanaDeposit {
+module.exports = class MintFromSolana {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -22,21 +22,22 @@ module.exports = class CircleBridgeSolanaDeposit {
         ccTaskId: convert.ccTaskId,
         toChainType,
         feeHolder: chainInfo.feeHolder,
-        userAccount: toAddressInfo.cctp || toAddressInfo.evm,
+        userAccount: toAddressInfo.evm,
         toAddr: convert.toAddr, // for readability
+        storemanGroupId: convert.storemanGroupId,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessCircleBridgeSolanaDeposit",
+        taskType: "ProcessMintFromSolana",
         networkFee,
         fromAddr: convert.fromAddr
       };
-      console.debug("CircleBridgeSolanaDeposit params: %O", params);
+      console.debug("MintFromSolana params: %O", params);
       let steps = [
-        {name: "userFastBurn", stepIndex: 1, title: "BurnTitle", desc: "BurnDesc", params}
+        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
       return steps;
     } catch (err) {
-      console.error("CircleBridgeSolanaDeposit error: %O", err);
+      console.error("MintFromSolana error: %O", err);
       throw err;
     }
   }

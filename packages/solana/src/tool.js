@@ -80,8 +80,8 @@ function findProgramAddress(label, programId, extraSeeds) {
   return {publicKey: res[0], bump: res[1]};
 }
 
-function getAssociatedTokenAddressSync(tokenAddress, owner) {
-  return getAssociatedTokenAddressSyncFn(tokenAddress, owner);
+function getAssociatedTokenAddressSync(tokenAddress, owner, allowOwnerOffCurve = false) {
+  return getAssociatedTokenAddressSyncFn(tokenAddress, owner, allowOwnerOffCurve);
 }
 
 function getPda(key, id, programId, idBytes) {
