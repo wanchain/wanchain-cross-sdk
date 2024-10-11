@@ -245,7 +245,7 @@ function mergeUtxos(target, source) {
     }
     target.push(v);
   })
-  console.log("merge utxos: %d + %d -> %d", len, source.length, target.length);
+  console.log("merge %d and %d utxos total %d", len, source.length, target.length);
   return target;
 }
 
