@@ -232,6 +232,21 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
   }
 }
 
+function mergeUtxos(target, source) {
+  let len = target.length;
+  source.forEach(v => {
+    for (let i = 0; i < len; i++) {
+      if ((target[i].input().transaction_id().to_bech32('t') === v.input().transaction_id().to_bech32('t'))
+          && (target[i].input().index() === v.input().index())) { // exist
+        return;
+      }
+    }
+    target.push(v);
+  })
+  console.log("merge %d and %d utxos total %d", len, source.length, target.length);
+  return target;
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -245,5 +260,6 @@ module.exports = {
   showUtxos,
   splitMetadata,
   evaluateTx,
-  checkUtxos
+  checkUtxos,
+  mergeUtxos
 }

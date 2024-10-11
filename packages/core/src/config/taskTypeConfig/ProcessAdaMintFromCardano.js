@@ -81,10 +81,16 @@ module.exports = class ProcessAdaMintFromCardano {
       );
 
       let utxos = await wallet.getUtxos();
+      console.log("get %d utxos", utxos.length);
+      utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
+      let collateralUtxos = await wallet.getCollateral();
+      console.log("get %d collateral utxos", collateralUtxos.length);
+      collateralUtxos = collateralUtxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
+      this.tool.showUtxos(collateralUtxos, "mint tx collateral");
+      utxos = this.tool.mergeUtxos(utxos, collateralUtxos);
       if (utxos.length === 0) {
         throw new Error("No available utxos");
       }
-      utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus(params.networkFee).plus("1000000").toFixed(); // add network and gas fee to select utxos
       console.debug("cardano mint tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
