@@ -49,7 +49,7 @@ module.exports = class ProcessBurnFromCardano {
     let params = stepData.params;
     try {
       // check collateral at first
-      let collateral = await this.buildCollateral(wallet);
+      let collateralBuilder = await this.buildCollateral(wallet);
 
       let [epochParameters, costModelParameters] = await Promise.all([
         this.storemanService.getCardanoEpochParameters(),
@@ -81,9 +81,10 @@ module.exports = class ProcessBurnFromCardano {
       output.amount[0].quantity = minAda;
 
       let utxos = await wallet.getUtxos();
-      console.log("get %d utxos", utxos.length);
+      if (utxos.length === 0) {
+        throw new Error("No available utxos");
+      }
       utxos = utxos.map(v => this.wasm.TransactionUnspentOutput.from_hex(v));
-      utxos = this.tool.mergeUtxos(utxos, collateral.utxos);
       output.amount[0].quantity = new BigNumber(output.amount[0].quantity).plus(params.networkFee).plus("2000000").toFixed(); // add fee to select utxos
       console.debug("cardano burn tx select output: %O", output);
       let inputs = this.tool.selectUtxos(utxos, output, epochParameters);
@@ -113,7 +114,7 @@ module.exports = class ProcessBurnFromCardano {
         );
       }
 
-      let tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateral.builder);
+      let tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
       console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
 
       let evaluateTx = await this.tool.evaluateTx(this.network, tx.to_hex());
@@ -131,7 +132,7 @@ module.exports = class ProcessBurnFromCardano {
 
       // rebuild tx
       mintBuilder = this.buildMint(tokenId, params.value, executionUnits);
-      tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateral.builder);
+      tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
 
       // sign and send
       let txHash = await wallet.sendTransaction(tx.to_hex(), params.fromAddr);
@@ -228,7 +229,7 @@ module.exports = class ProcessBurnFromCardano {
         utxo.output().amount()
       );
     }
-    return {builder, utxos};
+    return builder;
   }
 
   buildMint(tokenId, burnedAmount, executionUnits = undefined) {
