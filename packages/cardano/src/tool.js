@@ -236,8 +236,6 @@ function mergeUtxos(target, source) {
   let len = target.length;
   source.forEach(v => {
     for (let i = 0; i < len; i++) {
-      console.log("l: %O", target[i].input().transaction_id());
-      console.log("r: %O", v.input().transaction_id());
       if ((target[i].input().transaction_id().to_bech32('t') === v.input().transaction_id().to_bech32('t'))
           && (target[i].input().index() === v.input().index())) { // exist
         return;
