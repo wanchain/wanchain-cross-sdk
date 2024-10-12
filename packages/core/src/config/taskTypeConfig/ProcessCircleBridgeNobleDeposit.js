@@ -46,6 +46,9 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
         }
       }
       console.debug({cctpMsg, feeMsg});
+      if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
+        await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
+      }
       let txHash = await wallet.sendTransaction([cctpMsg, feeMsg], {timeoutHeight: 100});
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
         webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
@@ -74,9 +77,6 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-      if (toChainInfo.chainType === "SOL") {
-        await this.pushSolWalletAddress(params.innerToAddr, params.toAddr);
-      }
     } catch (err) {
       if (err.message === "Request rejected") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
@@ -84,17 +84,6 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
         console.error("ProcessCircleBridgeNobleDeposit error: %O", err);
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
-    }
-  }
-
-  async pushSolWalletAddress(ataAddr, walletAddr) {
-    let url = this.apiServer.url + "/api/sol/addCctpWalletAddr";
-    let data = {ataAddr, walletAddr};
-    let ret = await axios.post(url, data);
-    if (ret.data.success) {
-      console.debug("pushSolWalletAddress: %O", data);
-    } else {
-      console.error("pushSolWalletAddress error: %O", data);
     }
   }
 };
