@@ -433,6 +433,24 @@ class StoremanService {
           }
       }
       return sender;
+   }
+
+   async registerSolWalletAddress(ataAddr, walletAddr) {
+    let apiServer = this.configService.getGlobalConfig("apiServer");
+    let url = apiServer.url + "/api/sol/addCctpWalletAddr";
+    let data = {ataAddr, walletAddr};
+    try {
+      let ret = await axios.post(url, data);
+      if (ret.data.success) {
+        console.debug("registerSolWalletAddress: %O", data);
+        return;
+      } else {
+        console.error("registerSolWalletAddress %O error: %O", data, ret);
+      }
+    } catch (err) {
+      console.error("registerSolWalletAddress %O error: %O", data, err);
+    }
+    throw new Error("Failed to register Solnala wallet address");
   }
 }
 
