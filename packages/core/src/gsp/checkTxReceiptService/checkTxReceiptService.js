@@ -178,6 +178,9 @@ module.exports = class CheckTxReceiptService {
 
   async addToScEventScan(obj) {
     if (obj.convertCheckInfo) {
+      if (!obj.convertCheckInfo.fromChain) {
+        obj.convertCheckInfo.fromChain = obj.chain;
+      }
       let scEventScanService = this.frameworkService.getService("ScEventScanService");
       await scEventScanService.add(obj.convertCheckInfo);
     }
