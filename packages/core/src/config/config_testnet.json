@@ -360,9 +360,9 @@
       "chainType": "ZIL",
       "chainName": "Zilliqa",
       "symbol": "ZIL",
-      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "chainDecimals": 18,
-      "MaskChainId": 33101,
+      "MaskChainId": 33103,
       "ScScanInfo": {
         "taskInterval": 15000
       }
