@@ -8826,27 +8826,6 @@ class ApiInstance extends WsInstance {
     });
   }
 
-  getChainQuotaHiddenFlags(chainIds, options, callback) {
-    if (typeof(options) === "function") {
-      callback = options;
-      options = {};
-    }
-    if (callback) {
-      callback = utils.wrapCallback(callback);
-    }
-    let method = 'getChainQuotaHiddenFlags';
-    let params = { chainIds: chainIds, ...options };
-
-    return utils.promiseOrCallback(callback, cb => {
-      this._request(method, params, (err, result) => {
-        if (err) {
-          return cb(err);
-        }
-        return cb(null, result);
-      });
-    });
-  }
-
   parseCctpMessageSent(chainType, address, options, callback) {
     if (typeof(options) === "function") {
       callback = options;
@@ -8878,6 +8857,72 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getAssociatedTokenAddress';
     let params = { chainType, address, tokenScAddr, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getWanBridgeDiscounts(options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (!options || typeof(options) !== "object") {
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let method = 'getWanBridgeDiscounts';
+    let params = {...options};
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  getAllBalances(chainType, address, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    options = Object.assign({}, {}, options);
+    let method = 'getAllBalances';
+    let params = { chainType: chainType, address: address, ...options };
+
+    return utils.promiseOrCallback(callback, cb => {
+      this._request(method, params, (err, result) => {
+        if (err) {
+          return cb(err);
+        }
+        return cb(null, result);
+      });
+    });
+  }
+
+  call(method, options, callback) {
+    if (typeof(options) === "function") {
+      callback = options;
+      options = {};
+    }
+    if (callback) {
+      callback = utils.wrapCallback(callback);
+    }
+    let params = Object.assign({}, {}, options);
 
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {

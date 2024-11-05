@@ -70,16 +70,22 @@ module.exports = class ProcessMintFromCosmos {
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
+        chain: "ATOM",
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
-        fromBlockNumber: blockNumber,
         txHash,
-        chain: params.toChainType,
-        smgPublicKey: params.storemanGroupGpk,
-        taskType: "MINT"
+        txCheckInfo: null, // only check transaction receipt, no event
+        convertCheckInfo: {
+          ccTaskId: params.ccTaskId,
+          stepIndex: stepData.stepIndex,
+          uniqueID: '0x' + txHash.toLowerCase(),
+          fromBlockNumber: blockNumber,
+          chain: params.toChainType,
+          taskType: "MINT"
+        }
       };
-      let checkAtomTxService = this.frameworkService.getService("CheckAtomTxService");
-      await checkAtomTxService.addTask(checker);
+      let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
+      await checkTxReceiptService.add(checker);
     } catch (err) {
       if (err.message === "Request rejected") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");

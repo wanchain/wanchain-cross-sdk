@@ -21,7 +21,7 @@ function validateAddress(address, network, chain) {
   try {
     let addr = wasm.ByronAddress.from_base58(address);
     // console.debug("%s is ADA Byron base58 address", address);
-    return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
+    return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key));
   } catch (e) {
     // console.debug("%s is not ADA Byron base58 address: %O", address, e);
   }
@@ -32,14 +32,14 @@ function validateAddress(address, network, chain) {
       if (byronAddr) {
         // console.debug("%s is ADA Byron bech32 address", address);
       }
-      return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key)); // byronAddr is undefined to throw error
+      return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key)); // byronAddr is undefined to throw error
     } catch (e) {
       let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
       // console.log("%s is Shelly type %s address", address, prefix);
       if (parseInt(prefix, 2) > 7) {
         return false;
       }
-      return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.StakeCredKind.Key));
+      return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key));
     }
   } catch (e) {
     // console.debug("%s is not ADA bech32 address: %O", address, e);
@@ -117,7 +117,7 @@ function selectUtxos(utxos, rawOutput, protocolParameters) {
   );
   const totalAssets = multiAssetCount(output.amount().multiasset());
   CoinSelection.setProtocolParameters(
-    protocolParameters.coinsPerUtxoWord,
+    protocolParameters.coinsPerUtxoByte,
     protocolParameters.linearFee.minFeeA,
     protocolParameters.linearFee.minFeeB,
     protocolParameters.maxTxSize.toString()
@@ -128,7 +128,8 @@ function selectUtxos(utxos, rawOutput, protocolParameters) {
     const selection = CoinSelection.randomImprove(
       utxos,
       outputs,
-      20 + totalAssets
+      20 + totalAssets,
+      rawOutput.address
     );
     return selection.input;
   } catch (err) {
@@ -187,26 +188,33 @@ const OgmiosUrl = {
 };
 
 async function evaluateTx(network, rawTx) {
-  let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
-  return res.data;
+  try {
+    let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
+    return res.data;
+  } catch (err) {
+    console.error("evaluateTx error: %O", err);
+    throw new Error("Network Instability Detected");
+  }
 }
 
 async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
+  let checkUtxos = utxos.map(v => {
+    let input = v.to_js_value().input;
+    return {
+      txId: input.transaction_id,
+      index: input.index
+    }
+  });
   let t0 = Date.now();
   for ( ; ; ) {
-    let chainUtxos = [];
-    let checkUtxos = utxos.map(v => {
-      let input = v.to_js_value().input;
-      return {
-        txId: input.transaction_id,
-        index: input.index
-      }
-    });
+    let chainUtxos = [], networkErr = false;
     try {
       let res = await axios.post(OgmiosUrl[network] + "/getUTXOs", checkUtxos);
       // console.log("checkUtxos res: %O", res);
       chainUtxos = res.data;
+      networkErr = false;
     } catch (err) {
+      networkErr = true;
       console.error("checkUtxos error: %O", err);
     }
     if (chainUtxos.length >= utxos.length) {
@@ -215,7 +223,11 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
       await sleep(interval);
     } else {
       console.debug("check utxos %d ms unavailable: %O", timeout, checkUtxos);
-      return false;
+      if (networkErr) {
+        throw new Error("Network Instability Detected");
+      } else {
+        return false;
+      }
     }
   }
 }

@@ -6,6 +6,7 @@ let ConfigService = require("../configService/configService");
 let CheckiWanSpeed = require("../checkiWanSpeedService/checkiWanSpeed");
 let IWanBCConnector = require("../iWanConnectorService/IWanBCConnector");
 let StorageService = require("../storageService/storageService");
+let IndexedDbService = require("../storageService/indexedDbService");
 let TaskService = require("../taskService/TaskService");
 let StoremanService = require("../storemanService/StoremanService");
 let TxGeneratorService = require("../txGeneratorService/TxGeneratorService");
@@ -14,13 +15,11 @@ let CheckBtcTxService = require("../checkBtcTxService/checkBtcTxService");
 let CheckXrpTxService = require("../checkXrpTxService/checkXrpTxService");
 let UIStrService = require("../uiStrService/uiStrService");
 let ScEventScanService = require("../scEventScanService/scEventScanService");
-let UtilService = require("../utilService/utilService");
 let CrossChainFeesService = require("../crossChainFeesService/crossChainFees");
 let CCTHandleService = require("../CCTHandleService/CCTHandleService");
 let TxTaskHandleService = require("../txTaskHandleService/txTaskHandleService");
 let TokenPairService = require("../tokenPairService/tokenPairService");
 let ChainInfoService = require("../chainInfoService/chainInfoService");
-let GlobalConstant = require("../globalConstantService/globalConstant");
 let CheckApiServerTxService = require("../checkApiServerTxService/checkApiServerTxService");
 
 class StartService {
@@ -41,12 +40,6 @@ class StartService {
         try {
             let frameworkService = this.frameworkService;
             frameworkService.registerService("WebStores", stores);
-
-            frameworkService.registerService("GlobalConstant", GlobalConstant);
-
-            let utilService = new UtilService();
-            await utilService.init(frameworkService);
-            frameworkService.registerService("UtilService", utilService);
 
             let eventService = new EventService();
             await eventService.init(frameworkService);
@@ -101,10 +94,6 @@ class StartService {
             await checkAdaTxService.init(frameworkService);
             frameworkService.registerService("CheckAdaTxService", checkAdaTxService);
 
-            let checkAtomTxService = new CheckApiServerTxService("ATOM");
-            await checkAtomTxService.init(frameworkService);
-            frameworkService.registerService("CheckAtomTxService", checkAtomTxService);
-
             let storemanService = new StoremanService();
             await storemanService.init(frameworkService, options);
             frameworkService.registerService("StoremanService", storemanService);
@@ -145,12 +134,17 @@ class StartService {
             await storageService.init(frameworkService);
             frameworkService.registerService("StorageService", storageService);
 
+            if (typeof(window) !== "undefined") {
+              let indexedDbService = new IndexedDbService();
+              await indexedDbService.init(frameworkService);
+              frameworkService.registerService("IndexedDbService", indexedDbService);
+            }
+
             let crossChainFeesService = new CrossChainFeesService();
             await crossChainFeesService.init(frameworkService);
             frameworkService.registerService("CrossChainFeesService", crossChainFeesService);
-        }
-        catch (err) {
-            console.log("StartService.init err:", err);
+        } catch (err) {
+            console.error("StartService init err:", err);
         }
     }
 
@@ -184,9 +178,6 @@ class StartService {
 
             let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
             await checkAdaTxService.start();
-
-            let checkAtomTxService = frameworkService.getService("CheckAtomTxService");
-            await checkAtomTxService.start();
           } catch (err) {
             console.error("startService start err:", err);
         }

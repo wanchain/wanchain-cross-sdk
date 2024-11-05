@@ -7,7 +7,7 @@ async function init() {
   const fetchPromise = fetch(source);
   const imports = {"__wbindgen_placeholder__": Object.assign({}, wasmBg)};
   const {instance} = await WebAssembly.instantiateStreaming(fetchPromise, imports);
-  wasmBg.setWasm(instance.exports);
+  wasmBg.__wbg_set_wasm(instance.exports);
   wasm = wasmBg;
 }
 

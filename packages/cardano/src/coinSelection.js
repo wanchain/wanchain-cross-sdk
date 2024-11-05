@@ -180,7 +180,7 @@ let wasm = null;
 
 /**
  * @typedef {Object} ProtocolParameters
- * @property {int} coinsPerUtxoWord
+ * @property {int} coinsPerUtxoByte
  * @property {int} minFeeA
  * @property {int} minFeeB
  * @property {int} maxTxSize
@@ -201,14 +201,14 @@ const CoinSelection = {
   },
   /**
    * Set protocol parameters required by the algorithm
-   * @param {string} coinsPerUtxoWord
+   * @param {string} coinsPerUtxoByte
    * @param {string} minFeeA
    * @param {string} minFeeB
    * @param {string} maxTxSize
    */
-  setProtocolParameters: (coinsPerUtxoWord, minFeeA, minFeeB, maxTxSize) => {
+  setProtocolParameters: (coinsPerUtxoByte, minFeeA, minFeeB, maxTxSize) => {
     protocolParameters = {
-      coinsPerUtxoWord: coinsPerUtxoWord,
+      coinsPerUtxoByte: coinsPerUtxoByte,
       minFeeA: minFeeA,
       minFeeB: minFeeB,
       maxTxSize: maxTxSize,
@@ -219,9 +219,10 @@ const CoinSelection = {
    * @param {UTxOList} inputs - The set of inputs available for selection.
    * @param {TransactionOutputs} outputs - The set of outputs requested for payment.
    * @param {int} limit - A limit on the number of inputs that can be selected.
+   * @param {Address} outputAddress - Required by algorithm, no specific meaning.
    * @return {SelectionResult} - Coin Selection algorithm return
    */
-  randomImprove: (inputs, outputs, limit) => {
+  randomImprove: (inputs, outputs, limit, outputAddress) => {
     if (!protocolParameters)
       throw new Error(
         'Protocol parameters not set. Use setProtocolParameters().'
@@ -233,6 +234,7 @@ const CoinSelection = {
       remaining: [...inputs], // Shallow copy
       subset: [],
       amount: createEmptyValue(),
+      outputAddress
     };
 
     let mergedOutputsAmounts = mergeOutputsAmounts(outputs);
@@ -278,14 +280,17 @@ const CoinSelection = {
       const change = utxoSelection.amount.checked_sub(mergedOutputsAmounts);
 
       let minAmount = wasm.Value.new(
-        wasm.min_ada_required(
-          change,
-          false,
-          wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
+        wasm.min_ada_for_output(
+          wasm.TransactionOutput.new(wasm.Address.from_bech32(utxoSelection.outputAddress), change),
+          wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))
         )
       );
 
       if (compare(change, minAmount) < 0) {
+        // It shouldn't happen, the minAda of change must be considered in advance.
+        // Based on the existing utxoSelection.amount cannot be calculated correctly, and selecting new utxos will cause circular calculation problems
+        console.log("select minAda %s for change", minAmount.coin().to_str());
+
         // Not enough, add missing amount and run select one last time
         const minAda = minAmount
           .checked_sub(wasm.Value.new(change.coin()))
@@ -348,7 +353,7 @@ function select(utxoSelection, outputAmount, limit) {
 function randomSelect(utxoSelection, outputAmount, limit) {
   let nbFreeUTxO = utxoSelection.subset.length;
   // If quantity is met, return subset into remaining list and exit
-  if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO)) {
+  if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO, utxoSelection.outputAddress)) {
     utxoSelection.remaining = [
       ...utxoSelection.remaining,
       ...utxoSelection.subset,
@@ -412,7 +417,8 @@ function descSelect(utxoSelection, outputAmount) {
     !isQtyFulfilled(
       outputAmount,
       utxoSelection.amount,
-      utxoSelection.subset.length - 1
+      utxoSelection.subset.length - 1,
+      utxoSelection.outputAddress
     )
   );
 
@@ -460,12 +466,22 @@ function improve(utxoSelection, outputAmount, limit, range) {
     wasm.BigNum.from_str('0')
   )
     .checked_add(utxo.output().amount())
-    .checked_add(outputAmount);
+    .checked_add(utxoSelection.amount);
 
-  if (
-    abs(getAmountValue(range.ideal) - getAmountValue(newAmount)) <
-      abs(getAmountValue(range.ideal) - getAmountValue(outputAmount)) &&
-    compare(newAmount, range.maximum) <= 0
+  let checkIdeal = false;
+  const cmpResult = compare(newAmount, range.ideal);
+  if (cmpResult <= 0) {
+    checkIdeal = true;
+  } else {
+    const idealMargin = range.ideal.checked_sub(outputAmount);
+    if (compare(newAmount, idealMargin.checked_add(range.ideal)) < 0) {
+      checkIdeal = true;
+    }
+  }
+  if ( // getAmountValue only makes sense when comparing the same assets
+    // abs(getAmountValue(range.ideal) - getAmountValue(newAmount)) <
+    //   abs(getAmountValue(range.ideal) - getAmountValue(outputAmount)) &&
+    checkIdeal && (compare(newAmount, range.maximum) <= 0)
   ) {
     utxoSelection.selection.push(utxo);
     utxoSelection.amount = addAmounts(
@@ -658,22 +674,24 @@ function createSubSet(utxoSelection, output) {
  * @param {int} nbFreeUTxO - Number of free UTxO available.
  * @return {boolean}
  */
-function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO) {
+function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO, outputAddress) {
   let amount = outputAmount;
 
   if (!outputAmount.multiasset() || outputAmount.multiasset().len() <= 0) {
     let minAmount = wasm.Value.new(
-      wasm.min_ada_required(
-        cumulatedAmount,
-        false,
-        wasm.BigNum.from_str(protocolParameters.coinsPerUtxoWord)
+      wasm.min_ada_for_output(
+        wasm.TransactionOutput.new(wasm.Address.from_bech32(outputAddress), cumulatedAmount),
+        wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))
       )
     );
 
     // Lovelace min amount to cover assets and number of output need to be met
     if (compare(cumulatedAmount, minAmount) < 0) return false;
 
-    // Try covering the max fees
+    // The minAda of the change should be considered in advance, although if the asset is sent in full it will be greater than the actual need
+    amount = amount.checked_add(minAmount);
+
+    // Try covering the max fees, do not include contract execution consumption
     if (nbFreeUTxO > 0) {
       let maxFee =
         BigInt(protocolParameters.minFeeA) *
@@ -702,6 +720,7 @@ function cloneUTxOSelection(utxoSelection) {
     remaining: cloneUTxOList(utxoSelection.remaining),
     subset: cloneUTxOList(utxoSelection.subset),
     amount: cloneValue(utxoSelection.amount),
+    outputAddress: utxoSelection.outputAddress
   };
 }
 

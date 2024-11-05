@@ -119,7 +119,7 @@
     {
       "chainId": "2147484262",
       "chainType": "OETH",
-      "chainName": "Optimism",
+      "chainName": "OP Mainnet",
       "symbol": "ETH",
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "CircleBridge": {
@@ -364,6 +364,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741851",
+      "chainType": "WATER",
+      "chainName": "Waterfall",
+      "symbol": "WATER",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "chainDecimals": 18,
+      "MaskChainId": 181,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -486,19 +498,40 @@
       }
     },
     {
+      "chainId": "1073741844",
+      "chainType": "NOBLE",
+      "chainName": "Noble",
+      "symbol": "USDC",
+      "CircleBridge": {
+        "domain": 4
+      },
+      "feeHolder": "noble1esq4y8zj8u78yrx9h799mkfd5he5jrjgrcl6fn",
+      "chainDecimals": 6,
+      "MaskChainId": "noble-1",
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
       "chainId": "2147484149",
       "chainType": "SOL",
       "chainName": "Solana",
+      "crossScAddr": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB",
+      "adminBoardProgram": "7jYCM8k5Nvwg5vyPpLk2yjivQhexPDMXuK8CSbUKqL6B",
+      "tokenManagerProgram": "6PcqfvWkBv3m9F5XBU2kMAedycs6BPzDGfi8zcWam3kH",
+      "feeHolder": "CXxYYAtiUhdUagJNQ6UAB9gmHdxeujUPdn4iRg9HeuSz",
+      "mintFromChainHandle": "MintFromSolana",
+      "burnFromChainHandle": "BurnFromSolana",
       "CircleBridge": {
         "domain": 5,
         "crossScAddr": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
+        "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
         "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
-        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3"
+        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3",
+        "feeHolder": "3yaCPbYPPWNZYUBYa8mMLo9QeQqQB6hR9XXHXnXfKEvH"
       },
-      "feeHolder": "3yaCPbYPPWNZYUBYa8mMLo9QeQqQB6hR9XXHXnXfKEvH",
-      "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
       "chainDecimals": 9,
-      "minReserved": 0.0009,
+      "minReserved": 0.001,
       "TxScanInfo": {
         "taskInterval": 10000
       }
@@ -527,5 +560,6 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigAddress": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6"
+  "crossConfigAddress": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
+  "wanPointsServer": "https://wanpoints.wanscan.org"
 }

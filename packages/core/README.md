@@ -154,7 +154,7 @@ try {
   let amount = 10;
 
   // check to-address format
-  let validTo = bridge.validateToAccount(fromChainName, toAccount);
+  let validTo = bridge.validateAddress(toChainName, toAccount);
   if (validTo === false) {
     throw "Invalid to-address";
   }

@@ -15,11 +15,9 @@ module.exports = class CheckBtcTxService {
         this.m_frameworkService = frameworkService;
         this.m_taskService = frameworkService.getService("TaskService");
         this.m_eventService = frameworkService.getService("EventService");
-
         this.m_configService = frameworkService.getService("ConfigService");
         this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
-        this.m_utilService = frameworkService.getService("UtilService");
-
+        this.m_stormanService = frameworkService.getService("StoremanService");
         this.lockTxTimeout = this.m_configService.getGlobalConfig("LockTxTimeout");
     }
 
@@ -80,7 +78,7 @@ module.exports = class CheckBtcTxService {
                 if (ret.data.success === true && ret.data.data !== null) {
                     let txHashField = this.chainType.toLowerCase() + "Hash";
                     let txHash = ret.data.data[txHashField];
-                    let sender = await this.m_utilService.getBtcTxSender(this.chainType, txHash);
+                    let sender = await this.m_stormanService.getBtcTxSender(this.chainType, txHash);
                     obj.uniqueID = this.getOtaTxUniqueId(txHash, obj.oneTimeAddr);
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,

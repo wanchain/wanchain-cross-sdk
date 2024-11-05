@@ -318,9 +318,9 @@
       "chainType": "LINEAETH",
       "chainName": "Linea",
       "symbol": "ETH",
-      "crossScAddr": "0x4bAfCf6dd1f05a90Ea80E2A0419cf1d9c79e0049",
+      "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
       "chainDecimals": 18,
-      "MaskChainId": 59140,
+      "MaskChainId": 59141,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -356,6 +356,42 @@
       "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
       "chainDecimals": 18,
       "MaskChainId": 168587773,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2147483961",
+      "chainType": "ZIL",
+      "chainName": "Zilliqa",
+      "symbol": "ZIL",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 33101,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741851",
+      "chainType": "WATER",
+      "chainName": "Waterfall",
+      "symbol": "WATER",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 1501869,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741852",
+      "chainType": "FTN",
+      "chainName": "Bahamut",
+      "symbol": "FTN",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 4058,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -517,18 +553,43 @@
       "chainId": "2147484149",
       "chainType": "SOL",
       "chainName": "Solana",
+      "crossScAddr": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB",
+      "adminBoardProgram": "7jYCM8k5Nvwg5vyPpLk2yjivQhexPDMXuK8CSbUKqL6B",
+      "tokenManagerProgram": "6PcqfvWkBv3m9F5XBU2kMAedycs6BPzDGfi8zcWam3kH",
+      "feeHolder": "2Yx49qE11EmZiS5GoZ8kUTXi8AGBVnLdnG2dxF3XyPig",
+      "mintFromChainHandle": "MintFromSolana",
+      "burnFromChainHandle": "BurnFromSolana",
       "CircleBridge": {
         "domain": 5,
         "crossScAddr": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
+        "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
         "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
-        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3"
+        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3",
+        "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg"
       },
-      "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg",
-      "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
       "chainDecimals": 9,
-      "minReserved": 0.0009,
+      "minReserved": 0.001,
       "TxScanInfo": {
         "taskInterval": 10000
+      }
+    },
+    {
+      "chainId": "2147483931",
+      "chainType": "ALGO",
+      "chainName": "Algorand",
+      "symbol": "ALGO",
+      "crossScAddr": 694523398,
+      "feeHolder": "WBKFZYUAYUXA55ENGAASBFZ2YZ43562VEUKX4PZDA45PVNA76EZZLWLZPU",
+      "mintFromChainHandle": "MintFromAlgorand",
+      "burnFromChainHandle": "MintFromAlgorand",
+      "chainDecimals": 6,
+      "minReserved": 0.1,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      },
+      "rpc": {
+        "url" : "https://testnet-api.algonode.cloud",
+        "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
       }
     }
   ],
@@ -555,5 +616,6 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigAddress": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D"
+  "crossConfigAddress": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D",
+  "wanPointsServer": ""
 }

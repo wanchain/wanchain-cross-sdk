@@ -9,9 +9,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     super();
     this.frameworkService = frameworkService;
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
-    this.utilService = frameworkService.getService("UtilService");
     this.uiStrService = frameworkService.getService("UIStrService");
-    this.globalConstant = frameworkService.getService("GlobalConstant");
     this.configService = frameworkService.getService("ConfigService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
@@ -20,7 +18,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     console.error("Unimplemented interface");
     return {
       stepNum: 0,
-      errCode: this.globalConstant.ERR_OTHER_UNKNOWN_ERR
+      errCode: "Unknown error"
     };
   }
 

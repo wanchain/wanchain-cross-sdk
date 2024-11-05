@@ -212,16 +212,28 @@ class IWanBCConnector {
       return this.apiClient.hasHackerAccount(address);
     }
 
-    async getChainQuotaHiddenFlags(chainIds) {
-      return this.apiClient.getChainQuotaHiddenFlags(chainIds);
-    }
-
     async parseCctpMessageSent(chainType, address) {
       return this.apiClient.parseCctpMessageSent(chainType, address);
     }
 
     async getAssociatedTokenAddress(chainType, address, tokenScAddr) {
       return this.apiClient.getAssociatedTokenAddress(chainType, address, tokenScAddr);
+    }
+
+    async getWanBridgeDiscounts(options) {
+      return this.apiClient.getWanBridgeDiscounts(options);
+    }
+
+    async getAccountInfo(chainType, address) {
+      return this.apiClient.getAccountInfo(chainType, address);
+    }
+
+    async getAllBalances(chainType, address) {
+      return this.apiClient.getAllBalances(chainType, address);
+    }
+
+    async call(method, options) {
+      return this.apiClient.call(method, options);
     }
 };
 

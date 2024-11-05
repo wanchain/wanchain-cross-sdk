@@ -4,7 +4,7 @@ const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 const ProcessBase = require("./processBase.js");
 
-module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
+module.exports = class ProcessErc20UserFastMint extends ProcessBase {
     constructor(frameworkService) {
         super(frameworkService);
     }
@@ -17,29 +17,25 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
                 return;
             }
             let txData;
-            if (wallet.generateUserBurnData) { // wallet custumized
-              txData = await wallet.generateUserBurnData(params.crossScAddr,
+            if (wallet.generateUserLockData) { // wallet custumized
+              txData = await wallet.generateUserLockData(params.crossScAddr,
                 params.storemanGroupId,
                 params.tokenPairID,
                 params.value,
-                params.userBurnFee,
-                params.tokenAccount,
                 params.userAccount,
                 {coinValue: params.fee});
             } else {
-              let scData = await this.m_txGeneratorService.generateUserBurnData(params.crossScAddr,
-                  params.storemanGroupId,
-                  params.tokenPairID,
-                  params.value,
-                  params.userBurnFee,
-                  params.tokenAccount,
-                  params.userAccount,
-                  {tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee, dapp: params.dapp});
+              let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr,
+                params.storemanGroupId,
+                params.tokenPairID,
+                params.value,
+                params.userAccount,
+                {tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee});
               txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.fee, scData.data, params.fromAddr);
             }
             await this.sendTransactionData(stepData, txData, wallet);
         } catch (err) {
-            console.error("ProcessErc20UserFastBurn error: %O", err);
+            console.error("ProcessErc20UserFastMint error: %O", err);
             this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, tool.getErrMsg(err, "Failed to send transaction"));
         }
     }
@@ -55,14 +51,14 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
         let taskType = this.m_tokenPairService.getTokenEventType(params.tokenPairID, direction);
         let srcToken = (direction === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
         let txEventTopics = [];
-        let topic0 = (params.tokenType === "Erc20")? "0xe314e23175856b9484e39ab0547753cf1b5cd0cbe3b0d7018c953d31f23fc767" : "0x988781dff960cf5a144a15c9b0c4d1346196e415e64ea7ebd609c6ac0559bbbb";
-        txEventTopics.push(topic0); // UserBurnLogger / UserBurnNFT
+        let topic0 = (params.tokenType === "Erc20")? "0x43eb196c5950c738b34cd1760941e0876559e4fb835498fe19016bc039ad61a9" : "0x62605e96f2f9cd2d124a846c58ea7d9982610ba45d052c99b14900c37a718683";
+        txEventTopics.push(topic0); // UserLockLogger / UserLockNFT
         txEventTopics.push(params.storemanGroupId);                                                   // smgID
         txEventTopics.push("0x" + new BigNumber(params.tokenPairID).toString(16).padStart(64, '0'));  // tokenPairID
         txEventTopics.push("0x" + tool.hexStrip0x(srcToken).toLowerCase().padStart(64, '0'));         // tokenAccount
         let convertCheckInfo = {
             ccTaskId: params.ccTaskId,
-            uniqueID: stepData.txHash,
+            uniqueID: "0x" + tool.hexStrip0x(stepData.txHash),
             userAccount: params.userAccount,
             smgID: params.storemanGroupId,
             tokenPairID: params.tokenPairID,

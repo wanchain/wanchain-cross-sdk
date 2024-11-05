@@ -1,0 +1,862 @@
+{
+  "version": "0.1.0",
+  "name": "cross_delegate",
+  "instructions": [
+    {
+      "name": "initialize",
+      "accounts": [
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "cpiAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "userLock",
+      "docs": [
+        "@param  smgID                           ID of storeman",
+        "@param  tokenPairID                     token pair ID of cross chain coin/token",
+        "@param  value                           exchange value",
+        "@param  userAccount                     account of user, used to receive shadow chain token"
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "solVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userAta",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "mappingTokenMint",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "feeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminBoardProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "configAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenPairAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "cctpAdminBoardFeeAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32"
+        },
+        {
+          "name": "value",
+          "type": "u64"
+        },
+        {
+          "name": "userAccount",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "userBurn",
+      "docs": [
+        "@param  smgID                           ID of storeman. In business domain it is byte32 type.",
+        "@param  tokenPairID                     token pair ID of cross chain token",
+        "@param  value                           exchange value",
+        "@param  userAccount                     account of user, used to receive original chain token"
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "userAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mappingTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "configAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenManagerProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "feeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "adminBoardProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenPairAccount",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "cctpAdminBoardFeeAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "fee",
+          "type": "u64"
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey"
+        },
+        {
+          "name": "userAccount",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "smgRelease",
+      "docs": [
+        "@param  uniqueID                        fast cross chain random number",
+        "@param  smgID                           ID of storeman",
+        "@param  tokenPairID                     token pair ID of cross chain token",
+        "@param  value                           exchange value",
+        "@param  fee                             exchange fee",
+        "@param  userAccount                     address of user, used to receive original token/coin",
+        "@param  r                               signature",
+        "@param  s                               signature"
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "user",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "solVault",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "userAta",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "tokenVault",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "feeReceiver",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mappingTokenMint",
+          "isMut": true,
+          "isSigner": false,
+          "isOptional": true
+        },
+        {
+          "name": "configAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "txHistory",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "uniqueId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "fee",
+          "type": "u64"
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey"
+        },
+        {
+          "name": "userAccount",
+          "type": "publicKey"
+        },
+        {
+          "name": "r",
+          "type": "u8"
+        },
+        {
+          "name": "s",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "ttl",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "smgMint",
+      "docs": [
+        "@param  uniqueID                        fast cross chain random number",
+        "@param  smgID                           ID of storeman",
+        "@param  tokenPairID                     token pair ID of cross chain token",
+        "@param  value                           exchange value",
+        "@param  fee                             exchange fee",
+        "@param  userAccount                     address of user, used to receive WRC20 token",
+        "@param  r                               signature",
+        "@param  s                               signature"
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "isMut": true,
+          "isSigner": true
+        },
+        {
+          "name": "user",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "userAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "feeReceiver",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "feeReceiverAta",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "mappingTokenMint",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "tokenSeedData",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "configAccount",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "txHistory",
+          "isMut": true,
+          "isSigner": false
+        },
+        {
+          "name": "cpiAuthority",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenManagerProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "tokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "associatedTokenProgram",
+          "isMut": false,
+          "isSigner": false
+        },
+        {
+          "name": "systemProgram",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "uniqueId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "fee",
+          "type": "u64"
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey"
+        },
+        {
+          "name": "userAccount",
+          "type": "publicKey"
+        },
+        {
+          "name": "r",
+          "type": "u8"
+        },
+        {
+          "name": "s",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "ttl",
+          "type": "i64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "AdminRoleData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "initialized",
+            "type": "bool"
+          },
+          {
+            "name": "adminRole",
+            "type": "publicKey"
+          },
+          {
+            "name": "operators",
+            "type": {
+              "array": [
+                "publicKey",
+                3
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "TxHistory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ttl",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ],
+  "types": [
+    {
+      "name": "ProofData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "hashX",
+            "type": {
+              "defined": "Bytes32"
+            }
+          },
+          {
+            "name": "tokenPairId",
+            "type": "u32"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "userAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "curChainId",
+            "type": "u64"
+          },
+          {
+            "name": "ttl",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Bytes32",
+      "type": {
+        "kind": "alias",
+        "value": {
+          "array": [
+            "u8",
+            32
+          ]
+        }
+      }
+    }
+  ],
+  "events": [
+    {
+      "name": "AddToken",
+      "fields": [
+        {
+          "name": "tokenAddress",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "symbol",
+          "type": "string",
+          "index": false
+        },
+        {
+          "name": "decimals",
+          "type": "u8",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "Transfer",
+      "fields": [
+        {
+          "name": "from",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "to",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "value",
+          "type": "u64",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "UserLockLogger",
+      "fields": [
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": false
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "value",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "contractFee",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "userAccount",
+          "type": "bytes",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "UserBurnLogger",
+      "fields": [
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": false
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "value",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "contractFee",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "fee",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "userAccount",
+          "type": "bytes",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SmgReleaseLogger",
+      "fields": [
+        {
+          "name": "uniqueId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": false
+        },
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": false
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "value",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "userAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    },
+    {
+      "name": "SmgMintLogger",
+      "fields": [
+        {
+          "name": "uniqueId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": false
+        },
+        {
+          "name": "smgId",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          },
+          "index": false
+        },
+        {
+          "name": "tokenPairId",
+          "type": "u32",
+          "index": false
+        },
+        {
+          "name": "value",
+          "type": "u64",
+          "index": false
+        },
+        {
+          "name": "tokenAccount",
+          "type": "publicKey",
+          "index": false
+        },
+        {
+          "name": "userAccount",
+          "type": "publicKey",
+          "index": false
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "NotAnAdmin"
+    },
+    {
+      "code": 6001,
+      "name": "NotAnOperator"
+    },
+    {
+      "code": 6002,
+      "name": "HasInitialized"
+    },
+    {
+      "code": 6003,
+      "name": "AmountShouldGreatThanZero",
+      "msg": "Amount should > 0 ."
+    },
+    {
+      "code": 6004,
+      "name": "SigVerificationFailed",
+      "msg": "Signature verification failed."
+    },
+    {
+      "code": 6005,
+      "name": "WrongCCTPFeeDataAccount",
+      "msg": "CCTP fee data account verify failed."
+    },
+    {
+      "code": 6006,
+      "name": "WrongFeeReceiver",
+      "msg": "Fee receiver verify failed."
+    }
+  ],
+  "metadata": {
+    "address": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB"
+  }
+}

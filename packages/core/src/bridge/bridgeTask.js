@@ -88,7 +88,7 @@ class BridgeTask {
     }
     let [fromAccountErr, toAccountErr] = await Promise.all([
       this._checkFromAccount(),
-      this._checkToAccount()
+      this._checkToAccount(options)
     ]);
     err = fromAccountErr || toAccountErr;
     if (err) {
@@ -105,7 +105,9 @@ class BridgeTask {
       amount: this._amount,
       bridge: this._tokenPair.bridge,
       fromAccount: this._fromAccount,
+      fromAccountId: options.fromAccountId || '',
       toAccount: this._toAccount || dapp.scAddr,
+      toAccountId: options.toAccountId || '',
       fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
@@ -116,7 +118,7 @@ class BridgeTask {
       toChainType: this._toChainInfo.chainType,
       isOtaTx: !this._wallet,
       fee: this._fee,
-      smg: this._smg,
+      smg: {name: this._smg? this._smg.name : "", gpk: this._gpkInfo? this._gpkInfo.gpk : ""},
       dapp
     };
     // console.debug({taskData});
@@ -173,17 +175,18 @@ class BridgeTask {
   // depends on fee
   async _checkSmg() {
     // get active smg
-    this._smg = await this._bridge.getSmgInfo();
+    let smg = await this._bridge.getSmgInfo();
+    this._smg = smg;
     if (this._tokenPair.bridge) { // only for unifying process flow, other bridge do not care smg
       return "";
     }
     let gpk = "", curve = gpkCurves.secp256, algo = gpkAlgs.ecdsa;
-    if ((this._fromChainInfo.chainType === 'BTC') && this._smg.gpk3) {
+    if ((this._fromChainInfo.chainType === 'BTC') && smg.gpk3) {
       algo = gpkAlgs.schnorr340;
     }
-    for (let i = 1; this._smg["gpk" + i]; i++) {
-      if (curve == this._smg["curve" + i] && algo == this._smg["algo" + i]) {
-        gpk = this._smg["gpk" + i];
+    for (let i = 1; smg["gpk" + i]; i++) {
+      if (curve == smg["curve" + i] && algo == smg["algo" + i]) {
+        gpk = smg["gpk" + i];
         break;
       }
     }
@@ -196,8 +199,8 @@ class BridgeTask {
     }
     // check quota
     let fromChainType = this._fromChainInfo.chainType;
-    if (this._smg.changed) { // optimize for mainnet getQuota performance issue
-      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._tokenPair.id, this._smg.id);
+    if (smg.changed) { // optimize for mainnet getQuota performance issue
+      this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._tokenPair.id, smg.id);
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._tokenPair.readableSymbol, this._quota);
       let networkFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol, {feeType: "networkFee"});
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
@@ -208,14 +211,16 @@ class BridgeTask {
       }
     }
     // check activating balance
+    let tokenAccount = (this._direction === "MINT")? this._tokenPair.fromAccount : this._tokenPair.toAccount;
+    let isLockCoin = (tokenAccount == 0);
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    if ((!chainInfo.crossScAddr) && chainInfo.minReserved && (this._direction === "MINT") && (this._tokenPair.fromAccount == 0)) { // only mint coin on not-sc-chain need to check smg balance
+    let crossScAddr = chainInfo.crossScAddr || (chainInfo.CircleBridge && chainInfo.CircleBridge.crossScAddr);
+    if ((!crossScAddr) && chainInfo.minReserved) { // do not check contract as it only set once
       let smgAddr = this._getSmgAddress(fromChainType);
       let smgBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, fromChainType, smgAddr, {wallet: this._wallet, isCoin: true});
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance;
-      let isLockCoin = (this._tokenPair.fromAccount == 0); // only release coin would change balance
-      if (isLockCoin) {
+      if (isLockCoin) { // only lock coin would change balance, ignore lock token networkFee
         estimateBalance = estimateBalance.plus(this._amount);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {
@@ -229,14 +234,14 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((fromChainType === "XRP") && (this._tokenPair.readableSymbol !== "XRP")) { // XRP token need to check smg trust line
+    if ((fromChainType === "XRP") && !isLockCoin) { // XRP token need to check smg trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
       let smgAddr = this._getSmgAddress(fromChainType);
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._tokenPair.fromAccount, smgAddr);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(this._tokenPair.fromAccount, true).join(".");
+        let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
         console.debug("Storeman has no trust line for %s: smg=%s, liquidity=%s", token, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
         return "The XRPL token crosschain is being activated. Please try again later";
       }
@@ -250,7 +255,7 @@ class BridgeTask {
     }
     let chainType = this._fromChainInfo.chainType;
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true, keepAlive: true});
+    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true});
     let assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
     let coinSymbol = this._bridge.chainInfoService.getCoinSymbol(chainType);
     let requiredCoin = new BigNumber(0);
@@ -258,13 +263,23 @@ class BridgeTask {
     if (this._tokenPair.readableSymbol === coinSymbol) { // asset is coin
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
-      this._task.setTaskData({fromAccountBalance: coinBalance.toFixed()});
     } else {
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
-      this._task.setTaskData({fromAccountBalance: assetBalance.toFixed()});
     }
-    if (chainInfo.minReserved) {
+    if (chainType === "ALGO") { // ALGO min-balance includes minReserved
+      let aInfo = await this._bridge.iwan.getAccountInfo("ALGO", this._fromAccount);
+      if (aInfo) {
+        if (aInfo.deleted) {
+          return "Wallet account is inactive";
+        }
+        let minBalance = new BigNumber(aInfo['min-balance'] || 0).div(Math.pow(10, chainInfo.chainDecimals));
+        console.debug("min balance: %s", minBalance.toFixed());
+        requiredCoin = requiredCoin.plus(minBalance);
+      } else {
+        return "Wallet account is not found";
+      }
+    } else if (chainInfo.minReserved) {
       requiredCoin = requiredCoin.plus(chainInfo.minReserved);
     }
     if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // depositForBurn messageSentEventData rent
@@ -272,32 +287,40 @@ class BridgeTask {
     }
     console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
     if (coinBalance.lt(requiredCoin)) {
-      return this._bridge.globalConstant.ERR_INSUFFICIENT_BALANCE;
+      return "Insufficient balance";
     }
     if (this._tokenPair.protocol === "Erc20") {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       if (assetBalance.lt(requiredAsset)) {
-        return this._bridge.globalConstant.ERR_INSUFFICIENT_TOKEN_BALANCE;
+        return "Insufficient asset";
       }
     }
     return "";
   }
 
-  async _checkToAccount() {
+  async _checkToAccount(options) {
     let chainType = this._toChainInfo.chainType;
+    let tokenAccount = (this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount;
+    let isRedeemCoin = (tokenAccount == 0);
+    // check address id
+    if (options.toAccountId) {
+      let addresses = await this._bridge.accountId2Address(options.toAccountId, this._toChainInfo.chainName);
+      if (!addresses.find(v => v.address === this._toAccount)) {
+        return "Recipient address and id do not match";
+      }
+    }
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
-    if (chainInfo.minReserved && (chainType !== "SOL")) { // solana do not limit on toChain
+    if (chainInfo.minReserved && ((chainType !== "SOL") || isRedeemCoin)) { // solana contract will pay on releasing token, but user should pay on releasing SOL
       let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._toAccount, {isCoin: true});
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;
-      let isReleaseCoin = (this._tokenPair.fromAccount == 0); // only release coin would change balance
-      if (isReleaseCoin) {
+      if (isRedeemCoin) { // only redeem coin would change balance
         let fee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol);
         estimateBalance = estimateBalance.plus(this._amount).minus(fee);
       }
       if (estimateBalance.lt(chainInfo.minReserved)) {
-        if (isReleaseCoin) {
+        if (isRedeemCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(balance);
           console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
           return "Amount is too small to activate recipient account";
@@ -307,17 +330,36 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((chainType === "XRP") && (this._tokenPair.readableSymbol !== "XRP")) { // XRP token need to check recipient trust line
+    if ((chainType === "XRP") && !isRedeemCoin) { // XRP token need to check recipient trust line
       if (!this._bridge.validateXrpTokenAmount(this._amount)) {
         return "Amount out of range";
       }
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(this._tokenPair.fromAccount, this._toAccount);
+      let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, this._toAccount);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(this._tokenPair.fromAccount, true).join(".");
+        let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
         let reason = line? "Liquidity is not enough" : "No trust line";
         let msg = util.format("%s for %s", reason, token);
         console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
         return msg;
+      }
+    }
+    // check algo status and opt in
+    if ((chainType === "ALGO") && !isRedeemCoin) { // algorand token need to check recipient opt in
+      let aInfo = await this._bridge.iwan.getAccountInfo("ALGO", this._toAccount);
+      if (aInfo) {
+        if (aInfo.deleted) {
+          return "Recipient account is inactive";
+        }
+        let assetId = Number(tokenAccount), optIn = null;
+        if ((aInfo['total-assets-opted-in'] > 0) && aInfo.assets) {
+          optIn = aInfo.assets.find(v => ((v['asset-id'] === assetId) && (v['opted-in-at-round'] > 0)));
+        }
+        if (!optIn) {
+          let msg = "No opt-in for token " + assetId;
+          return msg;
+        }
+      } else {
+        return "Recipient account is not found";
       }
     }
     return "";
@@ -325,7 +367,7 @@ class BridgeTask {
 
   _initDapp(dapp) {
     let result = {};
-    if ((!dapp) || (!dapp.name)) {
+    if (!(dapp && dapp.name)) {
       return null;
     }
     result.name = dapp.name;
@@ -354,7 +396,7 @@ class BridgeTask {
       fromAddr: ccTaskData.fromAccount,
       toSymbol: ccTaskData.toSymbol,
       toAddr: ccTaskData.toAccount,
-      storemanGroupId: ccTaskData.smg.id,
+      storemanGroupId: this._smg.id,
       gpkInfo: this._gpkInfo,
       value: ccTaskData.amount,
       fee: this._fee,

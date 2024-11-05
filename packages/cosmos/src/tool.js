@@ -11,10 +11,10 @@ const AddressPrefix = {
   NOBLE: "noble"
 }
 
-function validateAddress(address) {
+function validateAddress(address, network, chain) {
   try {
     encoding.fromBech32(address);
-    return true;
+    return (address.indexOf(AddressPrefix[chain]) === 0);
   } catch (err) {
     // console.error("cosmos validateAddress %s error: %O", address, err);
     return false;
@@ -35,7 +35,7 @@ function getStandardAddressInfo(address, chain = "Noble") {
     native = bech32.encode(AddressPrefix[chain], bech32.toWords(Buffer.from(address.substr(2), 'hex')));
   } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
     native = bech32.encode(AddressPrefix[chain], bech32.toWords(Buffer.from(address, 'hex')));
-  } else if (validateAddress(address)) {
+  } else if (validateAddress(address, "", chain)) {
     native = address;
   }
   if (native) {

@@ -2,6 +2,12 @@
 
 const tool = require("../../utils/tool.js");
 
+const DefaultScanBatchSize = 1000;
+const CustomizedScanBatchSize = {
+  SGB: 30,
+  OKT: 300,
+};
+
 module.exports = class CheckTxReceiptService {
   constructor() {
     this.taskArray = [];
@@ -45,7 +51,7 @@ module.exports = class CheckTxReceiptService {
             console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
             obj.txHash = result.txHash;
             if (obj.convertCheckInfo) {
-              obj.convertCheckInfo.uniqueID = result.txHash;
+              obj.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
             }
           }
           if (result.result === "Succeeded") {
@@ -66,12 +72,14 @@ module.exports = class CheckTxReceiptService {
         let result = "Failed";
         let errInfo = "Transaction failed";
         let isSuccess = false;
-        if (obj.chain === "NOBLE") {
+        if (["ATOM", "NOBLE"].includes(obj.chain)) {
           isSuccess = (txReceipt.code === 0);
         } else if (obj.chain === "SOL") {
           isSuccess = (txReceipt.meta.err === null);
         } else if (obj.chain === "TRX") {
           isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
+        } else if (obj.chain === "ALGO") {
+          isSuccess = (txReceipt['confirmed-round'] > 0);
         } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
@@ -104,59 +112,75 @@ module.exports = class CheckTxReceiptService {
       }
     }
     let latestBlock = await this.iwan.getBlockNumber(obj.chain);
-    let fromBlock = txCheckInfo.fromBlock - 30; // for rollback
-    if (fromBlock < 1) {
-      fromBlock = 1;
-    }
-    let toBlock = fromBlock;
+    let fromBlock = txCheckInfo.fromBlock;
     if (latestBlock >= fromBlock) {
-      let scanBatchSize = (obj.chain === "SGB")? 30 : 300; // OKTC limit 300
-      toBlock = fromBlock + scanBatchSize;
+      let scanBatchSize = CustomizedScanBatchSize[obj.chain] || DefaultScanBatchSize;
+      let rewindBlocks = parseInt(scanBatchSize * 0.6);
+      let toBlock = fromBlock + scanBatchSize;
       if (toBlock > latestBlock) {
         toBlock = latestBlock;
       }
-    } else { // rollback
-      txCheckInfo.fromBlock = latestBlock;
-      txCheckInfo.nonceBlock = 0;
-    }
-    console.debug("task %s %s check tx %s minted: block %d-%d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, toBlock, latestBlock);
-    let chainInfo = this.chainInfoService.getChainInfoByType(obj.chain);
-    let eventEmitter = tool.cmpAddress(txCheckInfo.to, chainInfo.subsidyCrossSc || "")? chainInfo.crossScAddr : txCheckInfo.to;
-    let events = await this.iwan.getScEvent(
-      obj.chain,
-      eventEmitter,
-      txCheckInfo.topics,
-      {fromBlock, toBlock}
-    );
-    if (events.length) {
-      for (let log of events) {
-        console.debug("checkEvent log: %O", log);
-        let txInfo = await this.iwan.getTxInfo(obj.chain, log.transactionHash);
-        if ((txInfo.nonce === txCheckInfo.nonce) && tool.cmpAddress(txInfo.from, txCheckInfo.from)) {
-          if (tool.cmpAddress(txInfo.to, txCheckInfo.to) && (txInfo.input === txCheckInfo.input)) {
-            return {result: "Succeeded", errInfo: "", txHash: log.transactionHash}; // normal or repriced
+      // rewind on recent tx
+      if ((toBlock + scanBatchSize) > latestBlock) {
+        fromBlock = fromBlock - rewindBlocks; // rewind default
+        if (fromBlock < 1) {
+          fromBlock = 1;
+        }
+        toBlock = fromBlock + scanBatchSize;
+        if (toBlock > latestBlock) { // rewind max
+          toBlock = latestBlock;
+          fromBlock = toBlock - scanBatchSize;
+          if (fromBlock < 1) {
+            fromBlock = 1;
           }
         }
       }
-    }
-    if (txCheckInfo.nonceBlock) {
-      if (toBlock > (txCheckInfo.nonceBlock + 10)) {
-        console.debug("task %s %s tx %s is replaced or canceled", obj.ccTaskId, obj.chain, obj.txHash);
-        return {result: "Failed", errInfo: "Transaction failed"};
+      console.debug("task %s %s check tx %s minted: block %d-%d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, toBlock, latestBlock);
+      let chainInfo = this.chainInfoService.getChainInfoByType(obj.chain);
+      let eventEmitter = tool.cmpAddress(txCheckInfo.to, chainInfo.subsidyCrossSc || "")? chainInfo.crossScAddr : txCheckInfo.to;
+      let events = await this.iwan.getScEvent(
+        obj.chain,
+        eventEmitter,
+        txCheckInfo.topics,
+        {fromBlock, toBlock}
+      );
+      if (events.length) {
+        for (let log of events) {
+          // console.debug("checkEvent log: %O", log);
+          let txInfo = await this.iwan.getTxInfo(obj.chain, log.transactionHash);
+          if ((txInfo.nonce === txCheckInfo.nonce) && tool.cmpAddress(txInfo.from, txCheckInfo.from)) {
+            if (tool.cmpAddress(txInfo.to, txCheckInfo.to) && (txInfo.input === txCheckInfo.input)) {
+              return {result: "Succeeded", errInfo: "", txHash: log.transactionHash}; // normal or repriced
+            }
+          }
+        }
       }
-    } else {
-      let curNonce = await this.iwan.getNonce(obj.chain, txCheckInfo.from);
-      if (curNonce > txCheckInfo.nonce) {
-        txCheckInfo.nonceBlock = latestBlock;
+      if (txCheckInfo.nonceBlock) {
+        if (toBlock > (txCheckInfo.nonceBlock + 10)) {
+          console.debug("task %s %s tx %s is replaced or canceled", obj.ccTaskId, obj.chain, obj.txHash);
+          return {result: "Failed", errInfo: "Transaction failed"};
+        }
+      } else {
+        let curNonce = await this.iwan.getNonce(obj.chain, txCheckInfo.from);
+        if (curNonce > txCheckInfo.nonce) {
+          txCheckInfo.nonceBlock = latestBlock;
+        }
       }
+      txCheckInfo.fromBlock = toBlock + 1;
+    } else { // rollback
+      txCheckInfo.fromBlock = latestBlock;
+      txCheckInfo.nonceBlock = 0;
+      console.debug("task %s %s check tx %s minted no new block %d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, latestBlock);
     }
-    txCheckInfo.fromBlock = toBlock + 1;
     await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     return null;
   }
 
   async addToScEventScan(obj) {
     if (obj.convertCheckInfo) {
+      if (!obj.convertCheckInfo.fromChain) {
+        obj.convertCheckInfo.fromChain = obj.chain;
+      }
       let scEventScanService = this.frameworkService.getService("ScEventScanService");
       await scEventScanService.add(obj.convertCheckInfo);
     }
@@ -169,7 +193,7 @@ module.exports = class CheckTxReceiptService {
   }
 
   async finishTask(taskIndex, task, result, errInfo) {
-    await this.eventService.emitEvent("TaskStepResult", {
+    await this.eventService.emitEvent(task.event || "TaskStepResult", {
       ccTaskId: task.ccTaskId,
       stepIndex: task.stepIndex,
       txHash: task.txHash,

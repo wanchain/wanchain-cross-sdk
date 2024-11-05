@@ -4,8 +4,8 @@ const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
 
-const SELF_WALLET_BALANCE_CHAINS = ["DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"]; // TRX has self wallet but also be supported by rpc
-const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "ATOM", "NOBLE"]; // TRX has self wallet but also be supported by rpc
+const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA"];
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
 class StoremanService {
@@ -55,6 +55,30 @@ class StoremanService {
       return {maxQuota: "0", minQuota: "0"};
     }
 
+    validateAddress(chainType, address) {
+      let result;
+      let extension = this.configService.getExtension(chainType);
+      let network = this.configService.getNetwork();
+      if (extension && extension.tool && extension.tool.validateAddress) {
+        result = extension.tool.validateAddress(address, network, chainType);
+      } else if ("WAN" === chainType) {
+        result = tool.isValidWanAddress(address);
+      } else if ("BTC" === chainType) {
+        result = tool.isValidBtcAddress(address, network);
+      } else if ("LTC" === chainType) {
+        result = tool.isValidLtcAddress(address, network);
+      } else if ("DOGE" === chainType) {
+        result = tool.isValidDogeAddress(address, network);
+      } else if ("XRP" === chainType) {
+        result = tool.isValidXrpAddress(address);
+      } else if ("XDC" === chainType) {
+        result = tool.isValidXdcAddress(address);
+      } else { // default as EVM
+        result = tool.isValidEthAddress(address);
+      }
+      return result;
+    }
+
     async getAccountBalance(assetPairId, chainType, addr, options = {}) {
       try {
         let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -62,44 +86,38 @@ class StoremanService {
         if (!tokenPair) {
           return new BigNumber(0);
         }
-        let balance, decimals, tokenAccount = "", direction = (chainType === tokenPair.fromChainType);
-        let kaChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-        if (options.isCoin) { // isCoin is internal use only
+        let balance = 0, decimals;
+        let direction = (chainType === tokenPair.fromChainType);
+        let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+        let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
+        let isCoin = options.isCoin || (tokenAccount === "0x0000000000000000000000000000000000000000");
+        if (isCoin) {
           decimals = direction? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
           if (SELF_WALLET_COIN_BALANCE_CHAINS.includes(chainType)) {
-              balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
+            if (options.wallet) {
+              // ogmius only provide pure ADA utxo balance
+              balance = await options.wallet.getBalance(addr);
+            }
           } else {
-              balance = await this.iwan.getBalance(chainType, addr);
+            balance = await this.iwan.getBalance(chainType, addr);
           }
         } else {
           decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
-          tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-          if (tokenAccount === "0x0000000000000000000000000000000000000000") { // coin
-            if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-              balance = options.wallet? (await options.wallet.getBalance(addr)) : 0;
-            } else {
-              balance = await this.iwan.getBalance(chainType, addr);
-            }
-          } else if (tokenPair.protocol === "Erc1155") {
+          if (tokenPair.protocol === "Erc1155") {
             balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
-          } else {
-            if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-              balance = options.wallet? (await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)))) : 0;
-            } else {
+          } else { // Erc20, Erc721
+            if (chainInfo._isEVM) {
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
+            } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
+              // ALGO do not need format tokenAccount
+              balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
+            } else if (options.wallet) {
+              balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
             }
           }
         }
         balance = new BigNumber(balance).div(Math.pow(10, decimals));
-        if (kaChainInfo && options.keepAlive) {
-          if (kaChainInfo.minReserved) {
-            balance = balance.minus(kaChainInfo.minReserved);
-            if (balance.lt(0)) {
-              balance = new BigNumber(0);
-            }
-          }
-        }
-        console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, tokenAccount? ("token " + tokenAccount) : "coin", addr, balance.toFixed());
+        console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, isCoin? "coin" : ("token " + tokenAccount), addr, balance.toFixed());
         return balance;
       } catch (err) {
         console.error("get tokenPair %s %s address %s balance error: %O", assetPairId, chainType, addr, err);
@@ -110,7 +128,7 @@ class StoremanService {
     async getAccountBalances(chainType, addr, assets, options) {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
       let result = {};
-      if (chainInfo._isEVM) { // evm support multicall
+      if (chainInfo._isEVM) { // evm support multicall, include Tron
         let evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
         if (tool.isValidEthAddress(evmAddress)) {
           let mcs = [], subgraphs = [];
@@ -147,7 +165,7 @@ class StoremanService {
               } else if (typeof(balance._hex) === "string") { // other EVMs
                 balance = balance._hex;
               } else {
-                console.error("unrecognized %s %s balance: %O", chain, asset, balance);
+                console.error("unrecognized %s %s balance: %O", chainType, asset, balance);
                 balance = "";
                 return;
               }
@@ -160,10 +178,20 @@ class StoremanService {
             res.forEach((v, i) => result[subgraphs[i].asset] = v);
           }
         }
-      } else if (SELF_WALLET_BALANCE_CHAINS.includes(chainType)) {
-        let extension = this.configService.getExtension(chainType);
-        let network = this.configService.getNetwork();
-        if (extension && extension.tool && extension.tool.validateAddress && extension.tool.validateAddress(addr, network, chainType)) {
+      } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) { // format of non-evm chains is different and needs to parse separately
+        if (this.validateAddress(chainType, addr)) {
+          if (chainType === "ALGO") {
+            let balances = await this.iwan.getAllBalances(chainType, addr);
+            let bMap = new Map();
+            balances.forEach(v => bMap.set(v.assetId, v.amount));
+            for (let asset in assets) {
+              let tokenInfo = assets[asset]; // include coin
+              result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
+            }
+          }
+        }
+      } else if (options.wallet) {
+        if (this.validateAddress(chainType, addr)) {
           let assetArray = [], balances;
           try { // input addr format maybe not match wallet
             if (options.wallet.getBalances) { // fix cardano Eternl too many requests error
@@ -189,8 +217,6 @@ class StoremanService {
             console.error("get %s %s balances error: %O", chainType, addr, err);
           }
         }
-      } else {
-        // console.debug("not support to get %s balance", chainType);
       }
       return result;
     }
@@ -339,32 +365,43 @@ class StoremanService {
     }
 
     async getCardanoEpochParameters() {
-      let latestBlock = await this.iwan.getLatestBlock("ADA");
-      let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
-      let epochParameters = {
-        linearFee: {
-          minFeeA: p.min_fee_a.toString(),
-          minFeeB: p.min_fee_b.toString(),
-        },
-        minUtxo: p.min_utxo, // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
-        poolDeposit: p.pool_deposit,
-        keyDeposit: p.key_deposit,
-        coinsPerUtxoByte: p.coins_per_utxo_byte,
-        coinsPerUtxoWord: p.coins_per_utxo_word,
-        maxValSize: p.max_val_size,
-        priceMem: p.price_mem,
-        priceStep: p.price_step,
-        maxTxSize: parseInt(p.max_tx_size),
-        slot: parseInt(latestBlock.slot),
-      };
-      console.debug("getCardanoEpochParameters: %O", epochParameters);
-      return epochParameters;
+      try {
+        let latestBlock = await this.iwan.getLatestBlock("ADA");
+        let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
+        let epochParameters = {
+          linearFee: {
+            minFeeA: p.min_fee_a.toString(),
+            minFeeB: p.min_fee_b.toString(),
+          },
+          minUtxo: p.min_utxo, // p.min_utxo, minUTxOValue protocol paramter has been removed since Alonzo HF. Calulation of minADA works differently now, but 1 minADA still sufficient for now
+          poolDeposit: p.pool_deposit,
+          keyDeposit: p.key_deposit,
+          coinsPerUtxoByte: p.coins_per_utxo_byte,
+          coinsPerUtxoWord: p.coins_per_utxo_word,
+          maxValSize: p.max_val_size,
+          priceMem: p.price_mem,
+          priceStep: p.price_step,
+          maxTxSize: parseInt(p.max_tx_size),
+          slot: parseInt(latestBlock.slot),
+          minFeeRefScriptCostPerByte: p.min_fee_ref_script_cost_per_byte
+        };
+        console.debug("getCardanoEpochParameters: %O", epochParameters);
+        return epochParameters;
+      } catch (err) {
+        console.error("getCardanoEpochParameters error: %O", err);
+        throw new Error("Network Instability Detected");
+      }
     }
 
     async getCardanoCostModelParameters() {
-      let p = await this.iwan.getCostModelParameters("ADA", {epochID: "latest"});
-      console.debug("getCardanoCostModelParameters: %O", p);
-      return p;
+      try {
+        let p = await this.iwan.getCostModelParameters("ADA", {epochID: "latest"});
+        console.debug("getCardanoCostModelParameters: %O", p);
+        return p;
+      } catch (err) {
+        console.error("getCardanoCostModelParameters error: %O", err);
+        throw new Error("Network Instability Detected");
+      }
     }
 
     async getChainBlockNumber(chainType) {
@@ -380,6 +417,41 @@ class StoremanService {
         return 0; // should retry later
       }
     }
+
+    async getBtcTxSender(chainType, txid) {
+      let txInfo = await this.iwan.getTxInfo(chainType, txid, {format: true});
+      let inputLen = txInfo.vin.length;
+      let sender = "";
+      for (let i = 0; i < inputLen; i++) {
+          let inputTxInfo = await this.iwan.getTxInfo(chainType, txInfo.vin[i].txid, {format: true});
+          let senders = inputTxInfo.vout[txInfo.vin[i].vout].scriptPubKey.addresses;
+          if (senders && senders.length) {
+              sender = senders[0];
+              if (senders.length === 1) {
+                  break;
+              }
+          }
+      }
+      return sender;
+   }
+
+   async registerSolWalletAddress(ataAddr, walletAddr) {
+    let apiServer = this.configService.getGlobalConfig("apiServer");
+    let url = apiServer.url + "/api/sol/addCctpWalletAddr";
+    let data = {ataAddr, walletAddr};
+    try {
+      let ret = await axios.post(url, data);
+      if (ret.data.success) {
+        console.debug("registerSolWalletAddress: %O", data);
+        return;
+      } else {
+        console.error("registerSolWalletAddress %O error: %O", data, ret);
+      }
+    } catch (err) {
+      console.error("registerSolWalletAddress %O error: %O", data, err);
+    }
+    throw new Error("Failed to register Solnala wallet address");
+  }
 }
 
 module.exports = StoremanService;

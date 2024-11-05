@@ -171,6 +171,10 @@ class StorageService {
       }
     }
 
+    removeCacheData(key) {
+      window.localStorage.removeItem(key);
+    }
+
     getAssetLogos() {
       if (typeof(window) !== "undefined") {
         let data = window.localStorage.getItem("AssetLogo");
@@ -189,4 +193,3 @@ class StorageService {
 };
 
 module.exports = StorageService;
-

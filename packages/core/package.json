@@ -29,7 +29,8 @@
     "lowdb": "^1.0.0",
     "identicon.js": "^2.3.3",
     "urql": "3.0.3",
-    "graphql": "16.6.0"
+    "graphql": "16.6.0",
+    "dexie": "^4.0.8"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"

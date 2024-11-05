@@ -64,7 +64,7 @@ module.exports = class CheckXrpTxService {
                 console.debug("CheckXrpTxService queryUrl:", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
-                    obj.uniqueID = "0x" + ret.data.data.xrpHash;
+                    obj.uniqueID = "0x" + ret.data.data.xrpHash.toLowerCase();
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,
                         txHash: ret.data.data.xrpHash,

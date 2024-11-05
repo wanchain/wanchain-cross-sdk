@@ -184,19 +184,26 @@ module.exports = class ProcessBurnFromCardano {
     let costModels = costModelParameters.costModels;
     const v1 = this.wasm.CostModel.new();
     let index = 0;
-    for (let key in costModels['plutus:v1']) {
-        v1.set(index, this.wasm.Int.new_i32(costModels['plutus:v1'][key]));
-        index++;
+    for (let key in costModels['PlutusV1']) {
+      v1.set(index, this.wasm.Int.new_i32(costModels['PlutusV1'][key]));
+      index++;
     }
     const v2 = this.wasm.CostModel.new();
     index = 0;
-    for (let key in costModels['plutus:v2']) {
-        v2.set(index, this.wasm.Int.new_i32(costModels['plutus:v2'][key]));
-        index++;
+    for (let key in costModels['PlutusV2']) {
+      v2.set(index, this.wasm.Int.new_i32(costModels['PlutusV2'][key]));
+      index++;
+    }
+    const v3 = this.wasm.CostModel.new();
+    index = 0;
+    for (let key in costModels['PlutusV3']) {
+      v3.set(index, this.wasm.Int.new_i32(costModels['PlutusV3'][key]));
+      index++;
     }
     let result = this.wasm.Costmdls.new();
     result.insert(this.wasm.Language.new_plutus_v1(), v1);
     result.insert(this.wasm.Language.new_plutus_v2(), v2);
+    result.insert(this.wasm.Language.new_plutus_v3(), v3);
     console.log("buildCostModels: %O", result.to_js_value());
     return result;
   }
@@ -216,7 +223,7 @@ module.exports = class ProcessBurnFromCardano {
     }
     const builder = this.wasm.TxInputsBuilder.new();
     for (let utxo of utxos) {
-      builder.add_input(
+      builder.add_regular_input(
         utxo.output().address(),
         utxo.input(),
         utxo.output().amount()
@@ -234,7 +241,7 @@ module.exports = class ProcessBurnFromCardano {
       chainInfo.tokenScript.index
     );
     const plutusScript = wasm.PlutusScript.from_bytes_v2(Buffer.from(chainInfo.tokenScript.cborHex, 'hex'));
-    const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input_with_lang_ver(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2());
+    const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2(), plutusScript.bytes().length);
 
     const exUnitsMint = wasm.ExUnits.new(
       wasm.BigNum.from_str(executionUnits? executionUnits.memory.toString() : "2136910"),
@@ -278,6 +285,7 @@ module.exports = class ProcessBurnFromCardano {
       wasm.UnitInterval.new(wasm.BigNum.from_str(priceMem[0]), wasm.BigNum.from_str(priceMem[1])),
       wasm.UnitInterval.new(wasm.BigNum.from_str(priceStep[0]), wasm.BigNum.from_str(priceStep[1]))
     ))
+    .ref_script_coins_per_byte(wasm.UnitInterval.new(wasm.BigNum.from_str(epochParameters.minFeeRefScriptCostPerByte), wasm.BigNum.from_str('1')))
     // .collateral_percentage(epochParameters.collateralPercentage)
     // .max_collateral_inputs(epochParameters.maxCollateralInputs)
     .build();
@@ -285,7 +293,7 @@ module.exports = class ProcessBurnFromCardano {
     let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
 
     for (let utxo of inputs) {
-      txBuilder.add_input(
+      txBuilder.add_regular_input(
         utxo.output().address(),
         utxo.input(),
         utxo.output().amount()

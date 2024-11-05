@@ -3,7 +3,14 @@
 const wanUtil = require("wanchain-util");
 const tool = require("../../utils/tool");
 
-const EventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
+const DefaultScanBatchSize = 1000;
+const CustomizedScanBatchSize = {
+  SGB: 30,
+  OKT: 300,
+};
+
+const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
+const AlgoEventTypes = ["algoBURN"];
 
 // CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
@@ -18,13 +25,7 @@ module.exports = class CheckScEvent {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
-    this.scanBatchSize = (chainInfo.chainType === "SGB")? 30 : 300; // OKTC limit 300
-    this.mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
-    this.mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
-    this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
-    this.mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
-    this.mapEventHandler.set("circleMINT", this.processCircleMint.bind(this));
-    EventTypes.forEach(v => this.mapCheckArray.set(v, []));
+    this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.ScScanInfo.taskInterval);
@@ -35,6 +36,20 @@ module.exports = class CheckScEvent {
     this.circleBridgeProxyAbi = this.configService.getAbi("circleBridgeProxy");
     this.circleBridgeDepositAbi = this.configService.getAbi("circleBridgeDeposit");
     this.circleBridgeReceiveAbi = this.configService.getAbi("circleBridgeReceive");
+    if (chainInfo.chainType === "ALGO") {
+      this.eventTypes = AlgoEventTypes;
+      this.mapEventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
+      let extension = this.configService.getExtension("ALGO");
+      this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
+    } else {
+      this.eventTypes = EvmEventTypes;
+      this.mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
+      this.mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
+      this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
+      this.mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
+      this.mapEventHandler.set("circleMINT", this.processCircleMint.bind(this));
+    }
+    this.eventTypes.forEach(v => this.mapCheckArray.set(v, []));
   }
 
   async add(obj) {
@@ -54,7 +69,7 @@ module.exports = class CheckScEvent {
     try {
       let connected = await this.iwan.isConnected();
       if (connected) {
-        for (let v of EventTypes) {
+        for (let v of this.eventTypes) {
           let fn = this.mapEventHandler.get(v);
           if (fn) {
             await fn();
@@ -99,6 +114,12 @@ module.exports = class CheckScEvent {
     await this.processScLogger("circleMINT", eventHash, eventName);
   }
 
+  async processAlgoBurn() {
+    let eventHash = ""; // not used
+    let eventName = "SmgReleaseLogger";
+    await this.processScLogger("algoBURN", eventHash, eventName);
+  }
+
   getEventHash(abi, eventName) {
     let prototype = "";
     for (let i = 0; i < abi.length; ++i) {
@@ -141,25 +162,43 @@ module.exports = class CheckScEvent {
             obj.fromBlockNumber = blockNumber;
             await storageService.save("ScEventScanService", obj.uniqueID, obj);
           } else {
-            throw new Error("task " + task.ccTaskId + " retry block number error");
+            throw new Error("task " + obj.ccTaskId + " retry block number error");
           }
         }
         await this.prepareTask(obj);
         let latestBlockNumber = await this.iwan.getBlockNumber(this.chainInfo.chainType);
-        let fromBlockNumber = obj.fromBlockNumber - 30; // for rollback
-        if (fromBlockNumber < 1) {
-          fromBlockNumber = 1;
-        }
-        let toBlockNumber = fromBlockNumber;
+        let fromBlockNumber = obj.fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
-          toBlockNumber = fromBlockNumber + this.scanBatchSize;
+          let rewindBlocks = parseInt(this.scanBatchSize * 0.6);
+          let toBlockNumber = fromBlockNumber + this.scanBatchSize;
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
+          // rewind on recent tx
+          if ((toBlockNumber + this.scanBatchSize) > latestBlockNumber) {
+            fromBlockNumber = fromBlockNumber - rewindBlocks; // rewind default
+            if (fromBlockNumber < 1) {
+              fromBlockNumber = 1;
+            }
+            toBlockNumber = fromBlockNumber + this.scanBatchSize;
+            if (toBlockNumber > latestBlockNumber) { // rewind max
+              toBlockNumber = latestBlockNumber;
+              fromBlockNumber = toBlockNumber - this.scanBatchSize;
+              if (fromBlockNumber < 1) {
+                fromBlockNumber = 1;
+              }
+            }
+          }
+          /* In theory, uniqueID should be a lowercase hash value with prefix '0x',
+             but in historical implementations, some uniqueIDs are uppercase or (and) without '0x', such as Tron and XRP
+             so reserve the compatible code temporarily
+          */
           let event;
           if (obj.taskType === "circleMINT") {
             let topics = [eventHash];
             event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, topics, obj.depositDomain, obj.depositNonce);
+          } else if (obj.taskType === "algoBURN") {
+            event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, obj.uniqueID);
           } else if (this.chainInfo.chainType === "TRX") {
             let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
@@ -175,11 +214,13 @@ module.exports = class CheckScEvent {
           } else { // wait next scan
             obj.fromBlockNumber = toBlockNumber + 1;
           }
+          console.debug("%s block %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
         } else { // rollback
           obj.fromBlockNumber = latestBlockNumber;
+          console.debug("%s no new block %d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
         }
-        console.debug("%s block %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
-                      this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
         await storageService.save("ScEventScanService", obj.uniqueID, obj);
       } catch (err) {
         if (err.message === "log is not ready") {
@@ -330,6 +371,62 @@ module.exports = class CheckScEvent {
     let args = log.args;
     if (["SmgMintNFT", "SmgReleaseNFT"].includes(log.eventName)) {
       args.userAccount = args.values[args.keys.indexOf("userAccount:address")];
+    }
+  }
+
+  async scanAlgoScEvent(fromBlock, toBlock, uniqueID) {
+    let events = [], nextToken = "";
+    for ( ; nextToken !== undefined; ) {
+      let options =  {fromBlock, toBlock};
+      if (nextToken) {
+        options.nextToken = nextToken;
+      }
+      let logs = await this.iwan.getScEvent(this.chainInfo.chainType, this.chainInfo.crossScAddr, [], options);
+      if (logs['log-data'] && logs['log-data'].length) {
+        events.push(...logs['log-data']);
+      }
+      nextToken = logs['next-token'];
+    }
+    for (let i = 0; i < events.length; i++) {
+      let log = events[i];
+      for (let i = 0; i < log.logs.length; i++) {
+        let ccInfo = this.algoDecodeSmgReleaseLogger(Buffer.from(log.logs[i], 'base64'), uniqueID);
+        if (ccInfo) {
+          return {txHash: log.txid, toAccount: ccInfo.to, value: ccInfo.value};
+        }
+      }
+    }
+    return null;
+  }
+
+  algoDecodeSmgReleaseLogger(u8Array, uniqueID) {
+    // class SmgReleaseLogger(abi.NamedTuple):
+    //     name:           abi.Field[abi.String]
+    //     uniqueID:       abi.Field[abi.StaticBytes[Literal[32]]]
+    //     smgID:          abi.Field[abi.StaticBytes[Literal[32]]]
+    //     tokenPairID:    abi.Field[abi.Uint64]
+    //     value:          abi.Field[abi.Uint64]
+    //     tokenAccount:   abi.Field[abi.Uint64]
+    //     userAccount:    abi.Field[abi.Address]
+    try {
+      let decoded = this.smgReleaseCodec.decode(u8Array);
+      let [name, u8ArrayUniqueID, u8ArraySmgID, bigIntTokenPairID, bigIntValue, bigIntTokenAccount, userAccount] = decoded;
+      if (name === "SmgReleaseLogger") {
+        let unique = '0x' + Buffer.from(u8ArrayUniqueID).toString("hex");
+        if (unique === uniqueID) {
+          // let smg = '0x' + Buffer.from(u8ArraySmgID).toString("hex");
+          // let tokenPair = bigIntTokenPairID.toString(10);
+          let value = bigIntValue.toString(10);
+          // let tokenAccount = bigIntTokenAccount.toString(10);
+          return {to: userAccount, value};
+        } else {
+          return null;
+        }
+      } else {
+        return null;
+      }
+    } catch (err) {
+      return null;
     }
   }
 
