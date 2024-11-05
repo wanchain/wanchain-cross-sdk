@@ -518,7 +518,7 @@ class WanBridge extends EventEmitter {
     return isHacker;
   }
 
-  async getChainInfo(chainName) {
+  getChainInfo(chainName) {
     let chainInfo = this.chainInfoService.getChainInfoByName(chainName);
     if (chainInfo) {
       let launchTime = this.tokenPairService.getChainLaunchTime(chainInfo.chainId);
