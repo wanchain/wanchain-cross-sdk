@@ -350,7 +350,7 @@ class TokenPairService {
 
     async readChainLaunchTime(startTime) {
       let times = await this.iwan.call("getChainLaunchTime", {});
-      console.log("readChainLaunchTime: %O", times);
+      // console.log("readChainLaunchTime: %O", times);
       let map = new Map();
       times.forEach(t => map.set(t.chainID, parseInt(t.launchTime)));
       this.chainLaunchTime = map;
@@ -360,7 +360,7 @@ class TokenPairService {
 
     async readAssetLaunchTime(startTime) {
       let times = await this.iwan.call("getTokenLaunchTime", {});
-      console.log("readAssetLaunchTime: %O", times);
+      // console.log("readAssetLaunchTime: %O", times);
       let map = new Map();
       times.forEach(t => map.set(t.symbol, parseInt(t.launchTime)));
       this.assetLaunchTime = map;
