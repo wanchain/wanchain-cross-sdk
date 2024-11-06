@@ -17,6 +17,8 @@ class TokenPairService {
         this.forceRefresh = false;
         this.multiChainOrigToken = new Map();
         this.tokenIssuer = new Map();
+        this.chainLaunchTime = new Map();
+        this.assetLaunchTime = new Map();
         this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
         this.assetAlias2Type = new Map(); // for logo
         this.fromChainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
@@ -30,7 +32,7 @@ class TokenPairService {
             this.crossProtocols = (options.crossProtocols || []).map(v => v.toLowerCase());
             this.crossTypes = (options.crossTypes || []).map(v => v.toLowerCase());
             this.frameworkService = frameworkService;
-            this.iwanBCConnector = frameworkService.getService("iWanConnectorService");
+            this.iwan = frameworkService.getService("iWanConnectorService");
             this.eventService = frameworkService.getService("EventService");
             this.configService = frameworkService.getService("ConfigService");
             this.chainInfoService = frameworkService.getService("ChainInfoService");
@@ -56,7 +58,7 @@ class TokenPairService {
     }
 
     async getSmgs(startTime) {
-        let smgList = await this.iwanBCConnector.getStoremanGroupList();
+        let smgList = await this.iwan.getStoremanGroupList();
         let ts = Date.now();
         console.debug("getSmgs %d consume %s ms", smgList.length, ts - startTime);
         let workingList = [];
@@ -86,7 +88,9 @@ class TokenPairService {
             let [tokenPairs] = await Promise.all([
               this.readTokenpairs(ts0),
               this.readMultiChainOrigToken(ts0),
-              this.readTokenIssuer(ts0)
+              this.readTokenIssuer(ts0),
+              this.readChainLaunchTime(ts0),
+              this.readAssetLaunchTime(ts0)
             ]);
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
@@ -176,7 +180,7 @@ class TokenPairService {
 
     async readTokenpairs(startTime) {
       let uiVer = this.uiStrService.getStrByName("CacheVersion") || "0";
-      let iwanVer = await this.iwanBCConnector.getTokenPairsHash();
+      let iwanVer = await this.iwan.getTokenPairsHash();
       let verCache = this.storageService.getCacheData("Version") || {};
       console.debug({uiVer, iwanVer, verCache});
       this.forceRefresh = (verCache.ui !== uiVer);
@@ -194,7 +198,7 @@ class TokenPairService {
         } else {
           options = {isAllTokenPairs: true};
         }
-        tokenPairs = await this.iwanBCConnector.getTokenPairs(options);
+        tokenPairs = await this.iwan.getTokenPairs(options);
         if (this.indexedDbService) {
           tokenPairs.forEach(v => v._ver = iwanVer);
           await this.indexedDbService.setCacheData("TokenPair", tokenPairs);
@@ -208,7 +212,7 @@ class TokenPairService {
     }
 
     async readMultiChainOrigToken(startTime) {
-      let origTokens = await this.iwanBCConnector.getRegisteredMultiChainOrigToken();
+      let origTokens = await this.iwan.getRegisteredMultiChainOrigToken();
       let map = new Map();
       origTokens.forEach(t => {
         let key = t.chainType + "-" + t.tokenScAddr;
@@ -220,7 +224,7 @@ class TokenPairService {
     }
 
     async readTokenIssuer(startTime) {
-      let tokenIssuers = await this.iwanBCConnector.getRegisteredTokenIssuer();
+      let tokenIssuers = await this.iwan.getRegisteredTokenIssuer();
       let map = new Map();
       tokenIssuers.forEach(t => {
         let key = t.chainType + "-" + t.tokenScAddr;
@@ -260,7 +264,7 @@ class TokenPairService {
       });
       let tokenScAddr = Array.from(accountSet);
       if (tokenScAddr.length) {
-        let logos = await this.iwanBCConnector.getRegisteredTokenLogo({tokenScAddr, isAllTokenTypes:true});
+        let logos = await this.iwan.getRegisteredTokenLogo({tokenScAddr, isAllTokenTypes:true});
         // console.debug({logos});
         logos.forEach(v => {
           let asset = tokenMap.get(v.chainType + "-" + v.tokenScAddr);
@@ -314,10 +318,10 @@ class TokenPairService {
       if (newChains.length) {
         let logos = [];
         if ((newChains.length * 3) > chainSet.size) {
-          logos = await this.iwanBCConnector.getRegisteredChainLogo();
+          logos = await this.iwan.getRegisteredChainLogo();
         } else {
           await Promise.all(newChains.map(async (chainType) => {
-            let result = await this.iwanBCConnector.getRegisteredChainLogo({chainType});
+            let result = await this.iwan.getRegisteredChainLogo({chainType});
             logos = logos.concat(result);
           }))
         }
@@ -342,6 +346,34 @@ class TokenPairService {
       let ts = Date.now();
       console.debug("readChainLogos %d consume %s ms", newChains.length, ts - startTime);
       this.chainLogo = logoMapCacheNew;
+    }
+
+    async readChainLaunchTime(startTime) {
+      try {
+        let times = await this.iwan.call("getChainLaunchTime", {});
+        // console.log("readChainLaunchTime: %O", times);
+        let map = new Map();
+        times.forEach(t => map.set(t.chainID, parseInt(t.launchTime)));
+        this.chainLaunchTime = map;
+      } catch (err) {
+        console.error("readChainLaunchTime error: %O", err);
+      }
+      let ts = Date.now();
+      console.debug("readChainLaunchTime %d consume %s ms", this.chainLaunchTime.size, ts - startTime);
+    }
+
+    async readAssetLaunchTime(startTime) {
+      try {
+        let times = await this.iwan.call("getTokenLaunchTime", {});
+        // console.log("readAssetLaunchTime: %O", times);
+        let map = new Map();
+        times.forEach(t => map.set(t.symbol, parseInt(t.launchTime)));
+        this.assetLaunchTime = map;
+      } catch (err) {
+        console.error("readAssetLaunchTime error: %O", err);
+      }
+      let ts = Date.now();
+      console.debug("readAssetLaunchTime %d consume %s ms", this.assetLaunchTime.size, ts - startTime);
     }
 
     getTokenPair(id) {
@@ -526,6 +558,7 @@ class TokenPairService {
       if (!this.checkActive(assetName, tokenPair)) {
         return false;
       }
+      let launchTime = this.assetLaunchTime.get(assetName) || 0;
       // protocol
       let protocol = this.fromChainAssets.get(tokenPair.protocol);
       if (!protocol) {
@@ -539,7 +572,7 @@ class TokenPairService {
           chain = new Map();
           protocol.set(tokenPair.fromChainType, chain);
         }
-        chain.set(assetName, {symbol: tokenPair.fromSymbol, address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol});
+        chain.set(assetName, {symbol: tokenPair.fromSymbol, address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol, launchTime});
       }
       // toChain
       if (tokenPair.direction !== "f2t") {
@@ -549,7 +582,7 @@ class TokenPairService {
             chain = new Map();
             protocol.set(tokenPair.toChainType, chain);
           }
-          chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol});
+          chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol, launchTime});
         }
       }
       return true;
@@ -626,7 +659,7 @@ class TokenPairService {
             origSymbols.add(v);
           }
         });
-        let ids = await this.iwanBCConnector.getRegisteredCoinGecko({symbol: Array.from(origSymbols)});
+        let ids = await this.iwan.getRegisteredCoinGecko({symbol: Array.from(origSymbols)});
         let symbol2id = {};
         origSymbols.forEach(origSymbol => {
           let idInfo = ids.find(v => v.symbol.toLowerCase() === origSymbol.toLowerCase());
@@ -651,6 +684,10 @@ class TokenPairService {
         console.log("get %s price error: %O", symbols, e);
       }
       return prices;
+    }
+
+    getChainLaunchTime(chainId) {
+      return this.chainLaunchTime.get(chainId) || 0;
     }
 };
 
