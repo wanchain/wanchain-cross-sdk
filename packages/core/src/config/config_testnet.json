@@ -12,7 +12,7 @@
       },
       "dapp": {
         "swap": {
-          "scAddr": "0xB139c4913823Da46012C154D115F7Fa744310842"
+          "scAddr": "0x3EE0956D44D50846707Db0b002BacceABDd905e9"
         }
       }
     },
@@ -518,7 +518,7 @@
       },
       "dapp": {
         "swap": {
-          "scAddr": "addr_test1wqk0z6ytud0v2s3g62zddt3fw093572j2u4ypxywqpnszjcsh4t5r",
+          "scAddr": "addr_test1wr2mlchrxlwvhqhfe5j8adjj06xcle3cs4jmvappmpxwl5snfcqa9",
           "assets": ["ADA", "USDT"]
         }
       }
