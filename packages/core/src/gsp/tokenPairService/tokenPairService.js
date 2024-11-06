@@ -349,23 +349,31 @@ class TokenPairService {
     }
 
     async readChainLaunchTime(startTime) {
-      let times = await this.iwan.call("getChainLaunchTime", {});
-      // console.log("readChainLaunchTime: %O", times);
-      let map = new Map();
-      times.forEach(t => map.set(t.chainID, parseInt(t.launchTime)));
-      this.chainLaunchTime = map;
+      try {
+        let times = await this.iwan.call("getChainLaunchTime", {});
+        // console.log("readChainLaunchTime: %O", times);
+        let map = new Map();
+        times.forEach(t => map.set(t.chainID, parseInt(t.launchTime)));
+        this.chainLaunchTime = map;
+      } catch (err) {
+        console.error("readChainLaunchTime error: %O", err);
+      }
       let ts = Date.now();
-      console.debug("readChainLaunchTime %d consume %s ms", times.length, ts - startTime);
+      console.debug("readChainLaunchTime %d consume %s ms", this.chainLaunchTime.size, ts - startTime);
     }
 
     async readAssetLaunchTime(startTime) {
-      let times = await this.iwan.call("getTokenLaunchTime", {});
-      // console.log("readAssetLaunchTime: %O", times);
-      let map = new Map();
-      times.forEach(t => map.set(t.symbol, parseInt(t.launchTime)));
-      this.assetLaunchTime = map;
+      try {
+        let times = await this.iwan.call("getTokenLaunchTime", {});
+        // console.log("readAssetLaunchTime: %O", times);
+        let map = new Map();
+        times.forEach(t => map.set(t.symbol, parseInt(t.launchTime)));
+        this.assetLaunchTime = map;
+      } catch (err) {
+        console.error("readAssetLaunchTime error: %O", err);
+      }
       let ts = Date.now();
-      console.debug("readAssetLaunchTime %d consume %s ms", times.length, ts - startTime);
+      console.debug("readAssetLaunchTime %d consume %s ms", this.assetLaunchTime.size, ts - startTime);
     }
 
     getTokenPair(id) {
