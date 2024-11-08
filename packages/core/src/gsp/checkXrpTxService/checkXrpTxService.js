@@ -32,20 +32,12 @@ module.exports = class CheckXrpTxService {
     }
 
     async addTagInfo(obj) {
-        //{
-        //    "chainType": chainType,
-        //    "chainAddr": chainAddr,
-        //    "smgPublicKey": storemanGroupPublicKey,
-        //    "smgId": storemanGroupId,
-        //    "tagId": tagId
-        //};
-        // console.log("CheckXrpTxService addTagInfo obj:", obj);
         let tmpObj = {
-            "ccTaskId": obj.ccTaskId,
-            "tagId": obj.tagId,
-            "chain": obj.chainType,
-            "fromBlockNumber": obj.fromBlockNumber,
-            "taskType": "MINT"
+            ccTaskId: obj.ccTaskId,
+            tagId: obj.tagId,
+            chain: obj.chainType, // toChainType
+            fromBlockNumber: obj.fromBlockNumber,
+            taskType: "MINT"
         };
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.save("CheckXrpTxService", tmpObj.ccTaskId, tmpObj);
@@ -64,6 +56,7 @@ module.exports = class CheckXrpTxService {
                 console.debug("CheckXrpTxService queryUrl:", queryUrl);
                 let ret = await axios.get(queryUrl);
                 if (ret.data.success === true && ret.data.data !== null) {
+                    obj.fromChain = "XRP";
                     obj.uniqueID = "0x" + ret.data.data.xrpHash.toLowerCase();
                     await this.m_eventService.emitEvent("LockTxHash", {
                         ccTaskId: obj.ccTaskId,
