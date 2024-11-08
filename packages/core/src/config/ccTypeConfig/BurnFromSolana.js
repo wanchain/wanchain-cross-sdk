@@ -15,7 +15,6 @@ module.exports = class BurnFromSolana {
       let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
       let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
-      let networkFee = tool.parseFee(convert.fee, convert.value, "SOL", {formatWithDecimals: false, feeType: "networkFee"});
       let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
       let toAddressInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
       let params = {
@@ -28,7 +27,6 @@ module.exports = class BurnFromSolana {
         tokenPairID: convert.tokenPairId,
         value,
         taskType: "ProcessBurnFromSolana",
-        networkFee,
         fromAddr: convert.fromAddr
       };
       console.debug("BurnFromSolana params: %O", params);
