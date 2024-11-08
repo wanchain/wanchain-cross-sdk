@@ -615,10 +615,12 @@ class WanBridge extends EventEmitter {
   }
 
   getToDapps(assetType, fromChainName, toChainName) {
+    console.debug("SDK: getToDapps, assetType: %s, fromChainName: %s, toChainName: %s", assetType, fromChainName, toChainName);
     let dapps = [];
     let fromChainInfo = this.chainInfoService.getChainInfoByName(fromChainName);
     let toChainInfo = this.chainInfoService.getChainInfoByName(toChainName);
     if (!toChainInfo.dapp) {
+      console.debug("SDK: getToDapps, result: none");
       return [];
     }
     if (toChainInfo.dapp.swap && fromChainInfo.dapp.swap) {
@@ -641,6 +643,8 @@ class WanBridge extends EventEmitter {
         }
       }
     }
+    console.debug("SDK: getToDapps, result: %O", dapps);
+    return dapps;
   }
 
   _onStoremanInitilized(success) {

@@ -153,4 +153,25 @@ module.exports = class TxGeneratorService{
       console.debug("%s generateCircleBridgeDeposit gasLimit: %s", options.chainType, gasLimit);
       return {data, gasLimit};
     }
+
+    genCardanoSwapDappDatum(inTokenId, outTokenId, minimumReceive) {
+      const ls = CardanoWasm.PlutusList.new();
+      {
+        const direction = inTokenId.toLowerCase() < outTokenId.toLowerCase() ? '1':'0';
+        const directionCbor = CardanoWasm.PlutusData.new_constr_plutus_data(
+          CardanoWasm.ConstrPlutusData.new(
+            CardanoWasm.BigNum.from_str(direction),
+            CardanoWasm.PlutusList.new()
+          )
+        )
+        ls.add(directionCbor);
+      }
+      ls.add(CardanoWasm.PlutusData.new_integer(CardanoWasm.BigInt.from_str(minimumReceive + '')));
+      return CardanoWasm.PlutusData.new_constr_plutus_data(
+        CardanoWasm.ConstrPlutusData.new(
+          CardanoWasm.BigNum.from_str('0'),
+          ls
+        )
+      ).to_hex()
+  }
 }
