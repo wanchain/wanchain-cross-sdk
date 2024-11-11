@@ -377,8 +377,8 @@ class BridgeTask {
       result.scAddr = chainInfo.dapp.swap.scAddr;
       let tp = this._bridge._matchTokenPair(result.asset, this._toChainInfo.chainName, this._fromChainInfo.chainName);
       result.tokenPair = tp.id;
-      let decimals = (this._direction == 'MINT')? tp.toDecimals : tp.fromDecimals;
-      result.amount = new BigNumber(dapp.amount).times(Math.pow(10, decimals)).toFixed(0);
+      result.tokenAccount = (tp.fromChainType === chainInfo.chainType)? tp.fromAccount : tp.toAccount;
+      result.amount = dapp.amount;
       result.recipient = dapp.recipient || this._fromAccount;
     }
     console.debug("init dapp: %O", result);

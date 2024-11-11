@@ -869,6 +869,7 @@ class WanBridge extends EventEmitter {
         }
       }
     }
+    console.error("asset pair not exist: %O", {assetType, fromChainName, toChainName, options});
     throw new Error("Asset pair not exist");
   }
 

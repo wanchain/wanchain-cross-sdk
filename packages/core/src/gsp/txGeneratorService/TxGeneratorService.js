@@ -14,6 +14,7 @@ module.exports = class TxGeneratorService{
         this.frameworkService = frameworkService;
         this.iwan = frameworkService.getService("iWanConnectorService");
         this.configService = frameworkService.getService("ConfigService");
+        this.tokenPairService = frameworkService.getService("TokenPairService");
     }
 
     // erc20 approve
@@ -108,11 +109,7 @@ module.exports = class TxGeneratorService{
         value = "0x" + new BigNumber(value).toString(16);
         fee = "0x" + new BigNumber(fee).toString(16);
         if (dapp) {
-          console.log(dapp)
-          let swapParams = web3.eth.abi.encodeParameters(["uint256"], [dapp.amount]);
-          console.log("swapParams:", swapParams);
-          // recipient/tokenPairId/constraintCBOR
-          let dappData = web3.eth.abi.encodeParameters(["address", "uint256", "bytes"], [dapp.recipient, dapp.tokenPair, swapParams]);
+          let dappData = this.genDappData(extInfo.chainType, tokenPairID, dapp);
           data = crossScInst.methods.crossUserBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount, dappData).encodeABI();
         } else {
           data = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
@@ -154,24 +151,36 @@ module.exports = class TxGeneratorService{
       return {data, gasLimit};
     }
 
-    genCardanoSwapDappDatum(inTokenId, outTokenId, minimumReceive) {
-      const ls = CardanoWasm.PlutusList.new();
-      {
-        const direction = inTokenId.toLowerCase() < outTokenId.toLowerCase() ? '1':'0';
-        const directionCbor = CardanoWasm.PlutusData.new_constr_plutus_data(
-          CardanoWasm.ConstrPlutusData.new(
-            CardanoWasm.BigNum.from_str(direction),
-            CardanoWasm.PlutusList.new()
-          )
-        )
-        ls.add(directionCbor);
+    genDappData(chainType, tokenPairID, dapp) {
+      console.debug(dapp);
+      let data = "";
+      if (dapp.name === "swap") {
+        let tp = this.tokenPairService.getTokenPair(tokenPairID);
+        let direction = (chainType === tp.fromChainType);
+        let toChainType = direction? tp.toChainType : tp.fromChainType;
+        if (toChainType === "ADA") {
+          let inTokenAccount = direction? tp.toAccount : tp.fromAccount;
+          let outTokenAccount = dapp.tokenAccount;
+          let swapParams = this.genCardanoSwapDappDatum(dapp.tokenPair, inTokenAccount, outTokenAccount, dapp.amount);
+          data = web3.eth.abi.encodeParameters(["address", "uint256", "bytes"], [dapp.recipient, dapp.tokenPair, swapParams]);
+        }
       }
-      ls.add(CardanoWasm.PlutusData.new_integer(CardanoWasm.BigInt.from_str(minimumReceive + '')));
-      return CardanoWasm.PlutusData.new_constr_plutus_data(
-        CardanoWasm.ConstrPlutusData.new(
-          CardanoWasm.BigNum.from_str('0'),
-          ls
-        )
-      ).to_hex()
-  }
+      if (data) {
+        return data;
+      } else {
+        throw new Error("No dapp data");
+      }
+    }
+
+    genCardanoSwapDappDatum(tokenPairID, inTokenAccount, outTokenAccount, amount) {
+      let tp = this.tokenPairService.getTokenPair(tokenPairID);
+      let inTokenId = (inTokenAccount === "0x0000000000000000000000000000000000000000")? "" : tool.ascii2letter(tool.hexStrip0x(inTokenAccount));
+      let outTokenId = (outTokenAccount === "0x0000000000000000000000000000000000000000")? "" : tool.ascii2letter(tool.hexStrip0x(outTokenAccount));
+      let decimals = (outTokenAccount === tp.fromAccount)? tp.fromDecimals : tp.toDecimals;
+      let minimumReceive = new BigNumber(amount).times(Math.pow(10, decimals)).toFixed(0);
+      let extension = this.configService.getExtension("ADA");
+      let datum = extension.tool.genSwapDappDatum(inTokenId, outTokenId, minimumReceive);
+      console.debug("genCardanoSwapDappDatum: %O", {tokenPairID, inTokenAccount, outTokenAccount, amount, inTokenId, outTokenId, minimumReceive, datum});
+      return "0x" + datum;
+    }
 }

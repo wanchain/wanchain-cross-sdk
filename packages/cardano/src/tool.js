@@ -232,6 +232,19 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
   }
 }
 
+function genSwapDappDatum(inTokenId, outTokenId, minimumReceive) {
+  let ls = wasm.PlutusList.new();
+  let direction = inTokenId.toLowerCase() < outTokenId.toLowerCase() ? '1':'0';
+  let directionCbor = wasm.PlutusData.new_constr_plutus_data(
+    wasm.ConstrPlutusData.new(wasm.BigNum.from_str(direction), wasm.PlutusList.new())
+  )
+  ls.add(directionCbor);
+  ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str(minimumReceive + '')));
+  return wasm.PlutusData.new_constr_plutus_data(
+    wasm.ConstrPlutusData.new(wasm.BigNum.from_str('0'), ls)
+  ).to_hex();
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -245,5 +258,6 @@ module.exports = {
   showUtxos,
   splitMetadata,
   evaluateTx,
-  checkUtxos
+  checkUtxos,
+  genSwapDappDatum
 }
