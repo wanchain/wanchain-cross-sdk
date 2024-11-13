@@ -438,6 +438,8 @@ class TokenPairService {
         return "GERO";
       } else if (symbol === "worldmobiletoken") {
         return "WMT";
+      } else if (symbol === "MynthToken") {
+        return "MNT";
       } else {
         return symbol;
       }
