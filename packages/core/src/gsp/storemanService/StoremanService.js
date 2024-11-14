@@ -171,7 +171,7 @@ class StoremanService {
                 balance = "";
                 return;
               }
-              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
+              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toFixed();
             })
           }
           // subgraph
@@ -188,7 +188,7 @@ class StoremanService {
             balances.forEach(v => bMap.set(v.assetId, v.amount));
             for (let asset in assets) {
               let tokenInfo = assets[asset]; // include coin
-              result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
+              result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
             }
           } else if (chainType === "SUI") {
             let balances = await this.iwan.getAllBalances(chainType, addr);
@@ -196,7 +196,7 @@ class StoremanService {
             balances.forEach(v => bMap.set(v.coinType, v.totalBalance));
             for (let asset in assets) {
               let tokenInfo = assets[asset]; // include coin
-              result[asset] = new BigNumber(bMap.get(tool.ascii2letter(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
+              result[asset] = new BigNumber(bMap.get(tool.ascii2letter(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
             }
           }
         }
@@ -221,7 +221,7 @@ class StoremanService {
             }
             for (let i = 0; i < assetArray.length; i++) {
               let asset = assetArray[i];
-              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();
+              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toFixed();
             }
           } catch (err) {
             console.error("get %s %s balances error: %O", chainType, addr, err);
