@@ -7,6 +7,7 @@ const TronExtension = require('./packages/tron');
 const CosmosExtension = require('./packages/cosmos');
 const SolanaExtension = require('./packages/solana');
 const AlgorandExtension = require('./packages/algorand');
+const SuiExtension = require('./packages/sui');
 
 module.exports = {
   WanBridge,
@@ -16,5 +17,6 @@ module.exports = {
   TronExtension,
   CosmosExtension,
   SolanaExtension,
-  AlgorandExtension
+  AlgorandExtension,
+  SuiExtension
 };

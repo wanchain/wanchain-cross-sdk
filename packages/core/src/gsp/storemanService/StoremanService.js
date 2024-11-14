@@ -5,7 +5,7 @@ const tool = require("../../utils/tool");
 const axios = require("axios");
 
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA"];
-const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO"];
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
 class StoremanService {
@@ -109,7 +109,9 @@ class StoremanService {
             if (chainInfo._isEVM) {
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
             } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
-              // ALGO do not need format tokenAccount
+              if (chainType !== "ALGO") { // defalut convert except ALGO
+                tokenAccount = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+              }
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
             } else if (options.wallet) {
               balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
@@ -187,6 +189,14 @@ class StoremanService {
             for (let asset in assets) {
               let tokenInfo = assets[asset]; // include coin
               result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
+            }
+          } else if (chainType === "SUI") {
+            let balances = await this.iwan.getAllBalances(chainType, addr);
+            let bMap = new Map();
+            balances.forEach(v => bMap.set(v.coinType, v.totalBalance));
+            for (let asset in assets) {
+              let tokenInfo = assets[asset]; // include coin
+              result[asset] = new BigNumber(bMap.get(tool.ascii2letter(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
             }
           }
         }
@@ -451,6 +461,22 @@ class StoremanService {
       console.error("registerSolWalletAddress %O error: %O", data, err);
     }
     throw new Error("Failed to register Solnala wallet address");
+  }
+
+  async getSuiCoins(address, coinType = "") {
+    let data = [], cursor = "";
+    for ( ; ; ) {
+      let result = await this.iwan.call("getCoins", {chainType: 'SUI', address, tokenScAddr: coinType, cursor});
+      if (result.data.length) {
+        data = data.concat(result.data);
+      }
+      if (result.hasNextPage && result.nextCursor) {
+        cursor = result.nextCursor;
+      } else {
+        break;
+      }
+    }
+    return data;
   }
 }
 
