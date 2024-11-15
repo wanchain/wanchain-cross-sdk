@@ -619,19 +619,23 @@ class WanBridge extends EventEmitter {
     let dapps = [];
     let fromChainInfo = this.chainInfoService.getChainInfoByName(fromChainName);
     let toChainInfo = this.chainInfoService.getChainInfoByName(toChainName);
-    if (!toChainInfo.dapp) {
+    if (!(fromChainInfo.dapp && toChainInfo.dapp)) {
       console.debug("SDK: getToDapps, result: none");
       return [];
     }
-    if (toChainInfo.dapp.swap && fromChainInfo.dapp.swap) {
+    if (fromChainInfo.dapp.swap && toChainInfo.dapp.swap) {
       let assets = [];
-      let toChainAssets = await this._getChainAssets(toChainName, {}, {protocols: ["Erc20"]}, Date.now());
-      toChainAssets.forEach(a => {
+      let pools = toChainInfo.dapp.swap.assets || [];
+      if (pools.length === 0) { // defalut support all assets
+        let toChainAssets = await this._getChainAssets(toChainName, {}, {protocols: ["Erc20"]}, Date.now());
+        pools = toChainAssets.map(v => v.symbol);
+      }
+      pools.forEach(a => {
         try {
-          if (a.symbol !== assetType) {
-            let tp = this._matchTokenPair(a.symbol, toChainName, fromChainName);
+          if (a !== assetType) {
+            let tp = this._matchTokenPair(a, toChainName, fromChainName);
             let decimals = (tp.fromDecimals > tp.toDecimals)? tp.toDecimals : tp.fromDecimals;
-            assets.push({name: a.symbol, decimals});
+            assets.push({name: a, decimals});
           }
         } catch (err) { // do nothing
         }

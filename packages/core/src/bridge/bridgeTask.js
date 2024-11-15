@@ -94,7 +94,7 @@ class BridgeTask {
     if (err) {
       throw new Error(err);
     }
-    let dapp = this._initDapp(options.dapp);
+    let dapp = await this._initDapp(options.dapp);
     // set task data
     let taskData = {
       assetPairId: this._tokenPair.id,
@@ -365,7 +365,7 @@ class BridgeTask {
     return "";
   }
 
-  _initDapp(dapp) {
+  async _initDapp(dapp) {
     let result = {};
     if (!(dapp && dapp.name)) {
       return null;
@@ -375,11 +375,20 @@ class BridgeTask {
       result.asset = dapp.asset;
       let chainInfo = this._bridge.chainInfoService.getChainInfoByType(this._toChainInfo.chainType);
       result.scAddr = chainInfo.dapp.swap.scAddr;
-      let tp = this._bridge._matchTokenPair(result.asset, this._toChainInfo.chainName, this._fromChainInfo.chainName);
+      let tp = this._bridge._matchTokenPair(dapp.asset, this._toChainInfo.chainName, this._fromChainInfo.chainName);
       result.tokenPair = tp.id;
       result.tokenAccount = (tp.fromChainType === chainInfo.chainType)? tp.fromAccount : tp.toAccount;
-      result.amount = dapp.amount;
+      result.netAmount = dapp.amount;
       result.recipient = dapp.recipient || this._fromAccount;
+      // calculate total amount according to return fee, only consider serviceFee
+      let fee = await this._bridge.estimateFee(dapp.asset, this._toChainInfo.chainName, this._fromChainInfo.chainName, {address: [result.recipient]});
+      if (fee.operateFee.isRatio) {
+        let amount = new BigNumber(dapp.amount).div(new BigNumber(1).minus(new BigNumber(fee.operateFee.value).times(fee.operateFee.discount))).toFixed(fee.operateFee.decimals);
+        let verifyFee = tool.parseFee(fee, amount, dapp.asset, {feeType: "operateFee"});
+        result.amount = new BigNumber(dapp.amount).plus(verifyFee).toFixed(fee.operateFee.decimals);
+      } else {
+        result.amount = new BigNumber(fee.operateFee.value).times(fee.operateFee.discount).plus(dapp.amount).toFixed(fee.operateFee.decimals);
+      }
     }
     console.debug("init dapp: %O", result);
     return result;
