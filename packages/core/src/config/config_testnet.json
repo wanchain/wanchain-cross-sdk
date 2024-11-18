@@ -68,6 +68,7 @@
       "chainId": "2147484614",
       "chainType": "MATIC",
       "chainName": "Polygon",
+      "symbol": "POL",
       "chainDecimals": 18,
       "crossScAddr": "0xFb06346e587ffB494438102515D576086bE750F4",
       "CircleBridge": {

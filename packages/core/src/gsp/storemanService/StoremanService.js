@@ -169,7 +169,7 @@ class StoremanService {
                 balance = "";
                 return;
               }
-              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
+              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toFixed();
             })
           }
           // subgraph
@@ -211,7 +211,7 @@ class StoremanService {
             }
             for (let i = 0; i < assetArray.length; i++) {
               let asset = assetArray[i];
-              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();
+              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toFixed();
             }
           } catch (err) {
             console.error("get %s %s balances error: %O", chainType, addr, err);
