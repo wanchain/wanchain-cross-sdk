@@ -440,8 +440,6 @@ class TokenPairService {
         return "WMT";
       } else if (symbol === "MynthToken") {
         return "MNT";
-      } else if (symbol === "MATIC") {
-        return "POL";
       } else {
         return symbol;
       }
