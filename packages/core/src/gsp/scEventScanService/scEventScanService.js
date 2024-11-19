@@ -20,7 +20,7 @@ module.exports = class ScEventScanService {
     let algoExtension = this.m_configService.getExtension("ALGO");
     let algoInfo = this.chainInfoService.getChainInfoByType("ALGO");
     if (algoExtension && algoInfo) {
-      chainsInfo.push(algoInfo);
+      chainsInfo = chainsInfo.concat(algoInfo);
     }
     // console.debug("chainInfoService chainsInfo:", chainsInfo);
     for (let idx = 0; idx < chainsInfo.length; ++idx) {

@@ -1,7 +1,11 @@
 const algosdk = require('algosdk');
 
 function validateAddress(address) {
-  return algosdk.isValidAddress(address);
+  if (address.length === 58) { // 58-character base32 string includes the checksum
+    return algosdk.isValidAddress(address);
+  } else {
+    return false;
+  }
 }
 
 function getStandardAddressInfo(address) { // support encoded native or decoded format

@@ -56,7 +56,7 @@ class StoremanService {
     }
 
     validateAddress(chainType, address) {
-      let result;
+      let result = false;
       let extension = this.configService.getExtension(chainType);
       let network = this.configService.getNetwork();
       if (extension && extension.tool && extension.tool.validateAddress) {
@@ -73,8 +73,11 @@ class StoremanService {
         result = tool.isValidXrpAddress(address);
       } else if ("XDC" === chainType) {
         result = tool.isValidXdcAddress(address);
-      } else { // default as EVM
-        result = tool.isValidEthAddress(address);
+      } else { // default check EVM
+        let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
+        if (chainInfo._isEVM) {
+          result = tool.isValidEthAddress(address);
+        }
       }
       return result;
     }
