@@ -399,9 +399,7 @@ class TokenPairService {
       return logo;
     }
 
-    setExtraInfo(tokenPair) { // special treatment for frontend
-      // assetAlias ONLY change ui asset symbol, do not affect sdk, such as fee unit
-      // readableSymbol affect BOTH ui and sdk
+    customizeUI(tokenPair) { // assetAlias ONLY change ui asset name, do not affect sdk fee unit
       let direction = "both";
       if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
         tokenPair.assetAlias = "BTC.a";
@@ -417,7 +415,6 @@ class TokenPairService {
         this.assetAlias2Type.set("USDC.e", "USDC");
         direction = "f2t"; // fromChain and toChain are the same, only support f2t
       } else if (tokenPair.id === "660") { // cardano token symbol is unreasonable, but tokenPair ancestorSymbol must be consistent with the chain
-        tokenPair.assetAlias = "WMT"; // only cardano symbol is "worldmobiletoken", logo name is WMT, not need call assetAlias2Type
         direction = "t2f";
       } else if (tokenPair.id === "610") { // TADA ethereum -> cardano
         direction = "t2f";
@@ -431,7 +428,7 @@ class TokenPairService {
       tokenPair.direction = direction;
     }
 
-    customizeSymbol(symbol) { // special treatment for frontend
+    customizeSymbol(symbol) { // readableSymbol affect BOTH ui and sdk fee unit, DO NOT change ancestorSymbol, it used by iwan api
       if (symbol === "Djed_testMicroUSD") {
         return "Djed Test USD";
       } else if (symbol === "GEROV2") {
@@ -442,6 +439,8 @@ class TokenPairService {
         return "MNT";
       } else if (symbol === "MATIC") {
         return "POL";
+      } else if (symbol === "ELisforLiar") {
+        return "LIAR";
       } else {
         return symbol;
       }
@@ -460,7 +459,7 @@ class TokenPairService {
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
-            this.setExtraInfo(tokenPair);
+            this.customizeUI(tokenPair);
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
