@@ -5,7 +5,7 @@ const tool = require("../../utils/tool");
 const axios = require("axios");
 
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA"];
-const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO"];
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
 class StoremanService {
@@ -56,7 +56,7 @@ class StoremanService {
     }
 
     validateAddress(chainType, address) {
-      let result;
+      let result = false;
       let extension = this.configService.getExtension(chainType);
       let network = this.configService.getNetwork();
       if (extension && extension.tool && extension.tool.validateAddress) {
@@ -73,8 +73,11 @@ class StoremanService {
         result = tool.isValidXrpAddress(address);
       } else if ("XDC" === chainType) {
         result = tool.isValidXdcAddress(address);
-      } else { // default as EVM
-        result = tool.isValidEthAddress(address);
+      } else { // default check EVM
+        let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
+        if (chainInfo._isEVM) {
+          result = tool.isValidEthAddress(address);
+        }
       }
       return result;
     }
@@ -109,7 +112,9 @@ class StoremanService {
             if (chainInfo._isEVM) {
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
             } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
-              // ALGO do not need format tokenAccount
+              if (chainType !== "ALGO") { // defalut convert except ALGO
+                tokenAccount = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+              }
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
             } else if (options.wallet) {
               balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
@@ -169,7 +174,7 @@ class StoremanService {
                 balance = "";
                 return;
               }
-              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toString();
+              result[asset] = new BigNumber(balance).div(Math.pow(10, tokenInfo.decimals)).toFixed();
             })
           }
           // subgraph
@@ -186,7 +191,15 @@ class StoremanService {
             balances.forEach(v => bMap.set(v.assetId, v.amount));
             for (let asset in assets) {
               let tokenInfo = assets[asset]; // include coin
-              result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toString();
+              result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
+            }
+          } else if (chainType === "SUI") {
+            let balances = await this.iwan.getAllBalances(chainType, addr);
+            let bMap = new Map();
+            balances.forEach(v => bMap.set(v.coinType, v.totalBalance));
+            for (let asset in assets) {
+              let tokenInfo = assets[asset]; // include coin
+              result[asset] = new BigNumber(bMap.get(tool.ascii2letter(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
             }
           }
         }
@@ -211,7 +224,7 @@ class StoremanService {
             }
             for (let i = 0; i < assetArray.length; i++) {
               let asset = assetArray[i];
-              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toString();
+              result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toFixed();
             }
           } catch (err) {
             console.error("get %s %s balances error: %O", chainType, addr, err);
@@ -451,6 +464,22 @@ class StoremanService {
       console.error("registerSolWalletAddress %O error: %O", data, err);
     }
     throw new Error("Failed to register Solnala wallet address");
+  }
+
+  async getSuiCoins(address, coinType = "") {
+    let data = [], cursor = "";
+    for ( ; ; ) {
+      let result = await this.iwan.call("getCoins", {chainType: 'SUI', address, tokenScAddr: coinType, cursor});
+      if (result.data.length) {
+        data = data.concat(result.data);
+      }
+      if (result.hasNextPage && result.nextCursor) {
+        cursor = result.nextCursor;
+      } else {
+        break;
+      }
+    }
+    return data;
   }
 }
 

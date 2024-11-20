@@ -81,5 +81,9 @@ module.exports = [
     {
       "name": "ProcessBurnFromSolana",
       "handle": require("./ProcessBurnFromSolana")
+    },
+    {
+      "name": "ProcessCircleBridgeSuiDeposit",
+      "handle": require("./ProcessCircleBridgeSuiDeposit")
     }
 ]

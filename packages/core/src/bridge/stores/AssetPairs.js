@@ -105,6 +105,8 @@ class AssetPairs {
       result = tool.ascii2letter(account);
     } else if (chainType === "ALGO") { // ALGO token is id, not address
       result = new BigNumber(account).toFixed();
+    } else if (chainType === "SUI") { // SUI token is id::symbol::SYMBOL
+      result = tool.ascii2letter(account).split("::")[0];
     } else {
       result = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }

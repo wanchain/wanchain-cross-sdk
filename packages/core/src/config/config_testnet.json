@@ -73,6 +73,7 @@
       "chainId": "2147484614",
       "chainType": "MATIC",
       "chainName": "Polygon",
+      "symbol": "POL",
       "chainDecimals": 18,
       "crossScAddr": "0xFb06346e587ffB494438102515D576086bE750F4",
       "CircleBridge": {
@@ -590,6 +591,27 @@
       "rpc": {
         "url" : "https://testnet-api.algonode.cloud",
         "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
+      }
+    },
+    {
+      "chainId": "2147484432",
+      "chainType": "SUI",
+      "chainName": "Sui",
+      "symbol": "SUI",
+      "CircleBridge": {
+        "domain": 8,
+        "crossScAddr": "0x2933ce6c0e0769402a79c3e61db5c6f24427e9168af839e88ecf1a461a64494b",
+        "feeConfig": "0xa13a8ec12c794ed79fb29858fc23219c579d06113e79749d590b1775d2f8ff52",
+        "feeCollectorConfig": "0x158c9a1cc2240a481299bf19abb21a0e63a5429aecb917d44c7e790b54b198af",
+        "messageTransmitterState": "0x18855ad15df31f43aa3e5c23433a3c62b15a9297716de66756f06d1464a0a6f7",
+        "tokenMessengerMinter": "0x4e16078afc5ebfc244a8107ded4044970df5d84db384e7194b7fc444090683fd",
+        "tokenMessengerMinterState": "0xf410286d2c2d11722e8ef90260b942e8dd598d1b7dc9c72214ef814a4e2220b8",
+        "denyList": "0x403",
+        "treasury": "0x7170137d4a6431bf83351ac025baf462909bffe2877d87716374fb42b9629ebe"
+      },
+      "chainDecimals": 9,
+      "ScScanInfo": {
+        "taskInterval": 15000
       }
     }
   ],

@@ -1,6 +1,5 @@
 'use strict';
 
-const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessBurnFromSolana {
@@ -31,9 +30,7 @@ module.exports = class ProcessBurnFromSolana {
       let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
       let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
       let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
-      let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
-      let amount = this.tool.toBigNumber(crossValue);
+      let amount = this.tool.toBigNumber(params.value);
       let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
       let accounts = {
         user: walletPublicKey,
@@ -46,7 +43,7 @@ module.exports = class ProcessBurnFromSolana {
         tokenManagerProgram: this.tool.getPublicKey(fromChainInfo.tokenManagerProgram),
         userAta: this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey)
       };
-      let fee = this.tool.toBigNumber(params.networkFee);
+      let fee = this.tool.toBigNumber("0"); // agent get service fee from cross config contract by self
       let unitLimit = this.tool.setComputeUnitLimit(300_000);
       let unitPrice = this.tool.setComputeUnitPrice(100_000);
       let instruction = await wanBridgeProgram.methods.userBurn(smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)).accounts(accounts).instruction();
