@@ -459,10 +459,10 @@ class TokenPairService {
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
-            this.customizeUI(tokenPair);
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
+                this.customizeUI(tokenPair); // put here to update symbol
                 this.updateTokenPairCcHandle(tokenPair);
                 return true;
             } catch (err) {
