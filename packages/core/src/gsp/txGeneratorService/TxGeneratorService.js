@@ -65,13 +65,20 @@ module.exports = class TxGeneratorService{
     // nft event: UserLockNFT(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, string[] keys, bytes[] values)
     // nft topic[0]: 0x62605e96f2f9cd2d124a846c58ea7d9982610ba45d052c99b14900c37a718683
     async generateUserLockData(crossScAddr, smgID, tokenPairID, value, userAccount, extInfo = {}) {
-        let abi = this.configService.getAbi("crossSc");
+        let dapp = extInfo.dapp;
+        let abiName = dapp? "crossDappSc" : "crossSc";
+        let abi = this.configService.getAbi(abiName);
         let scAddr = crossScAddr.toLowerCase();
         let crossScInst = new web3.eth.Contract(abi, scAddr);
         let data, tokenType = extInfo.tokenType;
         if (tokenType === "Erc20") {
           value = "0x" + new BigNumber(value).toString(16);
-          data = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
+          if (dapp) {
+            let dappData = this.genDappData(extInfo.chainType, tokenPairID, dapp);
+            data = crossScInst.methods.crossUserLock(smgID, tokenPairID, value, userAccount, dappData).encodeABI();
+          } else {
+            data = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
+          }
         } else {
           let tokenIDs = [], tokenValues = [];
           value.forEach(v => {
