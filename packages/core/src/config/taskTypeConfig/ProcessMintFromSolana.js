@@ -12,6 +12,7 @@ module.exports = class ProcessMintFromSolana {
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
+    this.iwan = frameworkService.getService("iWanConnectorService");
   }
 
   async process(stepData, wallet) {
@@ -48,10 +49,13 @@ module.exports = class ProcessMintFromSolana {
         userAta: null
       };
       if (!isCoin) {
-        let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
+        tokenAccount = tool.ascii2letter(tokenAccount);
+        let tokenAddress = this.tool.getPublicKey(tokenAccount);
         accounts.mappingTokenMint = tokenAddress;
-        accounts.tokenVault = this.tool.getAssociatedTokenAddressSync(tokenAddress, solVault.publicKey, true);
-        accounts.userAta = this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey);
+        let tokenInfo = await this.iwan.getAccountInfo('SOL', tokenAccount);
+        accounts.tokenProgram = this.tool.getPublicKey(tokenInfo.owner);
+        accounts.tokenVault = this.tool.getAssociatedTokenAddressSync(tokenAddress, solVault.publicKey, true, tokenInfo.owner);
+        accounts.userAta = this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey, false, tokenInfo.owner);
       }
       let unitLimit = this.tool.setComputeUnitLimit(300_000);
       let unitPrice = this.tool.setComputeUnitPrice(100_000);

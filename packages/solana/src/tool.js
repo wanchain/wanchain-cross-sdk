@@ -1,7 +1,7 @@
 import * as anchor from '@coral-xyz/anchor';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { PublicKey, Keypair } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, getAssociatedTokenAddressSync as getAssociatedTokenAddressSyncFn } from '@solana/spl-token';
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync as getAssociatedTokenAddressSyncFn } from '@solana/spl-token';
 
 function validateAddress(address) {
   try {
@@ -80,8 +80,21 @@ function findProgramAddress(label, programId, extraSeeds) {
   return {publicKey: res[0], bump: res[1]};
 }
 
-function getAssociatedTokenAddressSync(tokenAddress, owner, allowOwnerOffCurve = false) {
-  return getAssociatedTokenAddressSyncFn(tokenAddress, owner, allowOwnerOffCurve);
+function getAssociatedTokenAddressSync(tokenAddress, owner, allowOwnerOffCurve = false, tokenOwner = TOKEN_PROGRAM_ID) {
+  if (typeof(tokenAddress) === "string") {
+    tokenAddress = getPublicKey(tokenAddress);
+  }
+  if (typeof(owner) === "string") {
+    owner = getPublicKey(owner);
+  }
+  if (typeof(tokenOwner) === "string") {
+    tokenOwner = getPublicKey(tokenOwner);
+  }
+  if (tokenOwner.equals(TOKEN_PROGRAM_ID) || tokenOwner.equals(TOKEN_2022_PROGRAM_ID)) {
+    return getAssociatedTokenAddressSyncFn(tokenAddress, owner, allowOwnerOffCurve, tokenOwner);
+  } else {
+    throw new Error("Unknown token owner " + tokenOwner.toString());
+  }
 }
 
 function getPda(key, id, programId, idBytes) {
