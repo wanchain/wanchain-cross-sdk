@@ -8,6 +8,8 @@ const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA"];
 const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
+const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
+
 class StoremanService {
     constructor() {
     }
@@ -417,14 +419,20 @@ class StoremanService {
       }
     }
 
-    async getChainBlockNumber(chainType) {
+    async getChainBlockNumber(chainType, options = {}) {
       if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
         return 0;
       }
-      // only for EVM chains
-      try {
-        let blockNumber = await this.iwan.getBlockNumber(chainType);
-        return blockNumber;
+      try { // nonEVM chains return cursor adapted to it's own scan mechanism
+        if (chainType === "SUI") {
+          let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
+          let scAddr = options.bridge? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
+          let events = await this.iwan.getScEvent("SUI", scAddr, [], {moduleName: "fee_collector", order: 'descending', limit: options.rewind || 1});
+          return events.nextCursor;
+        } else { // EVM chains return blockNumber 
+          let blockNumber = await this.iwan.getBlockNumber(chainType);
+          return blockNumber;
+        }
       } catch (err) {
         console.log("%s getChainBlockNumber error: %O", chainType, err);
         return 0; // should retry later
@@ -480,6 +488,67 @@ class StoremanService {
       }
     }
     return data;
+  }
+
+  async parseCctpDeposit(fromChain, txHash, options) {
+    let result = {};
+    if (fromChain === "NOBLE") {
+      let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
+      let event = receipt.events.find(v => (v.type === "circle.cctp.v1.DepositForBurn"));
+      if (event) {
+        console.debug("parseCctpDeposit for chain %s tx %s: %O", fromChain, txHash, event);
+        let nonce = null, amount = null;
+        for (let attr of event.attributes) {
+          if (attr.key === "nonce") {
+            nonce = attr.value; // string
+          } else if (attr.key === "amount") {
+            amount = attr.value; // string
+          }
+          if (nonce && amount) {
+            result.depositNonce = nonce.replace(/\"/g, "");
+            result.depositAmount = amount.replace(/\"/g, "");
+            break;
+          }
+        }
+      }
+    } else if (fromChain === "SOL") {
+      let depositMsg = await this.iwan.parseCctpMessageSent("SOL", options.ota);
+      let sol = this.configService.getExtension("SOL");
+      let cctpMsg = sol.tool.parseCctpDepositMessage(depositMsg);
+      console.log("SOL tx %s evnet %s cctpMsg: %O", txHash, options.ota, cctpMsg);
+      if (cctpMsg) {
+        result.depositNonce = parseInt("0x" + cctpMsg.nonce.toString("hex"));
+        result.depositAmount = parseInt("0x" + cctpMsg.amount.toString("hex"));
+      }
+    } else if (fromChain === "SUI") {
+      let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
+      let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
+      let depositMsg = chainInfo.CircleBridge.messageTransmitter + "::send_message::MessageSent";
+      let depositEvent = receipt.events.find(v => ((v.transactionModule === "deposit_for_burn") && (v.type === depositMsg)));
+      if (depositEvent) {
+        console.log("SUI %s get depositEvent: %O", txHash, depositEvent);
+        let sui = this.configService.getExtension("SUI");
+        let cctpMsg = sui.tool.parseCctpDepositMessage(depositEvent.parsedJson.message);
+        console.log("SUI tx %s cctpMsg: %O", txHash, cctpMsg);
+        if (cctpMsg) {
+          result.depositNonce = cctpMsg.nonce;
+          result.depositAmount = cctpMsg.amount;
+        }
+      }
+    } else { // evm
+      let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
+      for (let log of receipt.logs) {
+        if (log.topics[0] === CctpEvmDepositEventHash) {
+          let abi = this.configService.getAbi("circleBridgeDeposit");
+          let decoded = tool.parseEvmLog(log, abi);
+          console.debug("parseCctpDeposit for chain %s tx %s: %O", fromChain, txHash, decoded);
+          result.depositNonce = decoded.args.nonce;
+          result.depositAmount = decoded.args.amount;
+          break;
+        }
+      }
+    }
+    return result;
   }
 }
 

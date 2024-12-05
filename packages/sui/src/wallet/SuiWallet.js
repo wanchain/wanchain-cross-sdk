@@ -41,11 +41,15 @@ class SuiWallet {
   }
 
   async sendTransaction(tx) {
-    let result = await this.wallet.features['sui:signTransaction'].signTransaction({
+    let { digest } = await this.wallet.features['sui:signAndExecuteTransaction'].signAndExecuteTransaction({
       transaction: tx,
-      // options: { showEffects: true },
+      options: {
+        showEffects: true,
+        showEvents: true,
+        showInput: true,
+      }
     })
-    console.log("sendTransaction result: %O", result);
+    return digest;
   }
 
   // customized function

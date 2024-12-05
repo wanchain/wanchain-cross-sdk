@@ -55,7 +55,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
       }
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
-      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, {bridge: "Circle"});
       let checker = {
         chain: "NOBLE",
         ccTaskId: params.ccTaskId,

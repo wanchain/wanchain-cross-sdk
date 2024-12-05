@@ -80,7 +80,9 @@ module.exports = class CheckTxReceiptService {
           isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
         } else if (obj.chain === "ALGO") {
           isSuccess = (txReceipt['confirmed-round'] > 0);
-        } else {
+        } else if (obj.chain === "SUI") {
+          isSuccess = (txReceipt.effects && txReceipt.effects.status && (txReceipt.effects.status.status === "success"));
+        }  else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
         if (isSuccess) {

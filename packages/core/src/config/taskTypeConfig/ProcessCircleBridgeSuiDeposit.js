@@ -1,5 +1,6 @@
 'use strict';
 
+const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
 module.exports = class ProcessCircleBridgeSuiDeposit {
@@ -24,7 +25,8 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let tx = this.tool.newTransaction();
       // fee
       let suiCoins = await this.storemanService.getSuiCoins(params.fromAddr, "0x2::sui::SUI");
-      let selectedSuiCoins = this.tool.selectCoins(suiCoins, params.networkFee);
+      let totalCoin = new BigNumber(params.networkFee).plus(10000000).toFixed();
+      let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalCoin);
       let suiCoin = selectedSuiCoins[0];
       if (selectedSuiCoins.length > 1) {
         tx.mergeCoins(suiCoin, selectedSuiCoins.slice(1));
@@ -36,12 +38,9 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let selectedUsdcCoins = this.tool.selectCoins(usdcCoins, amount);
       let assetCoin = selectedUsdcCoins[0];
       if (selectedUsdcCoins.length > 1) {
-        selectedUsdcCoins.map((v, i) => console.log("merge usdc %d: %O", i, v));
         tx.mergeCoins(assetCoin, selectedUsdcCoins.slice(1));
-        console.log("merge usdc result: %O", assetCoin);
       }
       let [usdcCoin] = tx.splitCoins(assetCoin.coinObjectId, [amount]);
-      console.log("split usdc result: %O", usdcCoin);
       //
       tx.moveCall({
         target: fromChainInfo.CircleBridge.crossScAddr + '::fee_collector::collect_fee',
@@ -66,13 +65,15 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
         ],
         typeArguments: [usdcAccount],
       });
-      console.log("tx: %O", tx);
-      let result = await wallet.sendTransaction(tx);
-      console.log('ProcessCircleBridgeSuiDeposit sendTransaction result: %O', result);
-
+      if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
+        await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
+      }
       let txHash = await wallet.sendTransaction(tx);
+      if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
+        webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
+      }
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, {bridge: "Circle"});
       let checker = {
         chain: "SUI",
         ccTaskId: params.ccTaskId,
@@ -90,13 +91,12 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
           depositDomain: fromChainInfo.CircleBridge.domain,
           depositNonce: undefined, // deposit nonce is really uniqueID
           depositAmount: 0,
-          ota: messageSentKeypair.publicKey.toString()
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      console.error("error: %s", err.message)
+      console.error("ProcessCircleBridgeSuiDeposit error: %O", err)
       if (["User rejected the request."].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {

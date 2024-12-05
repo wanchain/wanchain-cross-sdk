@@ -2,7 +2,6 @@
 
 const tool = require("../../utils/tool.js");
 const ProcessBase = require("./processBase.js");
-const axios = require("axios");
 
 module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
     constructor(frameworkService) {
@@ -41,7 +40,7 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
         let depositChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
         let checkChain = direction? tokenPair.toChainType : tokenPair.fromChainType;
         let storemanService = this.m_frameworkService.getService("StoremanService");
-        let blockNumber = await storemanService.getChainBlockNumber(checkChain);
+        let blockNumber = await storemanService.getChainBlockNumber(checkChain, {bridge: "Circle"});
         let txEventTopics = [
             "0x6dce5b2406630dbc3a2633f31a15505733a9ede5169532aaab88ac01c77ff1e4",     // DepositForBurnWithFee
         ];
