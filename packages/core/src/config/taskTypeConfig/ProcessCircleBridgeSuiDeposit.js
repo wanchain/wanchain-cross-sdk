@@ -70,7 +70,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       }
       let txHash = await wallet.sendTransaction(tx);
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
-        webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
+        this.webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
       }
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, {bridge: "Circle"});
