@@ -130,9 +130,12 @@ class WanBridge extends EventEmitter {
     }
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
+    let wallet = options.wallet;
     // check fromAccount
     if (this._isThirdPartyWallet(fromChainType)) {
-      fromAccount = "";
+      if (wallet.name !== 'unisat') {
+        fromAccount = "";
+      }
     } else if (fromAccount) {
       if (!this.validateAddress(fromChainName, fromAccount)) {
         throw new Error("Invalid fromAccount");
@@ -145,9 +148,10 @@ class WanBridge extends EventEmitter {
       throw new Error("Invalid toAccount");
     }
     // check wallet
-    let wallet = options.wallet;
     if (this._isThirdPartyWallet(fromChainType)) {
-      wallet = null;
+      if (wallet.name !== 'unisat') {
+        wallet = null;
+      }
     } else if (!wallet) {
       throw new Error("Missing wallet");
     }
