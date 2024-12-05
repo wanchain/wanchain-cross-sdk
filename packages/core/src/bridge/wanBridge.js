@@ -412,6 +412,7 @@ class WanBridge extends EventEmitter {
   }
 
   async getChainAssets(options) { // options should contain wallet for non-EVM chain
+    console.debug("SDK: getChainAssets, options: %O", this._getDebugOptions(options));
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
     let prices = {};
