@@ -97,7 +97,7 @@ class WanBridge extends EventEmitter {
   async checkWallet(chainName, wallet) {
     console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.name : undefined);
     let chainType = this.tokenPairService.getChainType(chainName);
-    if (this._isThirdPartyWallet(chainType)) {
+    if (this._isThirdPartyWallet(chainType) && !wallet) {
       return true;
     } else {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);

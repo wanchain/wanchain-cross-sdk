@@ -4,7 +4,7 @@ const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
 
-const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA"];
+const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC"];
 const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "SOL"];
 
