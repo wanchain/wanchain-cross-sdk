@@ -4,6 +4,7 @@ const cctpProxyIdl = require("../cctp/circle_cctp_proxy_contract.json");
 const messageTransmitterIdl = require("../cctp/idl_message_transmitter.json");
 const wanBridgeIdl = require("../wanbridge/cross_delegate.json");
 const { PublicKey, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
+const { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } = require('@solana/spl-token');
 
 class Phantom {
   constructor(network) {
@@ -42,6 +43,25 @@ class Phantom {
       balance = await this.connection.getBalance(publicKey);
     }
     return balance;
+  }
+
+  async getBalances(address, tokenAccounts) {
+    let publicKey = new PublicKey(address);
+    let [coin, splTokens, spl2022tokens] = await Promise.all([
+      this.connection.getBalance(publicKey),
+      this.connection.getParsedTokenAccountsByOwner(publicKey, {programId: TOKEN_PROGRAM_ID}),
+      this.connection.getParsedTokenAccountsByOwner(publicKey, {programId: TOKEN_2022_PROGRAM_ID})
+    ]);
+    let assets = {"": coin};
+    splTokens.value.forEach(v => {
+      let ti = v.account.data.parsed.info;
+      assets[ti.mint] = ti.tokenAmount.amount;
+    });
+    spl2022tokens.value.forEach(v => {
+      let ti = v.account.data.parsed.info;
+      assets[ti.mint] = ti.tokenAmount.amount;
+    });
+    return tokenAccounts.map(v => assets[v] || "0");
   }
 
   async sendTransaction(tx, otherSigner = null) {
