@@ -67,7 +67,12 @@ module.exports = class CheckTxReceiptService {
 
   async checkReceipt(obj) {
     try {
-      let txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
+      let txReceipt;
+      if (obj.chain === "BTC") {
+        txReceipt = await this.iwan.getTxInfo(obj.chain, obj.txHash, {format: true});
+      } else {
+        txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
+      }
       if (txReceipt) {
         let result = "Failed";
         let errInfo = "Transaction failed";
@@ -82,7 +87,9 @@ module.exports = class CheckTxReceiptService {
           isSuccess = (txReceipt['confirmed-round'] > 0);
         } else if (obj.chain === "SUI") {
           isSuccess = (txReceipt.effects && txReceipt.effects.status && (txReceipt.effects.status.status === "success"));
-        }  else {
+        } else if (obj.chain === "BTC") {
+          isSuccess = txReceipt.blockhash? true : false;
+        } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
         if (isSuccess) {
@@ -91,6 +98,12 @@ module.exports = class CheckTxReceiptService {
         }
         return {result, errInfo};
       } else {
+        if (obj.chain === "BTC") {
+          let delay = parseInt(Date.now() - obj.ccTaskId); // ms
+          if (delay > 86_400_000) { // 1 day, has been removed from mempool
+            return {result: "Failed", errInfo: "Transaction failed"};
+          }
+        }
         return null;
       }
     } catch (err) { // not finish

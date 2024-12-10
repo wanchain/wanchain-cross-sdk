@@ -24,6 +24,7 @@ module.exports = class MintBtcFromBitcoinHandle {
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
+      let taskType = convert.wallet? "ProcessMintFromBitcoinWallet" : "ProcessMintBtcFromBitcoin";
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType,
@@ -34,7 +35,7 @@ module.exports = class MintBtcFromBitcoinHandle {
         gpkInfo: convert.gpkInfo,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessMintBtcFromBitcoin",
+        taskType,
         fee
       };
       console.debug("%s params: %O", handleName, params);

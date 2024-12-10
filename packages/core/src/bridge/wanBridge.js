@@ -97,7 +97,7 @@ class WanBridge extends EventEmitter {
   async checkWallet(chainName, wallet) {
     console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.name : undefined);
     let chainType = this.tokenPairService.getChainType(chainName);
-    if (this._isThirdPartyWallet(chainType) && !wallet) {
+    if (this._isThirdPartyWallet(chainType) && !wallet) { // BTC support both
       return true;
     } else {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
@@ -132,10 +132,8 @@ class WanBridge extends EventEmitter {
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let wallet = options.wallet;
     // check fromAccount
-    if (this._isThirdPartyWallet(fromChainType)) {
-      if (wallet.name !== 'unisat') {
-        fromAccount = "";
-      }
+    if (this._isThirdPartyWallet(fromChainType) && !wallet) {
+      fromAccount = "";
     } else if (fromAccount) {
       if (!this.validateAddress(fromChainName, fromAccount)) {
         throw new Error("Invalid fromAccount");
@@ -148,10 +146,8 @@ class WanBridge extends EventEmitter {
       throw new Error("Invalid toAccount");
     }
     // check wallet
-    if (this._isThirdPartyWallet(fromChainType)) {
-      if (wallet.name !== 'unisat') {
-        wallet = null;
-      }
+    if (this._isThirdPartyWallet(fromChainType) && !wallet) {
+      wallet = null;
     } else if (!wallet) {
       throw new Error("Missing wallet");
     }
