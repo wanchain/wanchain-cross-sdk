@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2411251838", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2412061605", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -123,7 +123,7 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
                   tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
     if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
-      let devChains = ["Cardano", "Cosmos"];
+      let devChains = ["Cardano", "Cosmos", "Solana"];
       if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
         throw new Error("Dev group only");
       }
@@ -412,6 +412,7 @@ class WanBridge extends EventEmitter {
   }
 
   async getChainAssets(options) { // options should contain wallet for non-EVM chain
+    console.debug("SDK: getChainAssets, options: %O", this._getDebugOptions(options));
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
     let prices = {};

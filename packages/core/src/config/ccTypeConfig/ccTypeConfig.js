@@ -65,5 +65,9 @@ module.exports = [
     {
       "name": "BurnFromSolana",
       "handle": require("./BurnFromSolana")
+    },
+    {
+      "name": "CircleBridgeSuiDeposit",
+      "handle": require("./CircleBridgeSuiDeposit")
     }
 ]

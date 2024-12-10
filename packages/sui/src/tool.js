@@ -1,0 +1,85 @@
+const BigNumber = require('bignumber.js');
+const { Transaction } = require('@mysten/sui/transactions');
+
+function validateAddress(address) {
+  return /^0x[0-9a-f]{64}$/.test(address);
+}
+
+function getStandardAddressInfo(address) { // support bs58 encoded native or decoded format
+  let native = address, evm = address, cctp = address;
+  return {native, evm, ascii: native, cctp};
+}
+
+function newTransaction() {
+  return new Transaction();
+}
+
+function selectCoins(coins, amount) {
+  if (coins.length === 0) {
+    return null;
+  }
+  let selected = [], sumAmount = new BigNumber(0);
+  for (let i = 0; i < coins.length; i++) {
+    selected.push(coins[i]);
+    sumAmount = sumAmount.plus(coins[i].balance);
+    if (sumAmount.gte(amount)) {
+      return selected;
+    }
+  }
+  return [];
+}
+
+const CctpMsgMapping = [
+  ["version", 8],
+  ["sourceDomain", 8],
+  ["destinationDomain", 8],
+  ["nonce", 16],
+  ["sender", 64],
+  ["recipient", 64],
+  ["destinationCaller", 64],
+  ["version2", 8],
+  ["burnToken", 64],
+  ["mintRecipient", 64],
+  ["amount", 64],
+  ["messageSender", 64]
+];
+
+function parseCctpDepositMessage(message) {
+  try {
+    let hex = Buffer.from(message).toString('hex');
+    let begin = 0, msg = {};
+    for (let i = 0; i < CctpMsgMapping.length; i++) {
+      let end = begin + CctpMsgMapping[i][1];
+      msg[CctpMsgMapping[i][0]] = hex.slice(begin, end);
+      begin = end;
+    }
+    let result = {
+      version: parseInt(msg.version, 16),
+      sourceDomain: parseInt(msg.sourceDomain, 16),
+      destinationDomain: parseInt(msg.destinationDomain, 16),
+      nonce: new BigNumber(msg.nonce, 16).toFixed(),
+      sender: '0x' + msg.sender,
+      recipient: '0x' + msg.recipient,
+      destinationCaller: '0x' + msg.destinationCaller,
+      version2: parseInt(msg.version2, 16),
+      burnToken: '0x' + msg.burnToken,
+      mintRecipient: '0x' + msg.mintRecipient,
+      amount: new BigNumber(msg.amount, 16).toFixed(),
+      messageSender: '0x' + msg.messageSender,
+    };
+    return result;
+  } catch (err) {
+    console.error("SUI parseCctpDepositMessage error: %O", err);
+    return null;
+  }
+}
+
+const tools = {
+  validateAddress,
+  getStandardAddressInfo,
+  newTransaction,
+  selectCoins,
+  parseCctpDepositMessage
+}
+
+export default tools;

@@ -13,14 +13,14 @@ const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
 const AlgoEventTypes = ["algoBURN"];
 
 // CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
-const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
+// const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
 const CctpEvmReceiveEventHash = "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d";
 
 module.exports = class CheckScEvent {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.mapEventHandler = new Map();
-    this.mapCheckArray = new Map();
+    this.eventHandler = new Map();
+    this.eventTasks = new Map();
   }
 
   async init(chainInfo) {
@@ -38,31 +38,30 @@ module.exports = class CheckScEvent {
     this.circleBridgeReceiveAbi = this.configService.getAbi("circleBridgeReceive");
     if (chainInfo.chainType === "ALGO") {
       this.eventTypes = AlgoEventTypes;
-      this.mapEventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
+      this.eventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
       let extension = this.configService.getExtension("ALGO");
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
     } else {
       this.eventTypes = EvmEventTypes;
-      this.mapEventHandler.set("MINT", this.processSmgMintLogger.bind(this));
-      this.mapEventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
-      this.mapEventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
-      this.mapEventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
-      this.mapEventHandler.set("circleMINT", this.processCircleMint.bind(this));
+      this.eventHandler.set("MINT", this.processSmgMintLogger.bind(this));
+      this.eventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
+      this.eventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
+      this.eventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
+      this.eventHandler.set("circleMINT", this.processCircleMint.bind(this));
     }
-    this.eventTypes.forEach(v => this.mapCheckArray.set(v, []));
+    this.eventTypes.forEach(v => this.eventTasks.set(v, []));
   }
 
-  async add(obj) {
-    //console.log("CheckScEvent obj:", obj);
-    let ary = this.mapCheckArray.get(obj.taskType);
-    if (ary) {
-      ary.unshift(obj);
-      //console.log("this.mapCheckArray:", this.mapCheckArray);
+  async add(task) {
+    //console.log("CheckScEvent task: %O", task);
+    let tasks = this.eventTasks.get(task.taskType);
+    if (tasks) {
+      tasks.unshift(task);
     }
   }
 
-  async load(obj) {
-    await this.add(obj);
+  async load(task) {
+    await this.add(task);
   }
 
   async runTask(taskPara) {
@@ -70,7 +69,7 @@ module.exports = class CheckScEvent {
       let connected = await this.iwan.isConnected();
       if (connected) {
         for (let v of this.eventTypes) {
-          let fn = this.mapEventHandler.get(v);
+          let fn = this.eventHandler.get(v);
           if (fn) {
             await fn();
           } else {
@@ -84,7 +83,6 @@ module.exports = class CheckScEvent {
   }
 
   async processSmgMintLogger() {
-    //console.log("processSmgMintLogger ", this.chainInfo.chainType, ",ary.length:", ary.length);
     let eventHash = this.getEventHash(this.crossScAbi, "SmgMintLogger");
     let eventName = "SmgMintLogger";
     await this.processScLogger("MINT", eventHash, eventName);
@@ -140,34 +138,40 @@ module.exports = class CheckScEvent {
   }
 
   async processScLogger(type, eventHash, eventName) {
-    let ary = this.mapCheckArray.get(type);
-    let count = ary.length;
+    let tasks = this.eventTasks.get(type);
+    let count = tasks.length;
     if (count === 0) {
       return;
     }
+    let latestBlockNumber = await this.storemanService.getChainBlockNumber(this.chainInfo.chainType);
+    if (latestBlockNumber === 0) { // failed
+      console.error("%s CheckScEvent %s get latest block number error", this.chainInfo.chainType, type);
+      return;
+    }
     let storageService = this.frameworkService.getService("StorageService");
-    for (let idx = 0; idx < count; idx++) {
-      let cur = count - idx - 1; // backwards
-      let obj = ary[cur];
+    for (let i = 0; i < count; i++) {
+      let cur = count - i - 1; // backwards
+      let task = tasks[cur];
       try {
-        if (obj.fromBlockNumber == 0) { // retry get block number firstly
-          let delay = parseInt((Date.now() - obj.ccTaskId) / 1000);
-          let blockNumber = await this.storemanService.getChainBlockNumber(this.chainInfo.chainType);
-          console.log("task %d processScLogger %s delay %ds retry %s blockNumber: %d", obj.ccTaskId, type, delay, this.chainInfo.chainType, blockNumber);
-          if (blockNumber) {
-            blockNumber = blockNumber - delay;
-            if (blockNumber < 0) {
-              blockNumber = 1;
-            }
-            obj.fromBlockNumber = blockNumber;
-            await storageService.save("ScEventScanService", obj.uniqueID, obj);
-          } else {
-            throw new Error("task " + obj.ccTaskId + " retry block number error");
+        if (task.fromBlockNumber == 0) { // retry get block number firstly
+          let delay = parseInt((Date.now() - task.ccTaskId) / 1000);
+          let blockNumber = latestBlockNumber - delay;
+          console.log("%s CheckScEvent task %d %s retry blockNumber %d(+%d)", this.chainInfo.chainType, task.ccTaskId, type, blockNumber, delay);
+          if (blockNumber < 0) {
+            blockNumber = 1;
+          }
+          task.fromBlockNumber = blockNumber;
+        }
+        if ((task.taskType === "circleMINT") && (task.depositNonce === undefined)) {
+          let result = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, {ota: task.ota});
+          if (result.depositNonce !== undefined) {
+            task.depositNonce = result.depositNonce;
+            task.depositAmount = result.depositAmount;
+          } else { // throw error to save task
+            throw new Error(this.chainInfo.chainType + " CheckScEvent task " + task.ccTaskId + " parseCctpDeposit error");
           }
         }
-        await this.prepareTask(obj);
-        let latestBlockNumber = await this.iwan.getBlockNumber(this.chainInfo.chainType);
-        let fromBlockNumber = obj.fromBlockNumber;
+        let fromBlockNumber = task.fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
           let rewindBlocks = parseInt(this.scanBatchSize * 0.6);
           let toBlockNumber = fromBlockNumber + this.scanBatchSize;
@@ -194,88 +198,41 @@ module.exports = class CheckScEvent {
              so reserve the compatible code temporarily
           */
           let event;
-          if (obj.taskType === "circleMINT") {
+          if (task.taskType === "circleMINT") {
             let topics = [eventHash];
-            event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, topics, obj.depositDomain, obj.depositNonce);
-          } else if (obj.taskType === "algoBURN") {
-            event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, obj.uniqueID);
+            event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, topics, task.depositDomain, task.depositNonce);
+          } else if (task.taskType === "algoBURN") {
+            event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, task.uniqueID);
           } else if (this.chainInfo.chainType === "TRX") {
-            let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
+            let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
           } else {
-            let eventUnique = "0x" + tool.hexStrip0x(obj.uniqueID);
+            let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             let topics = [eventHash, eventUnique.toLowerCase()];
             event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics);
           }
           if (event) {
-            await this.updateUIAndStorage(obj, event.txHash, event.toAccount, event.value);
-            ary.splice(cur, 1);
-            continue; // process next job
+            await this.updateUIAndStorage(task, event.txHash, event.toAccount, event.value);
+            tasks.splice(cur, 1);
+            continue; // skip save task and process next job
           } else { // wait next scan
-            obj.fromBlockNumber = toBlockNumber + 1;
+            task.fromBlockNumber = toBlockNumber + 1;
           }
-          console.debug("%s block %d-%d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
-                      this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
+          console.debug("%s CheckScEvent block %d-%d/%d %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
         } else { // rollback
-          obj.fromBlockNumber = latestBlockNumber;
-          console.debug("%s no new block %d/%d processScLogger %s: taskId=%s, uniqueId=%s, ota=%s",
-                      this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, obj.ccTaskId, obj.uniqueID, obj.oneTimeAddr || "n/a");
+          task.fromBlockNumber = latestBlockNumber;
+          console.debug("%s CheckScEvent no new block %d/%d %s: taskId=%s, uniqueId=%s, ota=%s",
+                      this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
         }
-        await storageService.save("ScEventScanService", obj.uniqueID, obj);
       } catch (err) {
         if (err.message === "log is not ready") {
-          console.debug("%s fromBlock %d processScLogger %s %O error: %s", this.chainInfo.chainType, obj.fromBlockNumber, type, obj, err.message);
+          console.debug("%s CheckScEvent fromBlock %d %s %O error: %s", this.chainInfo.chainType, task.fromBlockNumber, type, task, err.message);
         } else {
-          console.error("%s fromBlock %d processScLogger %s %O error: %O", this.chainInfo.chainType, obj.fromBlockNumber, type, obj, err);
+          console.error("%s CheckScEvent fromBlock %d %s %O error: %O", this.chainInfo.chainType, task.fromBlockNumber, type, task, err);
         }
       }
-    }
-  }
-
-  async prepareTask(task) {
-    if ((task.taskType === "circleMINT") && (task.depositNonce === undefined)) {
-      let receipt = await this.iwan.getTransactionReceipt(task.fromChain, task.txHash);
-      if (task.fromChain === "NOBLE") {
-        let event = receipt.events.find(v => (v.type === "circle.cctp.v1.DepositForBurn"));
-        if (event) {
-          console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.fromChain, task.uniqueID, event);
-          let nonce = null, amount = null;
-          for (let attr of event.attributes) {
-            if (attr.key === "nonce") {
-              nonce = attr.value; // string
-            } else if (attr.key === "amount") {
-              amount = attr.value; // string
-            }
-            if (nonce && amount) {
-              task.depositNonce = nonce.replace(/\"/g, "");
-              task.depositAmount = amount.replace(/\"/g, "");
-              break;
-            }
-          }
-        }
-      } else if (task.fromChain === "SOL") {
-        let depositMsg = await this.iwan.parseCctpMessageSent("SOL", task.ota);
-        let sol = this.configService.getExtension("SOL");
-        let cctpMsg = sol.tool.parseCctpDepositMessage(depositMsg);
-        console.log("SOL tx %s evnet %s cctpMsg: %O", task.txHash, task.ota, cctpMsg);
-        if (cctpMsg) {
-          task.depositNonce = parseInt("0x" + cctpMsg.nonce.toString("hex"));
-          task.depositAmount = parseInt("0x" + cctpMsg.amount.toString("hex"));
-        }
-      } else {
-        for (let log of receipt.logs) {
-          if (log.topics[0] === CctpEvmDepositEventHash) {
-            let decoded = tool.parseEvmLog(log, this.circleBridgeDepositAbi);
-            console.debug("%s prepareTask for chain %s tx %s: %O", task.taskType, task.fromChain, task.uniqueID, decoded);
-            task.depositNonce = decoded.args.nonce;
-            task.depositAmount = decoded.args.amount;
-            break;
-          }
-        }
-      }
-      if (task.depositNonce === undefined) {
-        throw new Error("task " + task.ccTaskId + " get deposit nonce error");
-      }
+      await storageService.save("ScEventScanService", task.uniqueID, task); // always save regardless of exception
     }
   }
 
@@ -360,7 +317,7 @@ module.exports = class CheckScEvent {
           return {txHash: log.transactionHash, toAccount: args.userAccount, value: args.value};
         }
       } else {
-        console.error("can't get %s log data: %O", this.chainInfo.chainType, event);
+        console.error("CheckScEvent can't get %s log data: %O", this.chainInfo.chainType, event);
       }
     }
     return null;
@@ -430,9 +387,9 @@ module.exports = class CheckScEvent {
     }
   }
 
-  async updateUIAndStorage(obj, txHash, toAccount, value) {
-    this.eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash, toAccount, value: value || obj.value});
+  async updateUIAndStorage(task, txHash, toAccount, value) {
+    this.eventService.emitEvent("RedeemTxHash", {ccTaskId: task.ccTaskId, txHash, toAccount, value: value || task.value});
     let storageService = this.frameworkService.getService("StorageService");
-    await storageService.delete("ScEventScanService", obj.uniqueID);
+    await storageService.delete("ScEventScanService", task.uniqueID);
   }
 };
