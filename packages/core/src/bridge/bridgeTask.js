@@ -281,7 +281,9 @@ class BridgeTask {
     } else if (chainInfo.minReserved) {
       requiredCoin = requiredCoin.plus(chainInfo.minReserved);
     }
-    if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // depositForBurn messageSentEventData rent
+    if (chainType === "SUI") { // SUI wallet does not check if there is enough gas fee
+      requiredCoin = requiredCoin.plus("0.01");
+    } else if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // SOL require minReserved, and need extra depositForBurn messageSentEventData rent
       requiredCoin = requiredCoin.plus("0.00295104");
     }
     console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
