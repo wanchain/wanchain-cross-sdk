@@ -41,24 +41,18 @@ module.exports = class TaskService{
     }
 
     async taskLoop() {
-        try {
-            let now = new Date().getTime();
-            for (let idx = 0; idx < this.m_aryTaskInfo.length; ++idx) {
-                let obj = this.m_aryTaskInfo[idx];
-                try {// 避免因为一个task出错导致所有task无法执行
-                    if ((now - obj.lastRunTime) >= obj.taskInterval) {
-                        await obj.taskInst.runTask(obj.taskPara);
-                        obj.lastRunTime = now;
-                    }
+        let now = Date.now();
+        for (let idx = 0; idx < this.m_aryTaskInfo.length; ++idx) {
+            let obj = this.m_aryTaskInfo[idx];
+            try {// 避免因为一个task出错导致所有task无法执行
+                if ((now - obj.lastRunTime) >= obj.taskInterval) {
+                    await obj.taskInst.runTask(obj.taskPara);
+                    obj.lastRunTime = now;
                 }
-                catch (err) {
-                    console.log("taskLoop err:", err);
-                }
+            } catch (err) {
+                console.log("taskLoop err:", err);
             }
-            setTimeout(() => { this.taskLoop(); }, this.m_taskInterval);
         }
-        catch (err) {
-            setTimeout(() => { this.taskLoop(); }, this.m_taskInterval);
-        }
+        setTimeout(() => { this.taskLoop(); }, this.m_taskInterval);
     }
 }

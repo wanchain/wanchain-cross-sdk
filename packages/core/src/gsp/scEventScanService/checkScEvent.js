@@ -214,7 +214,7 @@ module.exports = class CheckScEvent {
           if (event) {
             await this.updateUIAndStorage(task, event.txHash, event.toAccount, event.value);
             tasks.splice(cur, 1);
-            continue; // skip save task and process next job
+            continue; // task would be deleted, do not need to save, process next job
           } else { // wait next scan
             task.fromBlockNumber = toBlockNumber + 1;
           }

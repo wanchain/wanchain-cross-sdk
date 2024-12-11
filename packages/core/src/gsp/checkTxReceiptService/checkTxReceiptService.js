@@ -58,10 +58,12 @@ module.exports = class CheckTxReceiptService {
             await this.addToScEventScan(obj);
           }
           await this.finishTask(index, obj, result.result, result.errInfo);
+          continue; // task would be deleted, do not need to save, process next job
         }
       } catch (err) {
         console.error("%s %s CheckTxReceiptService error: %O", obj.chain, obj.txHash, err);
       }
+      await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     }
   }
 
@@ -108,7 +110,6 @@ module.exports = class CheckTxReceiptService {
       if (txInfo) {
         txCheckInfo.input = txInfo.input;
         txCheckInfo.nonce = txInfo.nonce;
-        await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
       } else { // not broadcast yet, or has been replaced before task run
         return null;
       }
@@ -174,7 +175,6 @@ module.exports = class CheckTxReceiptService {
       txCheckInfo.nonceBlock = 0;
       console.debug("task %s %s check tx %s minted no new block %d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, latestBlock);
     }
-    await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     return null;
   }
 
