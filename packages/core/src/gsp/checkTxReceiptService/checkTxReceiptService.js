@@ -36,10 +36,19 @@ module.exports = class CheckTxReceiptService {
       //console.log("CheckTxReceiptService runTask iwan no connect");
       return;
     }
+    let storageService = this.frameworkService.getService("StorageService");
     let length = this.taskArray.length;
     for (let idx = 0; idx < length; ++idx) {
       let index = length - idx - 1;
       let obj = this.taskArray[index];
+      if (obj.checkTime) {
+        let now = parseInt(Date.now() / 1000);
+        if ((now - obj.checkTime) >= obj.interval) {
+          obj.checkTime = now;
+        } else {
+          continue; // wait next schedule and do not need to save
+        }
+      }
       try {
         let result = await this.checkReceipt(obj);
         if ((!result) && obj.txCheckInfo) {
@@ -58,10 +67,12 @@ module.exports = class CheckTxReceiptService {
             await this.addToScEventScan(obj);
           }
           await this.finishTask(index, obj, result.result, result.errInfo);
+          continue; // task would be deleted, do not need to save, process next job
         }
       } catch (err) {
         console.error("%s %s CheckTxReceiptService error: %O", obj.chain, obj.txHash, err);
       }
+      await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     }
   }
 
@@ -113,7 +124,6 @@ module.exports = class CheckTxReceiptService {
   }
 
   async checkEvent(obj) {
-    let storageService = this.frameworkService.getService("StorageService");
     let txCheckInfo = obj.txCheckInfo;
     if (txCheckInfo.nonce === undefined) { // save nonce at first run
       let txInfo = await this.iwan.getTxInfo(obj.chain, obj.txHash);
@@ -121,7 +131,6 @@ module.exports = class CheckTxReceiptService {
       if (txInfo) {
         txCheckInfo.input = txInfo.input;
         txCheckInfo.nonce = txInfo.nonce;
-        await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
       } else { // not broadcast yet, or has been replaced before task run
         return null;
       }
@@ -187,7 +196,6 @@ module.exports = class CheckTxReceiptService {
       txCheckInfo.nonceBlock = 0;
       console.debug("task %s %s check tx %s minted no new block %d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, latestBlock);
     }
-    await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     return null;
   }
 
@@ -203,6 +211,9 @@ module.exports = class CheckTxReceiptService {
 
   async add(obj) {
     let storageService = this.frameworkService.getService("StorageService");
+    if (obj.interval) { // check interval in second, some chains such as Bitcoin do not need check frequently
+      obj.checkTime = parseInt(Date.now() / 1000); // last checktime in second
+    }
     await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     this.taskArray.push(obj);
   }

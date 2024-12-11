@@ -22,6 +22,7 @@ module.exports = class ProcessMintFromBitcoinWallet {
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         txHash,
+        interval: 60, // seconds
         txCheckInfo: null, // only check transaction receipt, no event
         convertCheckInfo: {
           ccTaskId: params.ccTaskId,
