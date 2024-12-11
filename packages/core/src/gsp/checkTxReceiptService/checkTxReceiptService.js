@@ -36,6 +36,7 @@ module.exports = class CheckTxReceiptService {
       //console.log("CheckTxReceiptService runTask iwan no connect");
       return;
     }
+    let storageService = this.frameworkService.getService("StorageService");
     let length = this.taskArray.length;
     for (let idx = 0; idx < length; ++idx) {
       let index = length - idx - 1;
@@ -102,7 +103,6 @@ module.exports = class CheckTxReceiptService {
   }
 
   async checkEvent(obj) {
-    let storageService = this.frameworkService.getService("StorageService");
     let txCheckInfo = obj.txCheckInfo;
     if (txCheckInfo.nonce === undefined) { // save nonce at first run
       let txInfo = await this.iwan.getTxInfo(obj.chain, obj.txHash);
