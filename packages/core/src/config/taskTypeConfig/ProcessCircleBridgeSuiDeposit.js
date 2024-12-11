@@ -3,6 +3,8 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
+const DefaultGas = 10_000_000;
+
 module.exports = class ProcessCircleBridgeSuiDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -25,7 +27,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let tx = this.tool.newTransaction();
       // fee
       let suiCoins = await this.storemanService.getSuiCoins(params.fromAddr, "0x2::sui::SUI");
-      let totalCoin = new BigNumber(params.networkFee).plus(10000000).toFixed();
+      let totalCoin = new BigNumber(params.networkFee).plus(DefaultGas).toFixed();
       let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalCoin);
       let suiCoin = selectedSuiCoins[0];
       if (selectedSuiCoins.length > 1) {
@@ -65,6 +67,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
         ],
         typeArguments: [usdcAccount],
       });
+      tx.setGasBudget(DefaultGas);
       if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
         await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
       }
