@@ -40,7 +40,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let selectedUsdcCoins = this.tool.selectCoins(usdcCoins, amount);
       let assetCoin = selectedUsdcCoins[0];
       if (selectedUsdcCoins.length > 1) {
-        tx.mergeCoins(assetCoin, selectedUsdcCoins.slice(1));
+        tx.mergeCoins(assetCoin.coinObjectId, selectedUsdcCoins.slice(1).map(v => v.coinObjectId));
       }
       let [usdcCoin] = tx.splitCoins(assetCoin.coinObjectId, [amount]);
       //
@@ -67,7 +67,6 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
         ],
         typeArguments: [usdcAccount],
       });
-      tx.setGasBudget(DefaultGas);
       if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
         await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
       }
@@ -99,8 +98,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      console.error("ProcessCircleBridgeSuiDeposit error: %O", err)
-      if (["User rejected the request."].includes(err.message)) {
+      if (["Rejected from user"].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessCircleBridgeSuiDeposit error: %O", err);

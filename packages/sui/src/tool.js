@@ -15,15 +15,14 @@ function newTransaction() {
 }
 
 function selectCoins(coins, amount) {
-  if (coins.length === 0) {
-    return null;
-  }
   let selected = [], sumAmount = new BigNumber(0);
-  for (let i = 0; i < coins.length; i++) {
-    selected.push(coins[i]);
-    sumAmount = sumAmount.plus(coins[i].balance);
-    if (sumAmount.gte(amount)) {
-      return selected;
+  for (let coin of coins) {
+    if (coin.balance > 0) { // maybe is "0"
+      selected.push(coin);
+      sumAmount = sumAmount.plus(coin.balance);
+      if (sumAmount.gte(amount)) {
+        return selected;
+      }
     }
   }
   return [];
