@@ -600,6 +600,7 @@
         "treasury": "0x7170137d4a6431bf83351ac025baf462909bffe2877d87716374fb42b9629ebe"
       },
       "chainDecimals": 9,
+      "MaskChainId": "sui:testnet",
       "ScScanInfo": {
         "taskInterval": 15000
       }
