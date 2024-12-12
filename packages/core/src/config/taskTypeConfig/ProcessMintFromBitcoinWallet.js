@@ -12,7 +12,12 @@ module.exports = class ProcessMintFromBitcoinWallet {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      // let txHash = await wallet.sendTransaction(tx.to_hex(), params.fromAddr);
+      let opType = '01';
+      let hexTokenPairID = parseInt(params.tokenPairID).toString(16);
+      hexTokenPairID = ('000' + hexTokenPairID).slice(-4);
+      let memo = opType + hexTokenPairID + tool.hexStrip0x(params.userAccount);
+      memo = Buffer.from(this.input.op_return, "hex");
+      let txHash = await wallet.sendTransaction(params.userAccount, params.value, { memo });
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
