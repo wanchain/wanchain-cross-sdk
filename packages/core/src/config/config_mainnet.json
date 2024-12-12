@@ -555,6 +555,7 @@
         "treasury": "0x57d6725e7a8b49a7b2a612f6bd66ab5f39fc95332ca48be421c3229d514a6de7"
       },
       "chainDecimals": 9,
+      "MaskChainId": "sui:mainnet",
       "ScScanInfo": {
         "taskInterval": 15000
       }
