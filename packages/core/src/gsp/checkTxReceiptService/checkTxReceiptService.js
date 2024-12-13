@@ -81,6 +81,9 @@ module.exports = class CheckTxReceiptService {
       let txReceipt;
       if (obj.chain === "BTC") {
         txReceipt = await this.iwan.getTxInfo(obj.chain, obj.txHash, {format: true});
+        if (!(txReceipt && txReceipt.blockhash)) {
+          txReceipt = null;
+        }
       } else {
         txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
       }
@@ -99,7 +102,7 @@ module.exports = class CheckTxReceiptService {
         } else if (obj.chain === "SUI") {
           isSuccess = (txReceipt.effects && txReceipt.effects.status && (txReceipt.effects.status.status === "success"));
         } else if (obj.chain === "BTC") {
-          isSuccess = txReceipt.blockhash? true : false;
+          isSuccess = true; // in the block means success, ignore confirmations
         } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
