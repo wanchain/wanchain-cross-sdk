@@ -16,7 +16,7 @@ module.exports = class ProcessMintFromBitcoinWallet {
       let hexTokenPairID = parseInt(params.tokenPairID).toString(16);
       hexTokenPairID = ('000' + hexTokenPairID).slice(-4);
       let memo = opType + hexTokenPairID + tool.hexStrip0x(params.userAccount);
-      memo = Buffer.from(this.input.op_return, "hex");
+      memo = Buffer.from(memo, "hex");
       let txHash = await wallet.sendTransaction(params.userAccount, params.value, { memo });
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
