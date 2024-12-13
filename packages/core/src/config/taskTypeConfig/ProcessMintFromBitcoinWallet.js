@@ -22,7 +22,7 @@ module.exports = class ProcessMintFromBitcoinWallet {
     try {
       let tokenPairHex = parseInt(params.tokenPairID).toString(16);
       tokenPairHex = ('000' + tokenPairHex).slice(-4);
-      let memo = '01' + tokenPairHex + tool.hexStrip0x(String(params.userAccount).toLocaleLowerCase()); // 01 is userLock
+      let memo = '01' + tokenPairHex + tool.hexStrip0x(params.userAccount.toLowerCase()); // 01 is userLock
       let smgAddr = this.gpk2Addr(params.fromChainType, params.gpkInfo);
       console.debug("ProcessMintFromBitcoinWallet %s smgAddr: %s", params.fromChainType, smgAddr);
       let txHash = await wallet.sendTransaction(smgAddr, params.value, {memo});
