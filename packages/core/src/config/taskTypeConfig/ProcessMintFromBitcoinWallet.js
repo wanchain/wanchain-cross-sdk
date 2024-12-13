@@ -72,7 +72,7 @@ module.exports = class ProcessMintFromBitcoinWallet {
   }
 
   pk2p2tr(gpk, network) {
-    let xOnlyMpcPk = Buffer.from(gpk.slice(-64), 'hex');
+    let xOnlyMpcPk = Buffer.from(gpk.slice(2, 66), 'hex'); // gpk is 0x...
     let redeemScript = this.getP2trRedeemScript(xOnlyMpcPk);
     let scriptTree = {
       output: redeemScript,
