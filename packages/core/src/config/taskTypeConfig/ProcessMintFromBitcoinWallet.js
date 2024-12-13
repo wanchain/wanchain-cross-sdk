@@ -1,6 +1,14 @@
 'use strict';
 
+const bitcoin = require('bitcoinjs-lib');
+const ecc = require('@bitcoinerlab/secp256k1');
 const tool = require("../../utils/tool.js");
+
+bitcoin.initEccLib(ecc);
+
+const networks = { // only support BTC now
+  BTC: bitcoin.networks
+};
 
 module.exports = class ProcessMintFromBitcoinWallet {
   constructor(frameworkService) {
@@ -12,14 +20,13 @@ module.exports = class ProcessMintFromBitcoinWallet {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      let opType = '01';
-      let hexTokenPairID = parseInt(params.tokenPairID).toString(16);
-      hexTokenPairID = ('000' + hexTokenPairID).slice(-4);
-      let memo = opType + hexTokenPairID + tool.hexStrip0x(params.userAccount);
-      memo = Buffer.from(this.input.op_return, "hex");
-      let txHash = await wallet.sendTransaction(params.userAccount, params.value, { memo });
+      let tokenPairHex = parseInt(params.tokenPairID).toString(16);
+      tokenPairHex = ('000' + tokenPairHex).slice(-4);
+      let memo = '01' + tokenPairHex + tool.hexStrip0x(params.userAccount); // 01 is userLock
+      let smgAddr = this.gpk2Addr(params.fromChainType, params.gpkInfo);
+      console.debug("ProcessMintFromBitcoinWallet %s smgAddr: %s", params.fromChainType, smgAddr);
+      let txHash = await wallet.sendTransaction(smgAddr, params.value, {memo});
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let direction = (tokenPair.fromChainType === "BTC")? "MINT" : "BURN";
       let checker = {
@@ -52,5 +59,44 @@ module.exports = class ProcessMintFromBitcoinWallet {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
+  }
+
+  gpk2Addr(fromChainType, gpkInfo) {
+    let chainInfoService = this.frameworkService.getService("ChainInfoService");
+    let chainInfo = chainInfoService.getChainInfoByType(fromChainType);
+    if (gpkInfo.algo == 2) { // schnorr340
+      return this.pk2p2tr(gpkInfo.gpk, networks[fromChainType][chainInfo.network]);
+    } else { // only support p2tr now
+      return "";
+    }
+  }
+
+  pk2p2tr(gpk, network) {
+    let xOnlyMpcPk = Buffer.from(gpk.slice(-64), 'hex');
+    let redeemScript = this.getP2trRedeemScript(xOnlyMpcPk);
+    let scriptTree = {
+      output: redeemScript,
+      version: 0xc0
+    };
+    let p2tr = bitcoin.payments.p2tr({
+      internalPubkey: xOnlyMpcPk,
+      scriptTree: scriptTree,
+      redeem: scriptTree,
+      network
+    });
+    return p2tr.address;
+  }
+
+  getP2trRedeemScript(xOnlyMpcPk) {
+    let redeemScript = bitcoin.script.fromASM(
+      `
+      OP_DUP
+      OP_HASH160
+      ${bitcoin.crypto.hash160(xOnlyMpcPk).toString('hex')}
+      OP_EQUALVERIFY
+      OP_CHECKSIG
+      `.trim().replace(/\s+/g, ' '),
+    );
+    return redeemScript;
   }
 };
