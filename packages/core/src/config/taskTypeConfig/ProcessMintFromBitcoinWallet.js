@@ -27,10 +27,12 @@ module.exports = class ProcessMintFromBitcoinWallet {
       console.debug("ProcessMintFromBitcoinWallet %s smgAddr: %s", params.fromChainType, smgAddr);
       let txHash = await wallet.sendTransaction(smgAddr, params.value, {memo});
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      let tokenPairService = this.frameworkService.getService("TokenPairService");
+      let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
+      let direction = (params.fromChainType === tokenPair.fromChainType)? "MINT" : "BURN";
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
-      let direction = (tokenPair.fromChainType === "BTC")? "MINT" : "BURN";
       let checker = {
-        chain: "BTC",
+        chain: params.fromChainType,
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         txHash,
@@ -43,7 +45,7 @@ module.exports = class ProcessMintFromBitcoinWallet {
           fromBlockNumber: blockNumber,
           chain: params.toChainType,
           taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction),
-          fromChain: "BTC",
+          fromChain: params.fromChainType,
           fromAddr: params.fromAddr,
           chainHash: txHash,
           toAddr: params.toAddr
