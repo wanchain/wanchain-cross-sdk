@@ -14,7 +14,7 @@ class TokenPairService {
         this.chainLogo = new Map(); // type => logo
         this.storageService = null; // init after token pair service
         this.indexedDbService = null; // init after token pair service
-        this.forceRefresh = false;
+        this.refresh = {};
         this.multiChainOrigToken = new Map();
         this.tokenIssuer = new Map();
         this.chainLaunchTime = new Map();
@@ -84,9 +84,21 @@ class TokenPairService {
         this.indexedDbService = this.frameworkService.getService("IndexedDbService");
         try {
             let ts0 = Date.now();
+            let [tokenPairVer, chainLogoVer, tokenLogoVer] = await Promise.all([
+              this.iwan.getTokenPairsHash(),
+              this.iwan.call("getRegisteredChainLogoLatestTimestamp"),
+              this.iwan.call("getRegisteredTokenLogoLatestTimestamp")
+            ]);
+            let cache = this.storageService.getCacheData("Version") || {};
+            console.debug({tokenPairVer, chainLogoVer, tokenLogoVer, cache});
+            this.refresh = {
+              tokenPair: (tokenPairVer !== cache.tokenPair),
+              chainLogo: (chainLogoVer !== cache.chainLogo),
+              tokenLogo: (tokenLogoVer !== cache.tokenLogo)
+            };
             let tokenPairMap = new Map();
             let [tokenPairs] = await Promise.all([
-              this.readTokenpairs(ts0),
+              this.readTokenpairs(ts0, tokenPairVer),
               this.readMultiChainOrigToken(ts0),
               this.readTokenIssuer(ts0),
               this.readChainLaunchTime(ts0),
@@ -119,9 +131,7 @@ class TokenPairService {
             this.webStores.assetPairs.setAssetPairs(activeTokenPairs, smgList, this.configService);
             this.m_mapTokenPair = tokenPairMap;
             this.eventService.emitEvent("StoremanServiceInitComplete", true);
-            this.storageService.removeCacheData("AssetLogo");
-            this.storageService.removeCacheData("ChainLogo");
-            this.storageService.removeCacheData("TokenPair");
+            this.storageService.setCacheData("Version", {tokenPair: tokenPairVer, chainLogo: chainLogoVer, tokenLogo: tokenLogoVer});
         } catch (err) {
             console.error("readAssetPair error: %O", err);
             this.eventService.emitEvent("StoremanServiceInitComplete", false);
@@ -178,15 +188,10 @@ class TokenPairService {
       return true;
     }
 
-    async readTokenpairs(startTime) {
-      let uiVer = this.uiStrService.getStrByName("CacheVersion") || "0";
-      let iwanVer = await this.iwan.getTokenPairsHash();
-      let verCache = this.storageService.getCacheData("Version") || {};
-      console.debug({uiVer, iwanVer, verCache});
-      this.forceRefresh = (verCache.ui !== uiVer);
+    async readTokenpairs(startTime, tokenPairVer) {
       let tokenPairs = [];
-      if ((!this.forceRefresh) && (iwanVer === verCache.iwan) && this.indexedDbService) {
-        tokenPairs = (await this.indexedDbService.getCacheData("TokenPair", iwanVer)) || [];
+      if ((!this.refresh.tokenPair) && this.indexedDbService) {
+        tokenPairs = (await this.indexedDbService.getCacheData("TokenPair", tokenPairVer)) || [];
       }
       if (tokenPairs.length) { // maybe indexedDb TokenPair is cleared
         console.debug("all tokenpair hit cache");
@@ -200,11 +205,10 @@ class TokenPairService {
         }
         tokenPairs = await this.iwan.getTokenPairs(options);
         if (this.indexedDbService) {
-          tokenPairs.forEach(v => v._ver = iwanVer);
+          tokenPairs.forEach(v => v._ver = tokenPairVer);
           await this.indexedDbService.setCacheData("TokenPair", tokenPairs);
         }
         // TODO: clear inactive tokenpairs
-        this.storageService.setCacheData("Version", {ui: uiVer, iwan: iwanVer});
       }
       let ts = Date.now();
       console.debug("readTokenpairs %d consume %s ms", tokenPairs.length, ts - startTime);
@@ -244,7 +248,7 @@ class TokenPairService {
         assetMap.set(tp.readableSymbol + "_" + tp.protocol.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
       let cache;
-      if ((!this.forceRefresh) && this.indexedDbService) {
+      if ((!this.refresh.tokenLogo) && this.indexedDbService) {
         cache = await this.indexedDbService.getCacheData("AssetLogo");
       }
       let logoMapCacheOld = new Map();
@@ -298,7 +302,7 @@ class TokenPairService {
         chainSet.add(tp.toChainType);
       });
       let cache;
-      if ((!this.forceRefresh) && this.indexedDbService) {
+      if ((!this.refresh.chainLogo) && this.indexedDbService) {
         cache = await this.indexedDbService.getCacheData("ChainLogo");
       }
       let logoMapCacheOld = new Map(cache);
