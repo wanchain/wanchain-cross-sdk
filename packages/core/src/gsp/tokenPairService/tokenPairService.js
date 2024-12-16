@@ -17,8 +17,8 @@ class TokenPairService {
         this.refresh = {};
         this.multiChainOrigToken = new Map();
         this.tokenIssuer = new Map();
-        this.chainLaunchTime = new Map();
-        this.assetLaunchTime = new Map();
+        this.chainHighlightEndTime = new Map();
+        this.assetHighlightEndTime = new Map();
         this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
         this.assetAlias2Type = new Map(); // for logo
         this.fromChainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
@@ -101,8 +101,8 @@ class TokenPairService {
               this.readTokenpairs(ts0, tokenPairVer),
               this.readMultiChainOrigToken(ts0),
               this.readTokenIssuer(ts0),
-              this.readChainLaunchTime(ts0),
-              this.readAssetLaunchTime(ts0)
+              this.readChainHighlightEndTime(ts0),
+              this.readAssetHighlightEndTime(ts0)
             ]);
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
@@ -352,32 +352,32 @@ class TokenPairService {
       this.chainLogo = logoMapCacheNew;
     }
 
-    async readChainLaunchTime(startTime) {
+    async readChainHighlightEndTime(startTime) {
       try {
-        let times = await this.iwan.call("getChainLaunchTime", {});
-        // console.log("readChainLaunchTime: %O", times);
+        let times = await this.iwan.call("getChainTagNewDeadline", {});
+        console.log("readChainHighlightEndTime: %O", times);
         let map = new Map();
-        times.forEach(t => map.set(t.chainID, parseInt(t.launchTime)));
-        this.chainLaunchTime = map;
+        times.forEach(t => map.set(t.chainID, parseInt(t.deadline)));
+        this.chainHighlightEndTime = map;
       } catch (err) {
-        console.error("readChainLaunchTime error: %O", err);
+        console.error("readChainHighlightEndTime error: %O", err);
       }
       let ts = Date.now();
-      console.debug("readChainLaunchTime %d consume %s ms", this.chainLaunchTime.size, ts - startTime);
+      console.debug("readChainHighlightEndTime %d consume %s ms", this.chainHighlightEndTime.size, ts - startTime);
     }
 
-    async readAssetLaunchTime(startTime) {
+    async readAssetHighlightEndTime(startTime) {
       try {
-        let times = await this.iwan.call("getTokenLaunchTime", {});
-        // console.log("readAssetLaunchTime: %O", times);
+        let times = await this.iwan.call("getTokenTagNewDeadline", {});
+        console.log("readAssetHighlightEndTime: %O", times);
         let map = new Map();
-        times.forEach(t => map.set(t.symbol, parseInt(t.launchTime)));
-        this.assetLaunchTime = map;
+        times.forEach(t => map.set(t.symbol, parseInt(t.deadline)));
+        this.assetHighlightEndTime = map;
       } catch (err) {
-        console.error("readAssetLaunchTime error: %O", err);
+        console.error("readAssetHighlightEndTime error: %O", err);
       }
       let ts = Date.now();
-      console.debug("readAssetLaunchTime %d consume %s ms", this.assetLaunchTime.size, ts - startTime);
+      console.debug("readAssetHighlightEndTime %d consume %s ms", this.assetHighlightEndTime.size, ts - startTime);
     }
 
     getTokenPair(id) {
@@ -565,7 +565,7 @@ class TokenPairService {
       if (!this.checkActive(assetName, tokenPair)) {
         return false;
       }
-      let launchTime = this.assetLaunchTime.get(assetName) || 0;
+      let highlightEndTime = this.assetHighlightEndTime.get(assetName) || 0;
       // protocol
       let protocol = this.fromChainAssets.get(tokenPair.protocol);
       if (!protocol) {
@@ -579,7 +579,7 @@ class TokenPairService {
           chain = new Map();
           protocol.set(tokenPair.fromChainType, chain);
         }
-        chain.set(assetName, {symbol: tokenPair.fromSymbol, address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol, launchTime});
+        chain.set(assetName, {symbol: tokenPair.fromSymbol, address: tokenPair.fromAccount, decimals: tokenPair.fromDecimals, protocol: tokenPair.protocol, highlightEndTime});
       }
       // toChain
       if (tokenPair.direction !== "f2t") {
@@ -589,7 +589,7 @@ class TokenPairService {
             chain = new Map();
             protocol.set(tokenPair.toChainType, chain);
           }
-          chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol, launchTime});
+          chain.set(assetName, {symbol: tokenPair.toSymbol, address: tokenPair.toAccount, decimals: tokenPair.toDecimals, protocol: tokenPair.protocol, highlightEndTime});
         }
       }
       return true;
@@ -693,8 +693,8 @@ class TokenPairService {
       return prices;
     }
 
-    getChainLaunchTime(chainId) {
-      return this.chainLaunchTime.get(chainId) || 0;
+    getChainHighlightEndTime(chainId) {
+      return this.chainHighlightEndTime.get(chainId) || 0;
     }
 };
 

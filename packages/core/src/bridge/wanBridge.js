@@ -503,7 +503,7 @@ class WanBridge extends EventEmitter {
         protocol: assets[asset].protocol,
         balance: balances[asset] || "",
         price: prices[asset] || "",
-        launchTime: assets[asset].launchTime
+        highlightEndTime: assets[asset].highlightEndTime
       });
     }
     let time = Date.now() - startTime;
@@ -522,12 +522,12 @@ class WanBridge extends EventEmitter {
   getChainInfo(chainName) {
     let chainInfo = this.chainInfoService.getChainInfoByName(chainName);
     if (chainInfo) {
-      let launchTime = this.tokenPairService.getChainLaunchTime(chainInfo.chainId);
+      let highlightEndTime = this.tokenPairService.getChainHighlightEndTime(chainInfo.chainId);
       return {
         chainName,
         symbol: chainInfo.symbol || chainInfo.chainType,
         chainId: chainInfo.MaskChainId,
-        launchTime
+        highlightEndTime
       }
     }
     return null;
