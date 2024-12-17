@@ -384,6 +384,8 @@ class WanBridge extends EventEmitter {
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else if (chainType === "ALGO") {
         return Number(tokenAccount);
+      } else if (["ATOM", "NOBLE", "KAVA"].includes(chainType)) { // cosmos token account is ascii of name
+        return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
       }
