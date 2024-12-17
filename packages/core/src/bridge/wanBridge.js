@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2412111748", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2412121840", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -503,7 +503,7 @@ class WanBridge extends EventEmitter {
         protocol: assets[asset].protocol,
         balance: balances[asset] || "",
         price: prices[asset] || "",
-        launchTime: assets[asset].launchTime
+        highlightEndTime: assets[asset].highlightEndTime
       });
     }
     let time = Date.now() - startTime;
@@ -522,12 +522,12 @@ class WanBridge extends EventEmitter {
   getChainInfo(chainName) {
     let chainInfo = this.chainInfoService.getChainInfoByName(chainName);
     if (chainInfo) {
-      let launchTime = this.tokenPairService.getChainLaunchTime(chainInfo.chainId);
+      let highlightEndTime = this.tokenPairService.getChainHighlightEndTime(chainInfo.chainId);
       return {
         chainName,
         symbol: chainInfo.symbol || chainInfo.chainType,
         chainId: chainInfo.MaskChainId,
-        launchTime
+        highlightEndTime
       }
     }
     return null;
