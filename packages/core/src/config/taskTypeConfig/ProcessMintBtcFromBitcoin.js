@@ -2,8 +2,11 @@
 
 const crypto = require('crypto');
 const bitcoin = require('bitcoinjs-lib');
+const ecc = require('@bitcoinerlab/secp256k1');
 const axios = require("axios");
 const tool = require("../../utils/tool.js");
+
+bitcoin.initEccLib(ecc);
 
 const names = {
   BTC: "ProcessMintBtcFromBitcoin",
@@ -62,27 +65,6 @@ const networks = {
   }
 }
 
-let libInitState = 0;
-
-async function initBitcoinLib() {
-  if (libInitState === 0) {
-    libInitState = 1;
-    try {
-      let ecc = await import('tiny-secp256k1');
-      bitcoin.initEccLib(ecc);
-      libInitState = 2;
-      console.debug("bitcoinjs-lib ready");
-    } catch (err) {
-      console.error("bitcoinjs-lib init error: %O", err);
-      libInitState = 0;
-    }
-  }
-}
-
-setTimeout(async() => {
-  await initBitcoinLib();
-}, 0);
-
 module.exports = class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -126,13 +108,6 @@ module.exports = class ProcessMintBtcFromBitcoin {
 
       let ota = null;
       if (gpkInfo.algo == 2) { // schnorr340
-        if (libInitState === 0) {
-          console.debug("fix bitcoinjs-lib");
-          await initBitcoinLib();
-        }
-        if (libInitState !== 2) {
-          throw new Error("bitcoinjs-lib unavailable");
-        }
         ota = this.getP2TR(hashValue, tmpGPK, network);
         console.debug("generate %s p2tr ota %s", fromChainType, ota);
       } else {
