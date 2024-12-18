@@ -632,7 +632,7 @@ class TokenPairService {
     }
 
     async updateSmgs() {
-      let smgList = await this.getSmgs();
+      let smgList = await this.getSmgs(Date.now());
       this.webStores.assetPairs.setAssetPairs(undefined, smgList);
     }
 

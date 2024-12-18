@@ -91,7 +91,7 @@ module.exports = class CheckTxReceiptService {
         let result = "Failed";
         let errInfo = "Transaction failed";
         let isSuccess = false;
-        if (["ATOM", "NOBLE"].includes(obj.chain)) {
+        if (["ATOM", "NOBLE", "KAVA"].includes(obj.chain)) {
           isSuccess = (txReceipt.code === 0);
         } else if (obj.chain === "SOL") {
           isSuccess = (txReceipt.meta.err === null);

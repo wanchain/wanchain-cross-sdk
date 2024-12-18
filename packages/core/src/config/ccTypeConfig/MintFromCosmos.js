@@ -10,15 +10,17 @@ module.exports = class MintFromCosmos {
   }
 
   async process(tokenPair, convert) {
+    let direction = (convert.convertType === "MINT");
+    let fromChainType = direction? tokenPair.fromChainType : tokenPair.toChainType;
+    let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
+    let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
       let networkFee = tool.parseFee(convert.fee, convert.value, "ADA", {formatWithDecimals: false, feeType: "networkFee"});
-      let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
+        fromChainType,
         toChainType,
-        crossScAddr: tokenPair.fromScInfo.crossScAddr,
-        feeHolder: tokenPair.fromScInfo.feeHolder,
         userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,

@@ -33,7 +33,6 @@ module.exports = class ProcessMintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService  = frameworkService.getService("ConfigService");
-    this.extension = this.configService.getExtension("ATOM");
     this.storemanService = frameworkService.getService("StoremanService");
   }
 
@@ -47,8 +46,10 @@ module.exports = class ProcessMintFromCosmos {
       if (!isCoin) {
         throw new Error("Not support token");
       }
-      let smgAddr = this.extension.tool.gpk2Address(params.storemanGroupGpk, "Cosmos");
-      console.log({smgAddr});
+      let chainType = params.fromChainType;
+      let extension = this.configService.getExtension(chainType);
+      let smgAddr = extension.tool.gpk2Address(params.storemanGroupGpk, chainType);
+      console.log("%s smgAddr: %s", chainType, smgAddr);
 
       let txs = [{
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
@@ -57,20 +58,20 @@ module.exports = class ProcessMintFromCosmos {
           toAddress: smgAddr,
           amount: [
             {
-              denom: "uatom",
+              denom: "u" + chainType.toLowerCase(),
               amount: params.value
             }
           ],
         },
       }];
-      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount);
+      let memo = await this.buildUserLockData(chainType, params.tokenPairID, params.userAccount);
       // console.debug({txs, memo});
       let txHash = await wallet.sendTransaction(txs, {memo, timeoutHeight: 100});
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
-        chain: "ATOM",
+        chain: chainType,
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         txHash,
@@ -96,13 +97,13 @@ module.exports = class ProcessMintFromCosmos {
     }
   }
 
-  buildUserLockData(tokenPair, userAccount) {
+  buildUserLockData(fromChainType, tokenPair, userAccount) {
     let data = {
       tokenPairID: Number(tokenPair),
       toAccount : userAccount,
       type: TX_TYPE.userLock
     };
-    console.debug("ProcessMintFromCosmos buildUserLockData: %O", data);
+    console.debug("%s ProcessMint buildUserLockData: %O", fromChainType, data);
     return JSON.stringify(data);
   }
 };

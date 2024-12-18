@@ -3,12 +3,6 @@
 const BigNumber = require("bignumber.js");
 const tool = require('../../utils/tool.js');
 
-const handleNames = {
-  BTC: "MintBtcFromBitcoinHandle",
-  LTC: "MintLtcFromLitecoinHandle",
-  DOGE: "MintDogeFromDogecoinHandle"
-};
-
 module.exports = class MintBtcFromBitcoinHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -20,7 +14,6 @@ module.exports = class MintBtcFromBitcoinHandle {
     let fromChainType = direction? tokenPair.fromChainType : tokenPair.toChainType;
     let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
     let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let handleName = handleNames[fromChainType];
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
@@ -38,13 +31,13 @@ module.exports = class MintBtcFromBitcoinHandle {
         taskType,
         fee
       };
-      console.debug("%s params: %O", handleName, params);
+      console.debug("Mint %s params: %O", fromChainType, params);
       let steps = [
         {name: "addOTA", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
       return steps;
     } catch (err) {
-      console.error("%s error: %O", handleName, err);
+      console.error("Mint %s error: %O", fromChainType, err);
       throw err;
     }
   }
