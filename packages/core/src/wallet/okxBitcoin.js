@@ -1,15 +1,12 @@
 
-class UniSatWallet {
+class OkxBitcoinWallet {
   constructor(provider) {
-    if (window.unisat) {
-      this.name = "Unisat";
-      if (!['mainnet', 'testnet'].includes(provider)) {
-        throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
-      }
-      this.wallet = window.unisat;
+    if (window.okxwallet?.bitcoin) {
+      this.name = "okxBitcoin";
+      this.wallet = window.okxwallet.bitcoin;
     } else {
-      window.open('https://chromewebstore.google.com/detail/unisat-wallet/ppbibelpcjmhbdihakflkdcoccbgbkpo');
-      throw new Error('please install Unisat wallet');
+      window.open('https://chromewebstore.google.com/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge');
+      throw new Error('please install Okx Bitcoin wallet');
     }
   }
 
@@ -50,4 +47,4 @@ class UniSatWallet {
   }
 }
 
-module.exports = UniSatWallet;
+module.exports = OkxBitcoinWallet;

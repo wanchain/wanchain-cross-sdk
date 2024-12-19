@@ -1,4 +1,4 @@
-const {WanBridge, Web3Wallet, UnisatWallet} = require('./packages/core');
+const {WanBridge, Web3Wallet, UnisatWallet, OkxBitcoinWallet} = require('./packages/core');
 
 // extensions
 const CardanoExtension = require('./packages/cardano');
@@ -13,6 +13,7 @@ module.exports = {
   WanBridge,
   Web3Wallet,
   UnisatWallet,
+  OkxBitcoinWallet,
   CardanoExtension,
   PolkadotExtension,
   TronExtension,
