@@ -420,6 +420,7 @@
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
+      "MaskChainId": "livenet",
       "TxScanInfo": {
         "taskInterval": 60000
       }

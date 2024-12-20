@@ -434,6 +434,7 @@
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
+      "MaskChainId": "testnet",
       "TxScanInfo": {
         "taskInterval": 60000
       }
