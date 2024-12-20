@@ -18,6 +18,7 @@ module.exports = class MintBtcFromBitcoinHandle {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
       let taskType = convert.wallet? "ProcessMintFromBitcoinWallet" : "ProcessMintBtcFromBitcoin";
+      let taskName = convert.wallet? "userFastMint" : "addOTA";
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType,
@@ -33,7 +34,7 @@ module.exports = class MintBtcFromBitcoinHandle {
       };
       console.debug("Mint %s params: %O", fromChainType, params);
       let steps = [
-        {name: "addOTA", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: taskName, stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
       ];
       return steps;
     } catch (err) {
