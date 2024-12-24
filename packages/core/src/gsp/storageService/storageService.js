@@ -32,6 +32,11 @@ const db = low(adapter);
 //    ]
 //}
 
+/* do not limit item number on save or update, check and delete oldest items on next init load.
+   keep records in lowdb to support both nodejs and web, do not move to indexedDb.
+*/
+const ITEM_NUM_MAX = 300;
+
 class StorageService {
     constructor() {
         this.m_mapStoreKeys = new Map();// storeName => ["key1","key2","..."]
@@ -44,46 +49,41 @@ class StorageService {
     }
 
     async init_load() {
-        this.m_mapStoreKeys.clear();
-        let storeNamesStr = db.get("StorageService_storeNames").value();
-        if (storeNamesStr) {
-            let storeNamesAry = JSON.parse(storeNamesStr);
-            for (let idx = 0; idx < storeNamesAry.length; ++idx) {
-                let storeName = storeNamesAry[idx];
-                let key = storeName + "_keys";
-                let storeKeysStr = db.get(key).value();
-                if (storeKeysStr) {
-                    try {
-                        let storeKeysAry = JSON.parse(storeKeysStr);
-                        let valueAry = [];
-                        let storeKeysMap = new Map();
-                        for (let storeKeyIdx = 0; storeKeyIdx < storeKeysAry.length; ++storeKeyIdx) {
-                            try {
-                                let keyName = storeKeysAry[storeKeyIdx];
-                                key = storeName + "_" + keyName;
-                                let value = db.get(key).value();
-                                valueAry.push(JSON.parse(value));
-                                storeKeysMap.set(keyName, true);
-                            } catch (err) {
-                                console.log("init_load 1 err:", err);
-                            }
-                        }
-                        this.m_mapStoreKeys.set(storeName, storeKeysMap);
-                        // 初始加载
-                        try {
-                            let processInst = await this.getProcessInst(storeName);
-                            if (processInst) {
-                                processInst.loadTradeTask(valueAry);
-                            }
-                        } catch (err) {
-                            console.log("init_load 2 err:", err);
-                        }
-                    } catch (err) {
-                        console.log("init_load 3 err:", err);
-                    }
-                }
+      this.m_mapStoreKeys.clear();
+      try {
+        let storeNames = JSON.parse(db.get("StorageService_storeNames").value() || "[]");
+        for (let i = 0; i < storeNames.length; i++) {
+          let storeName = storeNames[i];
+          let storeKeys = JSON.parse(db.get(storeName + "_keys").value() || "[]");
+          let truncateNum = 0;
+          if (storeKeys.length > ITEM_NUM_MAX) {
+            truncateNum = storeKeys.length - ITEM_NUM_MAX;
+            console.log("truncate %d/%d %s records", truncateNum, storeKeys.length, storeName);
+          }
+          let tasks = [], keysMap = new Map();
+          for (let j = 0; j < storeKeys.length; j++) {
+            let innerKey = storeKeys[j];
+            let dbKey = storeName + "_" + innerKey;
+            if (j < truncateNum) { // delete exceed oldest items
+              await db.unset(dbKey).write(); // unset do not support batch lazy execution, need call write every one
+              console.log("delete record %s", dbKey);
+            } else {
+              tasks.push(JSON.parse(db.get(dbKey).value()));
+              keysMap.set(innerKey, true);
             }
+          }
+          if (truncateNum) { // update storeKeys
+            await db.set(storeName + "_keys", JSON.stringify(storeKeys.slice(truncateNum))).write();
+          }
+          this.m_mapStoreKeys.set(storeName, keysMap);
+          let processInst = await this.getProcessInst(storeName);
+          if (processInst) {
+            processInst.loadTradeTask(tasks);
+          }
         }
+      } catch (err) {
+        console.error("storageService load error: %O", err);
+      }
     }
 
     async getProcessInst(storeName) {
@@ -96,49 +96,41 @@ class StorageService {
     }
 
     async save(storeName, key, val) {
-        if (this.m_mapStoreKeys.has(storeName)) {
-            let storeKeysMap = this.m_mapStoreKeys.get(storeName);
-            if (!storeKeysMap.has(key)) {
-                storeKeysMap.set(key, true);
-                let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-                await db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
-            }
-        } else {
-            let storeKeysMap = new Map();
-            storeKeysMap.set(key, true);
-            this.m_mapStoreKeys.set(storeName, storeKeysMap);
-            let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
-            await db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
-            let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-            await db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
-        }
-        await db.set(storeName + "_" + key, JSON.stringify(val)).write();
+      let dbOps = db;
+      let keysMap = this.m_mapStoreKeys.get(storeName);
+      if (!keysMap) {
+        keysMap = new Map();
+        this.m_mapStoreKeys.set(storeName, keysMap);
+        let storeNames = this.getKeyAryFromMap(this.m_mapStoreKeys);
+        dbOps = dbOps.set("StorageService_storeNames", JSON.stringify(storeNames));
+      }
+      if (!keysMap.has(key)) {
+        keysMap.set(key, true);
+        let storeKeys = this.getKeyAryFromMap(keysMap);
+        dbOps = dbOps.set(storeName + "_keys", JSON.stringify(storeKeys));
+      }
+      await dbOps.set(storeName + "_" + key, JSON.stringify(val)).write();
     }
 
     async delete(storeName, key) {
-        if (!this.m_mapStoreKeys.has(storeName)) {
-            return;
-        }
-        let storeKeysMap = this.m_mapStoreKeys.get(storeName);
-        if (!storeKeysMap.has(key)) {
-            return;
+      let keysMap = this.m_mapStoreKeys.get(storeName);
+      if (keysMap && keysMap.has(key)) {
+        keysMap.delete(key);
+        let storeKeys = this.getKeyAryFromMap(keysMap);
+        if (storeKeys.length > 0) {
+          await db.set(storeName + "_keys", JSON.stringify(storeKeys)).write();
+        } else {
+          await db.unset(storeName + "_keys").write();
+          this.m_mapStoreKeys.delete(storeName);
+          let storeNames = this.getKeyAryFromMap(this.m_mapStoreKeys);
+          if (storeNames.length > 0) {
+            await db.set("StorageService_storeNames", JSON.stringify(storeNames)).write();
+          } else {
+            await db.unset("StorageService_storeNames").write();
+          }
         }
         await db.unset(storeName + "_" + key).write();
-        storeKeysMap.delete(key);
-        let storeKeysAry = this.getKeyAryFromMap(storeKeysMap);
-        if (storeKeysAry.length > 0) {
-            await db.set(storeName + "_keys", JSON.stringify(storeKeysAry)).write();
-        } else {
-            await db.unset(storeName + "_keys").write();
-            this.m_mapStoreKeys.delete(storeName);
-            let storeNamesAry = this.getKeyAryFromMap(this.m_mapStoreKeys);
-            if (storeNamesAry.length > 0) {
-                await db.set("StorageService_storeNames", JSON.stringify(storeNamesAry)).write();
-            }
-            else {
-                await db.unset("StorageService_storeNames").write();
-            }
-        }
+      }
     }
 
     getKeyAryFromMap(paraMap) {
@@ -173,22 +165,6 @@ class StorageService {
 
     removeCacheData(key) {
       window.localStorage.removeItem(key);
-    }
-
-    getAssetLogos() {
-      if (typeof(window) !== "undefined") {
-        let data = window.localStorage.getItem("AssetLogo");
-        if (data) {
-          return JSON.parse(data);
-        }
-      }
-      return null;
-    }
-
-    setAssetLogos(data) {
-      if (typeof(window) !== "undefined") {
-        window.localStorage.setItem("AssetLogo", JSON.stringify(data));
-      }
     }
 };
 
