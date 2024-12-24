@@ -35,7 +35,7 @@ const db = low(adapter);
 /* do not limit item number on save or update, check and delete oldest items on next init load.
    keep records in lowdb to support both nodejs and web, do not move to indexedDb.
 */
-const ITEM_NUM_MAX = 200;
+const ITEM_NUM_MAX = 300;
 
 class StorageService {
     constructor() {
