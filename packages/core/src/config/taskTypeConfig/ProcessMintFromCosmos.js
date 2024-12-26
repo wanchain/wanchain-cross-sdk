@@ -40,13 +40,16 @@ module.exports = class ProcessMintFromCosmos {
     let webStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
     try {
+      let chainType = params.fromChainType;
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
+      let chainInfo = (tokenPair.fromChainType === chainType)? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let denom = "u" + (chainInfo.symbol || chainType).toLowerCase();
+      let tokenAccount = (tokenPair.fromChainType === chainType)? tokenPair.fromAccount : tokenPair.toAccount;
+      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000") || (tool.ascii2letter(tool.hexStrip0x(tokenAccount)) === denom);
       if (!isCoin) {
-        throw new Error("Not support token");
+        throw new Error("Only support coin");
       }
-      let chainType = params.fromChainType;
       let extension = this.configService.getExtension(chainType);
       let smgAddr = extension.tool.gpk2Address(params.storemanGroupGpk, chainType);
       console.log("%s smgAddr: %s", chainType, smgAddr);
@@ -58,7 +61,7 @@ module.exports = class ProcessMintFromCosmos {
           toAddress: smgAddr,
           amount: [
             {
-              denom: "u" + chainType.toLowerCase(),
+              denom,
               amount: params.value
             }
           ],

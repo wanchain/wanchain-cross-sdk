@@ -528,11 +528,12 @@
       "chainId": "1073741844",
       "chainType": "NOBLE",
       "chainName": "Noble",
+      "mintFromChainHandle": "MintFromCosmos",
       "symbol": "USDC",
       "CircleBridge": {
-        "domain": 4
+        "domain": 4,
+        "feeHolder": "noble102rkzjw0p7a6t27ywsgggj2mjhzrarqlu66ys2"
       },
-      "feeHolder": "noble102rkzjw0p7a6t27ywsgggj2mjhzrarqlu66ys2",
       "chainDecimals": 6,
       "MaskChainId": "grand-1",
       "TxScanInfo": {

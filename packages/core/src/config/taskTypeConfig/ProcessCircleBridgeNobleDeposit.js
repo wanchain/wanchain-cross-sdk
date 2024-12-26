@@ -2,7 +2,6 @@
 
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
-const axios = require("axios");
 
 module.exports = class ProcessCircleBridgeNobleDeposit {
   constructor(frameworkService) {
@@ -36,7 +35,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
         value: {
           fromAddress: params.fromAddr,
-          toAddress: fromChainInfo.feeHolder,
+          toAddress: fromChainInfo.CircleBridge.feeHolder,
           amount: [
             {
               denom: "uusdc",

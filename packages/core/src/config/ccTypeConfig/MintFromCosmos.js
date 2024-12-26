@@ -14,9 +14,10 @@ module.exports = class MintFromCosmos {
     let fromChainType = direction? tokenPair.fromChainType : tokenPair.toChainType;
     let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
     let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
-      let networkFee = tool.parseFee(convert.fee, convert.value, "ADA", {formatWithDecimals: false, feeType: "networkFee"});
+      let networkFee = tool.parseFee(convert.fee, convert.value, (chainInfo.symbol || fromChainType), {formatWithDecimals: false, feeType: "networkFee"});
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType,
