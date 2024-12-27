@@ -532,6 +532,7 @@
         "feeHolder": "3yaCPbYPPWNZYUBYa8mMLo9QeQqQB6hR9XXHXnXfKEvH"
       },
       "chainDecimals": 9,
+      "MaskChainId": "mainnet-beta",
       "minReserved": 0.001,
       "TxScanInfo": {
         "taskInterval": 10000
