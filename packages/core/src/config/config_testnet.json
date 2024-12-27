@@ -394,7 +394,7 @@
     },
     {
       "chainId": "1073741854",
-      "chainType": "LUMMIO",
+      "chainType": "LRPO",
       "chainName": "Lummio",
       "symbol": "LRPO",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
