@@ -123,9 +123,9 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
                   tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
     if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
-      let devChains = ["Cardano", "Cosmos", "Kava", "Solana"];
+      let devChains = ["Cardano", "Cosmos", "Kava", "Noble", "Solana"];
       if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
-        throw new Error("Dev group only");
+        throw new Error("Only support dev group");
       }
     }
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
