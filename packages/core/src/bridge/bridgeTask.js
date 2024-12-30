@@ -331,17 +331,35 @@ class BridgeTask {
       }
     }
     // check xrp token trust line
-    if ((chainType === "XRP") && !isRedeemCoin) { // XRP token need to check recipient trust line
-      if (!this._bridge.validateXrpTokenAmount(this._amount)) {
-        return "Amount out of range";
+    if (chainType === "XRP") {
+      try {
+        let aInfo = await this._bridge.iwan.getAccountInfo("XRP", this._toAccount, {version: "v2"});
+        if (aInfo && aInfo.account_data.FlagsParsed && aInfo.account_data.FlagsParsed.lsfRequireDestTag) { // FlagsParsed is appeded by iwan
+          console.error("XRP account %s requires destination tag", this._toAccount);
+          return "The recipient requires destination tag";
+        }
+      } catch (err) { // nonexistent account is acceptable
+        let errString = err.toString();
+        if (errString !== "Account not found.") {
+          return errString;
+        }
       }
-      let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, this._toAccount);
-      if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
-        let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
-        let reason = line? "Liquidity is not enough" : "No trust line";
-        let msg = util.format("%s for %s", reason, token);
-        console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
-        return msg;
+      if (!isRedeemCoin) { // XRP token need to check recipient trust line
+        if (!this._bridge.validateXrpTokenAmount(this._amount)) {
+          return "Amount out of range";
+        }
+        try {
+          let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, this._toAccount);
+          if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
+            let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
+            let reason = line? "Liquidity is not enough" : "No trust line";
+            let msg = util.format("%s for %s", reason, token);
+            console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
+            return msg;
+          }
+        } catch (err) { // "Account not found." or other exceptions
+          return err.toString();
+        }
       }
     }
     // check algo status and opt in
