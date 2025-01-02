@@ -336,7 +336,7 @@ class BridgeTask {
         let aInfo = await this._bridge.iwan.getAccountInfo("XRP", this._toAccount, {version: "v2"});
         if (aInfo && aInfo.account_data.FlagsParsed && aInfo.account_data.FlagsParsed.lsfRequireDestTag) { // FlagsParsed is appeded by iwan
           console.error("XRP account %s requires destination tag", this._toAccount);
-          return "The recipient requires destination tag";
+          return "Recipient account is not available because it requires destination tag";
         }
       } catch (err) { // nonexistent account is acceptable
         let errString = err.toString();
