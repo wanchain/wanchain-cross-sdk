@@ -82,7 +82,7 @@ class Keplr {
     let client = await this.getStargateClient();
     // fee
     let gasUsed = await client.simulate(key.bech32Address, messages, memo);
-    gasUsed = gasUsed + 25000; // rectify by experience
+    gasUsed = gasUsed * 1.5; // rectify by experience
     console.debug({gasUsed, gasPrice});
     let fee = (0, Stargate.calculateFee)(Math.round(gasUsed), gasPrice);
     // timeoutHeight
