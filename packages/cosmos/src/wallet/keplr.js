@@ -9,7 +9,7 @@ const DefaultChainInfo = {
     denom: "uatom"
   },
   "grand-1": {
-    rpc: "https://rpc.testnet.noble.strange.love",
+    rpc: "https://noble-testnet-rpc.polkachu.com",
     denom: "uusdc"
   },
   "noble-1": {
