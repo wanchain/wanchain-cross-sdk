@@ -324,10 +324,11 @@ class BridgeTask {
         if (isRedeemCoin) {
           let diff = new BigNumber(chainInfo.minReserved).minus(balance);
           console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
-          return "Amount is too small to activate recipient account";
-        } else {
-          return "Recipient account is inactive";
         }
+        return util.format("%s enforces an existential deposit requirement. Make sure that the balance of destination address remains above %s %s.",
+                           chainInfo.chainName,
+                           chainInfo.minReserved,
+                           chainInfo.symbol || chainType);
       }
     }
     // check xrp token trust line
