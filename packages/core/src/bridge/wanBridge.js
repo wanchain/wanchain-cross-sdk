@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2412171752", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2501141552", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -628,7 +628,7 @@ class WanBridge extends EventEmitter {
       let pools = toChainInfo.dapp.swap.assets || [];
       if (pools.length === 0) { // defalut support all assets
         let toChainAssets = await this._getChainAssets(toChainName, {}, {protocols: ["Erc20"]}, Date.now());
-        pools = toChainAssets.map(v => v.symbol);
+        pools = toChainAssets.map(v => v.asset);
       }
       pools.forEach(a => {
         try {
