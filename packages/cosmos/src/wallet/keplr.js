@@ -9,7 +9,7 @@ const DefaultChainInfo = {
     denom: "uatom"
   },
   "grand-1": {
-    rpc: "https://rpc.testnet.noble.strange.love",
+    rpc: "https://noble-testnet-rpc.polkachu.com",
     denom: "uusdc"
   },
   "noble-1": {
@@ -78,11 +78,7 @@ class Keplr {
     let client = await this.getStargateClient();
     // fee
     let gasUsed = await client.simulate(key.bech32Address, messages, memo);
-    if (["theta-testnet-001"].includes(this.chainId)) { // cosmos
-      gasUsed = gasUsed + 25000;
-    } else {
-      gasUsed = gasUsed * 1.35;
-    }
+    gasUsed = gasUsed * 1.5; // rectify by experience
     console.debug({gasUsed, gasPrice});
     let fee = (0, Stargate.calculateFee)(Math.round(gasUsed), gasPrice);
     // timeoutHeight

@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2501141452", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2501101555", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -125,7 +125,7 @@ class WanBridge extends EventEmitter {
     if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
       let devChains = ["Cardano", "Cosmos", "Solana"];
       if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
-        throw new Error("Dev group only");
+        throw new Error("Only support dev group");
       }
     }
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
@@ -384,6 +384,8 @@ class WanBridge extends EventEmitter {
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else if (chainType === "ALGO") {
         return Number(tokenAccount);
+      } else if (["ATOM", "NOBLE"].includes(chainType)) { // cosmos token account is ascii of name
+        return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
       }

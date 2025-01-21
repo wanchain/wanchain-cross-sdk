@@ -206,7 +206,11 @@ class StoremanService {
           }
         }
       } else if (options.wallet) {
-        if (this.validateAddress(chainType, addr)) {
+        let walletId = 0;
+        if (options.wallet.getChainId) {
+          walletId = await options.wallet.getChainId();
+        }
+        if (((walletId === chainInfo.MaskChainId) || !walletId) && this.validateAddress(chainType, addr)) {
           let assetArray = [], balances;
           try { // input addr format maybe not match wallet
             if (options.wallet.getBalances) { // fix cardano Eternl too many requests error

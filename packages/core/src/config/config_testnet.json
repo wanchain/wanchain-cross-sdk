@@ -557,6 +557,7 @@
         "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg"
       },
       "chainDecimals": 9,
+      "MaskChainId": "devnet",
       "minReserved": 0.001,
       "TxScanInfo": {
         "taskInterval": 10000
