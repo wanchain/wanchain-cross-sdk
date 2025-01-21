@@ -437,7 +437,7 @@ class WanBridge extends EventEmitter {
     let result = {};
     chains.forEach((v, i) => result[v] = assetInfos[i]);
     let ts2 = Date.now();
-    console.debug("getChainAssets consume %s ms: %O", ts2 - ts0, result);
+    console.debug("getChainAssets consume %s ms", ts2 - ts0);
     return result;
   }
 
