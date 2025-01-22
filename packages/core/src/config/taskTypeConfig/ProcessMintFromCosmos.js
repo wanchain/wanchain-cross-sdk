@@ -43,9 +43,10 @@ module.exports = class ProcessMintFromCosmos {
       let chainType = params.fromChainType;
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let chainInfo = (tokenPair.fromChainType === chainType)? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let direction = (tokenPair.fromChainType === chainType);
+      let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
       let denom = "u" + (chainInfo.symbol || chainType).toLowerCase();
-      let tokenAccount = (tokenPair.fromChainType === chainType)? tokenPair.fromAccount : tokenPair.toAccount;
+      let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
       let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000") || (tool.ascii2letter(tool.hexStrip0x(tokenAccount)) === denom);
       if (!isCoin) {
         throw new Error("Only support coin");
@@ -85,7 +86,7 @@ module.exports = class ProcessMintFromCosmos {
           uniqueID: '0x' + txHash.toLowerCase(),
           fromBlockNumber: blockNumber,
           chain: params.toChainType,
-          taskType: "MINT"
+          taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction? "MINT" : "BURN")
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
