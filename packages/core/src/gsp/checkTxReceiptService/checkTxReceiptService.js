@@ -41,6 +41,14 @@ module.exports = class CheckTxReceiptService {
     for (let idx = 0; idx < length; ++idx) {
       let index = length - idx - 1;
       let obj = this.taskArray[index];
+      if (obj.checkTime) {
+        let now = parseInt(Date.now() / 1000);
+        if ((now - obj.checkTime) >= obj.interval) {
+          obj.checkTime = now;
+        } else {
+          continue; // wait next schedule and do not need to save
+        }
+      }
       try {
         let result = await this.checkReceipt(obj);
         if ((!result) && obj.txCheckInfo) {
@@ -70,12 +78,20 @@ module.exports = class CheckTxReceiptService {
 
   async checkReceipt(obj) {
     try {
-      let txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
+      let txReceipt;
+      if (obj.chain === "BTC") {
+        txReceipt = await this.iwan.getTxInfo(obj.chain, obj.txHash, {format: true});
+        if (!(txReceipt && txReceipt.blockhash)) {
+          txReceipt = null;
+        }
+      } else {
+        txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
+      }
       if (txReceipt) {
         let result = "Failed";
         let errInfo = "Transaction failed";
         let isSuccess = false;
-        if (["ATOM", "NOBLE"].includes(obj.chain)) {
+        if (["ATOM", "NOBLE", "KAVA"].includes(obj.chain)) {
           isSuccess = (txReceipt.code === 0);
         } else if (obj.chain === "SOL") {
           isSuccess = (txReceipt.meta.err === null);
@@ -85,7 +101,9 @@ module.exports = class CheckTxReceiptService {
           isSuccess = (txReceipt['confirmed-round'] > 0);
         } else if (obj.chain === "SUI") {
           isSuccess = (txReceipt.effects && txReceipt.effects.status && (txReceipt.effects.status.status === "success"));
-        }  else {
+        } else if (obj.chain === "BTC") {
+          isSuccess = true; // in the block means success, ignore confirmations
+        } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
         if (isSuccess) {
@@ -94,6 +112,12 @@ module.exports = class CheckTxReceiptService {
         }
         return {result, errInfo};
       } else {
+        if (obj.chain === "BTC") {
+          let delay = parseInt(Date.now() - obj.ccTaskId); // ms
+          if (delay > 86_400_000) { // 1 day, has been removed from mempool
+            return {result: "Failed", errInfo: "Transaction failed"};
+          }
+        }
         return null;
       }
     } catch (err) { // not finish
@@ -190,6 +214,9 @@ module.exports = class CheckTxReceiptService {
 
   async add(obj) {
     let storageService = this.frameworkService.getService("StorageService");
+    if (obj.interval) { // check interval in second, some chains such as Bitcoin do not need check frequently
+      obj.checkTime = parseInt(Date.now() / 1000); // last checktime in second
+    }
     await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     this.taskArray.push(obj);
   }

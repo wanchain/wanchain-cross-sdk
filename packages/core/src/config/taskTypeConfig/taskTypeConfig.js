@@ -23,6 +23,10 @@ module.exports = [
       "handle": require("./ProcessMintBtcFromBitcoin")
     },
     {
+      "name": "ProcessMintFromBitcoinWallet",
+      "handle": require("./ProcessMintFromBitcoinWallet")
+    },
+    {
       "name": "ProcessXrpMintFromRipple",
       "handle": require("./ProcessXrpMintFromRipple")
     },

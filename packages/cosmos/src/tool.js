@@ -8,7 +8,9 @@ const AddressPrefix = {
   Cosmos: "cosmos",
   ATOM: "cosmos",
   Noble: "noble",
-  NOBLE: "noble"
+  NOBLE: "noble",
+  Kava: "kava",
+  KAVA: "kava",
 }
 
 function validateAddress(address, network, chain) {

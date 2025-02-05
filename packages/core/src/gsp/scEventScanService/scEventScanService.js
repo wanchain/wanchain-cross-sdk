@@ -34,7 +34,7 @@ module.exports = class ScEventScanService {
     };
 
     // apiServer chains
-    let apiServerChains = ["DOT", "PHA", "ADA", "ATOM", "NOBLE", "SOL"];
+    let apiServerChains = ["DOT", "PHA", "ADA", "ATOM", "NOBLE", "KAVA", "SOL"];
     for (let chain of apiServerChains) {
       let extension = this.configService.getExtension(chain);
       let info = this.chainInfoService.getChainInfoByType(chain);

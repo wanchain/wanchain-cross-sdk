@@ -33,7 +33,6 @@ module.exports = class ProcessMintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService  = frameworkService.getService("ConfigService");
-    this.extension = this.configService.getExtension("ATOM");
     this.storemanService = frameworkService.getService("StoremanService");
   }
 
@@ -41,14 +40,20 @@ module.exports = class ProcessMintFromCosmos {
     let webStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
     try {
+      let chainType = params.fromChainType;
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
+      let direction = (tokenPair.fromChainType === chainType);
+      let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let denom = "u" + (chainInfo.symbol || chainType).toLowerCase();
+      let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000") || (tool.ascii2letter(tool.hexStrip0x(tokenAccount)) === denom);
       if (!isCoin) {
-        throw new Error("Not support token");
+        throw new Error("Only support coin");
       }
-      let smgAddr = this.extension.tool.gpk2Address(params.storemanGroupGpk, "Cosmos");
-      console.log({smgAddr});
+      let extension = this.configService.getExtension(chainType);
+      let smgAddr = extension.tool.gpk2Address(params.storemanGroupGpk, chainType);
+      console.log("%s smgAddr: %s", chainType, smgAddr);
 
       let txs = [{
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
@@ -57,20 +62,20 @@ module.exports = class ProcessMintFromCosmos {
           toAddress: smgAddr,
           amount: [
             {
-              denom: "uatom",
+              denom,
               amount: params.value
             }
           ],
         },
       }];
-      let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount);
+      let memo = await this.buildUserLockData(chainType, params.tokenPairID, params.userAccount);
       // console.debug({txs, memo});
       let txHash = await wallet.sendTransaction(txs, {memo, timeoutHeight: 100});
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
 
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
-        chain: "ATOM",
+        chain: chainType,
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
         txHash,
@@ -81,7 +86,7 @@ module.exports = class ProcessMintFromCosmos {
           uniqueID: '0x' + txHash.toLowerCase(),
           fromBlockNumber: blockNumber,
           chain: params.toChainType,
-          taskType: "MINT"
+          taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction? "MINT" : "BURN")
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
@@ -96,13 +101,13 @@ module.exports = class ProcessMintFromCosmos {
     }
   }
 
-  buildUserLockData(tokenPair, userAccount) {
+  buildUserLockData(fromChainType, tokenPair, userAccount) {
     let data = {
       tokenPairID: Number(tokenPair),
       toAccount : userAccount,
       type: TX_TYPE.userLock
     };
-    console.debug("ProcessMintFromCosmos buildUserLockData: %O", data);
+    console.debug("%s ProcessMint buildUserLockData: %O", fromChainType, data);
     return JSON.stringify(data);
   }
 };

@@ -16,6 +16,10 @@ const DefaultChainInfo = {
     rpc: "https://rpc.mainnet.noble.strange.love",
     denom: "uusdc"
   },
+  "kava_2221-16000": {
+    rpc: "https://rpc.testnet.kava.io",
+    denom: "ukava"
+  }
 }
 
 const MyRegistry = new ProtoSigning.Registry(Stargate.defaultRegistryTypes.concat([

@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2502051106", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2502051458", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -97,7 +97,7 @@ class WanBridge extends EventEmitter {
   async checkWallet(chainName, wallet) {
     console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.name : undefined);
     let chainType = this.tokenPairService.getChainType(chainName);
-    if (this._isThirdPartyWallet(chainType)) {
+    if (this._isThirdPartyWallet(chainType) && !wallet) { // BTC support both
       return true;
     } else {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
@@ -123,15 +123,16 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
                   tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
     if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
-      let devChains = ["Cardano", "Cosmos", "Solana"];
+      let devChains = ["Cardano", "Cosmos", "Kava", "Noble", "Solana"];
       if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
         throw new Error("Only support dev group");
       }
     }
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
+    let wallet = options.wallet;
     // check fromAccount
-    if (this._isThirdPartyWallet(fromChainType)) {
+    if (this._isThirdPartyWallet(fromChainType) && !wallet) {
       fromAccount = "";
     } else if (fromAccount) {
       if (!this.validateAddress(fromChainName, fromAccount)) {
@@ -145,8 +146,7 @@ class WanBridge extends EventEmitter {
       throw new Error("Invalid toAccount");
     }
     // check wallet
-    let wallet = options.wallet;
-    if (this._isThirdPartyWallet(fromChainType)) {
+    if (this._isThirdPartyWallet(fromChainType) && !wallet) {
       wallet = null;
     } else if (!wallet) {
       throw new Error("Missing wallet");
@@ -384,7 +384,7 @@ class WanBridge extends EventEmitter {
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else if (chainType === "ALGO") {
         return Number(tokenAccount);
-      } else if (["ATOM", "NOBLE"].includes(chainType)) { // cosmos token account is ascii of name
+      } else if (["ATOM", "NOBLE", "KAVA"].includes(chainType)) { // cosmos token account is ascii of name
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;

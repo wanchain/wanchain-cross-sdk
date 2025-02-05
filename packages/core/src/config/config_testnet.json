@@ -391,6 +391,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741854",
+      "chainType": "LRPO",
+      "chainName": "Lummio",
+      "symbol": "LRPO",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "chainDecimals": 18,
+      "MaskChainId": 12020499,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -434,6 +446,7 @@
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
+      "MaskChainId": "testnet",
       "TxScanInfo": {
         "taskInterval": 60000
       }
@@ -527,11 +540,12 @@
       "chainId": "1073741844",
       "chainType": "NOBLE",
       "chainName": "Noble",
+      "mintFromChainHandle": "MintFromCosmos",
       "symbol": "USDC",
       "CircleBridge": {
-        "domain": 4
+        "domain": 4,
+        "feeHolder": "noble102rkzjw0p7a6t27ywsgggj2mjhzrarqlu66ys2"
       },
-      "feeHolder": "noble102rkzjw0p7a6t27ywsgggj2mjhzrarqlu66ys2",
       "chainDecimals": 6,
       "MaskChainId": "grand-1",
       "TxScanInfo": {
@@ -603,6 +617,17 @@
       "MaskChainId": "sui:testnet",
       "ScScanInfo": {
         "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2147484107",
+      "chainType": "KAVA",
+      "chainName": "Kava",
+      "mintFromChainHandle": "MintFromCosmos",
+      "chainDecimals": 6,
+      "MaskChainId": "kava_2221-16000",
+      "TxScanInfo": {
+        "taskInterval": 10000
       }
     }
   ],
