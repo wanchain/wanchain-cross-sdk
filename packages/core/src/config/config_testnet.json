@@ -466,7 +466,7 @@
       "chainName": "XRP Ledger",
       "mintFromChainHandle": "MintXrpFromRippleHandle",
       "chainDecimals": 6,
-      "minReserved": 10,
+      "minReserved": 2,
       "TxScanInfo": {
         "taskInterval": 10000
       }
