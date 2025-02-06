@@ -5,7 +5,7 @@ function validateAddress(address) {
   return /^0x[0-9a-f]{64}$/.test(address);
 }
 
-function getStandardAddressInfo(address) { // support bs58 encoded native or decoded format
+function getStandardAddressInfo(address) {
   let native = address, evm = address, cctp = address;
   return {native, evm, ascii: native, cctp};
 }
