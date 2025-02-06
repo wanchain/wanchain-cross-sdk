@@ -1,7 +1,7 @@
 {
-  "name": "@wandevs/cross-solana",
+  "name": "@wandevs/cross-ton",
   "version": "1.0.0",
-  "description": "Wanchain Cross-Chain SDK solana extension",
+  "description": "Wanchain Cross-Chain SDK ton extension",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/wanchain/wanchain-cross-sdk.git"
@@ -15,9 +15,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@perawallet/connect": "1.3.5",
-    "algosdk": "^2.8.0",
-    "hi-base32": "^0.5.1"
+    "bignumber.js": "^9.1.1",
+    "tonweb": "^0.0.66",
+    "wan-ton-bridge": "^0.0.3"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"
@@ -27,7 +27,7 @@
   "keywords": [
     "WanBridge",
     "cross-chain",
-    "algorand",
+    "ton",
     "extension"
   ]
 }

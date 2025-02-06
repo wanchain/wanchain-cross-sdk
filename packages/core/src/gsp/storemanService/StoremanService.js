@@ -5,8 +5,8 @@ const tool = require("../../utils/tool");
 const axios = require("axios");
 
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC"];
-const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"];
-const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"];
+const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL", "TON"];
 
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
 

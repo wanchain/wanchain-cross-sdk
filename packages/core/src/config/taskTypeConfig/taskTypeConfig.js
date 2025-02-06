@@ -89,5 +89,13 @@ module.exports = [
     {
       "name": "ProcessCircleBridgeSuiDeposit",
       "handle": require("./ProcessCircleBridgeSuiDeposit")
+    },
+    {
+      "name": "ProcessMintFromTon",
+      "handle": require("./ProcessMintFromTon")
+    },
+    {
+      "name": "ProcessBurnFromTon",
+      "handle": require("./ProcessBurnFromTon")
     }
 ]

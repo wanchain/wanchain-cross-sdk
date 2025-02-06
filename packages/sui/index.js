@@ -1,4 +1,4 @@
-const SuiWallet = require("./src/wallet/SuiWallet");
+const SuiWallet = require("./src/wallet/suiWallet");
 const tool = require("./src/tool").default;
 
 module.exports = {

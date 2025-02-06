@@ -453,7 +453,7 @@
       "chainName": "XRP Ledger",
       "mintFromChainHandle": "MintXrpFromRippleHandle",
       "chainDecimals": 6,
-      "minReserved": 10,
+      "minReserved": 2,
       "TxScanInfo": {
         "taskInterval": 10000
       }
@@ -502,11 +502,12 @@
       "chainId": "1073741844",
       "chainType": "NOBLE",
       "chainName": "Noble",
+      "mintFromChainHandle": "MintFromCosmos",
       "symbol": "USDC",
       "CircleBridge": {
-        "domain": 4
+        "domain": 4,
+        "feeHolder": "noble1esq4y8zj8u78yrx9h799mkfd5he5jrjgrcl6fn"
       },
-      "feeHolder": "noble1esq4y8zj8u78yrx9h799mkfd5he5jrjgrcl6fn",
       "chainDecimals": 6,
       "MaskChainId": "noble-1",
       "TxScanInfo": {

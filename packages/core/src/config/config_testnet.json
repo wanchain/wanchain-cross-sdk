@@ -479,7 +479,7 @@
       "chainName": "XRP Ledger",
       "mintFromChainHandle": "MintXrpFromRippleHandle",
       "chainDecimals": 6,
-      "minReserved": 10,
+      "minReserved": 2,
       "TxScanInfo": {
         "taskInterval": 10000
       }
@@ -626,6 +626,18 @@
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
       "MaskChainId": "kava_2221-16000",
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
+    },
+    {
+      "chainId": "2147484255",
+      "chainType": "TON",
+      "chainName": "Ton",
+      "mintFromChainHandle": "MintFromTon",
+      "burnFromChainHandle": "BurnFromTon",
+      "chainDecimals": 9,
+      "MaskChainId": -3,
       "TxScanInfo": {
         "taskInterval": 10000
       }
