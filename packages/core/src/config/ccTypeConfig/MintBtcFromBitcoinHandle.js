@@ -30,7 +30,9 @@ module.exports = class MintBtcFromBitcoinHandle {
         tokenPairID: convert.tokenPairId,
         value,
         taskType,
-        fee
+        fee,
+        fromAddr: convert.fromAddr,
+        decimals
       };
       console.debug("Mint %s params: %O", fromChainType, params);
       let steps = [
