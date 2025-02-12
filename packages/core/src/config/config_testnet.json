@@ -403,6 +403,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147493655",
+      "chainType": "S",
+      "chainName": "Sonic",
+      "symbol": "S",
+      "chainDecimals": 18,
+      "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
+      "MaskChainId": 57054,
+      "ScScanInfo": {
+        "taskInterval": 10000
+      }
     }
   ],
   "UIStrService": {
