@@ -45,9 +45,9 @@ module.exports = class ProcessBurnFromSolana {
       };
       let fee = this.tool.toBigNumber("0"); // agent get service fee from cross config contract by self
       let unitLimit = this.tool.setComputeUnitLimit(300_000);
-      let unitPrice = this.tool.setComputeUnitPrice(100_000);
+      // let unitPrice = this.tool.setComputeUnitPrice(100_000);
       let instruction = await wanBridgeProgram.methods.userBurn(smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)).accounts(accounts).instruction();
-      let tx = await wallet.buildTransaction([unitLimit, unitPrice, instruction]);
+      let tx = await wallet.buildTransaction([unitLimit, instruction]);
       let txHash = await wallet.sendTransaction(tx);
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
