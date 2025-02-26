@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2502131608", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2502260310", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -379,7 +379,11 @@ class WanBridge extends EventEmitter {
       } else if (chainType === "ADA") {
         let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
         let [policyId, name] = tokenInfo.split(".");
-        return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+        if (name) { // erc20
+          return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+        } else { // nft
+          return policyId; // policyId
+        }
       } else if (chainType === "SOL") {
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else if (chainType === "ALGO") {
