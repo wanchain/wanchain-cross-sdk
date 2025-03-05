@@ -16,6 +16,7 @@ const abis = {
   "circleBridgeReceive": require("../../config/abi/circleBridge/MessageTransmitter.json"),
   "subsidyCrossSc": require("../../config/abi/feeSubsidy.json"),
   "algorandBridge": require("../../config/abi/algorand/bridge.json"),
+  "rewardTask": require("../../config/abi/rewardTask.json"),
 }
 
 module.exports = class ConfigService {
