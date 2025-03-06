@@ -580,6 +580,22 @@ class StoremanService {
   }
 
   formatRewardTask(task) {
+    let tokenPairService = this.frameworkService.getService("TokenPairService");
+    let tokenPairID = task[2];
+    let fromChainId = task[3];
+    let tp = tokenPairService.getTokenPair(tokenPairID);
+    let fromChain, toChain, decimals, tpDestChainId;
+    if (fromChainId === tp.fromChainID) {
+      fromChain = tp.fromChainName;
+      toChain = tp.toChainName;
+      decimals = tp.fromDecimals;
+      tpDestChainId = tp.toChainID;
+    } else {
+      fromChain = tp.toChainName;
+      toChain = tp.fromChainName;
+      decimals = tp.toDecimals;
+      tpDestChainId = tp.fromChainID;
+    }
     let deadline = Number(task[7]);
     let status = Number(task[17]);
     if ([1, 2].includes(status)) { // Created, InProgress
@@ -590,23 +606,27 @@ class StoremanService {
     return {
       id: Number(task[0]),
       name: task[1],
-      tokenPairID: task[2],
-      fromChain: task[3],
-      toChain: task[4],
-      amount: task[5],
       createdAt: Number(task[6]),
       deadline,
+      cross: {
+        tokenPairID,
+        fromChain,
+        toChain,
+        symbol: tp.readableSymbol,
+        amount: task[5],
+        decimals: Number(decimals)
+      },
       reward: {
         token: task[8].toLowerCase(),
-        amount: task[9],
         symbol: this.crossTaskCfg.tokens[task[8].toLowerCase()].symbol,
+        amount: task[9],
         decimals: this.crossTaskCfg.tokens[task[8].toLowerCase()].decimals
       },
       collateral: task[10].map(c=> {
         return {
           token: c[0],
-          amount: c[1],
           symbol: this.crossTaskCfg.tokens[c[0].toLowerCase()].symbol,
+          amount: c[1],
           decimals: this.crossTaskCfg.tokens[c[0].toLowerCase()].decimals,
           usage: Number(c[2])
         }

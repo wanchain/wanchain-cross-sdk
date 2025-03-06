@@ -622,23 +622,6 @@ class WanBridge extends EventEmitter {
     console.debug("SDK: getRewardTasks, page: %d, pageSize: %d, options: %O", page, pageSize, options);
     try {
       let tasks = await this.storemanService.getRewardTasks(page, pageSize, options);
-      tasks = tasks.filter(t => {
-        let tp = this.tokenPairService.getTokenPair(t.tokenPairID.toString());
-        if (tp) {
-          if (t.fromChain == tp.fromChainID) {
-            t.fromChain = tp.fromChainName;
-            t.toChain = tp.toChainName;
-          } else {
-            t.fromChain = tp.toChainName;
-            t.toChain = tp.fromChainName;
-          }
-          t.asset = tp.readableSymbol;
-          return true;
-        } else {
-          console.error("tokenpair %s data is corrupted, reward task: %O", pair.assetPairId, t);
-          return false;
-        }
-      });
       return tasks;
     } catch (err) {
       console.error("getRewardTasks error: %O", err);
