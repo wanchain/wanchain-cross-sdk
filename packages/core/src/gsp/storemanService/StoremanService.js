@@ -580,6 +580,13 @@ class StoremanService {
   }
 
   formatRewardTask(task) {
+    let deadline = Number(task[7]);
+    let status = Number(task[17]);
+    if ([1, 2].includes(status)) { // Created, InProgress
+      if (parseInt(Date.now() / 1000) >= deadline) {
+        status = 4; // Expired
+      }
+    }
     return {
       id: Number(task[0]),
       name: task[1],
@@ -588,7 +595,7 @@ class StoremanService {
       toChain: task[4],
       amount: task[5],
       createdAt: Number(task[6]),
-      deadline: Number(task[7]),
+      deadline,
       reward: {
         token: task[8].toLowerCase(),
         amount: task[9],
@@ -610,7 +617,7 @@ class StoremanService {
       collateralId: Number(task[14]),
       completedAt: Number(task[15]),
       finishTxHash: task[16] !== "0x"? task[16] : "",
-      status: Number(task[17])
+      status
     };
   }
 
