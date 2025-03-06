@@ -15,7 +15,8 @@ module.exports = class BurnFromCardano {
       let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
       let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
       let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
+      let tokenType = tokenPair.protocol;
+      let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
       let networkFee = tool.parseFee(convert.fee, convert.value, "ADA", {formatWithDecimals: false, feeType: "networkFee"});
@@ -33,7 +34,8 @@ module.exports = class BurnFromCardano {
         taskType: "ProcessBurnFromCardano",
         fee,
         networkFee,
-        fromAddr: convert.fromAddr
+        fromAddr: convert.fromAddr,
+        tokenType
       };
       console.debug("Burn %s FromCardano params: %O", tokenPair.readableSymbol, params);
       let steps = [
