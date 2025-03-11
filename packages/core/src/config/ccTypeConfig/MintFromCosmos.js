@@ -30,6 +30,7 @@ module.exports = class MintFromCosmos {
         value,
         taskType: "ProcessMintFromCosmos",
         networkFee,
+        feeHolder: chainInfo.feeHolder,
         fromAddr: convert.fromAddr
       };
       console.debug("Mint %s FromCardano params: %O", tokenPair.readableSymbol, params);

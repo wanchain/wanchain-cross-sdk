@@ -68,6 +68,21 @@ module.exports = class ProcessMintFromCosmos {
           ],
         },
       }];
+      if ((params.networkFee !== "0") && params.feeHolder) {
+        txs.push({
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: {
+            fromAddress: params.fromAddr,
+            toAddress: params.feeHolder,
+            amount: [
+              {
+                denom,
+                amount: params.networkFee
+              }
+            ],
+          },
+        })
+      }
       let memo = await this.buildUserLockData(chainType, params.tokenPairID, params.userAccount);
       // console.debug({txs, memo});
       let txHash = await wallet.sendTransaction(txs, {memo, timeoutHeight: 100});
