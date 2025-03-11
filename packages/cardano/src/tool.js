@@ -88,11 +88,11 @@ function minAdaRequired(output, coinsPerUtxoByte) {
 function multiAssetCount(multiAsset) {
   if (!multiAsset) return 0;
   let count = 0;
-  const policies = multiAsset.keys();
-  for (let j = 0; j < policies.len(); j++) {
-    const policy = policies.get(j);
-    const policyAssets = multiAsset.get(policy);
-    const assetNames = policyAssets.keys();
+  let policies = multiAsset.keys();
+  for (let i = 0; i < policies.len(); i++) {
+    let policy = policies.get(i);
+    let policyAssets = multiAsset.get(policy);
+    let assetNames = policyAssets.keys();
     count += assetNames.len();
   }
   return count;
@@ -110,22 +110,37 @@ function getAssetBalance(multiAsset, policyId, name) {
   return "0";
 }
 
+function getNftInfo(multiAsset, policyId) {
+  let nfts = [];
+  if (multiAsset && multiAsset.len()) {
+    let ma = multiAsset.to_js_value();
+    let policy = ma.get(policyId);
+    for (let [name, balance] of policy) {
+      if ((name.length > 8) && (name.length < 16)) { // filter invalid asset
+        let decoded = decodeNftAssetName(name);
+        nfts.push({name, id: decoded.id, balance});
+      }
+    }
+  }
+  return nfts;
+}
+
 function selectUtxos(utxos, rawOutput, protocolParameters) {
   let output = wasm.TransactionOutput.new(
     wasm.Address.from_bech32(rawOutput.address),
     assetsToValue(rawOutput.amount)
   );
-  const totalAssets = multiAssetCount(output.amount().multiasset());
+  let totalAssets = multiAssetCount(output.amount().multiasset());
   CoinSelection.setProtocolParameters(
     protocolParameters.coinsPerUtxoByte,
     protocolParameters.linearFee.minFeeA,
     protocolParameters.linearFee.minFeeB,
     protocolParameters.maxTxSize.toString()
   );
-  const outputs = wasm.TransactionOutputs.new();
+  let outputs = wasm.TransactionOutputs.new();
   outputs.add(output); // adapt to CoinSelection api
   try {
-    const selection = CoinSelection.randomImprove(
+    let selection = CoinSelection.randomImprove(
       utxos,
       outputs,
       20 + totalAssets,
@@ -232,6 +247,12 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
   }
 }
 
+function decodeNftAssetName(assetName) {
+  let id = Number(assetName.slice(8)).toFixed();
+  let typeCode = assetName.slice(1, 5);
+  return {typeCode, id};
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -240,6 +261,7 @@ module.exports = {
   minAdaRequired,
   multiAssetCount,
   getAssetBalance,
+  getNftInfo,
   selectUtxos,
   genPlutusData,
   showUtxos,

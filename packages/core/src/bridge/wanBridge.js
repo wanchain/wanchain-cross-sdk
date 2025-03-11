@@ -275,6 +275,8 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
     let token = (chainName === tokenPair.fromChainName)? tokenPair.fromAccount : tokenPair.toAccount;
     let chainType = this.tokenPairService.getChainType(chainName);
+    options.ancestorChainType = tokenPair.ancestorChainType; // for mapping nft token
+    options.ancestorAccount = tokenPair.ancestorAccount;
     let infos = await this.storemanService.getNftInfo(tokenPair.protocol, chainType, token, account, options);
     infos.forEach(v => {
       v.ancestorChainName = tokenPair.ancestorChainName; // frontend show ancestorChainName

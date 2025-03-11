@@ -33,12 +33,19 @@ class Lace {
       let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
+      let result;
       if (tokenId) {
         let [policyId, assetName] = tokenId.split(".");
-        return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        if (assetName) { // erc20
+          result = await tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        } else { // nft
+          let nfts = await tool.getNftInfo(value.multiasset(), tokenId);
+          result = nfts.length.toString();
+        }
       } else { // coin
-        return value.coin().to_str(); // TODO: sub token locked coin
+        result = await value.coin().to_str(); // TODO: sub token locked coin
       }
+      return result;
     } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
@@ -62,6 +69,20 @@ class Lace {
     } else {
       console.log("%s is not used address", addr);
       throw new Error("Not used address");
+    }
+  }
+
+  async getNftInfo(addr, tokenId) {
+    let accounts = await this.getAccounts();
+    if (addr === accounts[0]) {
+      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      let nfts = await tool.getNftInfo(value.multiasset(), tokenId);
+      return nfts;
+    } else {
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
     }
   }
 

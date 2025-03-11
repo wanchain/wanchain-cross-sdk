@@ -77,8 +77,8 @@ module.exports = class ProcessBurnFromCardano {
       } else { // tokenId = policyId(28 bytes)
         params.value.forEach(v => {
           output.amount.push({
-            unit: tokenId + Buffer.from(v.tokenId.toString()).toString("hex"), // policyId(28 bytes) + id
-            quantity: (tokenType === "Erc721")? "1" : v.amount.toString()
+            unit: tokenId + v.name, // policyId(28 bytes) + name
+            quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()
           });
         })
       }
@@ -245,7 +245,7 @@ module.exports = class ProcessBurnFromCardano {
     let wasm = this.wasm;
     let chainInfoService = this.frameworkService.getService("ChainInfoService");
     let chainInfo = chainInfoService.getChainInfoByType("ADA");
-    let tokenScript = (tokenType === "Erc20")? chainInfo.tokenScript : chainInfo.nftScript[tokenId];
+    let tokenScript = (tokenType === "Erc20")? chainInfo.tokenScript : chainInfo.nft[tokenId];
     let scriptRefInput = wasm.TransactionInput.new(
       wasm.TransactionHash.from_hex(tokenScript.txHash),
       tokenScript.index
@@ -270,7 +270,7 @@ module.exports = class ProcessBurnFromCardano {
       builder.add_asset(witness, assetName, wasm.Int.from_str('-' + burnedAmount));
     } else {
       burnedAmount.forEach(v => {
-        let assetName = wasm.AssetName.new(Buffer.from(v.tokenId.toString()));
+        let assetName = wasm.AssetName.new(Buffer.from(v.name, 'hex'));
         builder.add_asset(witness, assetName, wasm.Int.from_str('-' + v.amount.toString()));
       })
     }

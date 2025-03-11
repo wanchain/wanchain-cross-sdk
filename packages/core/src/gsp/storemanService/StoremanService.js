@@ -257,11 +257,28 @@ class StoremanService {
     async getNftInfo(type, chain, tokenAddr, owner, options) {
       tokenAddr = tokenAddr.toLowerCase();
       owner = owner.toLowerCase();
+      let result = [], chainInfo = this.chainInfoService.getChainInfoByType(chain);
       if (options.tokenIds) {
-        return this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
+        result = await this._getNftInfoFromChain(type, chain, tokenAddr, owner, options.tokenIds);
       } else {
-        return this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip, options.includeUri);
+        if (chainInfo._isEVM) {
+          result = await this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip, options.includeUri);
+        } else if (options.wallet && options.wallet.getNftInfo) { // ADA
+          if (chain === "ADA") {
+            let policy = tool.ascii2letter(tool.hexStrip0x(tokenAddr));
+            result = await options.wallet.getNftInfo(owner, policy);
+            if (result.length && chainInfo.nft[policy].mapping) {
+              let ancestors = await this.getAncestorNftInfo(type, options.ancestorChainType, options.ancestorAccount, result.map(v => v.id));
+              ancestors.forEach((v, i) => {
+                result[i].mappingId = result[i].id;
+                result[i].id = v.id;
+                result[i].uri = v.uri;
+              })
+            }
+          }
+        }
       }
+      return result;
     }
 
     async _getNftInfoFromChain(type, chain, tokenAddr, owner, tokenIds) {
@@ -289,36 +306,33 @@ class StoremanService {
           returns: [[id + "-uri"]]
         });
       })
-      if (mcs.length) {
-        try {
-          let res = await this.iwan.multiCall(chain, mcs);
-          let data = res.results.transformed;
-          tokenIds.forEach(v => {
-            let id = "0x" + new BigNumber(v).toString(16);
-            let balance = 0;
-            if (type === "Erc721") {
-              let getOwner = data[id + "-owner"];
-              if (tool.cmpAddress(getOwner, owner)) {
-                balance = 1;
-              }
-            } else {
-              balance = data[id + "-balance"]._hex;
+      try {
+        let res = await this.iwan.multiCall(chain, mcs);
+        let data = res.results.transformed;
+        tokenIds.forEach(v => {
+          let id = "0x" + new BigNumber(v).toString(16);
+          let balance = 0;
+          if (type === "Erc721") {
+            let getOwner = data[id + "-owner"];
+            if (tool.cmpAddress(getOwner, owner)) {
+              balance = 1;
             }
-            balance = new BigNumber(balance);
-            if (balance.gt(0)) {
-              let fullId = (Array(63).fill('0').join("") + tool.hexStrip0x(id)).slice(-64);
-              result.push({
-                id: new BigNumber(id).toFixed(),
-                balance: balance.toFixed(),
-                uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
-              })
-            } else {
-              console.debug("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
-            }
+          } else {
+            balance = data[id + "-balance"]._hex;
+          }
+          balance = new BigNumber(balance);
+          let fullId = (Array(63).fill('0').join("") + tool.hexStrip0x(id)).slice(-64);
+          result.push({
+            id: new BigNumber(id).toFixed(),
+            balance: balance.toFixed(),
+            uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
           })
-        } catch (err) { // erc721 would throw error if query nonexistent token
-          console.debug("getNftInfoFromChain error: %O", err);
-        }
+          if (balance.eq(0)) {
+            console.error("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
+          }
+        })
+      } catch (err) { // erc721 would throw error if query nonexistent token
+        console.error("getNftInfoFromChain error: %O", err);
       }
       return result;
     }
@@ -382,6 +396,21 @@ class StoremanService {
         }
       }
       return balance;
+    }
+
+    async getAncestorNftInfo(type, chain, tokenAddr, mappingIds) {
+      let chainInfo = this.chainInfoService.getChainInfoByType(chain);
+      let mcs = mappingIds.map(id => {
+        return {
+          target: chainInfo.crossScAddr,
+          call: ['crossIdToNftBaseInfo(address,uint256)(uint256)', tokenAddr, id],
+          returns: [[id]]
+        };
+      });
+      let res = await this.iwan.multiCall(chain, mcs);
+      let data = res.results.transformed;
+      let result = await this._getNftInfoFromChain(type, chain, tokenAddr, chainInfo.crossScAddr, mappingIds.map(id => data[id]._hex));
+      return result;
     }
 
     async getCardanoEpochParameters() {
