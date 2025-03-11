@@ -76,8 +76,12 @@ module.exports = class ProcessBurnFromCardano {
         });
       } else { // tokenId = policyId(28 bytes)
         params.value.forEach(v => {
+          if (isNaN(v.mappingId)) {
+            throw new Error("NFT mapping id is required");
+          }
+          v.assetName = this.tool.encodeNftAssetName(v.mappingId);
           output.amount.push({
-            unit: tokenId + v.name, // policyId(28 bytes) + name
+            unit: tokenId + v.assetName, // policyId(28 bytes) + name
             quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()
           });
         })
@@ -270,7 +274,7 @@ module.exports = class ProcessBurnFromCardano {
       builder.add_asset(witness, assetName, wasm.Int.from_str('-' + burnedAmount));
     } else {
       burnedAmount.forEach(v => {
-        let assetName = wasm.AssetName.new(Buffer.from(v.name, 'hex'));
+        let assetName = wasm.AssetName.new(Buffer.from(v.assetName, 'hex'));
         builder.add_asset(witness, assetName, wasm.Int.from_str('-' + v.amount.toString()));
       })
     }
