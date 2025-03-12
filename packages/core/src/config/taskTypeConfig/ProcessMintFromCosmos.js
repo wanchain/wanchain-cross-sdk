@@ -1,5 +1,6 @@
 'use strict';
 
+const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -51,6 +52,7 @@ module.exports = class ProcessMintFromCosmos {
       let extension = this.configService.getExtension(chainType);
       let smgAddr = extension.tool.gpk2Address(params.storemanGroupGpk, chainType);
       console.log("%s smgAddr: %s", chainType, smgAddr);
+      let crossValue = (assetDenom === coinDenom)? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
 
       let txs = [{
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
@@ -60,12 +62,12 @@ module.exports = class ProcessMintFromCosmos {
           amount: [
             {
               denom: assetDenom,
-              amount: params.value
+              amount: crossValue
             }
           ],
         },
       }];
-      if ((params.networkFee !== "0") && params.feeHolder) {
+      if (params.networkFee !== "0") {
         txs.push({
           typeUrl: "/cosmos.bank.v1beta1.MsgSend",
           value: {
