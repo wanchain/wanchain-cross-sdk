@@ -45,12 +45,9 @@ module.exports = class ProcessMintFromCosmos {
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === chainType);
       let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let denom = "u" + (chainInfo.symbol || chainType).toLowerCase();
+      let coinDenom = "u" + (chainInfo.symbol || chainType).toLowerCase();
       let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000") || (tool.ascii2letter(tool.hexStrip0x(tokenAccount)) === denom);
-      if (!isCoin) {
-        throw new Error("Only support coin");
-      }
+      let assetDenom = (tokenAccount === "0x0000000000000000000000000000000000000000")? coinDenom : tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       let extension = this.configService.getExtension(chainType);
       let smgAddr = extension.tool.gpk2Address(params.storemanGroupGpk, chainType);
       console.log("%s smgAddr: %s", chainType, smgAddr);
@@ -62,7 +59,7 @@ module.exports = class ProcessMintFromCosmos {
           toAddress: smgAddr,
           amount: [
             {
-              denom,
+              denom: assetDenom,
               amount: params.value
             }
           ],
@@ -76,7 +73,7 @@ module.exports = class ProcessMintFromCosmos {
             toAddress: params.feeHolder,
             amount: [
               {
-                denom,
+                denom: coinDenom,
                 amount: params.networkFee
               }
             ],
