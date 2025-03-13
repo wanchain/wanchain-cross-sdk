@@ -415,7 +415,7 @@ class StoremanService {
 
     async getCardanoEpochParameters() {
       try {
-        let latestBlock = await this.iwan.getLatestBlock("ADA");
+        let t = await this.iwan.call("getChainTip", {chainType:'ADA'});
         let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
         let epochParameters = {
           linearFee: {
@@ -431,7 +431,7 @@ class StoremanService {
           priceMem: p.price_mem,
           priceStep: p.price_step,
           maxTxSize: parseInt(p.max_tx_size),
-          slot: parseInt(latestBlock.slot),
+          slot: t.slot,
           minFeeRefScriptCostPerByte: p.min_fee_ref_script_cost_per_byte
         };
         console.debug("getCardanoEpochParameters: %O", epochParameters);
