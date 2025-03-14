@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2503131445", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2503141700", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -676,7 +676,7 @@ class WanBridge extends EventEmitter {
     } else {
       throw new Error("Task does not exist");
     }
-    let url = (this.network === "testnet")? "https://34.218.122.172/api/sign" : "https://www.wanscan.org/api/sign";
+    let url = (this.network === "testnet")? "https://testnet.wanscan.org/api/sign" : "https://www.wanscan.org/api/sign";
     let res = await axios.post(url, {type: "ccRewardTask", taskId, txHash});
     if (res.data.signature) {
       let params = {taskType: "ProcessClaimCrossReward", taskId, txHash, signature: res.data.signature, fromAddr, wallet};
