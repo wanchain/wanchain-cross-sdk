@@ -25,7 +25,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2502131608", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2503181633", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -612,6 +612,77 @@ class WanBridge extends EventEmitter {
     });
     console.debug("SDK: accountId2Address, id: %s, chainName: %s, result: %O", id, chainName, result);
     return result;
+  }
+
+  async getRewardTasks(page, pageSize, options = {}) { // options: {claimer}
+    console.debug("SDK: getRewardTasks, page: %d, pageSize: %d, options: %O", page, pageSize, options);
+    try {
+      let tasks = await this.storemanService.getRewardTasks(page, pageSize, options);
+      return tasks;
+    } catch (err) {
+      console.error("getRewardTasks error: %O", err);
+      throw err;
+    }
+  }
+
+  async claimRewardTask(taskId, collateralId, fromAddr, wallet) {
+    console.debug("SDK: claimRewardTask, taskId: %d, collateralId: %d, fromAddr: %s, wallet: %s", taskId, collateralId, fromAddr, wallet && wallet.name);
+    let task = await this.storemanService.getRewardTask(taskId);
+    if (task) {
+      if (task.status !== 1) { // Created
+        throw new Error("Task is not available");
+      }
+    } else {
+      throw new Error("Task does not exist");
+    }
+    // build tx
+    let collateral = task.collateral[collateralId];
+    let convert = {
+      taskId,
+      collateralId,
+      token: collateral.token,
+      amount: collateral.amount,
+      fromAddr,
+      handler: "ClaimRewardTask"
+    };
+    // console.log("claimRewardTask convert: %O", convert);
+    let steps = await this.cctHandleService.getConvertInfo(convert);
+    for (let i = 0; i < steps.length; i++) {
+      let err = await this.txTaskHandleService.processTxTask(steps[i], wallet);
+      if (err) {
+        console.error("claimRewardTask %s %s error: %O", taskId, steps[i].name, err);
+        throw err;
+      }
+    }
+  }
+
+  async claimCrossReward(taskId, txHash, fromAddr, wallet) {
+    console.debug("SDK: claimCrossReward, taskId: %d, txHash: %s, fromAddr: %s, wallet: %s", taskId, txHash, fromAddr, wallet && wallet.name);
+    let task = await this.storemanService.getRewardTask(taskId);
+    if (task) {
+      if (task.status === 1) { // Created
+        throw new Error("Task is not claimed");
+      } else if (task.status === 3) { // Completed
+        throw new Error("Task reward has been claimed");
+      } else if (task.status !== 2) { // InProgress
+        throw new Error("Task is not available");
+      }
+    } else {
+      throw new Error("Task does not exist");
+    }
+    let url = (this.network === "testnet")? "https://testnet.wanscan.org/api/sign" : "https://www.wanscan.org/api/sign";
+    let res = await axios.post(url, {type: "ccRewardTask", taskId, txHash});
+    if (res.data.signature) {
+      let params = {taskType: "ProcessClaimCrossReward", taskId, txHash, signature: res.data.signature, fromAddr, wallet};
+      let err = await this.txTaskHandleService.processTxTask({params}, wallet);
+      if (err) {
+        console.error("claimCrossReward task %s error: %O", taskId, err);
+        throw err;
+      }
+    } else {
+      console.error("claimCrossReward task %s signature error: %s", taskId, res.data.error);
+      throw new Error(res.data.error);
+    }
   }
 
   _onStoremanInitilized(success) {

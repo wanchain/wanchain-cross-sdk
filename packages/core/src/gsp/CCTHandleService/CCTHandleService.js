@@ -4,15 +4,15 @@ let ccTypeConfig = require("../../config/ccTypeConfig/ccTypeConfig.js");
 
 module.exports = class CCTHandleService {
     constructor() {
-        this.m_mapCCTypeToHandler = new Map(); // ccType => Hanlder
+        this.mapCCTypeToHandler = new Map(); // ccType => Hanlder
     }
 
     async init(frameworkService) {
         try {
-            this.m_frameworkService = frameworkService;
+            this.frameworkService = frameworkService;
             for (let idx = 0; idx < ccTypeConfig.length; ++idx) {
                 let obj = ccTypeConfig[idx];
-                this.m_mapCCTypeToHandler.set(obj.name, obj.handle);
+                this.mapCCTypeToHandler.set(obj.name, obj.handle);
             }
         }
         catch (err) {
@@ -20,18 +20,24 @@ module.exports = class CCTHandleService {
         }
     }
 
-    async getConvertInfo(convertJson) {
-        let tokenPairService = this.m_frameworkService.getService("TokenPairService");
-        let tokenPair = tokenPairService.getTokenPair(convertJson.tokenPairId);
-        let ccType = tokenPair.ccType[convertJson.convertType];
-        let CCTypeHandle = this.m_mapCCTypeToHandler.get(ccType);
-        let handler = new CCTypeHandle(this.m_frameworkService);
-        let steps = await handler.process(tokenPair, convertJson);
+    async getConvertInfo(convert) {
+        let tokenPairService = this.frameworkService.getService("TokenPairService");
+        let tokenPair = tokenPairService.getTokenPair(convert.tokenPairId);
+        let handler;
+        if (convert.handler) { // some simple tasks directly specify handlers, not associated with cross-chain tasks
+            let simpleHandle = this.mapCCTypeToHandler.get(convert.handler);
+            handler = new simpleHandle(this.frameworkService);
+        } else {
+            let ccType = tokenPair.ccType[convert.convertType];
+            let CCTypeHandle = this.mapCCTypeToHandler.get(ccType);
+            handler = new CCTypeHandle(this.frameworkService);
+        }
+        let steps = await handler.process(tokenPair, convert);
         return steps;
     }
 
     async addCCTHandle(ccType, CCTHandle) {
-        this.m_mapCCTypeToHandler.set(ccType, CCTHandle);
+        this.mapCCTypeToHandler.set(ccType, CCTHandle);
     }
 };
 

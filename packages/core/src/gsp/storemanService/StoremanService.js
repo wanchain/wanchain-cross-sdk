@@ -20,6 +20,7 @@ class StoremanService {
       this.iwan = frameworkService.getService("iWanConnectorService");
       this.chainInfoService = frameworkService.getService("ChainInfoService");
       this.configService = frameworkService.getService("ConfigService");
+      this.crossTaskCfg = this.configService.getGlobalConfig("crossTask");
     }
 
     async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
@@ -385,7 +386,7 @@ class StoremanService {
 
     async getCardanoEpochParameters() {
       try {
-        let latestBlock = await this.iwan.getLatestBlock("ADA");
+        let t = await this.iwan.call("getChainTip", {chainType:'ADA'});
         let p = await this.iwan.getEpochParameters("ADA", {epochID: "latest"});
         let epochParameters = {
           linearFee: {
@@ -401,7 +402,7 @@ class StoremanService {
           priceMem: p.price_mem,
           priceStep: p.price_step,
           maxTxSize: parseInt(p.max_tx_size),
-          slot: parseInt(latestBlock.slot),
+          slot: t.slot,
           minFeeRefScriptCostPerByte: p.min_fee_ref_script_cost_per_byte
         };
         console.debug("getCardanoEpochParameters: %O", epochParameters);
@@ -553,6 +554,111 @@ class StoremanService {
       }
     }
     return result;
+  }
+
+  async getRewardTasks(page, pageSize, options) {
+    let args, tasks;
+    let abi = this.configService.getAbi("rewardTask");
+    if (options.claimer) {
+      args = [options.claimer, page, pageSize];
+      tasks = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getReversePageUserTasks", args, abi);
+    } else {
+      args = [page, pageSize];
+      tasks = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getReversePageTasks", args, abi);
+    }
+    return tasks.map(t => this.formatRewardTask(t));
+  }
+
+  async getRewardTask(taskId) {
+    let abi = this.configService.getAbi("rewardTask");
+    let task = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getTaskById", [taskId], abi);
+    if (task[17] != 0) { // status
+      return this.formatRewardTask(task);
+    } else {
+      return null;
+    }
+  }
+
+  formatRewardTask(task) {
+    let tokenPairService = this.frameworkService.getService("TokenPairService");
+    let tokenPairID = task[2];
+    let fromChainId = task[3];
+    let tp = tokenPairService.getTokenPair(tokenPairID);
+    let fromChain, toChain, decimals, tpDestChainId;
+    if (fromChainId === tp.fromChainID) {
+      fromChain = tp.fromChainName;
+      toChain = tp.toChainName;
+      decimals = tp.fromDecimals;
+      tpDestChainId = tp.toChainID;
+    } else {
+      fromChain = tp.toChainName;
+      toChain = tp.fromChainName;
+      decimals = tp.toDecimals;
+      tpDestChainId = tp.fromChainID;
+    }
+    let deadline = Number(task[7]);
+    let status = Number(task[17]);
+    if ([1, 2].includes(status)) { // Created, InProgress
+      if (parseInt(Date.now() / 1000) >= deadline) {
+        status = 4; // Expired
+      }
+    }
+    return {
+      id: Number(task[0]),
+      name: task[1],
+      createdAt: Number(task[6]),
+      deadline,
+      cross: {
+        tokenPairID,
+        fromChain,
+        toChain,
+        symbol: tp.readableSymbol,
+        amount: task[5],
+        decimals: Number(decimals)
+      },
+      reward: {
+        token: task[8].toLowerCase(),
+        symbol: this.crossTaskCfg.tokens[task[8].toLowerCase()].symbol,
+        amount: task[9],
+        decimals: this.crossTaskCfg.tokens[task[8].toLowerCase()].decimals
+      },
+      collateral: task[10].map(c=> {
+        return {
+          token: c[0],
+          symbol: this.crossTaskCfg.tokens[c[0].toLowerCase()].symbol,
+          amount: c[1],
+          decimals: this.crossTaskCfg.tokens[c[0].toLowerCase()].decimals,
+          usage: Number(c[2])
+        }
+      }),
+      creator: task[11],
+      claimer: (task[12] !== "0x0000000000000000000000000000000000000000")? task[12] : "",
+      claimedAt: Number(task[13]),
+      collateralId: Number(task[14]),
+      completedAt: Number(task[15]),
+      finishTxHash: task[16] !== "0x"? task[16] : "",
+      status
+    };
+  }
+
+  async waitTxReceipt(chainType, txHash, timeout = 0, interval = 3000) { // ms
+    let t0 = Date.now();
+    for ( ; ; ) {
+      try {
+        let receipt = await this.iwan.getTransactionReceipt(chainType, txHash);
+        if (receipt) {
+          return receipt;
+        }
+      } catch (err) {
+        // console.error("waitTxReceipt error: %O", err);
+      }
+      if ((Date.now() - t0) < timeout) {
+        await tool.sleep(interval);
+      } else {
+        console.debug("waitTxReceipt %d ms unavailable", timeout);
+        return null;
+      }
+    }
   }
 }
 

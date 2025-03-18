@@ -89,5 +89,17 @@ module.exports = [
     {
       "name": "ProcessCircleBridgeSuiDeposit",
       "handle": require("./ProcessCircleBridgeSuiDeposit")
+    },
+    {
+      "name": "ProcessErc20ApproveSync",
+      "handle": require("./ProcessErc20ApproveSync")
+    },
+    {
+      "name": "ProcessClaimRewardTask",
+      "handle": require("./ProcessClaimRewardTask")
+    },
+    {
+      "name": "ProcessClaimCrossReward",
+      "handle": require("./ProcessClaimCrossReward")
     }
 ]
