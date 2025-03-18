@@ -587,6 +587,22 @@
   ],
   "LockTxTimeout": 86400000,
   "crossConfigSc": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
-  "crossTask": {},
+  "crossTask": {
+    "scAddr": "0x2D7744dBD92E6569b453Dc4414773dF72E869c78",
+    "tokens": {
+      "0x0000000000000000000000000000000000000000": {
+        "symbol": "WAN",
+        "decimals": 18
+      },
+      "0xc45ae7e9932bea4e220467c937fb6d3df4987001": {
+        "symbol": "XP",
+        "decimals": 18
+      },
+      "0x11e77e27af5539872efed10abaa0b408cfd9fbbd": {
+        "symbol": "USDT",
+        "decimals": 6
+      }
+    }
+  },
   "wanPointsServer": "https://wanpoints.wanscan.org"
 }
