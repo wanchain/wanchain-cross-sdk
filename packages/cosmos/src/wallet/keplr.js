@@ -13,7 +13,7 @@ const DefaultChainInfo = {
     denom: "uusdc"
   },
   "noble-1": {
-    rpc: "https://rpc.mainnet.noble.strange.love",
+    rpc: "https://noble-rpc.polkachu.com",
     denom: "uusdc"
   },
   "kava_2221-16000": {
