@@ -566,7 +566,7 @@ class StoremanService {
       args = [page, pageSize];
       tasks = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getReversePageTasks", args, abi);
     }
-    return tasks.map(t => this.formatRewardTask(t));
+    return tasks.map(t => this.formatRewardTask(t)).filter(v => v);
   }
 
   async getRewardTask(taskId) {
@@ -580,65 +580,70 @@ class StoremanService {
   }
 
   formatRewardTask(task) {
-    let tokenPairService = this.frameworkService.getService("TokenPairService");
-    let tokenPairID = task[2];
-    let fromChainId = task[3];
-    let tp = tokenPairService.getTokenPair(tokenPairID);
-    let fromChain, toChain, decimals, tpDestChainId;
-    if (fromChainId === tp.fromChainID) {
-      fromChain = tp.fromChainName;
-      toChain = tp.toChainName;
-      decimals = tp.fromDecimals;
-      tpDestChainId = tp.toChainID;
-    } else {
-      fromChain = tp.toChainName;
-      toChain = tp.fromChainName;
-      decimals = tp.toDecimals;
-      tpDestChainId = tp.fromChainID;
-    }
-    let deadline = Number(task[7]);
-    let status = Number(task[17]);
-    if ([1, 2].includes(status)) { // Created, InProgress
-      if (parseInt(Date.now() / 1000) >= deadline) {
-        status = 4; // Expired
+    try {
+      let tokenPairService = this.frameworkService.getService("TokenPairService");
+      let tokenPairID = task[2];
+      let fromChainId = task[3];
+      let tp = tokenPairService.getTokenPair(tokenPairID);
+      let fromChain, toChain, decimals, tpDestChainId;
+      if (fromChainId === tp.fromChainID) {
+        fromChain = tp.fromChainName;
+        toChain = tp.toChainName;
+        decimals = tp.fromDecimals;
+        tpDestChainId = tp.toChainID;
+      } else {
+        fromChain = tp.toChainName;
+        toChain = tp.fromChainName;
+        decimals = tp.toDecimals;
+        tpDestChainId = tp.fromChainID;
       }
-    }
-    return {
-      id: Number(task[0]),
-      name: task[1],
-      createdAt: Number(task[6]),
-      deadline,
-      cross: {
-        tokenPairID,
-        fromChain,
-        toChain,
-        symbol: tp.readableSymbol,
-        amount: task[5],
-        decimals: Number(decimals)
-      },
-      reward: {
-        token: task[8].toLowerCase(),
-        symbol: this.crossTaskCfg.tokens[task[8].toLowerCase()].symbol,
-        amount: task[9],
-        decimals: this.crossTaskCfg.tokens[task[8].toLowerCase()].decimals
-      },
-      collateral: task[10].map(c=> {
-        return {
-          token: c[0],
-          symbol: this.crossTaskCfg.tokens[c[0].toLowerCase()].symbol,
-          amount: c[1],
-          decimals: this.crossTaskCfg.tokens[c[0].toLowerCase()].decimals,
-          usage: Number(c[2])
+      let deadline = Number(task[7]);
+      let status = Number(task[17]);
+      if ([1, 2].includes(status)) { // Created, InProgress
+        if (parseInt(Date.now() / 1000) >= deadline) {
+          status = 4; // Expired
         }
-      }),
-      creator: task[11],
-      claimer: (task[12] !== "0x0000000000000000000000000000000000000000")? task[12] : "",
-      claimedAt: Number(task[13]),
-      collateralId: Number(task[14]),
-      completedAt: Number(task[15]),
-      finishTxHash: task[16] !== "0x"? task[16] : "",
-      status
-    };
+      }
+      return {
+        id: Number(task[0]),
+        name: task[1],
+        createdAt: Number(task[6]),
+        deadline,
+        cross: {
+          tokenPairID,
+          fromChain,
+          toChain,
+          symbol: tp.readableSymbol,
+          amount: task[5],
+          decimals: Number(decimals)
+        },
+        reward: {
+          token: task[8].toLowerCase(),
+          symbol: this.crossTaskCfg.tokens[task[8].toLowerCase()].symbol,
+          amount: task[9],
+          decimals: this.crossTaskCfg.tokens[task[8].toLowerCase()].decimals
+        },
+        collateral: task[10].map(c=> {
+          return {
+            token: c[0],
+            symbol: this.crossTaskCfg.tokens[c[0].toLowerCase()].symbol,
+            amount: c[1],
+            decimals: this.crossTaskCfg.tokens[c[0].toLowerCase()].decimals,
+            usage: Number(c[2])
+          }
+        }),
+        creator: task[11],
+        claimer: (task[12] !== "0x0000000000000000000000000000000000000000")? task[12] : "",
+        claimedAt: Number(task[13]),
+        collateralId: Number(task[14]),
+        completedAt: Number(task[15]),
+        finishTxHash: task[16] !== "0x"? task[16] : "",
+        status
+      };
+    } catch (err) { // reward and collateral tokens maybe not defined in sdk
+      console.error("formatRewardTask error: %O", task);
+      return null;
+    }
   }
 
   async waitTxReceipt(chainType, txHash, timeout = 0, interval = 3000) { // ms
