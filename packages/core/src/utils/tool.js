@@ -133,29 +133,33 @@ function getXdcAddressInfo(address) {
     native = address;
     evm = "0x" + address.substr(3);
   }
-  return {native, evm, ascii: evm};
+  // ignore cctp address as it is not supported now
+  return {native, evm, text: evm, compact: evm};
 }
 
 /*
   there are several address format:
-  native: mainly for ui 
+  native: mainly for ui
   evm: cross from evm, encode recipient as ascii hex for non-evm chain
-  ascii: cross from non-evm, encode recipient as text, it is mostly the same as native address,
+  text: cross from non-evm, encode recipient as text, it is mostly the same as native address,
         except for tron and xdc is standard evm address (without prefix) to adapt for storeman agent
-  cctp: used for cctp to instead evm address, cctp's encode for non-evm recipient is different from wanbridge:
-        noble - evm format
+  cctp: used for cctp to instead evm address, cctp's encode for non-evm recipient is different from wanbridge
+        noble - same as evm
         solana - bs58 decoded
+        cardano - bs58 or bech32 decoded
+  compact: used to replace evm format to avoid size limit or save tx cost in some scenarios, such as btc op_return,
+        it is the same as cctp in thoery
 */
 function getStandardAddressInfo(chainType, address, extension = null) {
   if (chainType === "XDC") {
     return getXdcAddressInfo(address);
-  } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) {
+  } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) { // cctp is optional
     return extension.tool.getStandardAddressInfo(address, chainType);
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
-    return {native: address, evm: address, ascii: address};
-  } else {
+    return {native: address, evm: address, text: address, cctp: address, compact: address};
+  } else { // default text format, do not consider cctp or compact address which depends on specific encode method
     let evmBytes = web3.utils.asciiToHex(address);
-    return {native: address, evm: evmBytes, ascii: address};
+    return {native: address, evm: evmBytes, text: address};
   }
 }
 

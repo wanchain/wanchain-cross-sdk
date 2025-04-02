@@ -17,35 +17,60 @@ function bytesAddressToBinary(bytes) {
 }
 
 // WAValidator can not valid testnet address
-function validateAddress(address, network, chain) {
-  const networkId = (network === "testnet")? 0 : 1;
+function validateAddress(address, network) {
+  let networkId = (network === "testnet")? 0 : 1;
   try {
-    let addr = wasm.ByronAddress.from_base58(address);
-    // console.debug("%s is ADA Byron base58 address", address);
-    return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key));
-  } catch (e) {
-    // console.debug("%s is not ADA Byron base58 address: %O", address, e);
-  }
-  try {
-    let addr = wasm.Address.from_bech32(address);
-    try {
-      let byronAddr = wasm.ByronAddress.from_address(addr);
-      if (byronAddr) {
-        // console.debug("%s is ADA Byron bech32 address", address);
+    if ((address.substr(0, 3) === "Ae2") || (address.substr(0, 2) === "Dd")) { // Byron
+      let addr = wasm.ByronAddress.from_base58(address);
+      if (addr) {
+        console.debug("%s is ADA Byron base58 address", address);
+        return (addr.network_id() === networkId);
       }
-      return ((byronAddr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key)); // byronAddr is undefined to throw error
-    } catch (e) {
+    } else if ((address.substr(0, 5) === "addr1") || (address.substr(0, 10) === "addr_test1")) { // Shelley
+      let addr = wasm.Address.from_bech32(address);
       let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-      // console.log("%s is Shelly type %s address", address, prefix);
-      if (parseInt(prefix, 2) > 7) {
-        return false;
+      console.log("%s is ADA Shelly type %s address", address, prefix);
+      if (parseInt(prefix, 2) <= 7) {
+        let typedAddr = wasm.BaseAddress.from_address(addr) || wasm.EnterpriseAddress.from_address(addr);
+        if (typedAddr) {
+          return ((addr.network_id() === networkId) && (typedAddr.payment_cred().kind() === wasm.CredKind.Key));
+        }
       }
-      return ((addr.network_id() === networkId) && (getAddressType(address) === wasm.CredKind.Key));
     }
-  } catch (e) {
-    // console.debug("%s is not ADA bech32 address: %O", address, e);
+  } catch (err) {
+    console.debug("ADA validate %s address %s error: %O", network, address, err);
   }
   return false;
+}
+
+function getStandardAddressInfo(address) {
+  let native = "", evm = "", compact = "";
+  try {
+    let addr;
+    if ((address.substr(0, 3) === "Ae2") || (address.substr(0, 2) === "Dd")) { // Byron
+      addr = wasm.ByronAddress.from_base58(address);
+    } else if ((address.substr(0, 5) === "addr1") || (address.substr(0, 10) === "addr_test1")) { // Shelley
+      addr = wasm.Address.from_bech32(address);
+    }
+    native = address;
+    evm = asciiToHex(native);
+    // ignore cctp address as it is not supported now
+    compact = '0x' + Buffer.from(addr.to_bytes()).toString('hex');
+  } catch (err) {
+    console.error("Cardano address %s is invalid: %O", address, err);
+  }
+  return {native, evm, text: native, compact};
+}
+
+// according to web3.utils.asciiToHex
+function asciiToHex(str) {
+	let hexString = '';
+	for (let i = 0; i < str.length; i += 1) {
+		const hexCharCode = str.charCodeAt(i).toString(16);
+		// might need a leading 0
+		hexString += hexCharCode.length % 2 !== 0 ? ('0' + hexCharCode) : hexCharCode;
+	}
+	return '0x' + hexString;
 }
 
 function assetsToValue(assets) {
@@ -177,14 +202,6 @@ function showUtxos(utxos, title = "") {
   });
 }
 
-function getAddressType(address) {
-  let tmp = wasm.Address.from_bech32(address);
-  let toAddrBase = wasm.BaseAddress.from_address(tmp) || wasm.EnterpriseAddress.from_address(tmp);
-  let type = toAddrBase.payment_cred().kind();
-  console.debug("cardano address %s type: %s", address, type);
-  return type;
-}
-
 function splitMetadata(metadata, segmentLength = 64) {
   let totalLength = metadata.length, result = [];
   for (let cur = 0; cur < totalLength; cur = cur + segmentLength) {
@@ -288,6 +305,7 @@ module.exports = {
   setWasm,
   getWasm,
   validateAddress,
+  getStandardAddressInfo,
   assetsToValue,
   minAdaRequired,
   multiAssetCount,

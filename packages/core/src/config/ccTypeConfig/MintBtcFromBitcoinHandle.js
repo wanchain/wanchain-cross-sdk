@@ -19,11 +19,13 @@ module.exports = class MintBtcFromBitcoinHandle {
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
       let taskType = convert.wallet? "ProcessMintFromBitcoinWallet" : "ProcessMintBtcFromBitcoin";
       let taskName = convert.wallet? "userFastMint" : "addOTA";
+      let addrInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
+      let userAccount = convert.wallet? addrInfo.compact : addrInfo.text; // op_return use compact format to avoid size limit
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType,
         toChainType,
-        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        userAccount,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         gpkInfo: convert.gpkInfo,
