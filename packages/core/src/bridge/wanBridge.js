@@ -1,5 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const CrossChainTaskRecords = require('./stores/CrossChainTaskRecords');
+const CrossChainTask = require('./stores/CrossChainTask');
 const AssetPairs = require('./stores/AssetPairs');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
@@ -11,6 +12,14 @@ const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
 // consistant with crosschain contract
 const MAX_NFT_BATCH_SIZE = 10;
+
+const TaskInfoMapping = { // for QuiX to insert task info
+  "taskId": "ccTaskId",
+  "pairId": "assetPairId",
+  "asset": "assetType",
+  "fromChain": "fromChainName",
+  "toChain": "toChainName",
+}
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", options = {}) { // options is only for dev
@@ -359,6 +368,38 @@ class WanBridge extends EventEmitter {
     }
     console.debug("SDK: deleteHistory, options: %O, count: %d", options, count);
     return count;
+  }
+
+  async insertHistory(info) {
+    let taskId = Date.now();
+    console.debug("SDK: insertHistory, taskId: %d, bridge: %s, extent: %O", taskId, info.bridge, info.extend);
+    let task = new CrossChainTask(taskId);
+    let innerInfo = {};
+    for (let k in info) {
+      innerInfo[TaskInfoMapping[k] || key] = info[k];
+    }
+    task.setTaskData(innerInfo);
+    this.stores.crossChainTaskRecords.addNewTradeTask(task.ccTaskData);
+    await this.storageService.save("crossChainTaskRecords", taskId, task.ccTaskData);
+    return taskId;
+  }
+
+  async updateHistory(info) {
+    let records = this.stores.crossChainTaskRecords;
+    let task = records.getTaskById(info.taskId);
+    if (task) {
+      let innerInfo = {};
+      for (let k in info) {
+        let innerKey = TaskInfoMapping[k] || k;
+        if (task[innerKey] !== undefined) {
+          innerInfo[innerKey] = info[k];
+        }
+      }
+      records.setExtraInfo(info.taskId, innerInfo, true);
+      await this.storageService.save("crossChainTaskRecords", info.taskId, task.ccTaskData);
+    } else {
+      console.error("task %d is not exist", info.taskId);
+    }
   }
 
   getAssetLogo(name, protocol) {

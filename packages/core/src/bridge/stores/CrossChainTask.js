@@ -38,6 +38,7 @@ class CrossChainTask {
       // options
       fromAccountId: '',
       toAccountId: '',
+      extend: null
     };
   }
 
