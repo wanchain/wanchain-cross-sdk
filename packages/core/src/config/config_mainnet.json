@@ -602,6 +602,10 @@
       "0x11e77e27af5539872efed10abaa0b408cfd9fbbd": {
         "symbol": "USDT",
         "decimals": 6
+      },
+      "0x2ea407aa69be7367bf231e76b51fab9ec436766c": {
+        "symbol": "XWAN",
+        "decimals": 18
       }
     }
   },

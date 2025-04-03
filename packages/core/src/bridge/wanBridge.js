@@ -343,6 +343,7 @@ class WanBridge extends EventEmitter {
         wanPoints: task.wanPoints,
         fromAccountId: task.fromAccountId,
         toAccountId: task.toAccountId,
+        extend: task.extend
       };
       if (task.assetAlias) {
         item.assetAlias = task.assetAlias;
