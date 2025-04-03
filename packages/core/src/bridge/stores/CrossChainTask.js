@@ -44,11 +44,13 @@ class CrossChainTask {
 
   setTaskData(taskData) {
     for (let k in taskData) {
-      let sk = (k === 'direction')? 'convertType' : k;
-      if (this.ccTaskData[sk] !== undefined) {
-        this.ccTaskData[sk] = taskData[k];
-      } else {
-        console.error("task %s setTaskData undefined key %s", this.ccTaskData.ccTaskId, sk);
+      if (k !== 'ccTaskId') {
+        let sk = (k === 'direction')? 'convertType' : k;
+        if (this.ccTaskData[sk] !== undefined) {
+          this.ccTaskData[sk] = taskData[k];
+        } else {
+          console.error("task %s setTaskData undefined key %s", this.ccTaskData.ccTaskId, sk);
+        }
       }
     }
   }
