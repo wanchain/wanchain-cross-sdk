@@ -686,6 +686,18 @@
       "0x3d5950287b45f361774e5fb6e50d70eea06bc167": {
         "symbol": "USDT",
         "decimals": 6
+      },
+      "0x7ff465746e4f47e1cbbb80c864cd7de9f13337fe": {
+        "symbol": "USDC",
+        "decimals": 6
+      },
+      "0x48344649b9611a891987b2db33faada3ac1d05ec": {
+        "symbol": "ETH",
+        "decimals": 18
+      },
+      "0x07fdb4e8f8e420d021b9abeb2b1f6dce150ef77c": {
+        "symbol": "BTC",
+        "decimals": 8
       }
     }
   },

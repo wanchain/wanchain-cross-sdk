@@ -40,7 +40,7 @@ class TokenPairService {
             this.uiStrService = frameworkService.getService("UIStrService");
 
             this.eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
-            let tokenPairCfg = await this.configService.getGlobalConfig("tokenPairCfg");
+            let tokenPairCfg = this.configService.getGlobalConfig("tokenPairCfg");
             tokenPairCfg.map(tp => {
               this.m_mapTokenPairCfg.set(tp.id, tp);
             })
@@ -247,6 +247,15 @@ class TokenPairService {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
         assetMap.set(tp.readableSymbol + "_" + tp.protocol.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
+      // append cross reward task tokens
+      let crossTaskCfg = this.configService.getGlobalConfig("crossTask");
+      for (let address in crossTaskCfg.tokens) {
+        let key = crossTaskCfg.tokens[address].symbol + "_erc20";
+        if (!assetMap.get(key)) {
+          assetMap.set(key, {chain: "WAN", address});
+          console.debug("append cross reward task tokens %s(%s)", key, address);
+        }
+      }
       let cache;
       if ((!this.refresh.tokenLogo) && this.indexedDbService) {
         cache = await this.indexedDbService.getCacheData("AssetLogo");
