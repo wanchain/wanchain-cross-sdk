@@ -377,7 +377,7 @@ class WanBridge extends EventEmitter {
     let task = new CrossChainTask(taskId);
     let innerInfo = {};
     for (let k in info) {
-      innerInfo[TaskInfoMapping[k] || key] = info[k];
+      innerInfo[TaskInfoMapping[k] || k] = info[k];
     }
     task.setTaskData(innerInfo);
     this.stores.crossChainTaskRecords.addNewTradeTask(task.ccTaskData);
@@ -397,7 +397,7 @@ class WanBridge extends EventEmitter {
         }
       }
       records.setExtraInfo(info.taskId, innerInfo, true);
-      await this.storageService.save("crossChainTaskRecords", info.taskId, task.ccTaskData);
+      await this.storageService.save("crossChainTaskRecords", info.taskId, task);
     } else {
       console.error("task %d is not exist", info.taskId);
     }
