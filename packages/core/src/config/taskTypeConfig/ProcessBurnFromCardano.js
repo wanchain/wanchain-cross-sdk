@@ -75,11 +75,12 @@ module.exports = class ProcessBurnFromCardano {
           quantity: params.value
         });
       } else { // tokenId = policyId(28 bytes)
-        params.value.forEach(v => {
-          if (isNaN(v.mappingId)) {
-            throw new Error("NFT mapping id is required");
-          }
-          v.assetName = this.tool.encodeNftAssetName(v.mappingId);
+        let tokenIds = params.value.map(v => v.tokenId);
+        let originChain = (tokenPair.fromChainType === "ADA")? tokenPair.toChainType : tokenPair.fromChainType;
+        let originAccount = (tokenPair.fromChainType === "ADA")? tokenPair.toAccount : tokenPair.fromAccount;
+        let mappingIds = await this.storemanService.getNftMappingId(originChain, originAccount, tokenIds);
+        params.value.forEach((v, i) => {
+          v.assetName = this.tool.encodeNftAssetName(mappingIds[i]);
           output.amount.push({
             unit: tokenId + v.assetName, // policyId(28 bytes) + name
             quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()

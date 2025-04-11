@@ -413,6 +413,21 @@ class StoremanService {
       return result;
     }
 
+    async getNftMappingId(chain, tokenAddr, tokenIds) {
+      let chainInfo = this.chainInfoService.getChainInfoByType(chain);
+      let mcs = tokenIds.map(id => {
+        return {
+          target: chainInfo.crossScAddr,
+          call: ['crossId(address,uint256)(uint256)', tokenAddr, id],
+          returns: [[id]]
+        };
+      });
+      let res = await this.iwan.multiCall(chain, mcs);
+      let data = res.results.transformed;
+      let mappingIds = Object.keys(data).map(id => Number(data[id]._hex));
+      return mappingIds;
+    }
+
     async getCardanoEpochParameters() {
       try {
         let t = await this.iwan.call("getChainTip", {chainType:'ADA'});
