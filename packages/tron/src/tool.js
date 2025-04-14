@@ -26,7 +26,8 @@ function getStandardAddressInfo(address) {
     evm = "0x" + tronweb.defaultAddress.hex.substr(2);
     native = tronweb.defaultAddress.base58;
   }
-  return {native, evm, ascii: evm};
+  // ignore cctp address as it is not supported now
+  return {native, evm, text: evm, compact: evm};
 }
 
 module.exports = {

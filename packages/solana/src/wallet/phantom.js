@@ -16,7 +16,7 @@ class Phantom {
   // standard function
 
   async getChainId() {
-    return 0;
+    return this.network;
   }
 
   async getAccounts() {

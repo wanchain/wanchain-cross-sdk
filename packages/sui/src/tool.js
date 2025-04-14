@@ -6,8 +6,7 @@ function validateAddress(address) {
 }
 
 function getStandardAddressInfo(address) {
-  let native = address, evm = address, cctp = address;
-  return {native, evm, ascii: native, cctp};
+  return {native: address, evm: address, text: address, cctp: address, compact: address};
 }
 
 function newTransaction() {

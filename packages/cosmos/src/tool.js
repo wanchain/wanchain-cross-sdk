@@ -33,18 +33,14 @@ function gpk2Address(gpk, chain) {
 
 function getStandardAddressInfo(address, chain = "Noble") {
   let native = "", evm = "", cctp = "";
-  if (/^0x[0-9a-fA-F]{40}$/.test(address)) { // standard evm address
-    native = bech32.encode(AddressPrefix[chain], bech32.toWords(Buffer.from(address.substr(2), 'hex')));
-  } else if (/^[0-9a-fA-F]{40}$/.test(address)) { // short evm address
-    native = bech32.encode(AddressPrefix[chain], bech32.toWords(Buffer.from(address, 'hex')));
-  } else if (validateAddress(address, "", chain)) {
+  if (validateAddress(address, "", chain)) {
     native = address;
-  }
-  if (native) {
     evm = asciiToHex(native);
     cctp = '0x' + Buffer.from(bech32.fromWords(bech32.decode(native).words)).toString('hex');
+  } else {
+    console.error("%s address %s is invalid", chain, address);
   }
-  return {native, evm, ascii: native, cctp};
+  return {native, evm, text: native, cctp, compact: cctp};
 }
 
 // according to web3.utils.asciiToHex

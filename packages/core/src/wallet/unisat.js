@@ -17,7 +17,15 @@ class UniSatWallet {
 
   async getChainId() {
     const chainId = await this.wallet.getChain();
-    return chainId;
+    const { name, network } = chainId;
+    if (name === 'Bitcoin' && network === 'livenet') {
+      return 'bitcoin';
+    } else if (name === 'Bitcoin Testnet' && network === 'testnet') {
+      return 'testnet';
+    } else {
+      return 'unknown';
+    }
+
   }
 
   async getAccounts(network) {
@@ -33,7 +41,7 @@ class UniSatWallet {
   async getBalance() {
     try {
       const res = await this.wallet.getBalance();
-      return res.confirmed;
+      return res.total;
     } catch (e) {
       console.error(e);
       throw new Error("Not used address");
@@ -42,7 +50,7 @@ class UniSatWallet {
 
   async sendTransaction(toAddr, satoshis, opt) {
     try {
-      let txid = await this.wallet.sendBitcoin(toAddr, satoshis, opt);
+      let txid = await this.wallet.sendBitcoin(toAddr, Number(satoshis), opt);
       return txid;
     } catch (e) {
       console.log(e);

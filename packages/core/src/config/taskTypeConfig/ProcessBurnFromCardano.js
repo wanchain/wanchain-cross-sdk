@@ -65,7 +65,7 @@ module.exports = class ProcessBurnFromCardano {
             quantity: '10000000' // actual or probable locked quantity
           }
         ]
-      };      
+      };
       // for token, to construct multiassets and calculate minAda to lock
       let tokenAccount = (tokenPair.fromChainType === "ADA")? tokenPair.fromAccount : tokenPair.toAccount;
       let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
@@ -182,19 +182,19 @@ module.exports = class ProcessBurnFromCardano {
 
   async buildCostModels(costModelParameters) {
     let costModels = costModelParameters.costModels;
-    const v1 = this.wasm.CostModel.new();
+    let v1 = this.wasm.CostModel.new();
     let index = 0;
     for (let key in costModels['PlutusV1']) {
       v1.set(index, this.wasm.Int.new_i32(costModels['PlutusV1'][key]));
       index++;
     }
-    const v2 = this.wasm.CostModel.new();
+    let v2 = this.wasm.CostModel.new();
     index = 0;
     for (let key in costModels['PlutusV2']) {
       v2.set(index, this.wasm.Int.new_i32(costModels['PlutusV2'][key]));
       index++;
     }
-    const v3 = this.wasm.CostModel.new();
+    let v3 = this.wasm.CostModel.new();
     index = 0;
     for (let key in costModels['PlutusV3']) {
       v3.set(index, this.wasm.Int.new_i32(costModels['PlutusV3'][key]));
@@ -221,7 +221,7 @@ module.exports = class ProcessBurnFromCardano {
     } else {
       throw new Error("No collateral utxos");
     }
-    const builder = this.wasm.TxInputsBuilder.new();
+    let builder = this.wasm.TxInputsBuilder.new();
     for (let utxo of utxos) {
       builder.add_regular_input(
         utxo.output().address(),
@@ -262,10 +262,10 @@ module.exports = class ProcessBurnFromCardano {
   }
 
   async buildTx(paymentAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder) {
-    const wasm = this.wasm;
-    const priceMem = epochParameters.priceMem.replace(/\"/g, "").split("/");
-    const priceStep = epochParameters.priceStep.replace(/\"/g, "").split("/");
-    const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
+    let wasm = this.wasm;
+    let priceMem = epochParameters.priceMem.replace(/\"/g, "").split("/");
+    let priceStep = epochParameters.priceStep.replace(/\"/g, "").split("/");
+    let txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
     .coins_per_utxo_byte(
       wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte)
     )
@@ -321,7 +321,7 @@ module.exports = class ProcessBurnFromCardano {
     txBuilder.set_ttl(epochParameters.slot + (3600 * 6)); // 6h from current slot
     txBuilder.add_change_if_needed(selfAddress);
 
-    const transaction = txBuilder.build_tx();
+    let transaction = txBuilder.build_tx();
     return transaction;
   }
 };
