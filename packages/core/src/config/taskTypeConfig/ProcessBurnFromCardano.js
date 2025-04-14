@@ -65,7 +65,7 @@ module.exports = class ProcessBurnFromCardano {
             quantity: '10000000' // actual or probable locked quantity
           }
         ]
-      };      
+      };
       // for token, to construct multiassets and calculate minAda to lock
       let tokenAccount = (tokenPair.fromChainType === "ADA")? tokenPair.fromAccount : tokenPair.toAccount;
       let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
