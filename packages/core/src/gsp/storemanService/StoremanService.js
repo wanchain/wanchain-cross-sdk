@@ -110,7 +110,11 @@ class StoremanService {
         } else {
           decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
           if (tokenPair.protocol === "Erc1155") {
-            balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
+            if (chainInfo._isEVM) {
+              balance = await this.iwan.getErc1155Balance(chainType, addr, tokenAccount);
+            } else if (options.wallet) {
+              balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
+            }
           } else { // Erc20, Erc721
             if (chainInfo._isEVM) {
               balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
@@ -267,13 +271,16 @@ class StoremanService {
           if (chain === "ADA") {
             let policy = tool.ascii2letter(tool.hexStrip0x(tokenAddr));
             result = await options.wallet.getNftInfo(owner, policy);
-            if (result.length && chainInfo.nft[policy].mapping) {
-              let ancestors = await this.getAncestorNftInfo(type, options.ancestorChainType, options.ancestorAccount, result.map(v => v.id));
-              ancestors.forEach((v, i) => {
-                result[i].mappingId = result[i].id;
-                result[i].id = v.id;
-                result[i].uri = v.uri;
-              })
+            if (result.length) {
+              if (options.isNative) {
+                // let infos = await this.getCardanoNftInfo(options.toChainID, policy, result.map(v => v.name));
+              } else {
+                let ancestors = await this.getAncestorNftInfo(type, options.ancestorChainType, options.ancestorAccount, result.map(v => tool.decodeCardanoNftAssetName(v.id).id));
+                ancestors.forEach((v, i) => {
+                  result[i].id = v.id; // ancestor nft id
+                  result[i].uri = v.uri;
+                })
+              }
             }
           }
         }
@@ -426,6 +433,19 @@ class StoremanService {
       let data = res.results.transformed;
       let mappingIds = Object.keys(data).map(id => Number(data[id]._hex));
       return mappingIds;
+    }
+
+    async getCardanoNftInfo(toChainID, policyId, assetNames) {
+      let chainInfo = this.chainInfoService.getChainInfoByType("ADA");
+      let url = chainInfo.nft.ogmios + "/getNftMetaData";
+      let data = {
+        ancestorChain: "2147485463", //ADA
+        targetChainType: toChainID,
+        policyId,
+        tokenIds: assetNames
+      }
+      let res = await axios.post(url, data);
+      console.log("getCardanoNftInfo: %O", res);
     }
 
     async getCardanoEpochParameters() {

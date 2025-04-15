@@ -51,7 +51,8 @@ module.exports = class ProcessAdaMintFromCardano {
       let epochParameters = await this.storemanService.getCardanoEpochParameters();
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let isCoin = (tokenPair.fromAccount === "0x0000000000000000000000000000000000000000");
+      let tokenAccount = (tokenPair.fromChainType === "ADA")? tokenPair.fromAccount : tokenPair.toAccount;
+      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
       let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
       let output = {
         address: params.crossScAddr,
@@ -63,10 +64,20 @@ module.exports = class ProcessAdaMintFromCardano {
         ]
       };
       if (!isCoin) { // for token, to construct multiassets and calculate minAda to lock
-        output.amount.push({
-          unit: tool.ascii2letter(tool.hexStrip0x(tokenPair.fromAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
-          quantity: crossValue
-        });
+        let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+        if (params.tokenType === "Erc20") { // tokenId = policyId(28 bytes) + "." + name
+          output.amount.push({
+            unit: tool.ascii2letter(tool.hexStrip0x(tokenAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
+            quantity: crossValue
+          });
+        } else { // tokenId = policyId(28 bytes)
+          crossValue.forEach(v => {
+            output.amount.push({
+              unit: tokenId + v.tokenId, // policyId(28 bytes) + name
+              quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()
+            });
+          })
+        }
         let tempTxOutput = this.wasm.TransactionOutput.new(
           this.wasm.Address.from_bech32(params.crossScAddr),
           this.tool.assetsToValue(output.amount)

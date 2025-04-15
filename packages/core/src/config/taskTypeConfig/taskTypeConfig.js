@@ -43,8 +43,8 @@ module.exports = [
       "handle": require("./ProcessErc721Approve")
     },
     {
-      "name": "ProcessAdaMintFromCardano",
-      "handle": require("./ProcessAdaMintFromCardano")
+      "name": "ProcessMintFromCardano",
+      "handle": require("./ProcessMintFromCardano")
     },
     {
       "name": "ProcessBurnFromCardano",

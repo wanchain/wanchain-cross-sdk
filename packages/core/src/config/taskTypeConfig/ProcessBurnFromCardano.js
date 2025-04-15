@@ -76,9 +76,7 @@ module.exports = class ProcessBurnFromCardano {
         });
       } else { // tokenId = policyId(28 bytes)
         let tokenIds = params.value.map(v => v.tokenId);
-        let originChain = (tokenPair.fromChainType === "ADA")? tokenPair.toChainType : tokenPair.fromChainType;
-        let originAccount = (tokenPair.fromChainType === "ADA")? tokenPair.toAccount : tokenPair.fromAccount;
-        let mappingIds = await this.storemanService.getNftMappingId(originChain, originAccount, tokenIds);
+        let mappingIds = await this.storemanService.getNftMappingId(tokenPair.ancestorChainType, tokenPair.ancestorAccount, tokenIds);
         params.value.forEach((v, i) => {
           v.assetName = this.tool.encodeNftAssetName(mappingIds[i]);
           output.amount.push({

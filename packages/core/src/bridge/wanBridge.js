@@ -34,7 +34,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2504141715", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2504151858", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -284,8 +284,13 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
     let token = (chainName === tokenPair.fromChainName)? tokenPair.fromAccount : tokenPair.toAccount;
     let chainType = this.tokenPairService.getChainType(chainName);
-    options.ancestorChainType = tokenPair.ancestorChainType; // for mapping nft token
-    options.ancestorAccount = tokenPair.ancestorAccount;
+    // for cardano
+    options.isNative = (chainType === tokenPair.fromChainType)? tokenPair.fromIsNative : tokenPair.toIsNative;
+    options.ancestorChainType = tokenPair.ancestorChainType; // mapping nft token
+    options.ancestorAccount = tokenPair.ancestorAccount; // mapping nft token // mapping nft token
+    // for cardano original nft token
+    options.fromChainID = (chainType === tokenPair.fromChainType)? tokenPair.fromChainID : tokenPair.toChainID; // original nft token
+    options.toChainID = (chainType === tokenPair.fromChainType)? tokenPair.toChainID : tokenPair.fromChainID; // original nft token
     let infos = await this.storemanService.getNftInfo(tokenPair.protocol, chainType, token, account, options);
     infos.forEach(v => {
       v.ancestorChainName = tokenPair.ancestorChainName; // frontend show ancestorChainName

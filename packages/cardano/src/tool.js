@@ -142,12 +142,8 @@ function getNftInfo(multiAsset, policyId) {
     let ma = multiAsset.to_js_value();
     let policy = ma.get(policyId);
     if (policy) {
-      for (let [name, balance] of policy) {
-        let decoded = decodeNftAssetName(name);
-        let id = decoded.id;
-        if (!isNaN(id)) {
-          nfts.push({id, balance});
-        }
+      for (let [id, balance] of policy) {
+        nfts.push({id, balance});
       }
     }
   }
@@ -266,12 +262,6 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
       }
     }
   }
-}
-
-function decodeNftAssetName(assetName) {
-  let id = new BigNumber(assetName.slice(8), 16).toFixed();
-  let typeCode = assetName.slice(1, 5);
-  return {typeCode, id};
 }
 
 function crc8(buffer) {

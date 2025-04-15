@@ -348,6 +348,12 @@ async function timedPromise(promise, msg = 'PTIMEOUT', ms = 5000) {
   })
 }
 
+function decodeCardanoNftAssetName(assetName) {
+  let id = new BigNumber(assetName.slice(8), 16).toFixed();
+  let typeCode = assetName.slice(1, 5);
+  return {typeCode, id};
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -371,5 +377,6 @@ module.exports = {
   parseTokenPairSymbol,
   getErrMsg,
   parseEvmLog,
-  timedPromise
+  timedPromise,
+  decodeCardanoNftAssetName
 }
