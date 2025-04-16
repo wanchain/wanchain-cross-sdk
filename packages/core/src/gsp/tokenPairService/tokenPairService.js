@@ -492,7 +492,7 @@ class TokenPairService {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
-        tokenPair.fromSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol));
+        tokenPair.fromSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol, {ancestorChain: tokenPair.ancestorChainID, protocol: tokenPair.protocol}));
         tokenPair.fromIsNative = this.checkNativeToken(tokenPair.bridge, tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
         let issuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount);
         if (issuer) {
@@ -507,7 +507,7 @@ class TokenPairService {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
-        tokenPair.toSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol));
+        tokenPair.toSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol, {ancestorChain: tokenPair.ancestorChainID, protocol: tokenPair.protocol}));
         tokenPair.toIsNative = this.checkNativeToken(tokenPair.bridge, tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
         let issuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount);
         if (issuer) {

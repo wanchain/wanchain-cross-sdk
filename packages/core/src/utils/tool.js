@@ -279,7 +279,7 @@ function validateXrpTokenAmount(amount) {
   return true;
 }
 
-function parseTokenPairSymbol(chain, symbol) {
+function parseTokenPairSymbol(chain, symbol, options = {}) {
   if ((chain === "XRP") || (chain == '2147483792')) {
     return xrpNormalizeCurrencyCode(symbol) || symbol;
   } else if ((chain === "ADA") || (chain == '2147485463')) {
@@ -288,9 +288,14 @@ function parseTokenPairSymbol(chain, symbol) {
     } else {
       return ascii2letter(hexStrip0x(symbol));
     }
-  } else {
-    return symbol;
+  } else if ((options.ancestorChain === "ADA") || (options.ancestorChain == '2147485463')) {
+    if (options.protocol !== "Erc20") { // cardano original nft token do not have symbol, it is same as ancestorSymbol (ascii decoded hex string without 0x prefix)
+      if (/^[0-9a-fA-F]+$/.test(symbol)) {
+        return ascii2letter(symbol);
+      }
+    }
   }
+  return symbol;
 }
 
 function getErrMsg(err, defaultMsg) {
