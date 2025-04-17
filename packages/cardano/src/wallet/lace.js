@@ -33,19 +33,17 @@ class Lace {
       let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
-      let result;
       if (tokenId) {
         let [policyId, assetName] = tokenId.split(".");
         if (assetName) { // erc20
-          result = await tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
         } else { // nft
-          let nfts = await tool.getNftInfo(value.multiasset(), tokenId);
-          result = nfts.length.toString();
+          let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+          return nfts.length.toString();
         }
       } else { // coin
-        result = await value.coin().to_str(); // TODO: sub token locked coin
+        return value.coin().to_str(); // TODO: sub token locked coin
       }
-      return result;
     } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
@@ -61,14 +59,19 @@ class Lace {
       return tokenIds.map(id => {
         if (id) {
           let [policyId, assetName] = id.split(".");
-          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          if (assetName) { // erc20
+            return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          } else { // nft
+            let nfts = tool.getNftInfo(value.multiasset(), id);
+            return nfts.length.toString();
+          }
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
       })
     } else {
-      console.log("%s is not used address", addr);
-      throw new Error("Not used address");
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
     }
   }
 
@@ -78,7 +81,7 @@ class Lace {
       let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
-      let nfts = await tool.getNftInfo(value.multiasset(), tokenId);
+      let nfts = tool.getNftInfo(value.multiasset(), tokenId);
       return nfts;
     } else {
       console.error("%s is not current address", addr);

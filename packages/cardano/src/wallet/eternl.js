@@ -35,17 +35,22 @@ class Eternl {
       let value = this.wasm.Value.from_hex(balance);
       if (tokenId) {
         let [policyId, assetName] = tokenId.split(".");
-        return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        if (assetName) { // erc20
+          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        } else { // nft
+          let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+          return nfts.length.toString();
+        }
       } else { // coin
         return value.coin().to_str(); // TODO: sub token locked coin
       }
     } else {
-      console.log("%s is not used address", addr);
+      console.error("%s is not used address", addr);
       throw new Error("Not used address");
     }
   }
 
-  async getBalances(addr, tokenIds) {
+  async getBalances(addr, tokenIds) { // not need to support nft
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
       let cardano = await this.wallet.enable();
@@ -60,7 +65,21 @@ class Eternl {
         }
       })
     } else {
-      console.log("%s is not used address", addr);
+      console.error("%s is not used address", addr);
+      throw new Error("Not used address");
+    }
+  }
+
+  async getNftInfo(addr, tokenId) {
+    let accounts = await this.getAccounts();
+    if (accounts.includes(addr)) {
+      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+      return nfts;
+    } else {
+      console.error("%s is not used address", addr);
       throw new Error("Not used address");
     }
   }
