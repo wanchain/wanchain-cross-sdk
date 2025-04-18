@@ -454,6 +454,8 @@ class TokenPairService {
         return "POL";
       } else if (symbol === "ELisforLiar") {
         return "LIAR";
+      } else if (symbol === "Talos") {
+        return "AGENTIC";
       } else {
         return symbol;
       }
