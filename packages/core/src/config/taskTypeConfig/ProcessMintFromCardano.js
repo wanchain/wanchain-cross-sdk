@@ -73,7 +73,7 @@ module.exports = class ProcessAdaMintFromCardano {
         } else { // tokenId = policyId(28 bytes)
           crossValue.forEach(v => {
             output.amount.push({
-              unit: tokenId + v.tokenId, // policyId(28 bytes) + name
+              unit: tokenId + new BigNumber(v.tokenId).toString(16), // policyId(28 bytes) + name
               quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()
             });
           })

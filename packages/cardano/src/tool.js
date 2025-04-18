@@ -143,7 +143,7 @@ function getNftInfo(multiAsset, policyId) {
     let policy = ma.get(policyId);
     if (policy) {
       for (let [id, balance] of policy) {
-        nfts.push({id, balance});
+        nfts.push({id, balance}); // id is hex without 0x prefix
       }
     }
   }

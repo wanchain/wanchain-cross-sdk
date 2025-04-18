@@ -269,38 +269,48 @@ class StoremanService {
           result = await this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip, options.includeUri);
         }
       } else if (options.wallet && options.wallet.getNftInfo) { // now only ADA
-        let extension = this.configService.getExtension(chain);
         if (chain === "ADA") {
-          let policy = tool.ascii2letter(tool.hexStrip0x(tokenAddr));
-          let all = await options.wallet.getNftInfo(owner, policy);
-          if (options.tokenIds) {
-            let tokenIds = options.tokenIds;
-            if (!options.isNative) {
-              let mappingIds = await this.getNftMappingId(options.ancestorChainType, options.ancestorAccount, tokenIds);
-              tokenIds = mappingIds.map(v => extension.tool.encodeNftAssetName(v));
-            }
-            result = all.filter(v1 => tokenIds.find(v2 => v2.toString() === v1.id));
-          } else {
-            result = all;
-          }
-          if (result.length) {
-            if (options.isNative) {
-              let infos = await this.getCardanoNftInfo(options.toChainID, policy, result.map(v => v.id));
-              result.forEach(v => v.uri = infos[v.id]);
-            } else {
-              let mappingIds = result.map(v => tool.decodeCardanoNftAssetName(v.id).id);
-              let ancestorIds = await this.getNftAncestorId(options.ancestorChainType, options.ancestorAccount, mappingIds);
-              let ancestorChainInfo = this.chainInfoService.getChainInfoByType(options.ancestorChainType);
-              let ancestors = await this._getNftInfoFromEvmChain(type, options.ancestorChainType, options.ancestorAccount, ancestorChainInfo.crossScAddr, ancestorIds, false);
-              ancestors.forEach((v, i) => {
-                result[i].id = v.id; // ancestor nft id
-                result[i].uri = v.uri;
-              })
-            }
-          }
+          result = await this._getNftInfoFromCardano(type, chain, tokenAddr, owner, options);
         }
       }
       return result;
+    }
+
+    async _getNftInfoFromCardano(type, chain, tokenAddr, owner, options) {
+      let extension = this.configService.getExtension(chain);
+      let policy = tool.ascii2letter(tool.hexStrip0x(tokenAddr));
+      let nfts = await options.wallet.getNftInfo(owner, policy); // id is hex without 0x prefix, not normal number
+      if (options.tokenIds) { // should be dicimal number
+        let tokenIds = options.tokenIds;
+        if (!options.isNative) {
+          let mappingIds = await this.getNftMappingId(options.ancestorChainType, options.ancestorAccount, tokenIds);
+          tokenIds = mappingIds.map(v => new BigNumber('0x' + extension.tool.encodeNftAssetName(v)).toFixed());
+        }
+        // tokenIds is decimal number corresponding to assetName
+        nfts = nfts.filter(asset => {
+          let assetId = new BigNumber('0x' + asset.id);
+          return tokenIds.find(id => assetId.eq(id));
+        });
+      }
+      if (nfts.length) {
+        if (options.isNative) {
+          let infos = await this.getCardanoNftInfo(options.toChainID, policy, nfts.map(v => v.id));
+          nfts.forEach(v => {
+            v.uri = infos[v.id];
+            v.id = new BigNumber('0x' + v.id).toFixed();
+          })
+        } else {
+          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id);
+          let ancestorIds = await this.getNftAncestorId(options.ancestorChainType, options.ancestorAccount, mappingIds);
+          let ancestorChainInfo = this.chainInfoService.getChainInfoByType(options.ancestorChainType);
+          let ancestors = await this._getNftInfoFromEvmChain(type, options.ancestorChainType, options.ancestorAccount, ancestorChainInfo.crossScAddr, ancestorIds, false);
+          ancestors.forEach((v, i) => {
+            nfts[i].id = v.id; // ancestor nft id
+            nfts[i].uri = v.uri;
+          })
+        }
+      }
+      return nfts;
     }
 
     async _getNftInfoFromEvmChain(type, chain, tokenAddr, owner, tokenIds, checkAvailable = true) {
@@ -432,7 +442,7 @@ class StoremanService {
       });
       let res = await this.iwan.multiCall(chain, mcs);
       let data = res.results.transformed;
-      let ancestorIds = mappingIds.map(id => data[id]._hex);
+      let ancestorIds = mappingIds.map(id => new BigNumber(data[id]._hex).toFixed());
       return ancestorIds;
     }
 
@@ -447,7 +457,7 @@ class StoremanService {
       });
       let res = await this.iwan.multiCall(ancestorChain, mcs);
       let data = res.results.transformed;
-      let mappingIds = tokenIds.map(id => data[id]._hex);
+      let mappingIds = tokenIds.map(id => new BigNumber(data[id]._hex).toFixed());
       return mappingIds;
     }
 
