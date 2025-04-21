@@ -291,6 +291,16 @@ function encodeNftAssetName(id, typeCode = 333) {
   return label + idHex;
 }
 
+function nftId2AssetName(id) {
+  let tmp = new BigNumber(id).toString(16);
+  if (tmp.substr(0, 2) === 'de') { // 222
+    return '000' + tmp;
+  } else if  (tmp.substr(0, 3) === '14d') { // 333
+    return '00' + tmp;
+  }
+  throw new Error("unsupported nft type");
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -302,6 +312,7 @@ module.exports = {
   getAssetBalance,
   getNftInfo,
   encodeNftAssetName,
+  nftId2AssetName,
   selectUtxos,
   genPlutusData,
   showUtxos,

@@ -67,13 +67,13 @@ module.exports = class ProcessAdaMintFromCardano {
         let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
         if (params.tokenType === "Erc20") { // tokenId = policyId(28 bytes) + "." + name
           output.amount.push({
-            unit: tool.ascii2letter(tool.hexStrip0x(tokenAccount)).replace(/\./g, ""), // policyId(28 bytes) + "." + name
+            unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
             quantity: crossValue
           });
         } else { // tokenId = policyId(28 bytes)
           crossValue.forEach(v => {
             output.amount.push({
-              unit: tokenId + new BigNumber(v.tokenId).toString(16), // policyId(28 bytes) + name
+              unit: tokenId + this.tool.nftId2AssetName(v.tokenId), // policyId(28 bytes) + name
               quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()
             });
           })
