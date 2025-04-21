@@ -50,7 +50,7 @@ class Gero {
     }
   }
 
-  async getBalances(addr, tokenIds) { // not need to support nft
+  async getBalances(addr, tokenIds) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
       let cardano = await this.wallet.enable();
@@ -59,7 +59,12 @@ class Gero {
       return tokenIds.map(id => {
         if (id) {
           let [policyId, assetName] = id.split(".");
-          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          if (assetName) { // erc20
+            return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          } else { // nft
+            let nfts = tool.getNftInfo(value.multiasset(), id);
+            return nfts.length.toString();
+          }
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
