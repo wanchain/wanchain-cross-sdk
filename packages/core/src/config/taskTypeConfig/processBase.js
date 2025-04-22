@@ -36,13 +36,15 @@ module.exports = class ProcessBase {
     console.log("processBase sendTransactionData stepData:", stepData);
     let params = stepData.params;
     try {
-      let strFailed = this.m_uiStrService.getStrByName("Failed");
-      let accountAry = await wallet.getAccounts();
-      let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
-      if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet account");
-        console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
-        return;
+      if (params.scChainType !== "VET") { // VeWorld wallet getAccounts would call connect and require user to confirm
+        let strFailed = this.m_uiStrService.getStrByName("Failed");
+        let accountAry = await wallet.getAccounts();
+        let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
+        if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
+          this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet account");
+          console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
+          return;
+        }
       }
 
       let fromBlock = await this.m_storemanService.getChainBlockNumber(params.scChainType);

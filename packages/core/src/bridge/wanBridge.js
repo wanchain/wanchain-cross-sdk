@@ -529,7 +529,7 @@ class WanBridge extends EventEmitter {
   async _getChainAssets(chainName, prices, options, startTime) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType, options);
-    // console.log("_getChainAssets assets: %O", assets);
+    // console.log("%s _getChainAssets assets: %O", chainName, assets);
     let balances = {}, assetInfos = [];
     try {
       if (options.account) {
