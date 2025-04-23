@@ -377,6 +377,78 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147493445",
+      "chainType": "NRG",
+      "chainName": "Energi",
+      "symbol": "NRG",
+      "chainDecimals": 18,
+      "crossScAddr": "0xbe5187c2a7eb776c1caeed2c37e7599fb05000d3",
+      "MaskChainId": 39797,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2154655314",
+      "chainType": "BROCK",
+      "chainName": "Bitrock",
+      "symbol": "BROCK",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 7171,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741848",
+      "chainType": "DIONE",
+      "chainName": "Odyssey",
+      "symbol": "DIONE",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 153153,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741849",
+      "chainType": "PLYR",
+      "chainName": "PLYR",
+      "symbol": "PLYR",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 16180,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741853",
+      "chainType": "5IRE",
+      "chainName": "5ire",
+      "symbol": "1073741853",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 995,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741850",
+      "chainType": "EDX",
+      "chainName": "edeXa",
+      "symbol": "EDX",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 5424,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {

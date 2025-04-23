@@ -111,7 +111,7 @@ class StoremanService {
           decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
           if (tokenPair.protocol === "Erc1155") {
             if (chainInfo._isEVM) {
-              balance = await this.iwan.getErc1155Balance(chainType, addr, tokenAccount);
+              balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
             } else if (options.wallet) {
               balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
             }

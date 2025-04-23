@@ -36,7 +36,7 @@ module.exports = class ProcessBase {
     console.log("processBase sendTransactionData stepData:", stepData);
     let params = stepData.params;
     try {
-      if (params.scChainType !== "VET") { // VeWorld wallet getAccounts would call connect and require user to confirm
+      if (params.scChainType !== "VET") { // VeWorld wallet support auto switch address so do not need to check
         let strFailed = this.m_uiStrService.getStrByName("Failed");
         let accountAry = await wallet.getAccounts();
         let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
