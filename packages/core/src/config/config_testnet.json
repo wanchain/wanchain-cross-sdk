@@ -434,6 +434,7 @@
       "symbol": "NRG",
       "chainDecimals": 18,
       "crossScAddr": "0x95492fD2f5b2D2e558e8aF811f951e2DCbc846d3",
+      "MaskChainId": 49797,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -445,6 +446,7 @@
       "symbol": "BROCK",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "MaskChainId": 7771,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -456,6 +458,7 @@
       "symbol": "DIONE",
       "chainDecimals": 18,
       "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
+      "MaskChainId": 131313,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -467,6 +470,7 @@
       "symbol": "PLYR",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "MaskChainId": 62831,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -478,6 +482,7 @@
       "symbol": "1073741853",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "MaskChainId": 997,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -489,6 +494,7 @@
       "symbol": "EDX",
       "chainDecimals": 18,
       "crossScAddr": "0xFDa7a6d11fDd32F18e8d8d9ce1e97A9575141875",
+      "MaskChainId": 1995,
       "ScScanInfo": {
         "taskInterval": 15000
       }
