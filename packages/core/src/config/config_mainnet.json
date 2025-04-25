@@ -379,6 +379,17 @@
       }
     },
     {
+      "chainId": "2147484466",
+      "chainType": "VET",
+      "chainName": "VeChain",
+      "symbol": "VET",
+      "chainDecimals": 18,
+      "crossScAddr": "0xfb37aee0ebfbd3929923d1366ba30df037e9e47c",
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
       "chainId": "2147493445",
       "chainType": "NRG",
       "chainName": "Energi",
