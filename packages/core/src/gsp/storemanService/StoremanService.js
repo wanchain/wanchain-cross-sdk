@@ -125,10 +125,10 @@ class StoremanService {
           }
         }
         balance = new BigNumber(balance).div(Math.pow(10, decimals));
-        console.debug("get tokenPair %s chain %s %s address %s balance: %s", assetPairId, chainType, isCoin? "coin" : ("token " + tokenAccount), addr, balance.toFixed());
+        console.debug("get %s %s address %s balance: %s", chainType, isCoin? "coin" : ("token " + tokenAccount), addr, balance.toFixed());
         return balance;
       } catch (err) {
-        console.error("get tokenPair %s %s address %s balance error: %O", assetPairId, chainType, addr, err);
+        console.error("get %s address %s balance error: %O", chainType, addr, err);
         return new BigNumber(0);
       }
     }
