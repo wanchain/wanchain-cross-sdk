@@ -70,7 +70,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
         await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
       }
-      let txHash = await wallet.sendTransaction(tx);
+      let txHash = await wallet.sendTransaction(tx, params.fromAddr);
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
         this.webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
       }
