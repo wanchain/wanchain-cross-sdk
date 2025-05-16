@@ -37,10 +37,16 @@ function hexStrip0x(hexStr) {
   return hexStr;
 }
 
-function bytes2Hex(bytes) {
+function bytes2hex(bytes) {
   return Array.from(bytes, function(byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
+}
+
+function hex2bytes(hex) {
+  const bytes = [];
+  for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
+  return bytes;
 }
 
 function ascii2letter(asciiStr) {
@@ -364,7 +370,8 @@ module.exports = {
   checkTimeout,
   sleep,
   hexStrip0x,
-  bytes2Hex,
+  bytes2hex,
+  hex2bytes,
   ascii2letter,
   isValidEthAddress,
   isValidWanAddress,

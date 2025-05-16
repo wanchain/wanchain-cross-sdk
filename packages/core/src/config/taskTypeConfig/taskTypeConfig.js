@@ -101,5 +101,13 @@ module.exports = [
     {
       "name": "ProcessClaimCrossReward",
       "handle": require("./ProcessClaimCrossReward")
+    },
+    {
+      "name": "ProcessMintFromSui",
+      "handle": require("./ProcessMintFromSui")
+    },
+    {
+      "name": "ProcessBurnFromSui",
+      "handle": require("./ProcessBurnFromSui")
     }
 ]

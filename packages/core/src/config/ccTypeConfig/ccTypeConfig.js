@@ -73,5 +73,13 @@ module.exports = [
     {
       "name": "ClaimRewardTask",
       "handle": require("./ClaimRewardTask")
+    },
+    {
+      "name": "MintFromSui",
+      "handle": require("./MintFromSui")
+    },
+    {
+      "name": "BurnFromSui",
+      "handle": require("./BurnFromSui")
     }
 ]

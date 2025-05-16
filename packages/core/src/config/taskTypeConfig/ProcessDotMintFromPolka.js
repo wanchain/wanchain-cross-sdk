@@ -26,6 +26,7 @@ module.exports = class ProcessDotMintFromPolka {
     this.extension = this.configService.getExtension("DOT");
     this.storemanService = frameworkService.getService("StoremanService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
+    this.tokenPairService = frameworkService.getService("TokenPairService");
   }
 
   async process(stepData, wallet) {
@@ -78,7 +79,7 @@ module.exports = class ProcessDotMintFromPolka {
         txHash,
         chain: params.toChainType,
         smgPublicKey: params.storemanGroupGpk,
-        taskType: "MINT"
+        taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, "MINT")
       };
 
       let checkDotTxService = this.frameworkService.getService("CheckDotTxService");
