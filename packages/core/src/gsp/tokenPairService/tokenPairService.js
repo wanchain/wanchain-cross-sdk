@@ -469,7 +469,7 @@ class TokenPairService {
       } else if (symbol === "ELisforLiar") {
         return "LIAR";
       } else if (symbol === "Talos") {
-        return "AGENTIC";
+        return "AGENT";
       } else {
         return symbol;
       }
