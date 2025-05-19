@@ -57,6 +57,7 @@ module.exports = class ProcessBurnFromSui {
           tx.pure.string(params.userAccount),
           tx.object(crossCoin),
           tx.object(feeCoin),
+          tx.pure.string('')
         ],
         typeArguments: [coinType],
       });

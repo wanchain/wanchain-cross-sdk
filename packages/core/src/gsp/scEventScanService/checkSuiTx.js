@@ -15,8 +15,9 @@ module.exports = class CheckSuiTx {
     this.storemanService = this.frameworkService.getService("StoremanService");
     this.eventTypes = ["MINT", "BURN", "circleMINT"];
     this.eventTypes.forEach(v => this.eventTasks.set(v, []));
-    this.SmgMintMsg = chainInfo.crossEventId + "::cross::SmgMintLogger";
-    this.SmgReleaseMsg = chainInfo.crossEventId + "::cross::SmgReleaseLogger";
+    let crossEventId = chainInfo.crossEventId || chainInfo.crossScAddr;
+    this.SmgMintMsg = crossEventId + "::cross::SmgMintLogger";
+    this.SmgReleaseMsg = crossEventId + "::cross::SmgReleaseLogger";
     this.cctpReceiveMsg = chainInfo.CircleBridge.messageTransmitter + "::receive_message::MessageReceived";
   }
 
