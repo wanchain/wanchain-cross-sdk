@@ -523,7 +523,8 @@ class StoremanService {
         if (chainType === "SUI") {
           let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
           let scAddr = options.bridge? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
-          let events = await this.iwan.getScEvent("SUI", scAddr, [], {moduleName: "fee_collector", order: 'descending', limit: options.rewind || 1});
+          let moduleName = options.bridge? "fee_collector" : "cross";
+          let events = await this.iwan.getScEvent("SUI", scAddr, [], {moduleName, order: 'descending', limit: options.rewind || 1});
           return events.nextCursor;
         } else { // EVM chains return blockNumber 
           let blockNumber = await this.iwan.getBlockNumber(chainType);
