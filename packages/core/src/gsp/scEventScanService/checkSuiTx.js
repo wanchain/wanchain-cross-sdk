@@ -3,7 +3,6 @@
 module.exports = class CheckSuiTx {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.eventHandler = new Map();
     this.eventTasks = new Map();
   }
 
@@ -14,9 +13,11 @@ module.exports = class CheckSuiTx {
     this.taskService.addTask(this, chainInfo.ScScanInfo.taskInterval);
     this.eventService = this.frameworkService.getService("EventService");
     this.storemanService = this.frameworkService.getService("StoremanService");
-    this.eventTypes = ["circleMINT"];
+    this.eventTypes = ["MINT", "BURN", "circleMINT"];
     this.eventTypes.forEach(v => this.eventTasks.set(v, []));
-    this.eventHandler.set("circleMINT", this.processCircleMint.bind(this));
+    let crossEventId = chainInfo.crossEventId || chainInfo.crossScAddr;
+    this.SmgMintMsg = crossEventId + "::cross::SmgMintLogger";
+    this.SmgReleaseMsg = crossEventId + "::cross::SmgReleaseLogger";
     this.cctpReceiveMsg = chainInfo.CircleBridge.messageTransmitter + "::receive_message::MessageReceived";
   }
 
@@ -36,21 +37,12 @@ module.exports = class CheckSuiTx {
       let connected = await this.iwan.isConnected();
       if (connected) {
         for (let v of this.eventTypes) {
-          let fn = this.eventHandler.get(v);
-          if (fn) {
-            await fn();
-          } else {
-            console.error("CheckSuiTx unsupported event type: %s", v);
-          }
+          await this.processScLogger(v);
         }
       }
     } catch (err) {
       console.error("CheckSuiTx error: %O", err);
     }
-  }
-
-  async processCircleMint() {
-    await this.processScLogger("circleMINT");
   }
 
   async processScLogger(taskType) {
@@ -73,6 +65,8 @@ module.exports = class CheckSuiTx {
         console.debug("CheckSuiTx block %d %s: taskId=%s, uniqueId=%s, cursor=%O", latestBlockNumber, taskType, task.ccTaskId, task.uniqueID, task.fromBlockNumber);
         if (task.taskType === "circleMINT") {
           event = await this.scanCircleEvent(task);
+        } else {
+          event = await this.scanWanBridgeEvent(task);
         }
         if (event) {
           await this.updateUIAndStorage(task, event.txHash, event.toAccount, event.value);
@@ -84,6 +78,34 @@ module.exports = class CheckSuiTx {
       }
       await storageService.save("ScEventScanService", task.uniqueID, task); // always save regardless of exception
     }
+  }
+
+  async scanWanBridgeEvent(task) {
+    if (task.fromBlockNumber == 0) { // retry get cursor firstly
+      let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
+      let cursor = await this.storemanService.getChainBlockNumber("SUI", {rewind: delay});
+      if (cursor) {
+        task.fromBlockNumber = cursor;
+        console.log("scanWanBridgeEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
+      } else {
+        console.error("scanWanBridgeEvent task %d retry cursor error", task.ccTaskId);
+        return null;
+      }
+    }
+    let result = await this.iwan.getScEvent("SUI", this.chainInfo.crossScAddr, [], {moduleName: "cross", cursor: task.fromBlockNumber, limit: 1});
+    let ccTxs = result.data;
+    for (let tx of ccTxs) {
+      let txHash = tx.id.txDigest;
+      let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
+      let msgType = (task.taskType === "MINT")? this.SmgMintMsg : this.SmgReleaseMsg;
+      let smgEvent = receipt.events.find(v => ((v.transactionModule === "cross") && (v.type === msgType)));
+      if (smgEvent && smgEvent.parsedJson) {
+        console.log("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
+        return {txHash,  toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount};
+      }
+    }
+    task.fromBlockNumber = result.nextCursor;
+    return null;
   }
 
   async scanCircleEvent(task) {
@@ -108,13 +130,13 @@ module.exports = class CheckSuiTx {
         return null;
       }
     }
-    let cctpTxResult = await this.iwan.getScEvent("SUI", this.chainInfo.CircleBridge.crossScAddr, [], {moduleName: "fee_collector", cursor: task.fromBlockNumber, limit: 1});
-    let cctpTxs = cctpTxResult.data;
-    for (let tx of cctpTxs) {
+    let result = await this.iwan.getScEvent("SUI", this.chainInfo.CircleBridge.crossScAddr, [], {moduleName: "fee_collector", cursor: task.fromBlockNumber, limit: 1});
+    let ccTxs = result.data;
+    for (let tx of ccTxs) {
       let txHash = tx.id.txDigest;
       let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
       let receiveEvent = receipt.events.find(v => ((v.transactionModule === "receive_message") && (v.type === this.cctpReceiveMsg)));
-      if (receiveEvent) {
+      if (receiveEvent && receiveEvent.parsedJson) {
         console.log("scanCircleEvent task %d tx %s get receiveEvent: %O", task.ccTaskId, txHash, receiveEvent);
         let sourceDomain = receiveEvent.parsedJson.source_domain; // number
         let nonce = receiveEvent.parsedJson.nonce; // string
@@ -123,7 +145,7 @@ module.exports = class CheckSuiTx {
         }
       }
     }
-    task.fromBlockNumber = cctpTxResult.nextCursor;
+    task.fromBlockNumber = result.nextCursor;
     return null;
   }
 

@@ -1,5 +1,6 @@
 const CoinSelection = require("./coinSelection");
 const axios = require('axios');
+const BigNumber = require('bignumber.js');
 
 let wasm = null;
 
@@ -135,6 +136,20 @@ function getAssetBalance(multiAsset, policyId, name) {
   return "0";
 }
 
+function getNftInfo(multiAsset, policyId) {
+  let nfts = [];
+  if (multiAsset && multiAsset.len()) {
+    let ma = multiAsset.to_js_value();
+    let policy = ma.get(policyId);
+    if (policy) {
+      for (let [id, balance] of policy) {
+        nfts.push({id, balance}); // id is hex without 0x prefix
+      }
+    }
+  }
+  return nfts;
+}
+
 function selectUtxos(utxos, rawOutput, protocolParameters) {
   let output = wasm.TransactionOutput.new(
     wasm.Address.from_bech32(rawOutput.address),
@@ -249,6 +264,43 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
   }
 }
 
+function crc8(buffer) {
+  let crc = 0x00;
+  for (let i = 0; i < buffer.length; i++) {
+    crc ^= buffer[i];
+    for (let j = 0; j < 8; j++) {
+      if (crc & 0x80) {
+        crc = (crc << 1) ^ 0x07;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+  return crc & 0xff;
+}
+
+function encodeNftAssetName(id, typeCode = 333) {
+  let buffer = Buffer.alloc(2);
+  buffer.writeUint16BE(typeCode)
+  let crcValue = crc8(buffer);
+  let label = '0' + buffer.toString('hex') + crcValue.toString(16).padStart(2, '0') + '0';
+  let idHex = new BigNumber(id).toString(16);
+  if (idHex.length % 2) {
+    idHex = '0' + idHex;
+  }
+  return label + idHex;
+}
+
+function nftId2AssetName(id) {
+  let tmp = new BigNumber(id).toString(16);
+  if (tmp.substr(0, 2) === 'de') { // 222
+    return '000' + tmp;
+  } else if  (tmp.substr(0, 3) === '14d') { // 333
+    return '00' + tmp;
+  }
+  throw new Error("unsupported nft type");
+}
+
 module.exports = {
   setWasm,
   getWasm,
@@ -258,6 +310,9 @@ module.exports = {
   minAdaRequired,
   multiAssetCount,
   getAssetBalance,
+  getNftInfo,
+  encodeNftAssetName,
+  nftId2AssetName,
   selectUtxos,
   genPlutusData,
   showUtxos,

@@ -69,10 +69,22 @@ module.exports = class ProcessBurnFromCardano {
       // for token, to construct multiassets and calculate minAda to lock
       let tokenAccount = (tokenPair.fromChainType === "ADA")? tokenPair.fromAccount : tokenPair.toAccount;
       let tokenId = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
-      output.amount.push({
-        unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + "." + name
-        quantity: params.value
-      });
+      if (params.tokenType === "Erc20") { // tokenId = policyId(28 bytes) + "." + name
+        output.amount.push({
+          unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + name
+          quantity: params.value
+        });
+      } else { // tokenId = policyId(28 bytes)
+        let tokenIds = params.value.map(v => v.tokenId);
+        let mappingIds = await this.storemanService.getNftMappingId(tokenPair.ancestorChainType, tokenPair.ancestorAccount, tokenIds);
+        params.value.forEach((v, i) => {
+          v.assetName = this.tool.encodeNftAssetName(mappingIds[i]);
+          output.amount.push({
+            unit: tokenId + v.assetName, // policyId(28 bytes) + name
+            quantity: (params.tokenType === "Erc721")? "1" : v.amount.toString()
+          });
+        })
+      }
       let tempTxOutput = this.wasm.TransactionOutput.new(
         this.wasm.Address.from_bech32(params.crossScAddr),
         this.tool.assetsToValue(output.amount)
@@ -101,7 +113,7 @@ module.exports = class ProcessBurnFromCardano {
       }
 
       let metaData = this.buildMetadata(params.tokenPairID, params.fromAddr, params.userAccount, params.storemanGroupId);
-      let mintBuilder = this.buildMint(tokenId, params.value);
+      let mintBuilder = this.buildMint(params.tokenType, tokenId, params.value);
 
       let networkFeeOutput = null;
       if (params.networkFee != 0) {
@@ -131,7 +143,7 @@ module.exports = class ProcessBurnFromCardano {
       }
 
       // rebuild tx
-      mintBuilder = this.buildMint(tokenId, params.value, executionUnits);
+      mintBuilder = this.buildMint(params.tokenType, tokenId, params.value, executionUnits);
       tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
 
       // sign and send
@@ -232,32 +244,39 @@ module.exports = class ProcessBurnFromCardano {
     return builder;
   }
 
-  buildMint(tokenId, burnedAmount, executionUnits = undefined) {
-    const wasm = this.wasm;
-    const chainInfoService = this.frameworkService.getService("ChainInfoService");
-    const chainInfo = chainInfoService.getChainInfoByType("ADA");
-    const scriptRefInput = wasm.TransactionInput.new(
-      wasm.TransactionHash.from_hex(chainInfo.tokenScript.txHash),
-      chainInfo.tokenScript.index
+  buildMint(tokenType, tokenId, burnedAmount, executionUnits = undefined) {
+    let wasm = this.wasm;
+    let chainInfoService = this.frameworkService.getService("ChainInfoService");
+    let chainInfo = chainInfoService.getChainInfoByType("ADA");
+    let tokenScript = (tokenType === "Erc20")? chainInfo.tokenScript : chainInfo.nft[tokenId];
+    let scriptRefInput = wasm.TransactionInput.new(
+      wasm.TransactionHash.from_hex(tokenScript.txHash),
+      tokenScript.index
     );
-    const plutusScript = wasm.PlutusScript.from_bytes_v2(Buffer.from(chainInfo.tokenScript.cborHex, 'hex'));
-    const plutusScriptSource = wasm.PlutusScriptSource.new_ref_input(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2(), plutusScript.bytes().length);
+    let plutusScript = wasm.PlutusScript.from_bytes_v2(Buffer.from(tokenScript.cborHex, 'hex'));
+    let plutusScriptSource = wasm.PlutusScriptSource.new_ref_input(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2(), plutusScript.bytes().length);
 
-    const exUnitsMint = wasm.ExUnits.new(
+    let exUnitsMint = wasm.ExUnits.new(
       wasm.BigNum.from_str(executionUnits? executionUnits.memory.toString() : "2136910"),
       wasm.BigNum.from_str(executionUnits? executionUnits.steps.toString() : "634469356")
     );
-    const mintRedeemer = wasm.Redeemer.new(
+    let mintRedeemer = wasm.Redeemer.new(
       wasm.RedeemerTag.new_mint(),
       wasm.BigNum.from_str('0'),
       wasm.PlutusData.new_empty_constr_plutus_data(wasm.BigNum.from_str('0')),
       exUnitsMint
     );
-    const witness = wasm.MintWitness.new_plutus_script(plutusScriptSource, mintRedeemer);
-
-    const assetName = wasm.AssetName.new(Buffer.from(tokenId.split(".")[1], 'hex'));
-    const builder = wasm.MintBuilder.new();
-    builder.add_asset(witness, assetName, wasm.Int.from_str('-' + burnedAmount));
+    let witness = wasm.MintWitness.new_plutus_script(plutusScriptSource, mintRedeemer);
+    let builder = wasm.MintBuilder.new();
+    if (tokenType === "Erc20") {
+      let assetName = wasm.AssetName.new(Buffer.from(tokenId.split(".")[1], 'hex'));
+      builder.add_asset(witness, assetName, wasm.Int.from_str('-' + burnedAmount));
+    } else {
+      burnedAmount.forEach(v => {
+        let assetName = wasm.AssetName.new(Buffer.from(v.assetName, 'hex'));
+        builder.add_asset(witness, assetName, wasm.Int.from_str('-' + v.amount.toString()));
+      })
+    }
     return builder;
   }
 

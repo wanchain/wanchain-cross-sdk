@@ -37,10 +37,16 @@ function hexStrip0x(hexStr) {
   return hexStr;
 }
 
-function bytes2Hex(bytes) {
+function bytes2hex(bytes) {
   return Array.from(bytes, function(byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
+}
+
+function hex2bytes(hex) {
+  const bytes = [];
+  for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
+  return bytes;
 }
 
 function ascii2letter(asciiStr) {
@@ -279,7 +285,7 @@ function validateXrpTokenAmount(amount) {
   return true;
 }
 
-function parseTokenPairSymbol(chain, symbol) {
+function parseTokenPairSymbol(chain, symbol, options = {}) {
   if ((chain === "XRP") || (chain == '2147483792')) {
     return xrpNormalizeCurrencyCode(symbol) || symbol;
   } else if ((chain === "ADA") || (chain == '2147485463')) {
@@ -288,9 +294,14 @@ function parseTokenPairSymbol(chain, symbol) {
     } else {
       return ascii2letter(hexStrip0x(symbol));
     }
-  } else {
-    return symbol;
+  } else if ((options.ancestorChain === "ADA") || (options.ancestorChain == '2147485463')) {
+    if (options.protocol !== "Erc20") { // cardano original nft token do not have symbol, it is same as ancestorSymbol (ascii decoded hex string without 0x prefix)
+      if (/^[0-9a-fA-F]+$/.test(symbol)) {
+        return ascii2letter(symbol);
+      }
+    }
   }
+  return symbol;
 }
 
 function getErrMsg(err, defaultMsg) {
@@ -348,12 +359,19 @@ async function timedPromise(promise, msg = 'PTIMEOUT', ms = 5000) {
   })
 }
 
+function decodeCardanoNftAssetName(assetName) {
+  let id = new BigNumber(assetName.slice(8), 16).toFixed();
+  let typeCode = assetName.slice(1, 5);
+  return {typeCode, id};
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
   sleep,
   hexStrip0x,
-  bytes2Hex,
+  bytes2hex,
+  hex2bytes,
   ascii2letter,
   isValidEthAddress,
   isValidWanAddress,
@@ -371,5 +389,6 @@ module.exports = {
   parseTokenPairSymbol,
   getErrMsg,
   parseEvmLog,
-  timedPromise
+  timedPromise,
+  decodeCardanoNftAssetName
 }

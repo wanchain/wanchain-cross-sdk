@@ -27,8 +27,8 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let tx = this.tool.newTransaction();
       // fee
       let suiCoins = await this.storemanService.getSuiCoins(params.fromAddr, "0x2::sui::SUI");
-      let totalCoin = new BigNumber(params.networkFee).plus(DefaultGas).toFixed();
-      let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalCoin);
+      let totalSui = new BigNumber(params.networkFee).plus(DefaultGas).toFixed();
+      let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalSui);
       let suiCoin = selectedSuiCoins[0];
       if (selectedSuiCoins.length > 1) {
         tx.mergeCoins(suiCoin, selectedSuiCoins.slice(1));
@@ -70,7 +70,7 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
         await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
       }
-      let txHash = await wallet.sendTransaction(tx);
+      let txHash = await wallet.sendTransaction(tx, params.fromAddr);
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
         this.webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
       }

@@ -1,5 +1,5 @@
 const wasm = require("./src/wasm");
-const NamiWallet = require("./src/wallet/nami");
+const LaceWallet = require("./src/wallet/lace");
 const YoroiWallet = require("./src/wallet/yoroi");
 const EternlWallet = require("./src/wallet/eternl");
 const GeroWallet = require("./src/wallet/gero");
@@ -17,7 +17,7 @@ async function init() {
 module.exports = {
   getChains: () => ["Cardano"],
   getSymbols: () => ["ADA"],
-  NamiWallet,
+  LaceWallet,
   YoroiWallet,
   EternlWallet,
   GeroWallet,

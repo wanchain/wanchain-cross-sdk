@@ -31,8 +31,8 @@ module.exports = [
       "handle": require("./BurnErc20ProxyToken")
     },
     {
-      "name": "MintAdaFromCardano",
-      "handle": require("./MintAdaFromCardano")
+      "name": "MintFromCardano",
+      "handle": require("./MintFromCardano")
     },
     {
       "name": "BurnFromCardano",
@@ -73,5 +73,13 @@ module.exports = [
     {
       "name": "ClaimRewardTask",
       "handle": require("./ClaimRewardTask")
+    },
+    {
+      "name": "MintFromSui",
+      "handle": require("./MintFromSui")
+    },
+    {
+      "name": "BurnFromSui",
+      "handle": require("./BurnFromSui")
     }
 ]
