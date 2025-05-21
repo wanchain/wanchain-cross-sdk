@@ -4,8 +4,8 @@ const { MsgDepositForBurn } = require("../cctp/message");
 const Long = require("long");
 
 const DefaultChainInfo = {
-  "theta-testnet-001": {
-    rpc: "https://rpc.sentry-01.theta-testnet.polypore.xyz",
+  "provider": {
+    rpc: "https://cosmos-testnet-rpc.itrocket.net",
     denom: "uatom"
   },
   "grand-1": {

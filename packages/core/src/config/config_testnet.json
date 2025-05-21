@@ -635,7 +635,7 @@
       "chainName": "Cosmos",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
-      "MaskChainId": "theta-testnet-001",
+      "MaskChainId": "provider",
       "TxScanInfo": {
         "taskInterval": 10000
       }
