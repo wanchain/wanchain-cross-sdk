@@ -580,6 +580,7 @@ class WanBridge extends EventEmitter {
       let highlightEndTime = this.tokenPairService.getChainHighlightEndTime(chainInfo.chainId);
       return {
         chainName,
+        bip44ChainId: chainInfo.chainId,
         symbol: chainInfo.symbol || chainInfo.chainType,
         chainId: chainInfo.MaskChainId,
         highlightEndTime
