@@ -55,7 +55,7 @@ module.exports = class CheckApiServerTx {
         if (ret.data.success && ret.data.data) {
           let data = ret.data.data;
           // when noble cctp claim tx is sent by other provider, txHash is empty, toAddr and value are invalid
-          let toAccount = data.txHash? data.toAddr : "";
+          let toAccount = data.txHash? data.toAddr : ""; // solana cctp is encoded format
           let value = data.txHash? data.value : "";
           await this.m_eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.txHash, toAccount, value});
           let storageService = this.m_frameworkService.getService("StorageService");

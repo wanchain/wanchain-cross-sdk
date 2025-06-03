@@ -13,15 +13,18 @@ function validateAddress(address) {
 }
 
 function getStandardAddressInfo(address) {
-  let native = "", evm = "", cctp = "";
+  let native = "", evm = "", cctp = "", input = address;
   try { // address is ATA for cctp, it is not on curve, can not call validateAddress
+    if (/^(0x)?[0-9A-Fa-f]+$/.test(address)) { // decoded format, only used to check apiServer toAddr
+      address = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
+    }
     new PublicKey(address);
     let decoded = bs58.decode(address);
     native = address;
     evm = asciiToHex(native);
     cctp = '0x' + Buffer.from(decoded).toString('hex');
   } catch (err) {
-    console.error("Solana address %s is invalid", address);
+    console.error("Solana address %s is invalid", input);
   }
   return {native, evm, text: native, cctp, compact: cctp};
 }
