@@ -14,11 +14,13 @@ function validateAddress(address) {
 
 function getStandardAddressInfo(address) {
   let native = "", evm = "", cctp = "";
-  if (validateAddress(address)) {
+  try { // address is ATA for cctp, it is not on curve, can not call validateAddress
+    new PublicKey(address);
+    let decoded = bs58.decode(address);
     native = address;
     evm = asciiToHex(native);
-    cctp = '0x' + Buffer.from(bs58.decode(native)).toString('hex');
-  } else { // decoded
+    cctp = '0x' + Buffer.from(decoded).toString('hex');
+  } catch (err) {
     console.error("Solana address %s is invalid", address);
   }
   return {native, evm, text: native, cctp, compact: cctp};
