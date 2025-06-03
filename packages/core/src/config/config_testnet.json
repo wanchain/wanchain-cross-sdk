@@ -498,6 +498,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741856",
+      "chainType": "SHIDO",
+      "chainName": "Shido",
+      "symbol": "SHIDO",
+      "chainDecimals": 18,
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "MaskChainId": 9007,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -706,14 +718,14 @@
       "chainType": "SUI",
       "chainName": "Sui",
       "symbol": "SUI",
-      "crossScAddr": "0xf97c718fa353213d81a000fa6914af5f95f0bac68c0a38e60f310eeed02781e0",
-      "tokenPairRegistry": "0x66ae0fb32562bcf1b4f727dfe1f55093b8339facc504976db3cba0a0116c4089",
-      "TreasuryCapsRegistry": "0x8e31e6df4b163d372ae9373decb2a5dd568185849c02dc2b5acb3e616d44db93",
-      "tokenVault": "0x1c2c965f57ea30956a180010a6e68bf6d2ef5c04cefbf66a63e54ad17695cbb5",
-      "foundationConfig": "0xf9b6a3cfd62a7e0dae6e7dc94eaa8fdf5aff1281bb589f3321bb357cf93d0c7d",
-      "pauseConfig": "0x8053277cf0eb4e2c8c379cf53efe612bf0020b1466001f9e2a8be6eafcbbc3fe",
+      "crossScAddr": "0x011cad4611db93764613b6112150edf9b82c81bd230787d317b24e475f0313c5",
+      "tokenPairRegistry": "0x71b6dcd9e89c45d75c7cabf132830edaa7f8bc60b0c7160ad346b4c6909cc0e5",
+      "TreasuryCapsRegistry": "0x296177fcd9033f68f23f29bf174c99801f972258f79c6d2797ad02c9c58a3859",
+      "tokenVault": "0x6363633a4ecda3e5ab6f9daebcf2e824c9a757ea96b7a02f3c28fdd066d2efe3",
+      "foundationConfig": "0xaa724f7ea55b867d25309fee0193574aae96d1c59bb0c55fb74576f9297eb1de",
+      "pauseConfig": "0x9ea237466947f53265c8f692f3ec2f1ea4676d7929bb158da7995aad7fc95b63",
       "feeConfig": "0x5273632246b772b26a1c48692c97a77d0dcafe0bcc87d601073c2961b7cf8338",
-      "oracleStorage": "0x651dca2e646ef635684bdb3795288baf2447efc4cba1a3d1bef7e804931c45ce",
+      "oracleStorage": "0x2a24a4c7bf712b688a3df7044f0011d52bb44a4c076d561612d60d0a1f647ad1",
       "clock": "0x6",
       "mintFromChainHandle": "MintFromSui",
       "burnFromChainHandle": "BurnFromSui",
