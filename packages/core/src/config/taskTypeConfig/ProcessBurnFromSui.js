@@ -29,10 +29,9 @@ module.exports = class ProcessBurnFromSui {
       // fee
       let suiCoins = await this.storemanService.getSuiCoins(params.fromAddr, "0x2::sui::SUI");
       let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalSui.toFixed(0));
-      let suiCoin = selectedSuiCoins[0];
-      if (selectedSuiCoins.length > 1) {
-        tx.mergeCoins(suiCoin, selectedSuiCoins.slice(1));
-      }
+      tx.setGasPayment(selectedSuiCoins.map(v => {
+        return {objectId: v.coinObjectId, version: v.version, digest: v.digest}
+      }));
       let [feeCoin] = tx.splitCoins(tx.gas, [params.networkFee]);
       let assetCoins = await this.storemanService.getSuiCoins(params.fromAddr, coinType);
       let selectedAssetCoins = this.tool.selectCoins(assetCoins, params.value);
