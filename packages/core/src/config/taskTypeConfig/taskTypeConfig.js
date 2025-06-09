@@ -43,8 +43,8 @@ module.exports = [
       "handle": require("./ProcessErc721Approve")
     },
     {
-      "name": "ProcessAdaMintFromCardano",
-      "handle": require("./ProcessAdaMintFromCardano")
+      "name": "ProcessMintFromCardano",
+      "handle": require("./ProcessMintFromCardano")
     },
     {
       "name": "ProcessBurnFromCardano",
@@ -89,6 +89,26 @@ module.exports = [
     {
       "name": "ProcessCircleBridgeSuiDeposit",
       "handle": require("./ProcessCircleBridgeSuiDeposit")
+    },
+    {
+      "name": "ProcessErc20ApproveSync",
+      "handle": require("./ProcessErc20ApproveSync")
+    },
+    {
+      "name": "ProcessClaimRewardTask",
+      "handle": require("./ProcessClaimRewardTask")
+    },
+    {
+      "name": "ProcessClaimCrossReward",
+      "handle": require("./ProcessClaimCrossReward")
+    },
+    {
+      "name": "ProcessMintFromSui",
+      "handle": require("./ProcessMintFromSui")
+    },
+    {
+      "name": "ProcessBurnFromSui",
+      "handle": require("./ProcessBurnFromSui")
     },
     {
       "name": "ProcessMintFromTon",

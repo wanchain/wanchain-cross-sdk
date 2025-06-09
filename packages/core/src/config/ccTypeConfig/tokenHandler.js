@@ -61,9 +61,11 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
       if (allowance.isLessThan(value)) {
         // approve 0
-        let approve0Params = Object.assign({}, approveParams);
-        approve0Params.value = new BigNumber(0);
-        steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, title: approve0Title, desc: approve0Desc, params: approve0Params});
+        if (!["VET"].includes(chainInfo.chainType)) { // some chains erc20 implement do not need approve 0
+          let approve0Params = Object.assign({}, approveParams);
+          approve0Params.value = new BigNumber(0);
+          steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, title: approve0Title, desc: approve0Desc, params: approve0Params});
+        }
         // approve
         steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: approveValueTitle, desc: approveValueDesc, params: approveParams});
       }

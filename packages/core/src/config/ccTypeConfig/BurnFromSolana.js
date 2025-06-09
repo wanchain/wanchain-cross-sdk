@@ -21,7 +21,7 @@ module.exports = class BurnFromSolana {
         ccTaskId: convert.ccTaskId,
         toChainType,
         feeHolder: chainInfo.feeHolder,
-        userAccount: toAddressInfo.evm,
+        userAccount: toAddressInfo.text,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         tokenPairID: convert.tokenPairId,

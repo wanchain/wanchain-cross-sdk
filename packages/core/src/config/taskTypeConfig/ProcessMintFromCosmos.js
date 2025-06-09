@@ -1,5 +1,6 @@
 'use strict';
 
+const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
 
 /* metadata format:
@@ -45,15 +46,13 @@ module.exports = class ProcessMintFromCosmos {
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === chainType);
       let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let denom = "u" + (chainInfo.symbol || chainType).toLowerCase();
+      let coinDenom = "u" + (chainInfo.symbol || chainType).toLowerCase();
       let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
-      let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000") || (tool.ascii2letter(tool.hexStrip0x(tokenAccount)) === denom);
-      if (!isCoin) {
-        throw new Error("Only support coin");
-      }
+      let assetDenom = (tokenAccount === "0x0000000000000000000000000000000000000000")? coinDenom : tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       let extension = this.configService.getExtension(chainType);
       let smgAddr = extension.tool.gpk2Address(params.storemanGroupGpk, chainType);
       console.log("%s smgAddr: %s", chainType, smgAddr);
+      let crossValue = (assetDenom === coinDenom)? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
 
       let txs = [{
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
@@ -62,12 +61,27 @@ module.exports = class ProcessMintFromCosmos {
           toAddress: smgAddr,
           amount: [
             {
-              denom,
-              amount: params.value
+              denom: assetDenom,
+              amount: crossValue
             }
           ],
         },
       }];
+      if (params.networkFee !== "0") {
+        txs.push({
+          typeUrl: "/cosmos.bank.v1beta1.MsgSend",
+          value: {
+            fromAddress: params.fromAddr,
+            toAddress: params.feeHolder,
+            amount: [
+              {
+                denom: coinDenom,
+                amount: params.networkFee
+              }
+            ],
+          },
+        })
+      }
       let memo = await this.buildUserLockData(chainType, params.tokenPairID, params.userAccount);
       // console.debug({txs, memo});
       let txHash = await wallet.sendTransaction(txs, {memo, timeoutHeight: 100});

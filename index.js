@@ -8,6 +8,7 @@ const CosmosExtension = require('./packages/cosmos');
 const SolanaExtension = require('./packages/solana');
 const AlgorandExtension = require('./packages/algorand');
 const SuiExtension = require('./packages/sui');
+const VeChainExtension = require('./packages/vechain');
 const TonExtension = require('./packages/ton');
 
 module.exports = {
@@ -22,5 +23,6 @@ module.exports = {
   SolanaExtension,
   AlgorandExtension,
   SuiExtension,
+  VeChainExtension,
   TonExtension
 };

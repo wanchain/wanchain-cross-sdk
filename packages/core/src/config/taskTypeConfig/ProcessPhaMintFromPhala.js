@@ -13,7 +13,7 @@ module.exports = class ProcessPhaMintFromPhala {
     // console.debug("ProcessPhaMintFromPhala stepData:", stepData);
     let webStores = this.frameworkService.getService("WebStores");
     let configService = this.frameworkService.getService("ConfigService");
-    let configScAddr = configService.getGlobalConfig("crossConfigAddress");
+    let configScAddr = configService.getGlobalConfig("crossConfigSc");
     let iwan = this.frameworkService.getService("iWanConnectorService");
     let params = stepData.params;
 

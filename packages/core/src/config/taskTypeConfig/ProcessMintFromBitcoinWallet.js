@@ -22,10 +22,10 @@ module.exports = class ProcessMintFromBitcoinWallet {
     try {
       let tokenPairHex = parseInt(params.tokenPairID).toString(16);
       tokenPairHex = ('000' + tokenPairHex).slice(-4);
-      let memo = '01' + tokenPairHex + tool.hexStrip0x(params.userAccount.toLowerCase()); // 01 is userLock
+      let memo = '07' + tokenPairHex + '0000000000000000' + tool.hexStrip0x(params.userAccount.toLowerCase()); // 07 is userLock with compact format address
       let smgAddr = this.gpk2Addr(params.fromChainType, params.gpkInfo);
       console.debug("ProcessMintFromBitcoinWallet %s smgAddr: %s", params.fromChainType, smgAddr);
-      let txHash = await wallet.sendTransaction(smgAddr, params.value, {memo});
+      let txHash = await wallet.sendTransaction(smgAddr, params.value, {memo, fromAddr: params.fromAddr, decimals: params.decimals});
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);

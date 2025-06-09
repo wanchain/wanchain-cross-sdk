@@ -1,5 +1,6 @@
 const EventEmitter = require('events').EventEmitter;
 const CrossChainTaskRecords = require('./stores/CrossChainTaskRecords');
+const CrossChainTask = require('./stores/CrossChainTask');
 const AssetPairs = require('./stores/AssetPairs');
 const StartService = require('../gsp/startService/startService.js');
 const BridgeTask = require('./bridgeTask.js');
@@ -11,6 +12,14 @@ const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
 // consistant with crosschain contract
 const MAX_NFT_BATCH_SIZE = 10;
+
+const TaskInfoMapping = { // for QuiX to insert task info
+  "taskId": "ccTaskId",
+  "pairId": "assetPairId",
+  "asset": "assetType",
+  "fromChain": "fromChainName",
+  "toChain": "toChainName",
+}
 
 class WanBridge extends EventEmitter {
   constructor(network = "testnet", options = {}) { // options is only for dev
@@ -25,7 +34,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2502051458", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2506031938", this.network, this.isTestMode, this.smgName);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
     this.configService = this._service.getService("ConfigService");
@@ -275,6 +284,13 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
     let token = (chainName === tokenPair.fromChainName)? tokenPair.fromAccount : tokenPair.toAccount;
     let chainType = this.tokenPairService.getChainType(chainName);
+    // for cardano
+    options.isNative = (chainType === tokenPair.fromChainType)? tokenPair.fromIsNative : tokenPair.toIsNative;
+    options.ancestorChainType = tokenPair.ancestorChainType; // mapping nft token
+    options.ancestorAccount = tokenPair.ancestorAccount; // mapping nft token // mapping nft token
+    // for cardano original nft token
+    options.fromChainID = (chainType === tokenPair.fromChainType)? tokenPair.fromChainID : tokenPair.toChainID; // original nft token
+    options.toChainID = (chainType === tokenPair.fromChainType)? tokenPair.toChainID : tokenPair.fromChainID; // original nft token
     let infos = await this.storemanService.getNftInfo(tokenPair.protocol, chainType, token, account, options);
     infos.forEach(v => {
       v.ancestorChainName = tokenPair.ancestorChainName; // frontend show ancestorChainName
@@ -332,6 +348,7 @@ class WanBridge extends EventEmitter {
         wanPoints: task.wanPoints,
         fromAccountId: task.fromAccountId,
         toAccountId: task.toAccountId,
+        extend: task.extend
       };
       if (task.assetAlias) {
         item.assetAlias = task.assetAlias;
@@ -359,6 +376,38 @@ class WanBridge extends EventEmitter {
     return count;
   }
 
+  async insertHistory(info) {
+    let taskId = Date.now();
+    console.debug("SDK: insertHistory, taskId: %d, bridge: %s, extent: %O", taskId, info.bridge, info.extend);
+    let task = new CrossChainTask(taskId);
+    let innerInfo = {};
+    for (let k in info) {
+      innerInfo[TaskInfoMapping[k] || k] = info[k];
+    }
+    task.setTaskData(innerInfo);
+    this.stores.crossChainTaskRecords.addNewTradeTask(task.ccTaskData);
+    await this.storageService.save("crossChainTaskRecords", taskId, task.ccTaskData);
+    return taskId;
+  }
+
+  async updateHistory(info) {
+    let records = this.stores.crossChainTaskRecords;
+    let task = records.getTaskById(info.taskId);
+    if (task) {
+      let innerInfo = {};
+      for (let k in info) {
+        let innerKey = TaskInfoMapping[k] || k;
+        if (task[innerKey] !== undefined) {
+          innerInfo[innerKey] = info[k];
+        }
+      }
+      records.setExtraInfo(info.taskId, innerInfo, true);
+      await this.storageService.save("crossChainTaskRecords", info.taskId, task);
+    } else {
+      console.error("task %d is not exist", info.taskId);
+    }
+  }
+
   getAssetLogo(name, protocol) {
     return this.tokenPairService.getAssetLogo(name, protocol);
   }
@@ -379,7 +428,11 @@ class WanBridge extends EventEmitter {
       } else if (chainType === "ADA") {
         let tokenInfo = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
         let [policyId, name] = tokenInfo.split(".");
-        return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+        if (name) { // erc20
+          return [policyId, tool.ascii2letter(name)].join("."); // policyId.name
+        } else { // nft
+          return policyId; // policyId
+        }
       } else if (chainType === "SOL") {
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else if (chainType === "ALGO") {
@@ -487,7 +540,7 @@ class WanBridge extends EventEmitter {
   async _getChainAssets(chainName, prices, options, startTime) {
     let chainType = this.tokenPairService.getChainType(chainName);
     let assets = this.tokenPairService.getChainAssets(chainType, options);
-    // console.log("_getChainAssets assets: %O", assets);
+    // console.log("%s _getChainAssets assets: %O", chainName, assets);
     let balances = {}, assetInfos = [];
     try {
       if (options.account) {
@@ -527,6 +580,7 @@ class WanBridge extends EventEmitter {
       let highlightEndTime = this.tokenPairService.getChainHighlightEndTime(chainInfo.chainId);
       return {
         chainName,
+        bip44ChainId: chainInfo.chainId,
         symbol: chainInfo.symbol || chainInfo.chainType,
         chainId: chainInfo.MaskChainId,
         highlightEndTime
@@ -612,6 +666,77 @@ class WanBridge extends EventEmitter {
     });
     console.debug("SDK: accountId2Address, id: %s, chainName: %s, result: %O", id, chainName, result);
     return result;
+  }
+
+  async getRewardTasks(page, pageSize, options = {}) { // options: {claimer}
+    console.debug("SDK: getRewardTasks, page: %d, pageSize: %d, options: %O", page, pageSize, options);
+    try {
+      let tasks = await this.storemanService.getRewardTasks(page, pageSize, options);
+      return tasks;
+    } catch (err) {
+      console.error("getRewardTasks error: %O", err);
+      throw err;
+    }
+  }
+
+  async claimRewardTask(taskId, collateralId, fromAddr, wallet) {
+    console.debug("SDK: claimRewardTask, taskId: %d, collateralId: %d, fromAddr: %s, wallet: %s", taskId, collateralId, fromAddr, wallet && wallet.name);
+    let task = await this.storemanService.getRewardTask(taskId);
+    if (task) {
+      if (task.status !== 1) { // Created
+        throw new Error("Task is not available");
+      }
+    } else {
+      throw new Error("Task does not exist");
+    }
+    // build tx
+    let collateral = task.collateral[collateralId];
+    let convert = {
+      taskId,
+      collateralId,
+      token: collateral.token,
+      amount: collateral.amount,
+      fromAddr,
+      handler: "ClaimRewardTask"
+    };
+    // console.log("claimRewardTask convert: %O", convert);
+    let steps = await this.cctHandleService.getConvertInfo(convert);
+    for (let i = 0; i < steps.length; i++) {
+      let err = await this.txTaskHandleService.processTxTask(steps[i], wallet);
+      if (err) {
+        console.error("claimRewardTask %s %s error: %O", taskId, steps[i].name, err);
+        throw err;
+      }
+    }
+  }
+
+  async claimCrossReward(taskId, txHash, fromAddr, wallet) {
+    console.debug("SDK: claimCrossReward, taskId: %d, txHash: %s, fromAddr: %s, wallet: %s", taskId, txHash, fromAddr, wallet && wallet.name);
+    let task = await this.storemanService.getRewardTask(taskId);
+    if (task) {
+      if (task.status === 1) { // Created
+        throw new Error("Task is not claimed");
+      } else if (task.status === 3) { // Completed
+        throw new Error("Task reward has been claimed");
+      } else if (task.status !== 2) { // InProgress
+        throw new Error("Task is not available");
+      }
+    } else {
+      throw new Error("Task does not exist");
+    }
+    let url = (this.network === "testnet")? "https://testnet.wanscan.org/api/sign" : "https://www.wanscan.org/api/sign";
+    let res = await axios.post(url, {type: "ccRewardTask", taskId, txHash});
+    if (res.data.signature) {
+      let params = {taskType: "ProcessClaimCrossReward", taskId, txHash, signature: res.data.signature, fromAddr, wallet};
+      let err = await this.txTaskHandleService.processTxTask({params}, wallet);
+      if (err) {
+        console.error("claimCrossReward task %s error: %O", taskId, err);
+        throw err;
+      }
+    } else {
+      console.error("claimCrossReward task %s signature error: %s", taskId, res.data.error);
+      throw new Error(res.data.error);
+    }
   }
 
   _onStoremanInitilized(success) {

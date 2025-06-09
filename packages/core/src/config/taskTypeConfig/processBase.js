@@ -36,24 +36,26 @@ module.exports = class ProcessBase {
     console.log("processBase sendTransactionData stepData:", stepData);
     let params = stepData.params;
     try {
-      let strFailed = this.m_uiStrService.getStrByName("Failed");
-      let accountAry = await wallet.getAccounts();
-      let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
-      if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet account");
-        console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
-        return;
+      if (params.scChainType !== "VET") { // VeWorld wallet support auto switch address so do not need to check
+        let strFailed = this.m_uiStrService.getStrByName("Failed");
+        let accountAry = await wallet.getAccounts();
+        let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
+        if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
+          this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet account");
+          console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
+          return;
+        }
       }
 
       let fromBlock = await this.m_storemanService.getChainBlockNumber(params.scChainType);
-      let txHash = await wallet.sendTransaction(txData);
+      let txHash = await wallet.sendTransaction(txData, params.fromAddr);
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
         this.m_WebStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
       }
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let {txEventTopics, convertCheckInfo} = await this.getConvertInfoForCheck(stepData);
       let txCheckInfo = null;
-      if (params.scChainType !== "TRX") { // do not support tx replacement on tron
+      if (!["TRX", "VET"].includes(params.scChainType)) { // do not consider tx replacement on some evm compatible chains
         txCheckInfo = {from: txData.from, to: txData.to, topics: txEventTopics, fromBlock, input: "", nonce: undefined, nonceBlock: 0};
         if (wallet.getTxInfo) { // try fetch input and nonce from chain
           let txInfo = await wallet.getTxInfo(txHash);

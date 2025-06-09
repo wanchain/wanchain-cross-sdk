@@ -12,17 +12,21 @@ function validateAddress(address) {
   }
 }
 
-function getStandardAddressInfo(address) { // support bs58 encoded native or decoded format
-  let native = "", evm = "", cctp = "";
-  try {
-    bs58.decode(address); // throw exception while it is decoded format
+function getStandardAddressInfo(address) {
+  let native = "", evm = "", cctp = "", input = address;
+  try { // address is ATA for cctp, it is not on curve, can not call validateAddress
+    if (/^(0x)?[0-9A-Fa-f]+$/.test(address)) { // decoded format, only used to check apiServer toAddr
+      address = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
+    }
+    new PublicKey(address);
+    let decoded = bs58.decode(address);
     native = address;
-  } catch (err) { // decoded
-    native = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
+    evm = asciiToHex(native);
+    cctp = '0x' + Buffer.from(decoded).toString('hex');
+  } catch (err) {
+    console.error("Solana address %s is invalid", input);
   }
-  evm = asciiToHex(native);
-  cctp = '0x' + Buffer.from(bs58.decode(native)).toString('hex');
-  return {native, evm, ascii: native, cctp};
+  return {native, evm, text: native, cctp, compact: cctp};
 }
 
 function hexStrip0x(hexStr) {

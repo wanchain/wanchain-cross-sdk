@@ -377,6 +377,89 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147484466",
+      "chainType": "VET",
+      "chainName": "VeChain",
+      "symbol": "VET",
+      "chainDecimals": 18,
+      "crossScAddr": "0xfb37aee0ebfbd3929923d1366ba30df037e9e47c",
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2147493445",
+      "chainType": "NRG",
+      "chainName": "Energi",
+      "symbol": "NRG",
+      "chainDecimals": 18,
+      "crossScAddr": "0xbe5187c2a7eb776c1caeed2c37e7599fb05000d3",
+      "MaskChainId": 39797,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "2154655314",
+      "chainType": "BROCK",
+      "chainName": "Bitrock",
+      "symbol": "BROCK",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 7171,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741848",
+      "chainType": "DIONE",
+      "chainName": "Odyssey",
+      "symbol": "DIONE",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 153153,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741849",
+      "chainType": "PLYR",
+      "chainName": "PLYR",
+      "symbol": "PLYR",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 16180,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741853",
+      "chainType": "5IRE",
+      "chainName": "5ire",
+      "symbol": "1073741853",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 995,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741850",
+      "chainType": "EDX",
+      "chainName": "edeXa",
+      "symbol": "EDX",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 5424,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
@@ -485,7 +568,7 @@
       "chainName": "Cardano",
       "crossScAddr": "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
       "feeHolder": "addr1qyxqtjnck8f0gyzys6kwpydd5lrcjue6tg8f2elqhs65ffy7trczz375trxwfgc7zvkvxrxcr4plz8tnqv6qre7u722qhe650r",
-      "mintFromChainHandle": "MintAdaFromCardano",
+      "mintFromChainHandle": "MintFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
       "MaskChainId": 1,
@@ -502,6 +585,7 @@
       "chainId": "1073741844",
       "chainType": "NOBLE",
       "chainName": "Noble",
+      "feeHolder": "noble15wal47p8s029q2hgexfw6m9yjmjuqwkr7wdrp4",
       "mintFromChainHandle": "MintFromCosmos",
       "symbol": "USDC",
       "CircleBridge": {
@@ -586,6 +670,39 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigAddress": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
+  "crossConfigSc": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
+  "crossTask": {
+    "scAddr": "0x2D7744dBD92E6569b453Dc4414773dF72E869c78",
+    "tokens": {
+      "0x0000000000000000000000000000000000000000": {
+        "symbol": "WAN",
+        "decimals": 18
+      },
+      "0xc45ae7e9932bea4e220467c937fb6d3df4987001": {
+        "symbol": "XP",
+        "decimals": 18
+      },
+      "0x11e77e27af5539872efed10abaa0b408cfd9fbbd": {
+        "symbol": "USDT",
+        "decimals": 6
+      },
+      "0x2ea407aa69be7367bf231e76b51fab9ec436766c": {
+        "symbol": "xWAN",
+        "decimals": 18
+      },
+      "0x52a9cea01c4cbdd669883e41758b8eb8e8e2b34b": {
+        "symbol": "USDC",
+        "decimals": 6
+      },
+      "0xe3ae74d1518a76715ab4c7bedf1af73893cd435a": {
+        "symbol": "ETH",
+        "decimals": 18
+      },
+      "0x50c439b6d602297252505a6799d84ea5928bcfb6": {
+        "symbol": "BTC",
+        "decimals": 8
+      }
+    }
+  },
   "wanPointsServer": "https://wanpoints.wanscan.org"
 }

@@ -11,26 +11,32 @@ module.exports = class MintAdaFromCardano {
 
   async process(tokenPair, convert) {
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
+      let direction = (convert.convertType === "MINT");
+      let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
+      let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
+      let tokenType = tokenPair.protocol;
+      let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
       // fee is not necessary, storeman agent get fee from config contract
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
       let networkFee = tool.parseFee(convert.fee, convert.value, "ADA", {formatWithDecimals: false, feeType: "networkFee"});
-      let toChainType = tokenPair.toChainType;
+      let crossScAddr = (tokenType === "Erc20")? chainInfo.crossScAddr : chainInfo.nftCrossScAddr;
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType,
-        crossScAddr: tokenPair.fromScInfo.crossScAddr,
-        feeHolder: tokenPair.fromScInfo.feeHolder,
-        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        crossScAddr,
+        feeHolder: chainInfo.feeHolder,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).text,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.gpkInfo.gpk,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessAdaMintFromCardano",
+        taskType: "ProcessMintFromCardano",
         fee,
         networkFee,
-        fromAddr: convert.fromAddr
+        fromAddr: convert.fromAddr,
+        tokenType
       };
       console.debug("Mint %s FromCardano params: %O", tokenPair.readableSymbol, params);
       let steps = [

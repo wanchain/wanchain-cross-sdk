@@ -40,7 +40,7 @@ class TokenPairService {
             this.uiStrService = frameworkService.getService("UIStrService");
 
             this.eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
-            let tokenPairCfg = await this.configService.getGlobalConfig("tokenPairCfg");
+            let tokenPairCfg = this.configService.getGlobalConfig("tokenPairCfg");
             tokenPairCfg.map(tp => {
               this.m_mapTokenPairCfg.set(tp.id, tp);
             })
@@ -104,18 +104,32 @@ class TokenPairService {
               this.readChainHighlightEndTime(ts0),
               this.readAssetHighlightEndTime(ts0)
             ]);
+            let preferedTokenPairs = new Map();
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
                 if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
                   if (this.checkCustomization(tp)) {
-                    tokenPairMap.set(tp.id, tp);
+                    if (tp.bridge) { // WanBridge dapp prefer cctp, xFlow prefer wanchain bridge
+                      let k1 = tp.fromChainType + tp.toChainType + tp.readableSymbol;
+                      let k2 = tp.toChainType + tp.fromChainType + tp.readableSymbol;
+                      preferedTokenPairs.set(k1, {id: tp.id});
+                      preferedTokenPairs.set(k2, {id: tp.id});
+                    }
                     return true;
                   }
                 }
               }
               return false;
             });
-            let activeTokenPairs = tokenPairs.filter(tp => this.updateChainAssets(tp));
+            let activeTokenPairs = tokenPairs.filter(tp => {
+              let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
+              let prefered = preferedTokenPairs.get(k);
+              if (prefered && prefered.id !== tp.id) {
+                return false;
+              }
+              tokenPairMap.set(tp.id, tp);
+              return this.updateChainAssets(tp);
+            });
             let ts1 = Date.now();
             let ps = [
               this.getSmgs(ts1)
@@ -247,6 +261,15 @@ class TokenPairService {
         let chainInfo = this.chainInfoService.getChainInfoById(tp.ancestorChainID);
         assetMap.set(tp.readableSymbol + "_" + tp.protocol.toLowerCase(), {chain: chainInfo.chainType, address: tp.ancestorAccount});
       });
+      // append cross reward task tokens
+      let crossTaskCfg = this.configService.getGlobalConfig("crossTask");
+      for (let address in crossTaskCfg.tokens) {
+        let key = crossTaskCfg.tokens[address].symbol + "_erc20";
+        if (!assetMap.get(key)) {
+          assetMap.set(key, {chain: "WAN", address});
+          console.debug("append cross reward task tokens %s(%s)", key, address);
+        }
+      }
       let cache;
       if ((!this.refresh.tokenLogo) && this.indexedDbService) {
         cache = await this.indexedDbService.getCacheData("AssetLogo");
@@ -445,6 +468,8 @@ class TokenPairService {
         return "POL";
       } else if (symbol === "ELisforLiar") {
         return "LIAR";
+      } else if (symbol === "Talos") {
+        return "AGENT";
       } else {
         return symbol;
       }
@@ -483,7 +508,7 @@ class TokenPairService {
         tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
         tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
         this.chainName2Type.set(tokenPair.fromChainName, tokenPair.fromChainType);
-        tokenPair.fromSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol));
+        tokenPair.fromSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.fromChainID, tokenPair.fromSymbol, {ancestorChain: tokenPair.ancestorChainID, protocol: tokenPair.protocol}));
         tokenPair.fromIsNative = this.checkNativeToken(tokenPair.bridge, tokenPair.ancestorChainType, tokenPair.fromChainType, tokenPair.fromAccount);
         let issuer = this.tokenIssuer.get(tokenPair.fromChainType + "-" + tokenPair.fromAccount);
         if (issuer) {
@@ -498,7 +523,7 @@ class TokenPairService {
         tokenPair.toChainType = tokenPair.toScInfo.chainType;
         tokenPair.toChainName = tokenPair.toScInfo.chainName;
         this.chainName2Type.set(tokenPair.toChainName, tokenPair.toChainType);
-        tokenPair.toSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol));
+        tokenPair.toSymbol = this.customizeSymbol(tool.parseTokenPairSymbol(tokenPair.toChainID, tokenPair.symbol, {ancestorChain: tokenPair.ancestorChainID, protocol: tokenPair.protocol}));
         tokenPair.toIsNative = this.checkNativeToken(tokenPair.bridge, tokenPair.ancestorChainType, tokenPair.toChainType, tokenPair.toAccount);
         let issuer = this.tokenIssuer.get(tokenPair.toChainType + "-" + tokenPair.toAccount);
         if (issuer) {
@@ -617,6 +642,11 @@ class TokenPairService {
     // for external call
     getTokenEventType(tokenPairId, direction) {
       let tokenPair = this.getTokenPair(tokenPairId);
+      if (direction === true) { // unify direction value
+        direction = "MINT";
+      } else if (direction === false) {
+        direction = "BURN";
+      }
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       if (chainType === "ALGO") {
         return "algoBURN";

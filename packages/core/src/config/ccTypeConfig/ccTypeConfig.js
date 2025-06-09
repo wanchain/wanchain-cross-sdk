@@ -31,8 +31,8 @@ module.exports = [
       "handle": require("./BurnErc20ProxyToken")
     },
     {
-      "name": "MintAdaFromCardano",
-      "handle": require("./MintAdaFromCardano")
+      "name": "MintFromCardano",
+      "handle": require("./MintFromCardano")
     },
     {
       "name": "BurnFromCardano",
@@ -71,11 +71,23 @@ module.exports = [
       "handle": require("./CircleBridgeSuiDeposit")
     },
     {
+      "name": "ClaimRewardTask",
+      "handle": require("./ClaimRewardTask")
+    },
+    {
+      "name": "MintFromSui",
+      "handle": require("./MintFromSui")
+    },
+    {
+      "name": "BurnFromSui",
+      "handle": require("./BurnFromSui")
+    },
+    {
       "name": "MintFromTon",
       "handle": require("./MintFromTon")
     },
     {
       "name": "BurnFromTon",
       "handle": require("./BurnFromTon")
-    },
+    }
 ]

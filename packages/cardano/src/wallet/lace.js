@@ -1,23 +1,23 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
 
-class Nami {
+class Lace {
   constructor() {
-    this.name = "Nami";
-    this.wallet = window.cardano.nami;
+    this.name = "Lace";
+    this.wallet = window.cardano.lace;
     this.wasm = wasm.getWasm();
   }
 
   // standard function
 
   async getChainId() {
-    let cardano = await this.wallet.enable();
+    let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
     return cardano.getNetworkId();
   }
 
   async getAccounts() {
     try {
-      let cardano = await this.wallet.enable();
+      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
       let accounts = await cardano.getUsedAddresses();
       accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
@@ -30,12 +30,17 @@ class Nami {
   async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
-      let cardano = await this.wallet.enable();
+      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       if (tokenId) {
         let [policyId, assetName] = tokenId.split(".");
-        return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        if (assetName) { // erc20
+          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+        } else { // nft
+          let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+          return nfts.length.toString();
+        }
       } else { // coin
         return value.coin().to_str(); // TODO: sub token locked coin
       }
@@ -48,26 +53,45 @@ class Nami {
   async getBalances(addr, tokenIds) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
-      let cardano = await this.wallet.enable();
+      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       return tokenIds.map(id => {
         if (id) {
           let [policyId, assetName] = id.split(".");
-          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          if (assetName) { // erc20
+            return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          } else { // nft
+            let nfts = tool.getNftInfo(value.multiasset(), id);
+            return nfts.length.toString();
+          }
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
       })
     } else {
-      console.log("%s is not used address", addr);
-      throw new Error("Not used address");
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
+    }
+  }
+
+  async getNftInfo(addr, tokenId) {
+    let accounts = await this.getAccounts();
+    if (addr === accounts[0]) {
+      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+      return nfts;
+    } else {
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
     }
   }
 
   async sendTransaction(tx) {
     tx = this.wasm.Transaction.from_hex(tx);
-    let cardano = await this.wallet.enable();
+    let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
     let witnessSet = await cardano.signTx(tx.to_hex());
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
@@ -82,15 +106,17 @@ class Nami {
   // customized function
 
   async getUtxos() {
-    let cardano = await this.wallet.enable();
+    let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
     let utxos = await cardano.getUtxos();
     return utxos;
   }
 
   async getCollateral() {
-    let utxos = await window.cardano.getCollateral();
+    let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+    let utxos = await cardano.getCollateral();
+    utxos = utxos || [];
     return utxos.slice(0, 3);
   }
 }
 
-module.exports = Nami;
+module.exports = Lace;

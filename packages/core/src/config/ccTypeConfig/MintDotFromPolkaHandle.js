@@ -22,7 +22,7 @@ module.exports = class MintDotFromPolkaHandle {
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType,
-        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).text,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.gpkInfo.gpk,

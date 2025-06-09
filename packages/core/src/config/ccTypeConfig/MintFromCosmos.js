@@ -22,7 +22,7 @@ module.exports = class MintFromCosmos {
         ccTaskId: convert.ccTaskId,
         fromChainType,
         toChainType,
-        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).ascii,
+        userAccount: tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType)).text,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         storemanGroupGpk: convert.gpkInfo.gpk,
@@ -30,6 +30,7 @@ module.exports = class MintFromCosmos {
         value,
         taskType: "ProcessMintFromCosmos",
         networkFee,
+        feeHolder: chainInfo.feeHolder,
         fromAddr: convert.fromAddr
       };
       console.debug("Mint %s FromCardano params: %O", tokenPair.readableSymbol, params);

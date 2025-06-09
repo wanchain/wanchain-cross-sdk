@@ -8,23 +8,17 @@ function validateAddress(address) {
   }
 }
 
-function getStandardAddressInfo(address) { // support encoded native or decoded format
-  let native = "", evm = "", cctp = "";
-  if (algosdk.isValidAddress(address)) {
+function getStandardAddressInfo(address) {
+  let native = "", evm = "", compact = "";
+  if (validateAddress(address)) {
     native = address;
+    evm = asciiToHex(native);
+    // ignore cctp address as it is not supported now
+    compact = '0x' + Buffer.from(algosdk.decodeAddress(native).publicKey).toString('hex');
   } else {
-    native = algosdk.encodeAddress(Buffer.from(hexStrip0x(address), "hex"));
+    console.error("Algorand address %s is invalid", address);
   }
-  evm = asciiToHex(native);
-  cctp = '0x' + Buffer.from(algosdk.decodeAddress(native).publicKey).toString('hex');
-  return {native, evm, ascii: native, cctp};
-}
-
-function hexStrip0x(hexStr) {
-  if (0 == hexStr.indexOf('0x')) {
-      return hexStr.slice(2);
-  }
-  return hexStr;
+  return {native, evm, text: native, compact};
 }
 
 // according to web3.utils.asciiToHex
