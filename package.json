@@ -59,6 +59,6 @@
     "@vechain/sdk-core": "^1.0.0",
     "@vechain/dapp-kit": "^1.5.0",
     "tonweb": "^0.0.66",
-    "wan-ton-bridge": "^0.0.3"
+    "wan-ton-sdk": "^0.0.12"
   }
 }
