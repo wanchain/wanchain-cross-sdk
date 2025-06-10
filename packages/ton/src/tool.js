@@ -1,5 +1,5 @@
 const Address = require('tonweb').Address;
-const WanTonSdk = require('wan-ton-bridge');
+const WanTonSdk = require('wan-ton-sdk');
 
 function validateAddress(address, network) {
   try {
