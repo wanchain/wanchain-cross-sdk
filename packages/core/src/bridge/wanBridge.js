@@ -471,7 +471,7 @@ class WanBridge extends EventEmitter {
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
     let prices = {};
-    if (options.account && options.price && options.protocols.includes("Erc20")) {
+    if (options.price && options.protocols.includes("Erc20")) {
       let assetNameSet = new Set();
       let assetPairList = this.stores.assetPairs.assetPairList;
       assetPairList.forEach(pair => {
