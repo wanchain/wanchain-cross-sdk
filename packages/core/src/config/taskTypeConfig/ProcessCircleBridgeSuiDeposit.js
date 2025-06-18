@@ -29,10 +29,9 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let suiCoins = await this.storemanService.getSuiCoins(params.fromAddr, "0x2::sui::SUI");
       let totalSui = new BigNumber(params.networkFee).plus(DefaultGas).toFixed();
       let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalSui);
-      let suiCoin = selectedSuiCoins[0];
-      if (selectedSuiCoins.length > 1) {
-        tx.mergeCoins(suiCoin, selectedSuiCoins.slice(1));
-      }
+      tx.setGasPayment(selectedSuiCoins.map(v => {
+        return {objectId: v.coinObjectId, version: v.version, digest: v.digest}
+      }));
       let [feeCoin] = tx.splitCoins(tx.gas, [params.networkFee]);
       // usdc asset
       let usdcAccount = tool.ascii2letter(direction? tokenPair.fromAccount : tokenPair.toAccount);
