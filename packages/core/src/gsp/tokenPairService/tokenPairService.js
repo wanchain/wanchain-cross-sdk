@@ -182,6 +182,10 @@ class TokenPairService {
       return true;
     }
 
+    getCrossTypes() {
+      return this.crossTypes;
+    }
+
     checkActive(assetName, tp) { // only for erc20
       if (this.crossTypes.length && (tp.protocol === "Erc20")) {
         let crossType = "other";
