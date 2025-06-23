@@ -1,12 +1,16 @@
-const Address = require('tonweb').Address;
-const WanTonSdk = require('wan-ton-sdk');
+const {Address, beginCell: sdkBeginCell, internal, storeMessage} = require("@ton/core");
+const {getSecureRandomNumber} = require('@ton/crypto');
 
 function validateAddress(address, network) {
   try {
-    let addr = new Address(address);
-    if (addr.isUserFriendly) {
-      let checkTest = (network === "testnet");
-      return (addr.isTestOnly === checkTest);
+    if (Address.isFriendly(address)) {
+      let addr = Address.parseFriendly(address);
+      // console.log({addr})
+      // let rawAddr = addr.address.toRawString();
+      // console.log({rawAddr});
+      // let raw = Address.parseRaw(rawAddr);
+      // console.log("str: %s", raw.toString({testOnly: true, bounceable: true}))
+      return (addr.isTestOnly === (network === "testnet"));
     } else {
       return false;
     }
@@ -15,36 +19,32 @@ function validateAddress(address, network) {
   }
 }
 
-function getStandardAddressInfo(address) { // only support user friendly address, otherwise need check network
-  let native = address;
-  let evm = asciiToHex(native);
-  return {native, evm, ascii: native, cctp: ""};
+function parseAddress(source) {
+  return Address.parse(source);
 }
 
-// according to web3.utils.asciiToHex
-function asciiToHex(str) {
-	let hexString = '';
-	for (let i = 0; i < str.length; i += 1) {
-		const hexCharCode = str.charCodeAt(i).toString(16);
-		// might need a leading 0
-		hexString += hexCharCode.length % 2 !== 0 ? ('0' + hexCharCode) : hexCharCode;
-	}
-	return '0x' + hexString;
+async function getQueryId() {
+  return getSecureRandomNumber(1, (Math.pow(2, 52) - 1));
 }
 
-function buildUserTxMsg(crossScAddr, smgID, tokenPairID, crossValue, userAccount, extInfo) {
-  let msgs = [];
-  return msgs;
+function beginCell() {
+  return sdkBeginCell();
 }
 
-function getMsgHash(msgs) {
-  return WanTonSdk.getMsgHash(msgs);
+function buildInternalMessage(opts) { // {to, value, bounce, init, body}
+  return internal(opts);
+}
+
+function getMsgHash(msg) {
+  return sdkBeginCell().store(storeMessage(m)).endCell().hash().toString('hex');
 }
 
 const tools = {
   validateAddress,
-  getStandardAddressInfo,
-  buildUserTxMsg,
+  parseAddress,
+  getQueryId,
+  beginCell,
+  buildInternalMessage,
   getMsgHash,
 }
 

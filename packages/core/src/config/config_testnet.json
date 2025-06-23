@@ -762,6 +762,7 @@
       "chainId": "2147484255",
       "chainType": "TON",
       "chainName": "Ton",
+      "crossScAddr": "kQDlYDH0PmST2okwTluXJ2mUDMDCzPzXF1gGz24U6H2tE9Wr",
       "mintFromChainHandle": "MintFromTon",
       "burnFromChainHandle": "BurnFromTon",
       "chainDecimals": 9,

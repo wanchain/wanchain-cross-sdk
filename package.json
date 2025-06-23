@@ -58,7 +58,6 @@
     "@mysten/sui": "^1.12.0",
     "@vechain/sdk-core": "^1.0.0",
     "@vechain/dapp-kit": "^1.5.0",
-    "tonweb": "^0.0.66",
-    "wan-ton-sdk": "^0.0.15"
+    "@ton/core": "0.59.0"
   }
 }

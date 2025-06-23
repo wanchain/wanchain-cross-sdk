@@ -20,9 +20,10 @@ module.exports = class MintFromTon {
       let toAddressInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
       let params = {
         ccTaskId: convert.ccTaskId,
+        crossScAddr: chainInfo.crossScAddr,
         toChainType,
         feeHolder: chainInfo.feeHolder,
-        userAccount: toAddressInfo.evm,
+        userAccount: toAddressInfo.text,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         tokenPairID: convert.tokenPairId,
