@@ -460,6 +460,18 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741856",
+      "chainType": "SHIDO",
+      "chainName": "Shido",
+      "symbol": "SHIDO",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "MaskChainId": 9008,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
