@@ -31,6 +31,7 @@ class TokenPairService {
             this.crossChains = (options.crossChains || []).map(v => v.toLowerCase());
             this.crossProtocols = (options.crossProtocols || []).map(v => v.toLowerCase());
             this.crossTypes = (options.crossTypes || []).map(v => v.toLowerCase());
+            this.prefer = options.prefer || "cctp"; // prefer cctp or wb when both tokenpair exist, DO NOT conflict with crossTypes cctp
             this.frameworkService = frameworkService;
             this.iwan = frameworkService.getService("iWanConnectorService");
             this.eventService = frameworkService.getService("EventService");
@@ -104,16 +105,19 @@ class TokenPairService {
               this.readChainHighlightEndTime(ts0),
               this.readAssetHighlightEndTime(ts0)
             ]);
-            let preferedTokenPairs = new Map();
+            let preferTokenPairs = new Map();
             tokenPairs = tokenPairs.filter(tp => {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
                 if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
                   if (this.checkCustomization(tp)) {
-                    if (tp.bridge) { // WanBridge dapp prefer cctp, xFlow prefer wanchain bridge
-                      let k1 = tp.fromChainType + tp.toChainType + tp.readableSymbol;
-                      let k2 = tp.toChainType + tp.fromChainType + tp.readableSymbol;
-                      preferedTokenPairs.set(k1, {id: tp.id});
-                      preferedTokenPairs.set(k2, {id: tp.id});
+                    if (tp.readableSymbol === "USDC") { // prefer is only for USDC now
+                      if (((this.prefer === "cctp") && (tp.bridge === "Circle")) // WanBridge dapp prefer cctp, xFlow prefer wanchain bridge
+                      || ((this.prefer === "wb") && !tp.bridge)) {
+                        let k1 = tp.fromChainType + tp.toChainType + tp.readableSymbol;
+                        let k2 = tp.toChainType + tp.fromChainType + tp.readableSymbol;
+                        preferTokenPairs.set(k1, {id: tp.id});
+                        preferTokenPairs.set(k2, {id: tp.id});
+                      }
                     }
                     return true;
                   }
@@ -122,10 +126,13 @@ class TokenPairService {
               return false;
             });
             let activeTokenPairs = tokenPairs.filter(tp => {
-              let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
-              let prefered = preferedTokenPairs.get(k);
-              if (prefered && prefered.id !== tp.id) {
-                return false;
+              if (tp.readableSymbol === "USDC") { // prefer is only for USDC now
+                let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
+                let prefer = preferTokenPairs.get(k);
+                if (prefer && prefer.id !== tp.id) {
+                  console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
+                  return false;
+                }
               }
               tokenPairMap.set(tp.id, tp);
               return this.updateChainAssets(tp);
@@ -180,6 +187,10 @@ class TokenPairService {
       this.webStores.assetPairs.setAssetPairs(activeTokenPairs, undefined, this.configService);
       this.eventService.emitEvent("StoremanServiceInitComplete", true);
       return true;
+    }
+
+    getCrossTypes() {
+      return this.crossTypes;
     }
 
     checkActive(assetName, tp) { // only for erc20
@@ -475,6 +486,20 @@ class TokenPairService {
       }
     }
 
+    getBridgeInfo(bridges) {
+      let bridge = '', routes = []; // default WanBridge, bridge keep empty for compatible
+      if (bridges) {
+        if (bridges === 'Circle') { // old version, no other value yet
+          bridge = 'Circle';
+          routes = [bridges];
+        } else { // new version, ['CCTPV1'] or ['CCTPV2']
+          bridge = 'Circle';
+          routes = bridges;
+        }
+      }
+      return {bridge, routes};
+    }
+
     updateTokenPairInfo(tokenPair) {
         let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
@@ -488,6 +513,9 @@ class TokenPairService {
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
+            let bi = this.getBridgeInfo(tokenPair.bridge); // rewrite bridge filed
+            tokenPair.bridge = bi.bridge;
+            tokenPair.routes = bi.routes;
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);

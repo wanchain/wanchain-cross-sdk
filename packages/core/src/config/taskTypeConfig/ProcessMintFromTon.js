@@ -45,7 +45,7 @@ module.exports = class ProcessMintFromTon {
         totalTon = totalTon.plus(crossValue);
       }
       let queryId = await this.tool.getQueryId();
-      let userAccountBuf = Buffer.from(params.userAccount);
+      let userAccountBuf = Buffer.from(tool.hexStrip0x(params.userAccount), 'hex');
       let userAccountBufLen = userAccountBuf.length;
       let isNativeToken = this.tokenPairService.checkNativeToken("", tokenPair.ancestorChainType, "TON", tokenAccount); // MUST call before decode ascii
       let jwSender, jwCrossSc;

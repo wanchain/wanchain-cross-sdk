@@ -23,7 +23,7 @@ module.exports = class MintFromTon {
         crossScAddr: chainInfo.crossScAddr,
         toChainType,
         feeHolder: chainInfo.feeHolder,
-        userAccount: toAddressInfo.text,
+        userAccount: toAddressInfo.evm,
         toAddr: convert.toAddr, // for readability
         storemanGroupId: convert.storemanGroupId,
         tokenPairID: convert.tokenPairId,

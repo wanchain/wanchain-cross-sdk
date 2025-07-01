@@ -27,6 +27,7 @@ class WanBridge extends EventEmitter {
     this.network = (network == "mainnet")? "mainnet" : "testnet";
     this.isTestMode = options.isTestMode || false;
     this.smgName = options.smgName || "";
+    this.prefer = options.prefer || "cctp"; // prefer cctp or wb when both tokenpair exist, default cctp
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
@@ -34,9 +35,9 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2506031938", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2506301135", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
-    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
+    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -64,6 +65,10 @@ class WanBridge extends EventEmitter {
     let success = this.tokenPairService.setCrossTypes(crossTypes);
     console.debug("SDK: setCrossTypes %s: %O", success, crossTypes);
     return success;
+  }
+
+  getCrossTypes() {
+    return this.tokenPairService.getCrossTypes();
   }
 
   async getSmgInfo() {
@@ -471,7 +476,7 @@ class WanBridge extends EventEmitter {
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
     let prices = {};
-    if (options.account && options.price && options.protocols.includes("Erc20")) {
+    if (options.price && options.protocols.includes("Erc20")) {
       let assetNameSet = new Set();
       let assetPairList = this.stores.assetPairs.assetPairList;
       assetPairList.forEach(pair => {

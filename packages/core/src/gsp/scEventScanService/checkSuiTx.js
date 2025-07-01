@@ -100,8 +100,11 @@ module.exports = class CheckSuiTx {
       let msgType = (task.taskType === "MINT")? this.SmgMintMsg : this.SmgReleaseMsg;
       let smgEvent = receipt.events.find(v => ((v.transactionModule === "cross") && (v.type === msgType)));
       if (smgEvent && smgEvent.parsedJson) {
-        console.log("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
-        return {txHash,  toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount};
+        let uniqueId = '0x' + Buffer.from(smgEvent.parsedJson.unique_id).toString('hex');
+        if (uniqueId === task.uniqueID) {
+          console.log("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
+          return {txHash,  toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount};
+        }
       }
     }
     task.fromBlockNumber = result.nextCursor;
