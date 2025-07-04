@@ -131,12 +131,18 @@ module.exports = class TxGeneratorService{
     // event: DepositForBurnWithFee(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken, uint256 fee)
     // topic[0]: 0x6dce5b2406630dbc3a2633f31a15505733a9ede5169532aaab88ac01c77ff1e4
     async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount, options) {
-      let abi = this.configService.getAbi("circleBridgeProxy");
+      let abi = this.configService.getAbi(options.isV2? "cctpV2Proxy" : "cctpProxy");
       let scAddr = crossScAddr.toLowerCase();
       let crossScInst = new web3.eth.Contract(abi, scAddr);
       value = "0x" + new BigNumber(value).toString(16);
       let destInBytes32 = '0x' + tool.hexStrip0x(userAccount).toLowerCase().padStart(64, '0');
-      let data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
+      let data;
+      if (options.isV2) {
+        let anyCaller = '0x' + '0'.repeat(64);
+        data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000).encodeABI();
+      } else {
+        data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
+      }
       let txValue = "0x" + new BigNumber(options.coinValue || 0).toString(16);
       let gasLimit = await this.iwan.estimateGas(options.chainType, {from: options.from.toLowerCase(), to: scAddr, value: txValue, data});
       console.debug("%s generateCircleBridgeDeposit gasLimit: %s", options.chainType, gasLimit);

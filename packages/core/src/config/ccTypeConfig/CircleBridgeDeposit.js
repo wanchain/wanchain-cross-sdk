@@ -36,11 +36,13 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       console.log({innerToAddr});
     }
     let toAddressInfo = tool.getStandardAddressInfo(toChainType, innerToAddr, this.configService.getExtension(toChainType));
+    let bridgeInfo = chainInfo[tokenPair.bridge + "Bridge"];
+    let isV2 = (convert.route === "CCTPV2");
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
-      crossScAddr: tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr,
+      crossScAddr: isV2? bridgeInfo.crossScAddrV2 : bridgeInfo.crossScAddr,
       tokenPairID: convert.tokenPairId,
       value,
       userAccount: toAddressInfo.cctp || toAddressInfo.evm,
@@ -49,7 +51,8 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       taskType: "ProcessCircleBridgeDeposit",
       networkFee,
       tokenAccount,
-      operateFee
+      operateFee,
+      isV2
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

@@ -35,8 +35,13 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max;
-    let wanBridgeCrossSc = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
-    let crossScAddr = tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : wanBridgeCrossSc;
+    let crossScAddr = "";
+    if (tokenPair.bridge === "Circle") {
+      let bridgeInfo = chainInfo[tokenPair.bridge + "Bridge"];
+      crossScAddr = (convert.route === "CCTPV2")? bridgeInfo.crossScAddrV2 : bridgeInfo.crossScAddr;
+    } else  {
+      crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    }
     let approveParams = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,

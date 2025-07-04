@@ -727,5 +727,6 @@
       }
     }
   },
-  "wanPointsServer": "https://wanpoints.wanscan.org"
+  "wanPointsServer": "https://wanpoints.wanscan.org",
+  "cctpApiUrl": "https://iris-api.circle.com"
 }

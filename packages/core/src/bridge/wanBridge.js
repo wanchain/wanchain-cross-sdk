@@ -246,7 +246,7 @@ class WanBridge extends EventEmitter {
       let chainType = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainType : tokenPair.toChainType;
       let targetChainType = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainType : tokenPair.fromChainType;
       hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", {chainType, targetChainType, tokenPairID: tokenPair.id});
-      if (tokenPair.bridge) { // other bridge, such as Circle
+      if (tokenPair.bridge) { // oly Circle now, ingnore cctpV2 quota
         quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
         let smg = await this.getSmgInfo();
@@ -539,6 +539,7 @@ class WanBridge extends EventEmitter {
     };
     let result = (tokenPair.fromChainName === fromChainName)? {from: from, to: to} : {from: to, to: from};
     result.bridge = tokenPair.bridge;
+    result.routes = tokenPair.routes;
     return result;
   }
 
