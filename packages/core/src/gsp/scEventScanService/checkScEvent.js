@@ -5,7 +5,7 @@ const tool = require("../../utils/tool");
 
 const DefaultScanBatchSize = 1000;
 const CustomizedScanBatchSize = {
-  SGB: 30,
+  SGB: 25,
   OKT: 300,
   OKB: 100
 };
