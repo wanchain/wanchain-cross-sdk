@@ -516,6 +516,23 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "1073741857",
+      "chainType": "WORLDETH",
+      "chainName": "World Chain",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
+      "CircleBridge": {
+        "domain": 14,
+        "crossScAddr": "",
+        "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
+      },
+      "MaskChainId": 4801,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
     }
   ],
   "UIStrService": {
