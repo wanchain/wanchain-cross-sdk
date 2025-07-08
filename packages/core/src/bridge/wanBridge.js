@@ -201,6 +201,9 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let toChainType = this.tokenPairService.getChainType(toChainName);
+    if (tokenPair.bridge === "Circle") {
+      options.bridge = tokenPair.routes[0];
+    }
     let [operateFee, networkFee] = await Promise.all([
       this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
       this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)

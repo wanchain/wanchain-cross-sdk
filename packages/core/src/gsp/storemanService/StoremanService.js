@@ -640,9 +640,14 @@ class StoremanService {
       let url = util.format("%s/v2/messages/%d?transactionHash=%s", cctpApiUrl, chainInfo.CircleBridge.domain, txHash);
       let res = await axios.get(url);
       // console.log("cctp api rs: %O", res)
-      if (res && res.data && res.data.messages && res.data.messages[0].eventNonce) {
-        result.depositNonce = res.data.messages[0].eventNonce;
-        result.depositAmount = res.data.messages[0].decodedMessage.decodedMessageBody.amount;
+      if (res && res.data && res.data.messages) {
+        let msg = res.data.messages[0];
+        if (msg.eventNonce && msg.decodedMessage) {
+          result.depositNonce = msg.eventNonce;
+          result.depositAmount = msg.decodedMessage.decodedMessageBody.amount;
+        } else if (msg.attestation === "PENDING") {
+          console.debug("parseCctpDeposit for chain %s tx %s pending: %s", fromChain, txHash, msg.delayReason);
+        }
       }
     } else { // evm v1
       let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
