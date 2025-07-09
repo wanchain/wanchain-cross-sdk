@@ -3,12 +3,14 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
+const util = require("util");
 
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC"];
 const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL", "TON"];
 
-const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
+// DepositForBurn
+const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0"; // v1
 
 class StoremanService {
     constructor() {
@@ -632,11 +634,26 @@ class StoremanService {
           result.depositAmount = cctpMsg.amount;
         }
       }
-    } else { // evm
+    } else if (options.isV2) { // evm v2
+      let chainInfo = this.chainInfoService.getChainInfoByType(fromChain);
+      let cctpApiUrl = this.configService.getGlobalConfig("cctpApiUrl");
+      let url = util.format("%s/v2/messages/%d?transactionHash=%s", cctpApiUrl, chainInfo.CircleBridge.domain, txHash);
+      let res = await axios.get(url);
+      // console.log("cctp api rs: %O", res)
+      if (res && res.data && res.data.messages) {
+        let msg = res.data.messages[0];
+        if (msg.eventNonce && msg.decodedMessage) {
+          result.depositNonce = msg.eventNonce;
+          result.depositAmount = msg.decodedMessage.decodedMessageBody.amount;
+        } else if (msg.attestation === "PENDING") {
+          console.debug("parseCctpDeposit for chain %s tx %s pending: %s", fromChain, txHash, msg.delayReason);
+        }
+      }
+    } else { // evm v1
       let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
       for (let log of receipt.logs) {
         if (log.topics[0] === CctpEvmDepositEventHash) {
-          let abi = this.configService.getAbi("circleBridgeDeposit");
+          let abi = this.configService.getAbi("cctpTokenMessenger");
           let decoded = tool.parseEvmLog(log, abi);
           console.debug("parseCctpDeposit for chain %s tx %s: %O", fromChain, txHash, decoded);
           result.depositNonce = decoded.args.nonce;

@@ -5,12 +5,12 @@ const tool = require("../../utils/tool");
 
 const DefaultScanBatchSize = 1000;
 const CustomizedScanBatchSize = {
-  SGB: 30,
+  SGB: 29,
   OKT: 300,
   OKB: 100
 };
 
-const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT"];
+const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
 const AlgoEventTypes = ["algoBURN"];
 
 // CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
@@ -34,9 +34,12 @@ module.exports = class CheckScEvent {
     this.configService = this.frameworkService.getService("ConfigService");
     this.storemanService = this.frameworkService.getService("StoremanService");
     this.crossScAbi = this.configService.getAbi("crossSc");
-    this.circleBridgeProxyAbi = this.configService.getAbi("circleBridgeProxy");
-    this.circleBridgeDepositAbi = this.configService.getAbi("circleBridgeDeposit");
-    this.circleBridgeReceiveAbi = this.configService.getAbi("circleBridgeReceive");
+    this.cctpProxyAbi = this.configService.getAbi("cctpProxy");
+    this.cctpMessageTransmitterAbi = this.configService.getAbi("cctpMessageTransmitter");
+    this.cctpTokenMessengerAbi = this.configService.getAbi("cctpTokenMessenger");
+    this.cctpV2ProxyAbi = this.configService.getAbi("cctpV2Proxy");
+    this.cctpV2MessageTransmitterAbi = this.configService.getAbi("cctpV2MessageTransmitter");
+    this.cctpV2TokenMessengerAbi = this.configService.getAbi("cctpV2TokenMessenger");
     if (chainInfo.chainType === "ALGO") {
       this.eventTypes = AlgoEventTypes;
       this.eventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
@@ -49,6 +52,7 @@ module.exports = class CheckScEvent {
       this.eventHandler.set("MINTNFT", this.processSmgMintNft.bind(this));
       this.eventHandler.set("BURNNFT", this.processSmgReleaseNft.bind(this));
       this.eventHandler.set("circleMINT", this.processCircleMint.bind(this));
+      this.eventHandler.set("cctpV2MINT", this.processCctpV2Mint.bind(this));
     }
     this.eventTypes.forEach(v => this.eventTasks.set(v, []));
   }
@@ -108,9 +112,15 @@ module.exports = class CheckScEvent {
   }
 
   async processCircleMint() {
-    let eventHash = this.getEventHash(this.circleBridgeProxyAbi, "MintToken");
-    let eventName = "MintToken";
+    let eventHash = this.getEventHash(this.cctpMessageTransmitterAbi, "MessageReceived");
+    let eventName = "MessageReceived";
     await this.processScLogger("circleMINT", eventHash, eventName);
+  }
+
+  async processCctpV2Mint() {
+    let eventHash = this.getEventHash(this.cctpV2MessageTransmitterAbi, "MessageReceived");
+    let eventName = "MessageReceived";
+    await this.processScLogger("cctpV2MINT", eventHash, eventName);
   }
 
   async processAlgoBurn() {
@@ -163,11 +173,16 @@ module.exports = class CheckScEvent {
           }
           task.fromBlockNumber = blockNumber;
         }
-        if ((task.taskType === "circleMINT") && (task.depositNonce === undefined)) {
-          let result = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, {ota: task.ota});
-          if (result.depositNonce !== undefined) {
-            task.depositNonce = result.depositNonce;
-            task.depositAmount = result.depositAmount;
+        if ((["circleMINT", "cctpV2MINT"].includes(task.taskType)) && ((task.depositNonce === undefined) || !task.transmitter)) {
+          let isV2 = (task.taskType === "cctpV2MINT");
+          let [deposit, transmitter] = await Promise.all([
+            this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, {ota: task.ota, isV2}),
+            this.getCctpMessageTransmitterAddr(isV2)
+          ])
+          if ((deposit.depositNonce !== undefined) && transmitter) {
+            task.depositNonce = deposit.depositNonce;
+            task.depositAmount = deposit.depositAmount;
+            task.transmitter = transmitter;
           } else { // throw error to save task
             throw new Error(this.chainInfo.chainType + " CheckScEvent task " + task.ccTaskId + " parseCctpDeposit error");
           }
@@ -200,8 +215,11 @@ module.exports = class CheckScEvent {
           */
           let event;
           if (task.taskType === "circleMINT") {
-            let topics = [eventHash];
-            event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, topics, task.depositDomain, task.depositNonce);
+            let topics = [eventHash, undefined, '0x' + Number(task.depositNonce).toString(16).padStart(64, '0')];
+            event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
+          } else if (task.taskType === "cctpV2MINT") {
+            let topics = [eventHash, undefined, task.depositNonce];
+            event = await this.scanCctpV2Event(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
           } else if (task.taskType === "algoBURN") {
             event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, task.uniqueID);
           } else if (this.chainInfo.chainType === "TRX") {
@@ -237,32 +255,73 @@ module.exports = class CheckScEvent {
     }
   }
 
-  async scanCircleEvent(fromBlockNumber, toBlockNumber, topics, depositDomain, depositNonce) {
+  async getCctpMessageTransmitterAddr(isV2) {
+    let proxyScAddr = isV2? this.chainInfo.CircleBridge.crossScAddrV2 : this.chainInfo.CircleBridge.crossScAddr;
+    let abi = [{ // v1 and v2 have the same abi
+      "inputs": [],
+      "name": "circleMessageTransmitterSC",
+      "outputs": [{
+        "internalType": "address",
+        "name": "",
+        "type": "address"}
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }];
+    let addr = await this.iwan.callScFunc(this.chainInfo.chainType, proxyScAddr, "circleMessageTransmitterSC", [], abi);
+    console.debug("%s circleMessageTransmitterSC addr: %s", this.chainInfo.chainType, addr);
+    return addr;
+  }
+
+  async scanCircleEvent(fromBlockNumber, toBlockNumber, sc, topics, depositDomain) {
     let events = await this.iwan.getScEvent(
       this.chainInfo.chainType,
-      this.chainInfo.CircleBridge.crossScAddr, // proxy address
+      sc, // cctp transmitter
       topics,
       {
         "fromBlock": fromBlockNumber,
         "toBlock": toBlockNumber
       }
     );
-    if (events.length) {
-      let txHash = events[0].transactionHash;
-      let mintEventDecoded = tool.parseEvmLog(events[0], this.circleBridgeProxyAbi);
-      let receipt = await this.iwan.getTransactionReceipt(this.chainInfo.chainType, txHash);
-      let toAccount = "";
-      for (let log of receipt.logs) {
-        if (log.topics[0] === CctpEvmReceiveEventHash) {
-          let decoded = tool.parseEvmLog(log, this.circleBridgeReceiveAbi);
-          if ((decoded.args.sourceDomain == depositDomain) && (decoded.args.nonce == depositNonce)) {
-            toAccount = "0x" + mintEventDecoded.args.mintRecipient.substr(-40);
-            break;
+    for (let event of events) {
+      let decoded = tool.parseEvmLog(event, this.cctpMessageTransmitterAbi);
+      if (Number(decoded.args.sourceDomain) === Number(depositDomain)) {
+        let txHash = event.transactionHash;
+        let receipt = await this.iwan.getTransactionReceipt(this.chainInfo.chainType, txHash);
+        for (let log of receipt.logs) {
+          if (log.topics[0] === "0x1b2a7ff080b8cb6ff436ce0372e399692bbfb6d4ae5766fd8d58a7b8cc6142e6") { // MintAndWithdraw
+            decoded = tool.parseEvmLog(log, this.cctpTokenMessengerAbi);
+            let toAccount = "0x" + decoded.args.mintRecipient.substr(-40);
+            return {txHash, toAccount, value: decoded.args.amount};
           }
         }
       }
-      if (toAccount) {
-        return {txHash, toAccount}; // no value
+    }
+    return null;
+  }
+
+  async scanCctpV2Event(fromBlockNumber, toBlockNumber, sc, topics, depositDomain) {
+    let events = await this.iwan.getScEvent(
+      this.chainInfo.chainType,
+      sc, // cctpV2 transmitter
+      topics,
+      {
+        "fromBlock": fromBlockNumber,
+        "toBlock": toBlockNumber
+      }
+    );
+    for (let event of events) {
+      let decoded = tool.parseEvmLog(event, this.cctpV2MessageTransmitterAbi);
+      if (Number(decoded.args.sourceDomain) === Number(depositDomain)) {
+        let txHash = event.transactionHash;
+        let receipt = await this.iwan.getTransactionReceipt(this.chainInfo.chainType, txHash);
+        for (let log of receipt.logs) {
+          if (log.topics[0] === "0x50c55e915134d457debfa58eb6f4342956f8b0616d51a89a3659360178e1ab63") { // MintAndWithdraw
+            decoded = tool.parseEvmLog(log, this.cctpV2TokenMessengerAbi);
+            let toAccount = "0x" + decoded.args.mintRecipient.substr(-40);
+            return {txHash, toAccount, value: decoded.args.amount};
+          }
+        }
       }
     }
     return null;

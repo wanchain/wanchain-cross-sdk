@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2506301135", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507091200", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -201,6 +201,9 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let toChainType = this.tokenPairService.getChainType(toChainName);
+    if (tokenPair.bridge === "Circle") {
+      options.bridge = tokenPair.routes[0];
+    }
     let [operateFee, networkFee] = await Promise.all([
       this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
       this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)
@@ -246,7 +249,7 @@ class WanBridge extends EventEmitter {
       let chainType = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainType : tokenPair.toChainType;
       let targetChainType = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainType : tokenPair.fromChainType;
       hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", {chainType, targetChainType, tokenPairID: tokenPair.id});
-      if (tokenPair.bridge) { // other bridge, such as Circle
+      if (tokenPair.bridge) { // oly Circle now, ingnore cctpV2 quota
         quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
         let smg = await this.getSmgInfo();
@@ -539,6 +542,7 @@ class WanBridge extends EventEmitter {
     };
     let result = (tokenPair.fromChainName === fromChainName)? {from: from, to: to} : {from: to, to: from};
     result.bridge = tokenPair.bridge;
+    result.routes = tokenPair.routes;
     return result;
   }
 
