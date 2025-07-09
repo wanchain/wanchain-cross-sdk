@@ -27,7 +27,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false, roundingMode: BigNumber.ROUND_UP}); // cctpV2 maxFee
     let innerToAddr = convert.toAddr;
     if (toChainType === "SOL") {
       let sol = this.configService.getExtension(toChainType);

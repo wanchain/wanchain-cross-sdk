@@ -208,9 +208,9 @@ function parseFee(fee, amount, unit, options) {
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return new BigNumber(result.toFixed(decimals)).toFixed();
+    return result.toFixed(decimals, options.roundingMode);
   } else {
-    return result.times(Math.pow(10, decimals)).toFixed(0);
+    return result.times(Math.pow(10, decimals)).toFixed(0, options.roundingMode);
   }
 }
 
