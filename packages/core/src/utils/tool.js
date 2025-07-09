@@ -208,7 +208,7 @@ function parseFee(fee, amount, unit, options) {
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return result.toFixed(decimals, options.roundingMode);
+    return new BigNumber(result.toFixed(decimals, options.roundingMode)).toFixed(); // remove padded '0'
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0, options.roundingMode);
   }
