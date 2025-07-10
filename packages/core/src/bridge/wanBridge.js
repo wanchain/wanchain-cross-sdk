@@ -27,6 +27,7 @@ class WanBridge extends EventEmitter {
     this.network = (network == "mainnet")? "mainnet" : "testnet";
     this.isTestMode = options.isTestMode || false;
     this.smgName = options.smgName || "";
+    this.prefer = options.prefer || "cctp"; // prefer cctp or wb when both tokenpair exist, default cctp
     this.stores = {
       crossChainTaskRecords: new CrossChainTaskRecords(),
       assetPairs: new AssetPairs(),
@@ -34,9 +35,9 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, ver: 2506301135", this.network, this.isTestMode, this.smgName);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507091600", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
-    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode}));
+    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");

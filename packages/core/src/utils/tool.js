@@ -319,7 +319,17 @@ function getErrMsg(err, defaultMsg) {
 }
 
 function parseEvmLog(log, abi) {
-  let abiJson = abi.find(json => (json.type === 'event') && (web3.eth.abi.encodeEventSignature(json) === log.topics[0]));
+  let abiJson = abi.find(json => {
+    if (json.type !== 'event') {
+      return false;
+    }
+    let hash = json.cacheHash;
+    if (!hash) {
+      hash = web3.eth.abi.encodeEventSignature(json);
+      json.cacheHash = hash;
+    }
+    return (hash === log.topics[0]);
+  });
   if (abiJson) {
     try {
       // topics without the topic[0] if its a non-anonymous event, otherwise with topic[0].
