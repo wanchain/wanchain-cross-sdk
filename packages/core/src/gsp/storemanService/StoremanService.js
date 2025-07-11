@@ -302,7 +302,7 @@ class StoremanService {
             v.id = new BigNumber('0x' + v.id).toFixed();
           })
         } else {
-          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id);
+          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id).filter(v => (v != 0)); // ignore invalid crossId
           let ancestorIds = await this.getNftAncestorId(options.ancestorChainType, options.ancestorAccount, mappingIds);
           let ancestorChainInfo = this.chainInfoService.getChainInfoByType(options.ancestorChainType);
           let ancestors = await this._getNftInfoFromEvmChain(type, options.ancestorChainType, options.ancestorAccount, ancestorChainInfo.crossScAddr, ancestorIds, false);
