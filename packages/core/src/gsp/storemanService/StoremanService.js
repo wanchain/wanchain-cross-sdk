@@ -12,6 +12,12 @@ const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KA
 // DepositForBurn
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0"; // v1
 
+const ValidateAddrRules = {
+  ADA: {
+    "addr_test1xq0rk5g8azcae2us2m7jxk0p936lzf5sw6t5fgc9dqktk0zm62tgh4k625u0kq9e2ev9kqdlky7arc6yx3m6vrn0pjqsxcenw8": true
+  }
+}
+
 class StoremanService {
     constructor() {
     }
@@ -62,6 +68,13 @@ class StoremanService {
 
     validateAddress(chainType, address) {
       let result = false;
+      // check whitelist
+      if (ValidateAddrRules[chainType]) {
+        let action = ValidateAddrRules[chainType][address.toLowerCase()];
+        if (action !== undefined) {
+          return action;
+        }
+      }
       let extension = this.configService.getExtension(chainType);
       let network = this.configService.getNetwork();
       if (extension && extension.tool && extension.tool.validateAddress) {
@@ -302,7 +315,7 @@ class StoremanService {
             v.id = new BigNumber('0x' + v.id).toFixed();
           })
         } else {
-          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id);
+          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id).filter(v => (v != 0)); // ignore invalid crossId
           let ancestorIds = await this.getNftAncestorId(options.ancestorChainType, options.ancestorAccount, mappingIds);
           let ancestorChainInfo = this.chainInfoService.getChainInfoByType(options.ancestorChainType);
           let ancestors = await this._getNftInfoFromEvmChain(type, options.ancestorChainType, options.ancestorAccount, ancestorChainInfo.crossScAddr, ancestorIds, false);

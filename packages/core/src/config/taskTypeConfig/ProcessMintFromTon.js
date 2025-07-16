@@ -35,8 +35,6 @@ module.exports = class ProcessMintFromTon {
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === "TON");
-      let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
       let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
       let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
       let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
@@ -53,8 +51,12 @@ module.exports = class ProcessMintFromTon {
         tokenAccount = jwSender = jwCrossSc = TON_COIN_ACCOUNT_STR;
       } else {
         tokenAccount = tool.ascii2letter(tokenAccount);
-        jwSender = await this.iwan.getJettonWalletAddr(tokenAccount, params.fromAddr);
-        jwCrossSc = await this.iwan.getJettonWalletAddr(tokenAccount, params.crossScAddr);
+        let [sender, crossSc] = await Promise.all([
+          this.iwan.call("getAssociatedTokenAddress", {chainType:"TON", address: params.fromAddr, tokenScAddr: tokenAccount}),
+          this.iwan.call("getAssociatedTokenAddress", {chainType:"TON", address: params.crossScAddr, tokenScAddr: tokenAccount})
+        ])
+        jwSender = sender.address;
+        jwCrossSc = crossSc.address;
       }
       let extraCell = this.tool.beginCell()
         .storeAddress(this.tool.parseAddress(tokenAccount))
@@ -64,6 +66,7 @@ module.exports = class ProcessMintFromTon {
       let extraCell2 = this.tool.beginCell()
         .storeAddress(this.tool.parseAddress(params.fromAddr))
         .storeUint(params.networkFee, 256)
+        .storeBuffer(Buffer.from("wanchain", "ascii"), 8)
         .endCell();
       let body = this.tool.beginCell()
         .storeUint(CrossOpCode.userLock, 32)
@@ -83,6 +86,7 @@ module.exports = class ProcessMintFromTon {
         lockType = TokenType.coin;
       } else {
         msgTo = jwSender;
+        let forwardFee = totalTon.minus(200_000_000); // reserve 0.2 TON for jettonWallet gas
         msgBody = this.tool.beginCell()
         .storeUint(0xf8a7ea5, 32) // const int op::transfer = 0xf8a7ea5;
         .storeUint(queryId, 64)
@@ -90,29 +94,27 @@ module.exports = class ProcessMintFromTon {
         .storeAddress(this.tool.parseAddress(params.crossScAddr))  // receive address (token)
         .storeAddress(this.tool.parseAddress(params.fromAddr))
         .storeMaybeRef(null)
-        .storeCoins(totalTon)
+        .storeCoins(forwardFee.toFixed(0))
         .storeMaybeRef(body)
         .endCell();
         lockType = isNativeToken? TokenType.orig : TokenType.wrapped;
       }
-      let msg = this.tool.buildInternalMessage({to: msgTo, body: msgBody, value: totalTon, bounce: true});
-      let msgHash = this.tool.getMsgHash(msg);
-      await wallet.sendTransaction([msg]);
-      let tx = await this.iwan.getTranByMsgHash(msgHash);
-      let txs = await this.iwan.getTranResultByTxHash(tx.txHash);
-      let txHash = txs[0].txHash; // TODO: use cross contract txHash as unique id
-      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      let msg = {address: msgTo, amount: totalTon.toFixed(0), payload: msgBody.toBoc().toString("base64")};
+      let msgHash = await wallet.sendTransaction(msg);
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, msgHash, ""); // only update txHash(msgHash), no result
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
         chain: "TON",
         ccTaskId: params.ccTaskId,
         stepIndex: stepData.stepIndex,
-        txHash,
+        msgHash,
+        userTxHash: "",
+        txHash: "",
         txCheckInfo: null, // only check tx receipt, no event
         convertCheckInfo: {
           ccTaskId: params.ccTaskId,
           stepIndex: stepData.stepIndex,
-          uniqueID: "0x" + txHash,
+          uniqueID: "", // update when txHash is available
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction? "MINT" : "BURN")),
@@ -121,8 +123,7 @@ module.exports = class ProcessMintFromTon {
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      console.error("error: %s", err.message)
-      if (["User rejected the request."].includes(err.message)) {
+      if (["Reject request"].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessMintFromTon error: %O", err);

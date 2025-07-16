@@ -24,28 +24,22 @@ function parseAddress(source) {
 }
 
 async function getQueryId() {
-  return getSecureRandomNumber(1, (Math.pow(2, 52) - 1));
+  let queryId = await getSecureRandomNumber(1, (Math.pow(2, 52) - 1));
+  if (queryId < 0) {
+    queryId = -queryId;
+  }
+  return queryId;
 }
 
 function beginCell() {
   return sdkBeginCell();
 }
 
-function buildInternalMessage(opts) { // {to, value, bounce, init, body}
-  return internal(opts);
-}
-
-function getMsgHash(msg) {
-  return sdkBeginCell().store(storeMessage(m)).endCell().hash().toString('hex');
-}
-
 const tools = {
   validateAddress,
   parseAddress,
   getQueryId,
-  beginCell,
-  buildInternalMessage,
-  getMsgHash,
+  beginCell
 }
 
 export default tools;

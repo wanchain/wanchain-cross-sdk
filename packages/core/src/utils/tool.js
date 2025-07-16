@@ -60,7 +60,7 @@ function ascii2letter(asciiStr) {
     let tmp = str.substr(i, 2);
     if (tmp !== '00') {
       let char = String.fromCharCode(parseInt(tmp, 16));
-      if (/[a-zA-Z0-9\.\:\_]/.test(char)) { // cardano: '.'/'_', xrp: ':', smg: '_'
+      if (/[0-9A-Za-z\+\/\-\_=\.\:]/.test(char)) { // Base64, Base64url, cardano: '.'/'_', xrp: ':', smg: '_'
         letterStr.push(char);
       }
     }
@@ -208,7 +208,7 @@ function parseFee(fee, amount, unit, options) {
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return result.toFixed(decimals, options.roundingMode);
+    return new BigNumber(result.toFixed(decimals, options.roundingMode)).toFixed(); // remove padded '0'
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0, options.roundingMode);
   }

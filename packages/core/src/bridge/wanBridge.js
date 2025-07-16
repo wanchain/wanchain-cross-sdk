@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507091200", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507151558", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -441,11 +441,9 @@ class WanBridge extends EventEmitter {
         } else { // nft
           return policyId; // policyId
         }
-      } else if (chainType === "SOL") {
-        return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else if (chainType === "ALGO") {
         return Number(tokenAccount);
-      } else if (["ATOM", "NOBLE", "KAVA"].includes(chainType)) { // cosmos token account is ascii of name
+      } else if (["ATOM", "NOBLE", "KAVA", "SOL", "SUI", "TON"].includes(chainType)) { // ascii of name
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;

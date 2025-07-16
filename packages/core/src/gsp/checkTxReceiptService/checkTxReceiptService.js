@@ -20,6 +20,11 @@ module.exports = class CheckTxReceiptService {
     this.webStores = frameworkService.getService("WebStores");
     this.eventService = frameworkService.getService("EventService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
+    this.configService  = frameworkService.getService("ConfigService");
+    let tonExtension = this.configService.getExtension("TON");
+    if (tonExtension) {
+      this.tonTool = tonExtension.tool;
+    }
   }
 
   async loadTradeTask(taskArray) {
@@ -56,8 +61,8 @@ module.exports = class CheckTxReceiptService {
         }
         console.debug("%s %s CheckTxReceiptService result: %O", obj.chain, obj.txHash, result);
         if (result) {
-          if (result.txHash && (obj.txHash !== result.txHash)) { // evm repriced, update txHash
-            console.log("task %s %s tx %s is repriced by %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
+          if (result.txHash && (obj.txHash !== result.txHash)) { // update txHash: evm repriced, ton
+            console.log("task %s %s update txHash %s to %s", obj.ccTaskId, obj.chain, obj.txHash, result.txHash);
             obj.txHash = result.txHash;
             if (obj.convertCheckInfo) {
               obj.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
@@ -85,14 +90,14 @@ module.exports = class CheckTxReceiptService {
           txReceipt = null;
         }
       } else if (obj.chain === "TON") {
-        txReceipt = {}; // always consider be success
+        txReceipt = await this.getTonTxReceipt(obj); // get user txHash by msgHash, and cross txHash by user txHash
       } else {
         txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
       }
       if (txReceipt) {
         let result = "Failed";
         let errInfo = "Transaction failed";
-        let isSuccess = false;
+        let isSuccess = false, txHash = ""; // ton need update txHash
         if (["ATOM", "NOBLE", "KAVA"].includes(obj.chain)) {
           isSuccess = (txReceipt.code === 0);
         } else if (obj.chain === "SOL") {
@@ -106,7 +111,8 @@ module.exports = class CheckTxReceiptService {
         } else if (obj.chain === "BTC") {
           isSuccess = true; // in the block means success, ignore confirmations
         } else if (obj.chain === "TON") {
-          isSuccess = true; // in the block means success
+          isSuccess = txReceipt.success;
+          txHash = txReceipt.txHash;
         } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
@@ -114,7 +120,7 @@ module.exports = class CheckTxReceiptService {
           result = "Succeeded";
           errInfo = "";
         }
-        return {result, errInfo};
+        return {result, errInfo, txHash};
       } else {
         if (obj.chain === "BTC") {
           let delay = parseInt(Date.now() - obj.ccTaskId); // ms
@@ -237,4 +243,48 @@ module.exports = class CheckTxReceiptService {
     await storageService.delete("CheckTxReceiptService", task.ccTaskId);
     this.taskArray.splice(taskIndex, 1);
   }
-};
+
+  async getTonTxReceipt(task) {
+    if (!task.userTxHash) {
+      let txs = await this.iwan.call("getTransByMsgHash", {chainType:"TON", msgHash: task.msgHash});
+      console.log("getTransByMsgHash %s: %O", task.msgHash, txs);
+      if (txs.length) {
+        task.userTxHash = txs[0].hash;
+      }
+    }
+    if (task.userTxHash) {
+      let receipt = await this.iwan.getTransactionReceipt("TON", task.userTxHash);
+      let txHashs = receipt.transactions_order || [];
+      if (txHashs.length) {
+        let crossTxHash = "", success = false;
+        let chainInfo = this.chainInfoService.getChainInfoByType("TON");
+        let crossScAddr = this.tonTool.parseAddress(chainInfo.crossScAddr);
+        for (let txHash of txHashs) {
+          let tx = receipt.transactions[txHash];
+          if (crossScAddr.equals(this.tonTool.parseAddress(tx.account))) {
+            if (tx.in_msg && (tx.in_msg.opcode === "0x40000001")) {
+              crossTxHash = Buffer.from(tx.hash, 'base64').toString('hex').padStart(64, '0'); // use hex format for unique and url
+              success = this.checkTonTxSuccess(tx);
+            }
+          }
+        }
+        return {success, txHash: crossTxHash || task.userTxHash};
+      }
+    }
+    return null;
+  }
+
+  checkTonTxSuccess(tx) {
+    let td = tx.description, cp = td.compute_ph;
+    if (cp.skipped === false) {
+      if (td.aborted || cp.exit_code || !cp.success) {
+        return false;
+      }
+    }
+    let ap = td.action;
+    if (ap) {
+      return ap.success;
+    }
+    return true;
+  }
+}

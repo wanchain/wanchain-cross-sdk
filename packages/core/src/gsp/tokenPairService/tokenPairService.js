@@ -130,7 +130,7 @@ class TokenPairService {
                 let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
                 let prefer = preferTokenPairs.get(k);
                 if (prefer && prefer.id !== tp.id) {
-                  console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
+                  // console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
                   return false;
                 }
               }

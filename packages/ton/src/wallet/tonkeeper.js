@@ -1,4 +1,5 @@
 const TonWeb = require('tonweb');
+const {Cell} = require("@ton/core");
 
 class Tonkeeper {
   constructor(network) {
@@ -33,22 +34,22 @@ class Tonkeeper {
     throw new Error("Not support getBalance");
   }
 
-  async sendTransaction(messages, options = {}) {
+  async sendTransaction(msg, options = {}) {
     let now = Date.now();
     let transaction = {
       valid_until: options.validUntil || (Math.floor(now / 1000) + 60),
-      messages
+      messages: [msg]
     };
-    let result = await this.wallet.send({
+    let res = await this.wallet.send({
       method: 'sendTransaction',
-      params: [transaction],
-      id: now
+      params: [JSON.stringify(transaction)],
+      id: now.toString()
     });
-    console.log("%s sendTransaction result: %O", this.name, result);
-    if (result.result) {
-      return result.result;
+    if (res.result) {
+      let cell = Cell.fromBoc(Buffer.from(res.result, 'base64'))[0];
+      return cell.hash().toString('base64'); // msgHash
     } else {
-      throw result.error;
+      throw res.error;
     }
   }
 
@@ -56,13 +57,9 @@ class Tonkeeper {
 
   async connect() {
     let result = await this.wallet.connect(2, {
-      manifestUrl: 'https://game.zoo.team/tonconnect-manifest.json', // TODO: update
-      items: [
-        { name: 'ton_addr' },
-        // { name: 'ton_proof', payload: '123' }
-      ]
+      manifestUrl: 'https://dedust.io/tonconnect-manifest.json', // TODO: update
+      items: [{name: 'ton_addr'}]
     });
-    console.log("connect result: %O", result)
     if (result.event === 'connect') {
       return result.payload;
     } else { // 'connect_error'
