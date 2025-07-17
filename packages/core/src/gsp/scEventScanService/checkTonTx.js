@@ -96,7 +96,7 @@ module.exports = class CheckTonTx {
       }
     }
     for (let tx of wbTxs) {
-      if (checkTxSuccess(tx)) {
+      if (tool.checkTonTxSuccess(tx)) {
         if (tx.in_msg && (tx.in_msg.opcode === "0x40000005") && tx.in_msg.message_content) { // smg release
           let cell = this.tonTool.msg2Cell(tx.in_msg.message_content.body);
           let slice = cell.beginParse();
@@ -134,19 +134,5 @@ module.exports = class CheckTonTx {
                           this.chainInfo.rpc, account, options.startTime, options.endTime, options.limit || 10, options.offset || 0);
     let res = await tool.timedPromise(axios.get(url));
     return res.data.transactions;
-  }
-
-  checkTxSuccess(tx) {
-    let td = tx.description, cp = td.compute_ph;
-    if (cp.skipped === false) {
-      if (td.aborted || cp.exit_code || !cp.success) {
-        return false;
-      }
-    }
-    let ap = td.action;
-    if (ap) {
-      return ap.success;
-    }
-    return true;
   }
 };

@@ -264,7 +264,7 @@ module.exports = class CheckTxReceiptService {
           if (crossScAddr.equals(this.tonTool.parseAddress(tx.account))) {
             if (tx.in_msg && (tx.in_msg.opcode === "0x40000001")) {
               crossTxHash = Buffer.from(tx.hash, 'base64').toString('hex').padStart(64, '0'); // use hex format for unique and url
-              success = this.checkTonTxSuccess(tx);
+              success = tool.checkTonTxSuccess(tx);
             }
           }
         }
@@ -272,19 +272,5 @@ module.exports = class CheckTxReceiptService {
       }
     }
     return null;
-  }
-
-  checkTonTxSuccess(tx) {
-    let td = tx.description, cp = td.compute_ph;
-    if (cp.skipped === false) {
-      if (td.aborted || cp.exit_code || !cp.success) {
-        return false;
-      }
-    }
-    let ap = td.action;
-    if (ap) {
-      return ap.success;
-    }
-    return true;
   }
 }
