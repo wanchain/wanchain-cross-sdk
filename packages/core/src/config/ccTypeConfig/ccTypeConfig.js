@@ -81,5 +81,9 @@ module.exports = [
     {
       "name": "BurnFromSui",
       "handle": require("./BurnFromSui")
+    },
+    {
+      "name": "MintFromTon",
+      "handle": require("./MintFromTon")
     }
 ]

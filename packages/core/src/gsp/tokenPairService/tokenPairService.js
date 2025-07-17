@@ -678,6 +678,8 @@ class TokenPairService {
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       if (chainType === "ALGO") {
         return "algoBURN";
+      } else if (chainType === "TON") {
+        return "BURN";
       }
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
       let key = chainType + "-" + tokenAccount;

@@ -60,7 +60,7 @@ function ascii2letter(asciiStr) {
     let tmp = str.substr(i, 2);
     if (tmp !== '00') {
       let char = String.fromCharCode(parseInt(tmp, 16));
-      if (/[a-zA-Z0-9\.\:\_]/.test(char)) { // cardano: '.'/'_', xrp: ':', smg: '_'
+      if (/[0-9A-Za-z\+\/\-\_=\.\:]/.test(char)) { // Base64, Base64url, cardano: '.'/'_', xrp: ':', smg: '_'
         letterStr.push(char);
       }
     }

@@ -31,7 +31,7 @@ let iwanAuth = {
 bridge.init(iwanAuth, {extensions: [VeChainExtension]});
 ```
 
-Step 2: Connect the Phantom wallet.
+Step 2: Connect the VeWorld wallet.
 
 ```javascript
 let veWorldWallet = new VeChainExtension.VeWorldWallet("testnet");

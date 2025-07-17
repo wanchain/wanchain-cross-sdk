@@ -6,7 +6,7 @@ const axios = require("axios");
 const util = require("util");
 
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC"];
-const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"];
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"];
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
 
 // DepositForBurn
@@ -534,13 +534,15 @@ class StoremanService {
       if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
         return 0;
       }
-      try { // nonEVM chains return cursor adapted to it's own scan mechanism
-        if (chainType === "SUI") {
+      try {
+        if (chainType === "SUI") { // cursor
           let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
           let scAddr = options.bridge? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
           let moduleName = options.bridge? "fee_collector" : "cross";
           let events = await this.iwan.getScEvent("SUI", scAddr, [], {moduleName, order: 'descending', limit: options.rewind || 1});
           return events.nextCursor;
+        } else if (chainType === "TON") { // timestamp in second
+          return parseInt(Date.now() / 1000);
         } else { // EVM chains return blockNumber 
           let blockNumber = await this.iwan.getBlockNumber(chainType);
           return blockNumber;
