@@ -1,5 +1,6 @@
 "use strict";
 
+const BigNumber = require("bignumber.js");
 const util = require("util");
 const axios = require("axios");
 const tool = require("../../utils/tool");
@@ -108,13 +109,14 @@ module.exports = class CheckTonTx {
             let slice2 = slice.loadRef().beginParse();
             slice2.skip(256); // operateFee
             let toAccount = slice2.loadAddress().toString();
-            slice2.endParse();
-            slice.endParse();
+            // slice2.endParse();
+            // slice.endParse();
             let txHash = Buffer.from(tx.hash, 'base64').toString('hex').padStart(64, '0'); // use hex format
             console.debug("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, tx);
             return {txHash, toAccount, value};
           } else {
-            slice.endParse();
+            console.log("tx %s slice: %O", tx.hash, slice);
+            // slice.endParse();
           }
         }
       }

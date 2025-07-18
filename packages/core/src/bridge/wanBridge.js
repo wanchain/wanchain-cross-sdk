@@ -807,11 +807,18 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount) {
+      let isMatch;
       let toChainType = ccTask.toChainType;
-      let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
-      let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
-      if (!tool.cmpAddress(expectedToAccount, actualToAccount)) {
-        console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
+      if (toChainType === "TON") {
+        let tonTool = this.configService.getExtension(toChainType).tool;
+        isMatch = tonTool.parseAddress(taskRedeemHash.toAccount).equals(tonTool.parseAddress(ccTask.toAccount));
+      } else {
+        let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
+        let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
+        isMatch = tool.cmpAddress(expectedToAccount, actualToAccount);
+      }
+      if (!isMatch) {
+        console.error("actual toAccount %s does not match expected toAccount %s", taskRedeemHash.toAccount, ccTask.innerToAccount || ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
         this.emit("error", {taskId, reason: errInfo});
