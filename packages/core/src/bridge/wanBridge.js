@@ -537,6 +537,7 @@ class WanBridge extends EventEmitter {
     };
     let result = (tokenPair.fromChainName === fromChainName)? {from: from, to: to} : {from: to, to: from};
     result.bridge = tokenPair.bridge;
+    result.routes = tokenPair.routes;
     return result;
   }
 

@@ -130,7 +130,7 @@ class TokenPairService {
                 let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
                 let prefer = preferTokenPairs.get(k);
                 if (prefer && prefer.id !== tp.id) {
-                  console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
+                  // console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
                   return false;
                 }
               }
@@ -486,6 +486,20 @@ class TokenPairService {
       }
     }
 
+    getBridgeInfo(bridges) {
+      let bridge = '', routes = []; // default WanBridge, bridge keep empty for compatible
+      if (bridges) {
+        if (bridges === 'Circle') { // old version, no other value yet
+          bridge = 'Circle';
+          routes = ['CCTPV1'];
+        } else { // new version, ['CCTPV1'] or ['CCTPV2']
+          bridge = 'Circle';
+          routes = bridges;
+        }
+      }
+      return {bridge, routes};
+    }
+
     updateTokenPairInfo(tokenPair) {
         let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
         tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
@@ -499,6 +513,9 @@ class TokenPairService {
             tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
             tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
             tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
+            let bi = this.getBridgeInfo(tokenPair.bridge); // rewrite bridge filed
+            tokenPair.bridge = bi.bridge;
+            tokenPair.routes = bi.routes;
             try {
                 this.updateTokenPairFromChainInfo(tokenPair);
                 this.updateTokenPairToChainInfo(tokenPair);
