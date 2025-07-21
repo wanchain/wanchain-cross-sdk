@@ -491,7 +491,7 @@ class TokenPairService {
       if (bridges) {
         if (bridges === 'Circle') { // old version, no other value yet
           bridge = 'Circle';
-          routes = [bridges];
+          routes = ['CCTPV1'];
         } else { // new version, ['CCTPV1'] or ['CCTPV2']
           bridge = 'Circle';
           routes = bridges;
