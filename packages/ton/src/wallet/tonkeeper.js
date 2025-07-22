@@ -57,7 +57,7 @@ class Tonkeeper {
 
   async connect() {
     let result = await this.wallet.connect(2, {
-      manifestUrl: 'https://dedust.io/tonconnect-manifest.json', // TODO: update
+      manifestUrl: 'https://bridge.wanchain.org/tonconnect-manifest.json',
       items: [{name: 'ton_addr'}]
     });
     if (result.event === 'connect') {
