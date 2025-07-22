@@ -492,7 +492,7 @@ class TokenPairService {
         if (bridges === 'Circle') { // old version, no other value yet
           bridge = 'Circle';
           routes = ['CCTPV1'];
-        } else { // new version, ['CCTPV1'] or ['CCTPV2']
+        } else { // new version, ['CCTPV1'] or ['CCTPV2'], now iwan only fill the prefer one, not both
           bridge = 'Circle';
           routes = bridges;
         }

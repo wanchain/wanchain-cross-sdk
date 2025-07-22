@@ -16,7 +16,7 @@ module.exports = class crossChainFees {
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
     let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId, bridge: options.bridge, address: options.address});
-    if ((tokenPair.protocol !== "Erc20") || ((tokenPair.bridge === "Circle") && tokenPair.routes.includes("CCTPV1"))) {
+    if ((tokenPair.protocol !== "Erc20") || ((tokenPair.bridge === "Circle") && (tokenPair.routes[0] === "CCTPV1"))) {
       fee.value = "0";
     }
     // console.debug("estimateOperationFee %s->%s raw: %O", fromChainType, toChainType, fee);

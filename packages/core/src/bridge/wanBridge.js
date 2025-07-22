@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507211836", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507221125", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -249,7 +249,7 @@ class WanBridge extends EventEmitter {
       let chainType = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainType : tokenPair.toChainType;
       let targetChainType = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainType : tokenPair.fromChainType;
       hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", {chainType, targetChainType, tokenPairID: tokenPair.id});
-      if (tokenPair.bridge) { // oly Circle now, ingnore cctpV2 quota
+      if (tokenPair.bridge) { // only Circle now, ingnore cctpV2 quota
         quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
         let smg = await this.getSmgInfo();
