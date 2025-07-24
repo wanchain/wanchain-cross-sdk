@@ -55,6 +55,7 @@ class Keplr {
     } 
   }
 
+  // TODO: getBalances, now only support one asset
   async getBalance(addr, denom) {
     let balance = "0";
     denom = denom || (DefaultChainInfo[this.chainId] && DefaultChainInfo[this.chainId].denom) || "uatom";
