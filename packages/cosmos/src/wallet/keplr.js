@@ -19,6 +19,10 @@ const DefaultChainInfo = {
   "kava_2221-16000": {
     rpc: "https://rpc.testnet.kava.io",
     denom: "ukava"
+  },
+  "kava_2222-10": {
+    rpc: "https://rpc.kava.io",
+    denom: "ukava"
   }
 }
 
