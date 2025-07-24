@@ -97,7 +97,7 @@ class AssetPairs {
       result = account;
     } else if (chainType === "XRP") {
       result = tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
-    } else if (chainType === "NOBLE") { // ascii of token name
+    } else if (["NOBLE", "KAVA", "ATOM"].includes(chainType)) { // ascii of token name
       result = tool.ascii2letter(account);
     } else if (chainType === "SOL") { // ascii of token account
       result = tool.ascii2letter(account);
