@@ -420,7 +420,7 @@ class BridgeTask {
       let stepResult = taskStep.stepResult;
       if (!stepResult) {
         if (taskStep.txHash && !stepTxHash) {
-          this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, ""); // only update txHash, no result
+          await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, ""); // only update txHash, no result
           stepTxHash = taskStep.txHash;
         }
         if (executedStep != curStep) {
@@ -434,8 +434,8 @@ class BridgeTask {
       }
       console.debug("proc task %d step %d: %O", this.id, curStep, taskStep);
       if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult contains ota address, XRP tagId or BTC randomId
-        this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
-        this._bridge.emit("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
+        await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
+        this._bridge._distributeEvent("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
         break;
       }
       if (!this._wallet) {
@@ -443,7 +443,7 @@ class BridgeTask {
       } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
-      this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
+      await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
       curStep++;
       stepTxHash = "";
     }
@@ -470,11 +470,11 @@ class BridgeTask {
     } else {
       throw new Error("Invalid ota chain type " + chainType);
     }
-    this._bridge.emit("ota", ota);
+    this._bridge._distributeEvent("ota", ota);
     console.debug("%s OTA: %O", chainType, ota);
   }
 
-  _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // only for sync step result to update lockTx hash
+  async _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // only for sync step result to update lockTx hash
     let records = this._bridge.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(this.id);
     if (ccTask) {
@@ -482,12 +482,12 @@ class BridgeTask {
       if (isLockTx) {
         let lockEvent = {taskId: this.id, txHash};
         console.debug("lockTxHash: %O", lockEvent);
-        this._bridge.emit("lock", lockEvent);
+        this._bridge._distributeEvent("lock", lockEvent);
       }
       if (isLocked) {
         let lockedEvent = {taskId: this.id, txHash};
         console.debug("lockedEvent: %O", lockedEvent);
-        this._bridge.emit("locked", lockedEvent);
+        this._bridge._distributeEvent("locked", lockedEvent);
       }
       this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
     }
