@@ -691,6 +691,17 @@
       "ScScanInfo": {
         "taskInterval": 15000
       }
+    },
+    {
+      "chainId": "2147484107",
+      "chainType": "KAVA",
+      "chainName": "Kava",
+      "mintFromChainHandle": "MintFromCosmos",
+      "chainDecimals": 6,
+      "MaskChainId": "kava_2222-10",
+      "TxScanInfo": {
+        "taskInterval": 10000
+      }
     }
   ],
   "tokenPairCfg": [
