@@ -18,7 +18,8 @@
       "crossScAddr": "0x589E12D073020f99FEBF32B739e58216748c9ed4",
       "CircleBridge": {
         "domain": 0,
-        "crossScAddr": "0xb78aa2a5194B9608544b625322f6688FFB058789"
+        "crossScAddr": "0xb78aa2a5194B9608544b625322f6688FFB058789",
+        "crossScAddrV2": "0xf0750293079b29573A752Bc7222aAaEbf3208308"
       },
       "chainDecimals": 18,
       "MaskChainId": 11155111,
@@ -44,7 +45,8 @@
       "crossScAddr": "0x4c200A0867753454Db78AF84d147Bd03e567f234",
       "CircleBridge": {
         "domain": 1,
-        "crossScAddr": "0x8D2D7e337Bb8d416d7b7DC10450C0a426a256617"
+        "crossScAddr": "0x8D2D7e337Bb8d416d7b7DC10450C0a426a256617",
+        "crossScAddrV2" : "0x7dc37a6ACfe3eD545f5500811C0E12D71b21bcA7"
       },
       "chainDecimals": 18,
       "MaskChainId": 43113,
@@ -73,7 +75,8 @@
       "crossScAddr": "0xFb06346e587ffB494438102515D576086bE750F4",
       "CircleBridge": {
         "domain": 7,
-        "crossScAddr": "0x2c88f07Ae3b7B6bb2Ecd62dEF2Dc2E139cE22194"
+        "crossScAddr": "0x2c88f07Ae3b7B6bb2Ecd62dEF2Dc2E139cE22194",
+        "crossScAddrV2" : "0x5F09De765c1B35B6454321adB3E36E15418bbc0C"
       },
       "MaskChainId": 80002,
       "ScScanInfo": {
@@ -89,7 +92,8 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 3,
-        "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f"
+        "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f",
+        "crossScAddrV2": "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
       "MaskChainId": 421614,
       "ScScanInfo": {
@@ -115,7 +119,8 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 2,
-        "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f"
+        "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f",
+        "crossScAddrV2" : "0xCbB55130E7DA1fF04c36D61f75CC615A7854eeb8"
       },
       "chainDecimals": 18,
       "MaskChainId": 11155420,
@@ -301,7 +306,8 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 6,
-        "crossScAddr": "0x3ecc2399611A26E70dbac73714395b13Bc3B69fA"
+        "crossScAddr": "0x3ecc2399611A26E70dbac73714395b13Bc3B69fA",
+        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "chainDecimals": 18,
       "MaskChainId": 84532,
@@ -507,6 +513,23 @@
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "MaskChainId": 9007,
+      "ScScanInfo": {
+        "taskInterval": 15000
+      }
+    },
+    {
+      "chainId": "1073741857",
+      "chainType": "WORLDETH",
+      "chainName": "World Chain",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
+      "CircleBridge": {
+        "domain": 14,
+        "crossScAddr": "",
+        "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
+      },
+      "MaskChainId": 4801,
       "ScScanInfo": {
         "taskInterval": 15000
       }
@@ -757,6 +780,20 @@
       "TxScanInfo": {
         "taskInterval": 10000
       }
+    },
+    {
+      "chainId": "2147484255",
+      "chainType": "TON",
+      "chainName": "Ton",
+      "crossScAddr": "kQDlYDH0PmST2okwTluXJ2mUDMDCzPzXF1gGz24U6H2tE9Wr",
+      "mintFromChainHandle": "MintFromTon",
+      "burnFromChainHandle": "MintFromTon",
+      "chainDecimals": 9,
+      "MaskChainId": -3,
+      "TxScanInfo": {
+        "taskInterval": 10000
+      },
+      "rpc": "https://testnet.toncenter.com"
     }
   ],
   "tokenPairCfg": [
@@ -808,5 +845,6 @@
       }
     }
   },
-  "wanPointsServer": ""
+  "wanPointsServer": "",
+  "cctpApiUrl": "https://iris-api-sandbox.circle.com"
 }

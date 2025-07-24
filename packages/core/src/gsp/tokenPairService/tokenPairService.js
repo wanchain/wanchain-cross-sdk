@@ -492,7 +492,7 @@ class TokenPairService {
         if (bridges === 'Circle') { // old version, no other value yet
           bridge = 'Circle';
           routes = ['CCTPV1'];
-        } else { // new version, ['CCTPV1'] or ['CCTPV2']
+        } else { // new version, ['CCTPV1'] or ['CCTPV2'], now iwan only fill the prefer one, not both
           bridge = 'Circle';
           routes = bridges;
         }
@@ -678,6 +678,8 @@ class TokenPairService {
       let chainType = (direction === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
       if (chainType === "ALGO") {
         return "algoBURN";
+      } else if (chainType === "TON") {
+        return "BURN";
       }
       let tokenAccount = (direction === "MINT")? tokenPair.toAccount : tokenPair.fromAccount;
       let key = chainType + "-" + tokenAccount;

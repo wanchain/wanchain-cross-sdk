@@ -9,7 +9,7 @@ Use NPM or Yarn to install the package:
 npm install --save @wandevs/cross-sui
 ```
 ## Prerequisites
-<li>Install Phantom wallet from Chrome Web Store:
+<li>Install Sui wallet from Chrome Web Store:
 
 [Sui Wallet](https://chromewebstore.google.com/detail/sui-wallet/opcgpfmipidbgpenhmajoajpbobppdil)
 
@@ -31,7 +31,7 @@ let iwanAuth = {
 bridge.init(iwanAuth, {extensions: [SuiExtension]});
 ```
 
-Step 2: Connect the Phantom wallet.
+Step 2: Connect the Sui wallet.
 
 ```javascript
 let suiWallet = new SuiExtension.SuiWallet("testnet");

@@ -109,5 +109,9 @@ module.exports = [
     {
       "name": "ProcessBurnFromSui",
       "handle": require("./ProcessBurnFromSui")
+    },
+    {
+      "name": "ProcessMintFromTon",
+      "handle": require("./ProcessMintFromTon")
     }
 ]

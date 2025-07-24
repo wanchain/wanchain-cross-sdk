@@ -86,7 +86,7 @@ module.exports = class CheckSuiTx {
       let cursor = await this.storemanService.getChainBlockNumber("SUI", {rewind: delay});
       if (cursor) {
         task.fromBlockNumber = cursor;
-        console.log("scanWanBridgeEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
+        console.debug("scanWanBridgeEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
       } else {
         console.error("scanWanBridgeEvent task %d retry cursor error", task.ccTaskId);
         return null;
@@ -102,7 +102,7 @@ module.exports = class CheckSuiTx {
       if (smgEvent && smgEvent.parsedJson) {
         let uniqueId = '0x' + Buffer.from(smgEvent.parsedJson.unique_id).toString('hex');
         if (uniqueId === task.uniqueID) {
-          console.log("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
+          console.debug("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
           return {txHash,  toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount};
         }
       }
@@ -117,7 +117,7 @@ module.exports = class CheckSuiTx {
       let cursor = await this.storemanService.getChainBlockNumber("SUI", {bridge: "Circle", rewind: delay});
       if (cursor) {
         task.fromBlockNumber = cursor;
-        console.log("scanCircleEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
+        console.debug("scanCircleEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
       } else {
         console.error("scanCircleEvent task %d retry cursor error", task.ccTaskId);
         return null;
@@ -140,7 +140,7 @@ module.exports = class CheckSuiTx {
       let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
       let receiveEvent = receipt.events.find(v => ((v.transactionModule === "receive_message") && (v.type === this.cctpReceiveMsg)));
       if (receiveEvent && receiveEvent.parsedJson) {
-        console.log("scanCircleEvent task %d tx %s get receiveEvent: %O", task.ccTaskId, txHash, receiveEvent);
+        console.debug("scanCircleEvent task %d tx %s get receiveEvent: %O", task.ccTaskId, txHash, receiveEvent);
         let sourceDomain = receiveEvent.parsedJson.source_domain; // number
         let nonce = receiveEvent.parsedJson.nonce; // string
         if ((sourceDomain == task.depositDomain) && (nonce == task.depositNonce)) {

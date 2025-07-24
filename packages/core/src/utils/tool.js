@@ -208,9 +208,9 @@ function parseFee(fee, amount, unit, options) {
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return new BigNumber(result.toFixed(decimals)).toFixed();
+    return new BigNumber(result.toFixed(decimals, options.roundingMode)).toFixed(); // remove padded '0'
   } else {
-    return result.times(Math.pow(10, decimals)).toFixed(0);
+    return result.times(Math.pow(10, decimals)).toFixed(0, options.roundingMode);
   }
 }
 
@@ -375,6 +375,20 @@ function decodeCardanoNftAssetName(assetName) {
   return {typeCode, id};
 }
 
+function checkTonTxSuccess(tx) {
+  let td = tx.description, cp = td.compute_ph;
+  if (cp.skipped === false) {
+    if (td.aborted || cp.exit_code || !cp.success) {
+      return false;
+    }
+  }
+  let ap = td.action;
+  if (ap) {
+    return ap.success;
+  }
+  return true;
+}
+
 module.exports = {
   getCurTimestamp,
   checkTimeout,
@@ -400,5 +414,6 @@ module.exports = {
   getErrMsg,
   parseEvmLog,
   timedPromise,
-  decodeCardanoNftAssetName
+  decodeCardanoNftAssetName,
+  checkTonTxSuccess
 }

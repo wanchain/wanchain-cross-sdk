@@ -27,7 +27,7 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false, roundingMode: BigNumber.ROUND_UP}); // cctpV2 maxFee
     let innerToAddr = convert.toAddr;
     if (toChainType === "SOL") {
       let sol = this.configService.getExtension(toChainType);
@@ -36,11 +36,13 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       console.log({innerToAddr});
     }
     let toAddressInfo = tool.getStandardAddressInfo(toChainType, innerToAddr, this.configService.getExtension(toChainType));
+    let bridgeInfo = chainInfo[tokenPair.bridge + "Bridge"];
+    let isV2 = (convert.route === "CCTPV2");
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
       scChainType: chainInfo.chainType,
-      crossScAddr: tokenPair.bridge? chainInfo[tokenPair.bridge + "Bridge"].crossScAddr : chainInfo.crossScAddr,
+      crossScAddr: isV2? bridgeInfo.crossScAddrV2 : bridgeInfo.crossScAddr,
       tokenPairID: convert.tokenPairId,
       value,
       userAccount: toAddressInfo.cctp || toAddressInfo.evm,
@@ -49,7 +51,8 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       taskType: "ProcessCircleBridgeDeposit",
       networkFee,
       tokenAccount,
-      operateFee
+      operateFee,
+      isV2
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     let burnTitle = this.uiStrService.getStrByName("BurnTitle");

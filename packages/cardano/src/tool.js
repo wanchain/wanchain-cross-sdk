@@ -4,6 +4,10 @@ const BigNumber = require('bignumber.js');
 
 let wasm = null;
 
+const ValidateAddrRules = {
+  "1e3b5107e8b1dcab9056fd2359e12c75f12690769744a305682cbb3c": true
+}
+
 function setWasm(_wasm) {
   wasm = _wasm;
 }
@@ -28,12 +32,19 @@ function validateAddress(address, network) {
       }
     } else if ((address.substr(0, 5) === "addr1") || (address.substr(0, 10) === "addr_test1")) { // Shelley
       let addr = wasm.Address.from_bech32(address);
-      let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-      console.log("%s is ADA Shelly type %s address", address, prefix);
-      if (parseInt(prefix, 2) <= 7) {
-        let typedAddr = wasm.BaseAddress.from_address(addr) || wasm.EnterpriseAddress.from_address(addr);
-        if (typedAddr) {
-          return ((addr.network_id() === networkId) && (typedAddr.payment_cred().kind() === wasm.CredKind.Key));
+      if (addr.network_id() === networkId) {
+        let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
+        console.log("%s is ADA Shelly type %s address", address, prefix);
+        if (parseInt(prefix, 2) <= 7) {
+          let typedAddr = wasm.BaseAddress.from_address(addr) || wasm.EnterpriseAddress.from_address(addr);
+          if (typedAddr) {
+            let kind = typedAddr.payment_cred().kind();
+            if (kind === wasm.CredKind.Key) {
+              return true;
+            } else {
+              return (ValidateAddrRules[typedAddr.payment_cred().to_scripthash().to_hex()] === true);
+            }
+          }
         }
       }
     }

@@ -57,6 +57,9 @@
     "dexie": "^4.0.8",
     "@mysten/sui": "^1.12.0",
     "@vechain/sdk-core": "^1.0.0",
-    "@vechain/dapp-kit": "^1.5.0"
+    "@vechain/dapp-kit": "^1.5.0",
+    "@ton/core": "0.59.0",
+    "@ton/crypto": "3.3.0",
+    "tonweb": "^0.0.66"
   }
 }

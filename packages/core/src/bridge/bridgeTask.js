@@ -213,7 +213,7 @@ class BridgeTask {
     let tokenAccount = (this._direction === "MINT")? this._tokenPair.fromAccount : this._tokenPair.toAccount;
     let isLockCoin = (tokenAccount == 0);
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
-    let crossScAddr = chainInfo.crossScAddr || (chainInfo.CircleBridge && chainInfo.CircleBridge.crossScAddr);
+    let crossScAddr = chainInfo.crossScAddr || (chainInfo.CircleBridge && (chainInfo.CircleBridge.crossScAddr || chainInfo.CircleBridge.crossScAddrV2));
     if ((!crossScAddr) && chainInfo.minReserved) { // do not check contract as it only set once
       let smgAddr = this._getSmgAddress(fromChainType);
       let smgBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, fromChainType, smgAddr, {wallet: this._wallet, isCoin: true});
@@ -255,14 +255,16 @@ class BridgeTask {
     let chainType = this._fromChainInfo.chainType;
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
     let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true});
-    let assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
+    let assetBalance;
     let coinSymbol = this._bridge.chainInfoService.getCoinSymbol(chainType);
     let requiredCoin = new BigNumber(0);
     let requiredAsset = 0;
     if (this._tokenPair.readableSymbol === coinSymbol) { // asset is coin
+      assetBalance = coinBalance;
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
     } else {
+      assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
     }
@@ -400,6 +402,7 @@ class BridgeTask {
       gpkInfo: this._gpkInfo,
       value: ccTaskData.amount,
       fee: this._fee,
+      route: (this._tokenPair.routes && this._tokenPair.routes[0]) || "",
       wallet: this._wallet
     };
     // console.debug("checkTaskSteps: %O", convert);

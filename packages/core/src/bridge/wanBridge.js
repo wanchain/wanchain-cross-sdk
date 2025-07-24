@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507241915", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507241945", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -201,6 +201,9 @@ class WanBridge extends EventEmitter {
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let toChainType = this.tokenPairService.getChainType(toChainName);
+    if (tokenPair.bridge === "Circle") {
+      options.bridge = tokenPair.routes[0];
+    }
     let [operateFee, networkFee] = await Promise.all([
       this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
       this.feesService.estimateNetworkFee(tokenPair.id, fromChainType, toChainType, options)
@@ -246,7 +249,7 @@ class WanBridge extends EventEmitter {
       let chainType = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainType : tokenPair.toChainType;
       let targetChainType = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainType : tokenPair.fromChainType;
       hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", {chainType, targetChainType, tokenPairID: tokenPair.id});
-      if (tokenPair.bridge) { // other bridge, such as Circle
+      if (tokenPair.bridge) { // only Circle now, ingnore cctpV2 quota
         quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
       } else {
         let smg = await this.getSmgInfo();
@@ -440,7 +443,7 @@ class WanBridge extends EventEmitter {
         }
       } else if (chainType === "ALGO") {
         return Number(tokenAccount);
-      } else if (["ATOM", "NOBLE", "KAVA", "SOL", "SUI"].includes(chainType)) { // ascii of name
+      } else if (["ATOM", "NOBLE", "KAVA", "SOL", "SUI", "TON"].includes(chainType)) { // ascii of name
         return tool.ascii2letter(tool.hexStrip0x(tokenAccount));
       } else {
         return tool.getStandardAddressInfo(chainType, tokenAccount, this.configService.getExtension(chainType)).native;
@@ -804,11 +807,18 @@ class WanBridge extends EventEmitter {
     // status
     let status = "Succeeded", errInfo = "";
     if (taskRedeemHash.toAccount) {
+      let isMatch;
       let toChainType = ccTask.toChainType;
-      let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
-      let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
-      if (!tool.cmpAddress(expectedToAccount, actualToAccount)) {
-        console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
+      if (toChainType === "TON") {
+        let tonTool = this.configService.getExtension(toChainType).tool;
+        isMatch = tonTool.parseAddress(taskRedeemHash.toAccount).equals(tonTool.parseAddress(ccTask.toAccount));
+      } else {
+        let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
+        let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
+        isMatch = tool.cmpAddress(expectedToAccount, actualToAccount);
+      }
+      if (!isMatch) {
+        console.error("actual toAccount %s does not match expected toAccount %s", taskRedeemHash.toAccount, ccTask.innerToAccount || ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
         this._distributeEvent("error", {taskId, reason: errInfo});

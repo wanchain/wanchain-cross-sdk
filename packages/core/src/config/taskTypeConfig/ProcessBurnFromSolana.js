@@ -46,6 +46,7 @@ module.exports = class ProcessBurnFromSolana {
       let fee = this.tool.toBigNumber("0"); // agent get service fee from cross config contract by self
       let unitLimit = this.tool.setComputeUnitLimit(300_000);
       // let unitPrice = this.tool.setComputeUnitPrice(100_000);
+      // it is not best to encode evm userAccount to ascii format, Buffer from hex is more reasonable, but we do not change it for history compatibility
       let instruction = await wanBridgeProgram.methods.userBurn(smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)).accounts(accounts).instruction();
       let tx = await wallet.buildTransaction([unitLimit, instruction]);
       let txHash = await wallet.sendTransaction(tx);

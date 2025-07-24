@@ -9,6 +9,7 @@ const SolanaExtension = require('./packages/solana');
 const AlgorandExtension = require('./packages/algorand');
 const SuiExtension = require('./packages/sui');
 const VeChainExtension = require('./packages/vechain');
+const TonExtension = require('./packages/ton');
 
 module.exports = {
   WanBridge,
@@ -22,5 +23,6 @@ module.exports = {
   SolanaExtension,
   AlgorandExtension,
   SuiExtension,
-  VeChainExtension
+  VeChainExtension,
+  TonExtension
 };

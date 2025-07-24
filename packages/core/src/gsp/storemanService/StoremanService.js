@@ -3,12 +3,14 @@
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool");
 const axios = require("axios");
+const util = require("util");
 
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC"]; // default obtaine from iwan, but some chains are not supported
-const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI"]; // default obtaine from wallet to optimize batch performance, but some wallets do not support
+const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"]; // default obtaine from wallet to optimize batch performance, but some wallets do not support
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
 
-const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
+// DepositForBurn
+const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0"; // v1
 
 class StoremanService {
     constructor() {
@@ -300,7 +302,7 @@ class StoremanService {
             v.id = new BigNumber('0x' + v.id).toFixed();
           })
         } else {
-          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id);
+          let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id).filter(v => (v != 0)); // ignore invalid crossId
           let ancestorIds = await this.getNftAncestorId(options.ancestorChainType, options.ancestorAccount, mappingIds);
           let ancestorChainInfo = this.chainInfoService.getChainInfoByType(options.ancestorChainType);
           let ancestors = await this._getNftInfoFromEvmChain(type, options.ancestorChainType, options.ancestorAccount, ancestorChainInfo.crossScAddr, ancestorIds, false);
@@ -519,13 +521,15 @@ class StoremanService {
       if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
         return 0;
       }
-      try { // nonEVM chains return cursor adapted to it's own scan mechanism
-        if (chainType === "SUI") {
+      try {
+        if (chainType === "SUI") { // cursor
           let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
           let scAddr = options.bridge? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
           let moduleName = options.bridge? "fee_collector" : "cross";
           let events = await this.iwan.getScEvent("SUI", scAddr, [], {moduleName, order: 'descending', limit: options.rewind || 1});
           return events.nextCursor;
+        } else if (chainType === "TON") { // timestamp in second
+          return parseInt(Date.now() / 1000);
         } else { // EVM chains return blockNumber 
           let blockNumber = await this.iwan.getBlockNumber(chainType);
           return blockNumber;
@@ -632,11 +636,26 @@ class StoremanService {
           result.depositAmount = cctpMsg.amount;
         }
       }
-    } else { // evm
+    } else if (options.isV2) { // evm v2
+      let chainInfo = this.chainInfoService.getChainInfoByType(fromChain);
+      let cctpApiUrl = this.configService.getGlobalConfig("cctpApiUrl");
+      let url = util.format("%s/v2/messages/%d?transactionHash=%s", cctpApiUrl, chainInfo.CircleBridge.domain, txHash);
+      let res = await axios.get(url);
+      // console.log("cctp api rs: %O", res)
+      if (res && res.data && res.data.messages) {
+        let msg = res.data.messages[0];
+        if (msg.eventNonce && msg.decodedMessage) {
+          result.depositNonce = msg.eventNonce;
+          result.depositAmount = msg.decodedMessage.decodedMessageBody.amount;
+        } else if (msg.attestation === "PENDING") {
+          console.debug("parseCctpDeposit for chain %s tx %s pending: %s", fromChain, txHash, msg.delayReason);
+        }
+      }
+    } else { // evm v1
       let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
       for (let log of receipt.logs) {
         if (log.topics[0] === CctpEvmDepositEventHash) {
-          let abi = this.configService.getAbi("circleBridgeDeposit");
+          let abi = this.configService.getAbi("cctpTokenMessenger");
           let decoded = tool.parseEvmLog(log, abi);
           console.debug("parseCctpDeposit for chain %s tx %s: %O", fromChain, txHash, decoded);
           result.depositNonce = decoded.args.nonce;

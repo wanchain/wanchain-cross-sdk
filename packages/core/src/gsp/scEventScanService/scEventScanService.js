@@ -5,6 +5,7 @@ const CheckBtcTx = require("./checkBtcTx");
 const CheckXrpTx = require("./checkXrpTx");
 const CheckApiServerTx = require("./checkApiServerTx");
 const CheckSuiTx = require("./checkSuiTx");
+const CheckTonTx = require("./checkTonTx");
 
 module.exports = class ScEventScanService {
   constructor() {
@@ -70,6 +71,14 @@ module.exports = class ScEventScanService {
       await checkSuiTx.init(info);
       this.mapCheckHandle.set("SUI", checkSuiTx);
     }
+
+    extension = this.configService.getExtension("TON");
+    info = this.chainInfoService.getChainInfoByType("TON");
+    if (extension && info) {
+      let checkTonTx = new CheckTonTx(frameworkService);
+      await checkTonTx.init(info);
+      this.mapCheckHandle.set("TON", checkTonTx);
+    }
   }
 
   async loadTradeTask(tasks) {
@@ -93,7 +102,7 @@ module.exports = class ScEventScanService {
   }
 
   async load(task) {
-    //console.log("scEventScanService load task: %O", task);
+    // console.log("scEventScanService load task: %O", task);
     let handle = this.mapCheckHandle.get(task.chain);
     if (handle) {
       await handle.load(task);
