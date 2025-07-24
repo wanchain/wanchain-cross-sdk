@@ -27,7 +27,7 @@ function getStandardAddressInfo(address) {
     native = tronweb.defaultAddress.base58;
   }
   // ignore cctp address as it is not supported now
-  return {native, evm, text: evm, compact: evm};
+  return {native, evm, text: evm, compact: evm}; // always treat tron as evm except ui, so text address is evm format
 }
 
 module.exports = {

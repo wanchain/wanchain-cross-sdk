@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507211658", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2507241115", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -182,7 +182,7 @@ class WanBridge extends EventEmitter {
       return;
     }
     records.modifyTradeTaskStatus(taskId, "Rejected");
-    this.emit("error", {taskId, reason: "Rejected"});
+    this._distributeEvent("error", {taskId, reason: "Rejected"});
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
@@ -746,15 +746,15 @@ class WanBridge extends EventEmitter {
   _onStoremanInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
-      this.emit("ready", assetPairList.map(v => Object.assign({}, v)));
+      this._distributeEvent("ready", assetPairList.map(v => Object.assign({}, v)));
       console.debug("WanBridge is ready for %d assetPairs and %d smgs", assetPairList.length, this.stores.assetPairs.smgList.length);
     } else {
-      this.emit("error", {reason: "Failed to initialize storeman"});
+      this._distributeEvent("error", {reason: "Failed to initialize storeman"});
       console.error("WanBridge has error");
     }
   }
 
-  _onLockTxHash(taskLockHash) { // only for third-party wallet lockTx to update txHash and result
+  async _onLockTxHash(taskLockHash) { // only for third-party wallet lockTx to update txHash and result
     console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
@@ -769,14 +769,14 @@ class WanBridge extends EventEmitter {
       let errInfo = "Amount is too small to pay the bridge fee";
       console.error({taskId, errInfo});
       records.modifyTradeTaskStatus(taskId, "Failed", errInfo);
-      this.emit("error", {taskId, reason: errInfo});
+      this._distributeEvent("error", {taskId, reason: errInfo});
     } else {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
     records.setTaskLockTxHash(taskId, txHash, value, taskLockHash.sender, taskLockHash.uniqueId);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("lock", {taskId, txHash});
-    this.emit("locked", {taskId, txHash});
+    await this._distributeEvent("lock", {taskId, txHash});
+    this._distributeEvent("locked", {taskId, txHash});
   }
 
   _onLockTxTimeout(taskLockTimeout) {
@@ -788,7 +788,7 @@ class WanBridge extends EventEmitter {
       let errInfo = "Waiting for locking asset timeout";
       records.modifyTradeTaskStatus(taskId, "Timeout", errInfo);
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-      this.emit("error", {taskId, reason: errInfo});
+      this._distributeEvent("error", {taskId, reason: errInfo});
     }
   }
 
@@ -811,7 +811,7 @@ class WanBridge extends EventEmitter {
         console.error("actual toAccount %s(%s) does not match expected toAccount %s(%s)", actualToAccount, taskRedeemHash.toAccount, expectedToAccount, ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
-        this.emit("error", {taskId, reason: errInfo});
+        this._distributeEvent("error", {taskId, reason: errInfo});
       }
     }
     // received amount, TODO: get actual value from chain
@@ -855,7 +855,7 @@ class WanBridge extends EventEmitter {
       console.debug("%s does not support wanPoints", this.network);
     }
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this.emit("redeem", {taskId, txHash});
+    this._distributeEvent("redeem", {taskId, txHash});
   }
 
   _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
@@ -893,7 +893,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onTaskStepResult(taskStepResult) { // only for async tx receipt to update lockTx result
+  async _onTaskStepResult(taskStepResult) { // only for async tx receipt to update lockTx result
     console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
@@ -907,13 +907,12 @@ class WanBridge extends EventEmitter {
       let {isLockTx, isLocked} = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
       if (isLockTx) {
         let lockEvent = {taskId, txHash};
-        console.debug("lockEvent: %O", lockEvent);
-        this.emit("lock", lockEvent);
+        await this._distributeEvent("lock", lockEvent);
       }
       if (isLocked) {
         let lockedEvent = {taskId, txHash};
         console.debug("lockedEvent: %O", lockedEvent);
-        this.emit("locked", lockedEvent);
+        this._distributeEvent("locked", lockedEvent);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
@@ -932,13 +931,34 @@ class WanBridge extends EventEmitter {
       if (errInfo) {
         let event = {taskId, txHash, reason: "Reclaim failed"};
         console.error("reclaimEvent: %O", event);
-        this.emit("error", event);
+        this._distributeEvent("error", event);
       } else {
         let event = {taskId, txHash};
         console.debug("reclaimEvent: %O", event);
-        this.emit("reclaim", event);
+        this._distributeEvent("reclaim", event);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    }
+  }
+
+  async _distributeEvent(name, data) {
+    this.emit(name, data);
+    if (name === "lock") {
+      await this._registerTxOperator(data.txHash);
+    }
+    console.debug("_distributeEvent %s: %O", name, data);
+  }
+
+  async _registerTxOperator(txHash) {
+    let host = (this.network === "mainnet")? "https://www.wanscan.org" : "https://testnet.wanscan.org";
+    let data = {txHash, operator: "WanBridge"};
+    try {
+      let result = await axios.post(host + '/api/cc/tx/operator', data);
+      if (result.data.operator !== "WanBridge") {
+        throw new Error("data error");
+      }
+    } catch (err) {
+      console.error("registerOperator %O error: %O", data, err);
     }
   }
 
