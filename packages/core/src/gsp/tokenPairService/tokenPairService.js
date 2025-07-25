@@ -489,10 +489,11 @@ class TokenPairService {
     getBridgeInfo(bridges) {
       let bridge = '', routes = []; // default WanBridge, bridge keep empty for compatible
       if (bridges) {
-        if (bridges === 'Circle') { // old version, no other value yet
+        let network = this.configService.getNetwork();
+        if ((network === "mainnet") && !this.isTestMode) { // now mainnet do not launch cctpV2
           bridge = 'Circle';
           routes = ['CCTPV1'];
-        } else { // new version, ['CCTPV1'] or ['CCTPV2'], now iwan only fill the prefer one, not both
+        } else { // bridges is ['CCTPV1'] or ['CCTPV2'], iwan only fill the prefer one, not both
           bridge = 'Circle';
           routes = bridges;
         }
