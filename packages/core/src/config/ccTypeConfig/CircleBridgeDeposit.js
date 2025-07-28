@@ -55,8 +55,6 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       isV2
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
-    let burnTitle = this.uiStrService.getStrByName("BurnTitle");
-    let burnDesc = this.uiStrService.getStrByName("BurnDesc");
-    steps.push({name: "depositForBurn", stepIndex: steps.length + 1, title: burnTitle, desc: burnDesc, params});
+    steps.push({name: "depositForBurn", stepIndex: steps.length + 1, params});
   }
 }

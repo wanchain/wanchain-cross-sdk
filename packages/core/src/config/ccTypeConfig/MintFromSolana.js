@@ -33,7 +33,7 @@ module.exports = class MintFromSolana {
       };
       console.debug("MintFromSolana params: %O", params);
       let steps = [
-        {name: "userFastMint", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: "userFastMint", stepIndex: 1, params}
       ];
       return steps;
     } catch (err) {

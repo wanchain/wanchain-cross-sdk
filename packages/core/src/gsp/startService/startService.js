@@ -13,7 +13,6 @@ let TxGeneratorService = require("../txGeneratorService/TxGeneratorService");
 let CheckTxReceiptService = require("../checkTxReceiptService/checkTxReceiptService");
 let CheckBtcTxService = require("../checkBtcTxService/checkBtcTxService");
 let CheckXrpTxService = require("../checkXrpTxService/checkXrpTxService");
-let UIStrService = require("../uiStrService/uiStrService");
 let ScEventScanService = require("../scEventScanService/scEventScanService");
 let CrossChainFeesService = require("../crossChainFeesService/crossChainFees");
 let CCTHandleService = require("../CCTHandleService/CCTHandleService");
@@ -67,10 +66,6 @@ class StartService {
             let taskService = new TaskService();
             await taskService.init(frameworkService);
             frameworkService.registerService("TaskService", taskService);
-
-            let uiStrService = new UIStrService();
-            await uiStrService.init(frameworkService);
-            frameworkService.registerService("UIStrService", uiStrService);
 
             let checkiwanSpeed = new CheckiWanSpeed();
             await checkiwanSpeed.init(frameworkService);

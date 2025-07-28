@@ -34,7 +34,7 @@ module.exports = class MintXrpFromRipple {
       };
       console.debug("Mint %s FromRipple params: %O", tokenPair.readableSymbol, params);
       let steps = [
-        {name: "addTag", stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: "addTag", stepIndex: 1, params}
       ];
       return steps;
     } catch (err) {

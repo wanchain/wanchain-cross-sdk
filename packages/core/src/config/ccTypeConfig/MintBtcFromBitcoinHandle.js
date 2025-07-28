@@ -38,7 +38,7 @@ module.exports = class MintBtcFromBitcoinHandle {
       };
       console.debug("Mint %s params: %O", fromChainType, params);
       let steps = [
-        {name: taskName, stepIndex: 1, title: "MintTitle", desc: "MintDesc", params}
+        {name: taskName, stepIndex: 1, params}
       ];
       return steps;
     } catch (err) {

@@ -497,19 +497,6 @@
       }
     }
   ],
-  "UIStrService": {
-    "Failed": "Failed",
-    "Succeeded": "Succeeded",
-    "Rejected": "Rejected",
-    "approve0Title": "approve0Title",
-    "approve0Desc": "approve0Desc",
-    "approveValueTitle": "approveValueTitle",
-    "approveValueDesc": "approveValueDesc",
-    "MintTitle": "MintTitle",
-    "MintDesc": "MintDesc",
-    "BurnTitle": "BurnTitle",
-    "BurnDesc": "BurnDesc"
-  },
   "iWanConnectorService": {
     "iWanOption": {
       "options": [

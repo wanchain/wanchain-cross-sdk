@@ -15,7 +15,6 @@ module.exports = class ProcessBase {
     this.m_taskService = frameworkService.getService("TaskService");
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
     this.m_storageService = frameworkService.getService("StorageService");
-    this.m_uiStrService = frameworkService.getService("UIStrService");
     this.m_storemanService = frameworkService.getService("StoremanService");
     this.m_tokenPairService = frameworkService.getService("TokenPairService");
     this.m_txGeneratorService = frameworkService.getService("TxGeneratorService");
@@ -37,11 +36,10 @@ module.exports = class ProcessBase {
     let params = stepData.params;
     try {
       if (params.scChainType !== "VET") { // VeWorld wallet support auto switch address so do not need to check
-        let strFailed = this.m_uiStrService.getStrByName("Failed");
         let accountAry = await wallet.getAccounts();
         let curAccount = (accountAry && accountAry.length)? accountAry[0] : "";
         if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-          this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet account");
+          this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Invalid wallet account");
           console.error("wallet account changes from %s to %s", params.fromAddr, curAccount);
           return;
         }
@@ -87,19 +85,18 @@ module.exports = class ProcessBase {
   }
 
   async checkChainId(stepData, wallet) {
-    let strFailed = this.m_uiStrService.getStrByName("Failed");
     let params = stepData.params;
     try {
       let chainId = await wallet.getChainId();
       if (chainId === params.chainId) {
         return true;
       } else {
-        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+        this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Invalid wallet");
         console.error("wallet chainId changes from %s to %s", params.chainId, chainId);
         return false;
       }      
     } catch (err) {
-      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", strFailed, "Invalid wallet");
+      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Invalid wallet");
       console.error("task %s checkChainId error: %O", params.ccTaskId, err);
       return false;
     }

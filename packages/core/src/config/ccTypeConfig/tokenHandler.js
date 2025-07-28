@@ -9,7 +9,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     super();
     this.frameworkService = frameworkService;
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
-    this.uiStrService = frameworkService.getService("UIStrService");
     this.configService = frameworkService.getService("ConfigService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
@@ -58,10 +57,6 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       crossScAddr);
     allowance = new BigNumber(allowance);
     console.debug("%s token %s allowance %s(%s->%s)", chainInfo.chainType, tokenSc, allowance.toFixed(), convert.fromAddr, crossScAddr);
-    let approve0Title = this.uiStrService.getStrByName("approve0Title");
-    let approve0Desc = this.uiStrService.getStrByName("approve0Desc");
-    let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
-    let approveValueDesc = this.uiStrService.getStrByName("approveValueDesc");
     if (allowance.isGreaterThan(0)) {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
       if (allowance.isLessThan(value)) {
@@ -69,13 +64,13 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         if (!["VET"].includes(chainInfo.chainType)) { // some chains erc20 implement do not need approve 0
           let approve0Params = Object.assign({}, approveParams);
           approve0Params.value = new BigNumber(0);
-          steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, title: approve0Title, desc: approve0Desc, params: approve0Params});
+          steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params});
         }
         // approve
-        steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: approveValueTitle, desc: approveValueDesc, params: approveParams});
+        steps.push({name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams});
       }
     } else {
-      steps.push({name: "erc20Approve", stepIndex: steps.length + 1, title: approveValueTitle, desc: approveValueDesc, params: approveParams});
+      steps.push({name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams});
     }
   }
 
@@ -96,9 +91,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         taskType: "ProcessErc721Approve"
       }
       console.debug("TokenHandler buildErc721Approve params: %O", params);
-      let approveValueTitle = this.uiStrService.getStrByName("approveValueTitle");
-      let approveValueDesc = this.uiStrService.getStrByName("approveValueDesc");
-      steps.push({name: "erc721Approve", stepIndex: steps.length + 1, title: approveValueTitle, desc: approveValueDesc, params});
+      steps.push({name: "erc721Approve", stepIndex: steps.length + 1, params});
     }
   }
 
@@ -130,9 +123,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       tokenType
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
-    let mintTitle = this.uiStrService.getStrByName("MintTitle");
-    let mintDesc = this.uiStrService.getStrByName("MintDesc");
-    steps.push({name: "userFastMint", stepIndex: steps.length + 1, title: mintTitle, desc: mintDesc, params});
+    steps.push({name: "userFastMint", stepIndex: steps.length + 1, params});
   }
 
   async buildUserFastBurn(steps, tokenPair, convert) {
@@ -163,9 +154,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       tokenType
     };
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
-    let burnTitle = this.uiStrService.getStrByName("BurnTitle");
-    let burnDesc = this.uiStrService.getStrByName("BurnDesc");
-    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, title: burnTitle, desc: burnDesc, params});
+    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, params});
   }
 
   async setChainId(steps, tokenPair, convert) {
