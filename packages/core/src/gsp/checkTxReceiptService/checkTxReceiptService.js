@@ -4,7 +4,7 @@ const tool = require("../../utils/tool.js");
 
 const DefaultScanBatchSize = 1000;
 const CustomizedScanBatchSize = {
-  SGB: 29,
+  SGB: 30,
   OKT: 300,
 };
 
@@ -153,7 +153,7 @@ module.exports = class CheckTxReceiptService {
     if (latestBlock >= fromBlock) {
       let scanBatchSize = CustomizedScanBatchSize[obj.chain] || DefaultScanBatchSize;
       let rewindBlocks = parseInt(scanBatchSize * 0.6);
-      let toBlock = fromBlock + scanBatchSize;
+      let toBlock = fromBlock + scanBatchSize - 1;
       if (toBlock > latestBlock) {
         toBlock = latestBlock;
       }
@@ -163,10 +163,10 @@ module.exports = class CheckTxReceiptService {
         if (fromBlock < 1) {
           fromBlock = 1;
         }
-        toBlock = fromBlock + scanBatchSize;
+        toBlock = fromBlock + scanBatchSize - 1;
         if (toBlock > latestBlock) { // rewind max
           toBlock = latestBlock;
-          fromBlock = toBlock - scanBatchSize;
+          fromBlock = toBlock - scanBatchSize + 1;
           if (fromBlock < 1) {
             fromBlock = 1;
           }

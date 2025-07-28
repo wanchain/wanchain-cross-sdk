@@ -5,7 +5,7 @@ const tool = require("../../utils/tool");
 
 const DefaultScanBatchSize = 1000;
 const CustomizedScanBatchSize = {
-  SGB: 29,
+  SGB: 30,
   OKT: 300,
   OKB: 100
 };
@@ -190,7 +190,7 @@ module.exports = class CheckScEvent {
         let fromBlockNumber = task.fromBlockNumber;
         if (latestBlockNumber >= fromBlockNumber) {
           let rewindBlocks = parseInt(this.scanBatchSize * 0.6);
-          let toBlockNumber = fromBlockNumber + this.scanBatchSize;
+          let toBlockNumber = fromBlockNumber + this.scanBatchSize - 1;
           if (toBlockNumber > latestBlockNumber) {
             toBlockNumber = latestBlockNumber;
           }
@@ -200,10 +200,10 @@ module.exports = class CheckScEvent {
             if (fromBlockNumber < 1) {
               fromBlockNumber = 1;
             }
-            toBlockNumber = fromBlockNumber + this.scanBatchSize;
+            toBlockNumber = fromBlockNumber + this.scanBatchSize - 1;
             if (toBlockNumber > latestBlockNumber) { // rewind max
               toBlockNumber = latestBlockNumber;
-              fromBlockNumber = toBlockNumber - this.scanBatchSize;
+              fromBlockNumber = toBlockNumber - this.scanBatchSize + 1;
               if (fromBlockNumber < 1) {
                 fromBlockNumber = 1;
               }
