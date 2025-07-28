@@ -7,7 +7,7 @@
       "crossScAddr": "0xe85b0d89cbc670733d6a40a9450d8788be13da47",
       "chainDecimals": 18,
       "MaskChainId": 888,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -23,7 +23,7 @@
       },
       "chainDecimals": 18,
       "MaskChainId": 1,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -34,7 +34,7 @@
       "crossScAddr": "0xc3711bdbe7e3063bf6c22e7fed42f782ac82baee",
       "chainDecimals": 18,
       "MaskChainId": 56,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -50,7 +50,7 @@
       },
       "chainDecimals": 18,
       "MaskChainId": 43114,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -61,7 +61,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
       "MaskChainId": 1285,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -72,7 +72,7 @@
       "crossScAddr": "0x6372aEc6263AA93EAceDC994D38aa9117B6b95B5",
       "chainDecimals": 18,
       "MaskChainId": 1284,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -89,7 +89,7 @@
         "crossScAddrV2": "0xC702c95612cd70B0440571DD7FA9c7B3057C152B"
       },
       "MaskChainId": 137,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -106,7 +106,7 @@
         "crossScAddrV2": "0x65f17bBFb1c2B8eF9165e2F936122b6d88106CC5"
       },
       "MaskChainId": 42161,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -117,7 +117,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xCcffE9d337f3c1b16bd271D109e691246fD69ee3",
       "MaskChainId": 250,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 10000
       }
     },
@@ -134,7 +134,7 @@
       },
       "chainDecimals": 18,
       "MaskChainId": 10,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -145,7 +145,7 @@
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
       "chainDecimals": 18,
       "MaskChainId": 66,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -157,7 +157,7 @@
       "subsidyCrossSc": "0x09cDfc56439643d151585B77899d0dC0f982BcD2",
       "chainDecimals": 18,
       "MaskChainId": 50,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -168,7 +168,7 @@
       "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
       "chainDecimals": 18,
       "MaskChainId": 1024,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -179,7 +179,7 @@
       "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
       "chainDecimals": 18,
       "MaskChainId": 530,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -191,7 +191,7 @@
       "crossScAddrNative": "TZ9grqg3LwBKiddGra3WGHPdddJz3tow8N",
       "chainDecimals": 6,
       "MaskChainId": 0,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -203,7 +203,7 @@
       "chainDecimals": 18,
       "MaskChainId": 592,
       "minReserved": 0.0001,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -214,7 +214,7 @@
       "crossScAddr": "0x201E5dE97DFc46aAce142B2009332c524c9D8D82",
       "chainDecimals": 18,
       "MaskChainId": 40,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -225,7 +225,7 @@
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "chainDecimals": 18,
       "MaskChainId": 192837465,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -236,7 +236,7 @@
       "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
       "chainDecimals": 18,
       "MaskChainId": 1088,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -247,7 +247,7 @@
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "chainDecimals": 18,
       "MaskChainId": 196,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -258,7 +258,7 @@
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "chainDecimals": 18,
       "MaskChainId": 19,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -270,7 +270,7 @@
       "crossScAddr": "0x102F0ce7a439d51247167D6233A0a44c3f8389a1",
       "chainDecimals": 18,
       "MaskChainId": 324,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -281,7 +281,7 @@
       "crossScAddr": "0x97E0883493e8bB7A119A1E36E53ee9E7A2D3CA7b",
       "chainDecimals": 18,
       "MaskChainId": 7332,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -292,7 +292,7 @@
       "crossScAddr": "0x72cCF64EE5E2C7629eE4eEe3e6AD6990289178ae",
       "chainDecimals": 18,
       "MaskChainId": 207,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -304,7 +304,7 @@
       "crossScAddr": "0xB13aFe3e965DcD483022b1CC3Adf03Eea039A754",
       "chainDecimals": 18,
       "MaskChainId": 1101,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -321,7 +321,7 @@
       },
       "chainDecimals": 18,
       "MaskChainId": 8453,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -333,7 +333,7 @@
       "crossScAddr": "0xFFB876Bd5Bee99e992cAc826A04396002f5f4a65",
       "chainDecimals": 18,
       "MaskChainId": 59144,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -345,7 +345,7 @@
       "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
       "chainDecimals": 18,
       "MaskChainId": 204,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -356,7 +356,7 @@
       "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
       "chainDecimals": 18,
       "MaskChainId": 42220,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -368,7 +368,7 @@
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "chainDecimals": 18,
       "MaskChainId": 81457,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -380,7 +380,7 @@
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "chainDecimals": 18,
       "MaskChainId": 181,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -391,7 +391,7 @@
       "symbol": "VET",
       "chainDecimals": 18,
       "crossScAddr": "0xfb37aee0ebfbd3929923d1366ba30df037e9e47c",
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -403,7 +403,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xbe5187c2a7eb776c1caeed2c37e7599fb05000d3",
       "MaskChainId": 39797,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -415,7 +415,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "MaskChainId": 7171,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -427,7 +427,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "MaskChainId": 153153,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -439,7 +439,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "MaskChainId": 16180,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -451,7 +451,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "MaskChainId": 995,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -463,7 +463,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "MaskChainId": 5424,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -475,7 +475,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
       "MaskChainId": 9008,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },
@@ -492,7 +492,7 @@
         "crossScAddrV2" : "0x79d745178BC271A1f29F8fbE9251dfC512db842C"
       },
       "MaskChainId": 480,
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     }
@@ -688,7 +688,7 @@
       },
       "chainDecimals": 9,
       "MaskChainId": "sui:mainnet",
-      "ScScanInfo": {
+      "TxScanInfo": {
         "taskInterval": 15000
       }
     },

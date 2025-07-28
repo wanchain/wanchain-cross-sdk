@@ -10,7 +10,7 @@ module.exports = class CheckSuiTx {
     this.chainInfo = chainInfo;
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
-    this.taskService.addTask(this, chainInfo.ScScanInfo.taskInterval);
+    this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
     this.eventService = this.frameworkService.getService("EventService");
     this.storemanService = this.frameworkService.getService("StoremanService");
     this.eventTypes = ["MINT", "BURN", "circleMINT"];
