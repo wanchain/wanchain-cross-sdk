@@ -696,6 +696,7 @@
       "chainId": "2147484107",
       "chainType": "KAVA",
       "chainName": "Kava",
+      "feeHolder" : "kava15wal47p8s029q2hgexfw6m9yjmjuqwkr2cvk0u",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
       "MaskChainId": "kava_2222-10",
