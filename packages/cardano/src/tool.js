@@ -6,7 +6,8 @@ let wasm = null;
 
 const ValidateAddrRules = {
   "1e3b5107e8b1dcab9056fd2359e12c75f12690769744a305682cbb3c": true,
-  "f914c5d0766e672010fc6c08897c0b37836471f508d9ade865b571c4": true
+  "f914c5d0766e672010fc6c08897c0b37836471f508d9ade865b571c4": true,
+  "67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656": true
 }
 
 function setWasm(_wasm) {
