@@ -557,7 +557,7 @@
       "mintFromChainHandle": "MintFromAlgorand",
       "burnFromChainHandle": "MintFromAlgorand",
       "chainDecimals": 6,
-      "minReserved": 0.1
+      "minReserved": 0.1,
       "rpc": {
         "url" : "https://testnet-api.algonode.cloud",
         "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
