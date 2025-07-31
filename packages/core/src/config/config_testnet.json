@@ -6,7 +6,7 @@
       "chainName": "Wanchain",
       "crossScAddr": "0x62de27e16f6f31d9aa5b02f4599fc6e21b339e79",
       "chainDecimals": 18,
-      "MaskChainId": 999
+      "walletChainId": 999
     },
     {
       "chainId": "2147483708",
@@ -19,7 +19,7 @@
         "crossScAddrV2": "0xf0750293079b29573A752Bc7222aAaEbf3208308"
       },
       "chainDecimals": 18,
-      "MaskChainId": 11155111
+      "walletChainId": 11155111
     },
     {
       "chainId": "2147484362",
@@ -27,7 +27,7 @@
       "chainName": "BNB Chain",
       "crossScAddr": "0xb12513cFCb13b7bE59Ba431C040B7206B0a211b9",
       "chainDecimals": 18,
-      "MaskChainId": 97
+      "walletChainId": 97
     },
     {
       "chainId": "2147492648",
@@ -40,7 +40,7 @@
         "crossScAddrV2" : "0x7dc37a6ACfe3eD545f5500811C0E12D71b21bcA7"
       },
       "chainDecimals": 18,
-      "MaskChainId": 43113
+      "walletChainId": 43113
     },
     {
       "chainId": "1073741825",
@@ -49,7 +49,7 @@
       "symbol": "DEV",
       "chainDecimals": 18,
       "crossScAddr": "0x9274Be9167c7dBa7F81b61d3870e0272cB8474f6",
-      "MaskChainId": 1287
+      "walletChainId": 1287
     },
     {
       "chainId": "2147484614",
@@ -63,7 +63,7 @@
         "crossScAddr": "0x2c88f07Ae3b7B6bb2Ecd62dEF2Dc2E139cE22194",
         "crossScAddrV2" : "0x5F09De765c1B35B6454321adB3E36E15418bbc0C"
       },
-      "MaskChainId": 80002
+      "walletChainId": 80002
     },
     {
       "chainId": "1073741826",
@@ -77,7 +77,7 @@
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f",
         "crossScAddrV2": "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
-      "MaskChainId": 421614
+      "walletChainId": 421614
     },
     {
       "chainId": "2147484655",
@@ -85,7 +85,7 @@
       "chainName": "Fantom",
       "chainDecimals": 18,
       "crossScAddr": "0x265FC66e84939f36D90Ee38734afe4a770D2c114",
-      "MaskChainId": 4002
+      "walletChainId": 4002
     },
     {
       "chainId": "2147484262",
@@ -99,7 +99,7 @@
         "crossScAddrV2" : "0xCbB55130E7DA1fF04c36D61f75CC615A7854eeb8"
       },
       "chainDecimals": 18,
-      "MaskChainId": 11155420
+      "walletChainId": 11155420
     },
     {
       "chainId": "2147484644",
@@ -107,7 +107,7 @@
       "chainName": "OKT Chain",
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "chainDecimals": 18,
-      "MaskChainId": 65
+      "walletChainId": 65
     },
     {
       "chainId": "2147484198",
@@ -116,7 +116,7 @@
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "subsidyCrossSc": "0x70114d2a0Ec788BaFee869aCf7FD1F8c76491799",
       "chainDecimals": 18,
-      "MaskChainId": 51
+      "walletChainId": 51
     },
     {
       "chainId": "1073741829",
@@ -124,7 +124,7 @@
       "chainName": "Clover P-Chain",
       "crossScAddr": "0xCef19151F44fC3df678554F35c1dd7F29afacDE8",
       "chainDecimals": 18,
-      "MaskChainId": 1024
+      "walletChainId": 1024
     },
     {
       "chainId": "1073741830",
@@ -132,7 +132,7 @@
       "chainName": "f(x)Core",
       "crossScAddr": "0x4f1aB74c2a9E8f591e8A80768e115C9f75935bAD",
       "chainDecimals": 18,
-      "MaskChainId": 90001
+      "walletChainId": 90001
     },
     {
       "chainId": "2147483843",
@@ -148,7 +148,7 @@
       "chainName": "Shibuya",
       "crossScAddr": "0x0758fe272Ab2DeDcd182B84D3e3F9310F21a4153",
       "chainDecimals": 18,
-      "MaskChainId": 81,
+      "walletChainId": 81,
       "minReserved": 0.0001
     },
     {
@@ -157,7 +157,7 @@
       "chainName": "Telos",
       "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
       "chainDecimals": 18,
-      "MaskChainId": 41
+      "walletChainId": 41
     },
     {
       "chainId": "1073741833",
@@ -165,7 +165,7 @@
       "chainName": "Gather",
       "crossScAddr": "0x7e0195A43a5DD27C507A1f0B2371d543c9e4dfc9",
       "chainDecimals": 18,
-      "MaskChainId": 356256156
+      "walletChainId": 356256156
     },
     {
       "chainId": "1073741834",
@@ -173,7 +173,7 @@
       "chainName": "Metis",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 59902
+      "walletChainId": 59902
     },
     {
       "chainId": "1073741835",
@@ -181,7 +181,7 @@
       "chainName": "X Layer",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 195
+      "walletChainId": 195
     },
     {
       "chainId": "1073741836",
@@ -189,7 +189,7 @@
       "chainName": "Songbird",
       "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
       "chainDecimals": 18,
-      "MaskChainId": 16
+      "walletChainId": 16
     },
     {
       "chainId": "1073741837",
@@ -198,7 +198,7 @@
       "symbol": "ETH",
       "crossScAddr": "0x18De061bB6B635d114a9EA8721a6C63D0F6F3571",
       "chainDecimals": 18,
-      "MaskChainId": 300
+      "walletChainId": 300
     },
     {
       "chainId": "1073741839",
@@ -206,7 +206,7 @@
       "chainName": "Horizen EON",
       "crossScAddr": "0x6E81E127a280Cd17BeBc7704Ce28a0226295A12b",
       "chainDecimals": 18,
-      "MaskChainId": 1663
+      "walletChainId": 1663
     },
     {
       "chainId": "1073741840",
@@ -214,7 +214,7 @@
       "chainName": "VinuChain",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 206
+      "walletChainId": 206
     },
     {
       "chainId": "1073741838",
@@ -223,7 +223,7 @@
       "symbol": "ETH",
       "crossScAddr": "0xD21F22E9E434F3814A950Ad136D882fCFfB9685c",
       "chainDecimals": 18,
-      "MaskChainId": 2442
+      "walletChainId": 2442
     },
     {
       "chainId": "1073741841",
@@ -237,7 +237,7 @@
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "chainDecimals": 18,
-      "MaskChainId": 84532
+      "walletChainId": 84532
     },
     {
       "chainId": "1073741842",
@@ -246,7 +246,7 @@
       "symbol": "ETH",
       "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
       "chainDecimals": 18,
-      "MaskChainId": 59141
+      "walletChainId": 59141
     },
     {
       "chainId": "1073741845",
@@ -255,7 +255,7 @@
       "symbol": "BNB",
       "crossScAddr": "0x34Cd1Ce396C29075381fD2c61B0959Ce640FECc9",
       "chainDecimals": 18,
-      "MaskChainId": 5611
+      "walletChainId": 5611
     },
     {
       "chainId": "2147536400",
@@ -263,7 +263,7 @@
       "chainName": "Celo",
       "crossScAddr": "0xc12cF8cC8Eff1F39c9e60dA81d11745c25c59501",
       "chainDecimals": 18,
-      "MaskChainId": 44787
+      "walletChainId": 44787
     },
     {
       "chainId": "1073741846",
@@ -272,7 +272,7 @@
       "symbol": "ETH",
       "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
       "chainDecimals": 18,
-      "MaskChainId": 168587773
+      "walletChainId": 168587773
     },
     {
       "chainId": "2147483961",
@@ -281,7 +281,7 @@
       "symbol": "ZIL",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "chainDecimals": 18,
-      "MaskChainId": 33103
+      "walletChainId": 33103
     },
     {
       "chainId": "1073741851",
@@ -290,7 +290,7 @@
       "symbol": "WATER",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 1501869
+      "walletChainId": 1501869
     },
     {
       "chainId": "1073741852",
@@ -299,7 +299,7 @@
       "symbol": "FTN",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 4058
+      "walletChainId": 4058
     },
     {
       "chainId": "1073741854",
@@ -308,7 +308,7 @@
       "symbol": "LRPO",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "MaskChainId": 12020499
+      "walletChainId": 12020499
     },
     {
       "chainId": "2147493655",
@@ -317,7 +317,7 @@
       "symbol": "S",
       "chainDecimals": 18,
       "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
-      "MaskChainId": 57054
+      "walletChainId": 57054
     },
     {
       "chainId": "2147484466",
@@ -334,7 +334,7 @@
       "symbol": "NRG",
       "chainDecimals": 18,
       "crossScAddr": "0x95492fD2f5b2D2e558e8aF811f951e2DCbc846d3",
-      "MaskChainId": 49797
+      "walletChainId": 49797
     },
     {
       "chainId": "2154655314",
@@ -343,7 +343,7 @@
       "symbol": "BROCK",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "MaskChainId": 7771
+      "walletChainId": 7771
     },
     {
       "chainId": "1073741848",
@@ -352,7 +352,7 @@
       "symbol": "DIONE",
       "chainDecimals": 18,
       "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
-      "MaskChainId": 131313
+      "walletChainId": 131313
     },
     {
       "chainId": "1073741849",
@@ -361,7 +361,7 @@
       "symbol": "PLYR",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "MaskChainId": 62831
+      "walletChainId": 62831
     },
     {
       "chainId": "1073741853",
@@ -370,7 +370,7 @@
       "symbol": "1073741853",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "MaskChainId": 997
+      "walletChainId": 997
     },
     {
       "chainId": "1073741850",
@@ -379,7 +379,7 @@
       "symbol": "EDX",
       "chainDecimals": 18,
       "crossScAddr": "0xFDa7a6d11fDd32F18e8d8d9ce1e97A9575141875",
-      "MaskChainId": 1995
+      "walletChainId": 1995
     },
     {
       "chainId": "1073741856",
@@ -388,7 +388,7 @@
       "symbol": "SHIDO",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "MaskChainId": 9007
+      "walletChainId": 9007
     },
     {
       "chainId": "1073741857",
@@ -402,7 +402,7 @@
         "crossScAddr": "",
         "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
-      "MaskChainId": 4801
+      "walletChainId": 4801
     }
   ],
   "iWanConnectorService": {
@@ -433,7 +433,7 @@
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
-      "MaskChainId": "testnet",
+      "walletChainId": "testnet",
       "txScanInterval": 60000
     },
     {
@@ -488,7 +488,7 @@
       "mintFromChainHandle": "MintFromCardano",
       "burnFromChainHandle": "BurnFromCardano",
       "chainDecimals": 6,
-      "MaskChainId": 0,
+      "walletChainId": 0,
       "tokenScript": {
         "txHash": "c716bb9e631391b4ccbf7e83f98399eed0ad994f3646100745c7fa44b598a3b2",
         "index": 0,
@@ -509,7 +509,7 @@
       "chainName": "Cosmos",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
-      "MaskChainId": "provider"
+      "walletChainId": "provider"
     },
     {
       "chainId": "1073741844",
@@ -523,7 +523,7 @@
         "feeHolder": "noble102rkzjw0p7a6t27ywsgggj2mjhzrarqlu66ys2"
       },
       "chainDecimals": 6,
-      "MaskChainId": "grand-1"
+      "walletChainId": "grand-1"
     },
     {
       "chainId": "2147484149",
@@ -544,7 +544,7 @@
         "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg"
       },
       "chainDecimals": 9,
-      "MaskChainId": "devnet",
+      "walletChainId": "devnet",
       "minReserved": 0.001
     },
     {
@@ -592,7 +592,7 @@
         "treasury": "0x7170137d4a6431bf83351ac025baf462909bffe2877d87716374fb42b9629ebe"
       },
       "chainDecimals": 9,
-      "MaskChainId": "sui:testnet"
+      "walletChainId": "sui:testnet"
     },
     {
       "chainId": "2147484107",
@@ -600,7 +600,7 @@
       "chainName": "Kava",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
-      "MaskChainId": "kava_2221-16000"
+      "walletChainId": "kava_2221-16000"
     },
     {
       "chainId": "2147484255",
@@ -610,7 +610,7 @@
       "mintFromChainHandle": "MintFromTon",
       "burnFromChainHandle": "MintFromTon",
       "chainDecimals": 9,
-      "MaskChainId": -3,
+      "walletChainId": -3,
       "rpc": "https://testnet.toncenter.com"
     }
   ],
