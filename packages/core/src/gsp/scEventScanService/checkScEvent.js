@@ -29,7 +29,7 @@ module.exports = class CheckScEvent {
     this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
-    this.taskService.addTask(this, this.chainInfo.TxScanInfo.taskInterval);
+    this.taskService.addTask(this, this.chainInfo.txScanInterval);
     this.eventService = this.frameworkService.getService("EventService");
     this.configService = this.frameworkService.getService("ConfigService");
     this.storemanService = this.frameworkService.getService("StoremanService");

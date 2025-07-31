@@ -28,7 +28,7 @@ module.exports = class CheckBtcTxService {
     async start() {
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
-        this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
+        this.m_taskService.addTask(this, chainInfo.txScanInterval);
     }
 
     async addOTAInfo(obj) {
