@@ -317,6 +317,11 @@
       "symbol": "S",
       "chainDecimals": 18,
       "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
+      "CircleBridge": {
+        "domain": 13,
+        "crossScAddr": "",
+        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
+      },
       "walletChainId": 57054
     },
     {
