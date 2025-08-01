@@ -6,6 +6,9 @@ const axios = require("axios");
 module.exports = class ProcessXrpMintFromRipple {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
+    this.configService = frameworkService.getService("ConfigService");
+    this.storemanService = this.frameworkService.getService("StoremanService");
+    this.tokenPairService = frameworkService.getService("TokenPairService");
   }
 
   async process(stepData, wallet) {
@@ -27,10 +30,10 @@ module.exports = class ProcessXrpMintFromRipple {
   async getTagId(stepData, chainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
     let params = stepData.params;
     try {
-      let storemanService = this.frameworkService.getService("StoremanService");
-      let configService = this.frameworkService.getService("ConfigService");
-      let apiServerConfig = configService.getGlobalConfig("apiServer");
-
+      let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
+      let direction = (chainType === tokenPair.toChainType)? "MINT" : "BURN";
+      let taskType = this.tokenPairService.getTokenEventType(params.tokenPairID, direction);
+      let apiServerConfig = this.configService.getGlobalConfig("apiServer");
       let url = apiServerConfig.url + "/api/xrp/addTagInfo";
       // save p2sh 和id 到apiServer
       let data = {
@@ -46,7 +49,8 @@ module.exports = class ProcessXrpMintFromRipple {
       if (ret.data.success === true) {
         data.tagId = ret.data.tagId;
         data.ccTaskId = params.ccTaskId;
-        data.fromBlockNumber = await storemanService.getChainBlockNumber(chainType);
+        data.fromBlockNumber = await this.storemanService.getChainBlockNumber(chainType);
+        data.taskType = taskType;
         let checkXrpTxService = this.frameworkService.getService("CheckXrpTxService");
         await checkXrpTxService.addTagInfo(data);
         // 添加apiServer端获取的networkFee
