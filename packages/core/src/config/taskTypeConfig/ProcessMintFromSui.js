@@ -87,7 +87,10 @@ module.exports = class ProcessMintFromSui {
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, direction),
-          fromChain: chainInfo.chainType,
+          // for xrp api server
+          fromAddr: params.fromAddr,
+          chainHash: txHash,
+          toAddr: params.toAddr
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");

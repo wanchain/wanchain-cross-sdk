@@ -39,7 +39,7 @@ module.exports = class CheckBtcTx{
                 console.log("%s save to apiServer success", this.serviceName);
                 this.m_CheckAry.unshift(obj);
             } else {
-                console.error("%s save to apiServer fail", this.serviceName);
+                console.error("%s save to apiServer fail: %O", this.serviceName, postJson);
             }
         } catch (err) {
             console.error("%s add error: %O", this.serviceName, err);

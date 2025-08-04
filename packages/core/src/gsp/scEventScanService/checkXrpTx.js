@@ -31,10 +31,8 @@ module.exports = class CheckXrpTx {
             if (ret.data.success === true) {
                 console.log("CheckXrpTx save to apiServer success");
                 this.m_CheckAry.unshift(obj);
-            }
-            else {
-                console.log("CheckXrpTx save to apiServer fail");
-                // ???
+            } else {
+                console.error("CheckXrpTx save to apiServer fail: %O", postJson);
             }
         }
         catch (err) {
