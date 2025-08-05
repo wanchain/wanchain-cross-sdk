@@ -39,7 +39,7 @@ module.exports = class BurnFromCardano {
       };
       console.debug("Burn %s FromCardano params: %O", tokenPair.readableSymbol, params);
       let steps = [
-        {name: "userFastBurn", stepIndex: 1, title: "BurnTitle", desc: "BurnDesc", params}
+        {name: "userFastBurn", stepIndex: 1, params}
       ];
       return steps;
     } catch (err) {

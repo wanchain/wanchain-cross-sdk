@@ -14,7 +14,7 @@ module.exports = class CheckTonTx {
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.taskService = this.frameworkService.getService("TaskService");
-    this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
+    this.taskService.addTask(this, chainInfo.txScanInterval);
     this.eventService = this.frameworkService.getService("EventService");
     this.eventTypes = ["BURN"]; // no other type yet
     this.eventTypes.forEach(v => this.eventTasks.set(v, []));

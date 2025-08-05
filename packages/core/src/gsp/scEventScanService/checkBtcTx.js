@@ -19,7 +19,7 @@ module.exports = class CheckBtcTx{
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
 
-        this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
+        this.m_taskService.addTask(this, chainInfo.txScanInterval);
         this.m_eventService = this.m_frameworkService.getService("EventService");
     }
 
@@ -39,7 +39,7 @@ module.exports = class CheckBtcTx{
                 console.log("%s save to apiServer success", this.serviceName);
                 this.m_CheckAry.unshift(obj);
             } else {
-                console.error("%s save to apiServer fail", this.serviceName);
+                console.error("%s save to apiServer fail: %O", this.serviceName, postJson);
             }
         } catch (err) {
             console.error("%s add error: %O", this.serviceName, err);

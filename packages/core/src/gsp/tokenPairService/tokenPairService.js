@@ -38,7 +38,6 @@ class TokenPairService {
             this.configService = frameworkService.getService("ConfigService");
             this.chainInfoService = frameworkService.getService("ChainInfoService");
             this.webStores = frameworkService.getService("WebStores");
-            this.uiStrService = frameworkService.getService("UIStrService");
 
             this.eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
             let tokenPairCfg = this.configService.getGlobalConfig("tokenPairCfg");

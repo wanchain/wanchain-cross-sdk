@@ -36,7 +36,7 @@ module.exports = class ProcessCircleBridgeSolanaReclaim {
           let dataAddr = depositMsg.slice(DepositMsg.length);
           let messageSentEventData = this.tool.getPublicKey(dataAddr);
           let accounts = {
-            payee: wallet.getPublicKey(),
+            payee: this.tool.getPublicKey(params.fromAddr),
             messageTransmitter: messageTransmitterAccount.publicKey,
             messageSentEventData
           };

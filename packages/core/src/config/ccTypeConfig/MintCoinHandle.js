@@ -10,9 +10,6 @@ module.exports = class MintCoinHandle {
   }
 
   async process(tokenPair, convert) {
-    this.m_uiStrService = this.frameworkService.getService("UIStrService");
-    this.m_strMintTitle = this.m_uiStrService.getStrByName("MintTitle");
-    this.m_strMintDesc = this.m_uiStrService.getStrByName("MintDesc");
     let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
     let fromChainType = (convert.convertType === "MINT")? tokenPair.fromChainType : tokenPair.toChainType;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
@@ -38,7 +35,7 @@ module.exports = class MintCoinHandle {
     console.debug("MintCoinHandle params: %O", params);
     params.chainId = await convert.wallet.getChainId();
     let steps = [
-      {name: "userFastMint", stepIndex: 1, title: this.m_strMintTitle, desc: this.m_strMintDesc, params}
+      {name: "userFastMint", stepIndex: 1, params}
     ];
     return steps;
   }

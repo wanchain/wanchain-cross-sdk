@@ -28,16 +28,16 @@ module.exports = class CheckXrpTxService {
     async start() {
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType("XRP");
-        this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
+        this.m_taskService.addTask(this, chainInfo.txScanInterval);
     }
 
-    async addTagInfo(obj) {
+    async addTagInfo(info) {
         let tmpObj = {
-            ccTaskId: obj.ccTaskId,
-            tagId: obj.tagId,
-            chain: obj.chainType, // toChainType
-            fromBlockNumber: obj.fromBlockNumber,
-            taskType: "MINT"
+            ccTaskId: info.ccTaskId,
+            tagId: info.tagId,
+            chain: info.chainType, // toChainType
+            fromBlockNumber: info.fromBlockNumber,
+            taskType: info.taskType
         };
         let storageService = this.m_frameworkService.getService("StorageService");
         await storageService.save("CheckXrpTxService", tmpObj.ccTaskId, tmpObj);

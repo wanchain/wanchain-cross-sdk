@@ -14,7 +14,7 @@ module.exports = class CheckXrpTx {
         this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(chainType);
-        this.m_taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
+        this.m_taskService.addTask(this, chainInfo.txScanInterval);
         this.m_eventService = this.m_frameworkService.getService("EventService");
     }
 
@@ -31,10 +31,8 @@ module.exports = class CheckXrpTx {
             if (ret.data.success === true) {
                 console.log("CheckXrpTx save to apiServer success");
                 this.m_CheckAry.unshift(obj);
-            }
-            else {
-                console.log("CheckXrpTx save to apiServer fail");
-                // ???
+            } else {
+                console.error("CheckXrpTx save to apiServer fail: %O", postJson);
             }
         }
         catch (err) {

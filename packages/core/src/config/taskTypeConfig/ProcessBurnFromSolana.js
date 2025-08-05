@@ -20,7 +20,7 @@ module.exports = class ProcessBurnFromSolana {
       let direction = (tokenPair.fromChainType === "SOL");
       let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
       let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
-      let walletPublicKey = wallet.getPublicKey();
+      let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
       let wanBridgeProgram = wallet.getProgram("wanBridge", fromChainInfo.crossScAddr);
       let adminBoardProgramId = this.tool.getPublicKey(fromChainInfo.adminBoardProgram);
       let tokenpairPda = this.tool.getPda("TokenPairInfo", params.tokenPairID, adminBoardProgramId, 4);
@@ -65,6 +65,10 @@ module.exports = class ProcessBurnFromSolana {
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction? "MINT" : "BURN")),
+          // for xrp api server
+          fromAddr: params.fromAddr,
+          chainHash: txHash,
+          toAddr: params.toAddr
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");

@@ -75,11 +75,6 @@ class Phantom {
 
   // customized function
 
-  getPublicKey() {
-    let provider = this.getProvider();
-    return provider.publicKey; 
-  }
-
   getProvider() {
     if (window.phantom) {
       let provider = window.phantom.solana;
@@ -110,10 +105,10 @@ class Phantom {
   }
 
   async buildTransaction(instructions) {
-    let payerKey = this.getPublicKey();
+    let provider = this.getProvider();
     let latestBlockhash = await this.connection.getLatestBlockhash();
     console.debug("%s %s latestBlockhash: %O", this.name, this.network, latestBlockhash);
-    let messageV0 = new TransactionMessage({payerKey, recentBlockhash: latestBlockhash.blockhash, instructions}).compileToV0Message();
+    let messageV0 = new TransactionMessage({payerKey: provider.publicKey, recentBlockhash: latestBlockhash.blockhash, instructions}).compileToV0Message();
     return new VersionedTransaction(messageV0);
   }
 }

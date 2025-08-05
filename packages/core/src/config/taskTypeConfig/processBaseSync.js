@@ -40,8 +40,8 @@ module.exports = class ProcessBaseSync {
   async checkWallet(params, wallet) {
     let chainInfo = this.chainInfoService.getChainInfoByType(params.chainType);
     let chainId = await wallet.getChainId();
-    if (chainId != chainInfo.MaskChainId) {
-      console.error("wallet chainId %d != %d", chainId, chainInfo.MaskChainId);
+    if (chainId != chainInfo.walletChainId) {
+      console.error("wallet chainId %d != %d", chainId, chainInfo.walletChainId);
       throw new Error("Wallet chain mismatch");
     }
     let accounts = await wallet.getAccounts();

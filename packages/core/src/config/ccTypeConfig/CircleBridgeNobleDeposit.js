@@ -38,7 +38,7 @@ module.exports = class CircleBridgeNobleDeposit {
       };
       console.debug("CircleBridgeNobleDeposit params: %O", params);
       let steps = [
-        {name: "userFastBurn", stepIndex: 1, title: "BurnTitle", desc: "BurnDesc", params}
+        {name: "userFastBurn", stepIndex: 1, params}
       ];
       return steps;
     } catch (err) {

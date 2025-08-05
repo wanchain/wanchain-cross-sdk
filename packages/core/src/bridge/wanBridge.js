@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2508051435", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2508051645", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -115,13 +115,13 @@ class WanBridge extends EventEmitter {
       return true;
     } else {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
-      if (chainInfo.MaskChainId !== undefined) {
+      if (chainInfo.walletChainId !== undefined) {
         if (wallet) {
           let walletChainId = await wallet.getChainId();
-          if (chainInfo.MaskChainId == walletChainId) {
+          if (chainInfo.walletChainId == walletChainId) {
             return true;
           } else {
-            console.debug("SDK: checkWallet id %s != %s", walletChainId, chainInfo.MaskChainId);
+            console.debug("SDK: checkWallet id %s != %s", walletChainId, chainInfo.walletChainId);
             return false;
           }
         } else {
@@ -589,7 +589,7 @@ class WanBridge extends EventEmitter {
         chainName,
         bip44ChainId: chainInfo.chainId,
         symbol: chainInfo.symbol || chainInfo.chainType,
-        chainId: chainInfo.MaskChainId,
+        chainId: chainInfo.walletChainId,
         highlightEndTime
       }
     }
@@ -618,7 +618,7 @@ class WanBridge extends EventEmitter {
     if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
       throw new Error("Invalid wallet account");
     }
-    let params = {taskType, lockHash: task.lockHash, ccTaskId: taskId};
+    let params = {taskType, lockHash: task.lockHash, ccTaskId: taskId, fromAddr: task.fromAccount};
     let err = await this.txTaskHandleService.processTxTask({params}, wallet);
     if (err) {
       console.error("reclaim task %s error: %O", taskId, err);

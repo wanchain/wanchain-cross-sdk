@@ -27,7 +27,7 @@ module.exports = class CheckApiServerTxService {
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
         if (chainInfo) { // maybe not configured on mainnet
-          this.taskService.addTask(this, chainInfo.TxScanInfo.taskInterval);
+          this.taskService.addTask(this, chainInfo.txScanInterval);
         }
     }
 
