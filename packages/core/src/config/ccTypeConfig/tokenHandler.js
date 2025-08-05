@@ -101,7 +101,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
     let tokenType = tokenPair.protocol;
-    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
+    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
@@ -132,7 +132,7 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
     let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
     let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
     let tokenType = tokenPair.protocol;
-    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)) : convert.value;
+    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
     let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
     let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});

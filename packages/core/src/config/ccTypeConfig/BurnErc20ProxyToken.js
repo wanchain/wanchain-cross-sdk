@@ -36,7 +36,7 @@ module.exports = class BurnErc20ProxyToken {
       taskType: "ProcessErc20Approve"
     };
     console.debug("BurnErc20ProxyToken erc20ApproveParas: %O", erc20ApproveParas);
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
     let allowance = await this.m_iwanBCConnector.getErc20Allowance(chainInfo.chainType,
       nativeToken,// tokenAddr
       convert.fromAddr, // account

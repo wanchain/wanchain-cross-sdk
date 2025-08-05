@@ -60,7 +60,7 @@ module.exports = class ProcessCoinUserFastMint extends ProcessBase {
             userAccount: params.userAccount,
             smgID: params.storemanGroupId,
             tokenPairID: params.tokenPairID,
-            value: new BigNumber(params.value).minus(params.fee),
+            value: new BigNumber(params.value).minus(params.fee).toFixed(0),
             chain: checkChainType,
             fromBlockNumber: blockNumber,
             taskType,
