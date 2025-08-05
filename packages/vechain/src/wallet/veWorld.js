@@ -2,6 +2,7 @@ const { ABIContract, Address, Clause, VET, Units } = require('@vechain/sdk-core'
 const { DAppKit } = require('@vechain/dapp-kit');
 const wanBridgeAbi = require("../abi/crossDelegate.json");
 const erc20Abi = require("../abi/erc20.json");
+const BigNumber = require("bignumber.js");
 
 const DefaultProvider = {
   mainnet: "https://mainnet.vechain.org",
@@ -42,8 +43,8 @@ class VeWorld {
     let clauses = [Clause.callFunction(
       Address.of(crossScAddr),
       ABIContract.ofAbi(wanBridgeAbi).getFunction('userLock'),
-      [smgID, tokenPairID, crossValue, userAccount],
-      VET.of(extInfo.coinValue, Units.wei)
+      [smgID, tokenPairID, new BigNumber(crossValue).toFixed(0), userAccount],
+      VET.of(new BigNumber(extInfo.coinValue).toFixed(0), Units.wei)
     )];
     return clauses;
   }
@@ -52,7 +53,7 @@ class VeWorld {
     let clauses = [Clause.callFunction(
       Address.of(erc20Addr),
       ABIContract.ofAbi(erc20Abi).getFunction('approve'),
-      [spenderAddr, value]
+      [spenderAddr, new BigNumber(value).toFixed(0)]
     )];
     return clauses;
   }
@@ -61,8 +62,8 @@ class VeWorld {
     let clauses = [Clause.callFunction(
       Address.of(crossScAddr),
       ABIContract.ofAbi(wanBridgeAbi).getFunction('userBurn'),
-      [smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount],
-      VET.of(extInfo.coinValue, Units.wei)
+      [smgID, tokenPairID, new BigNumber(crossValue).toFixed(0), new BigNumber(fee).toFixed(0), tokenAccount, userAccount],
+      VET.of(new BigNumber(extInfo.coinValue).toFixed(0), Units.wei)
     )];
     return clauses;
   }
