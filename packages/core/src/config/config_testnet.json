@@ -417,7 +417,7 @@
       "chainDecimals": 18,
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "CircleBridge": {
-        "domain": 14,
+        "domain": 10,
         "crossScAddr": "",
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
