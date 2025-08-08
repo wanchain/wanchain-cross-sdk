@@ -12,14 +12,17 @@ module.exports = class MintXrpFromRipple {
   async process(tokenPair, convert) {
     try {
       let value = new BigNumber(convert.value);
-      if (tokenPair.fromAccount == 0) { // token ignore decimals
-        value = value.multipliedBy(Math.pow(10, tokenPair.fromDecimals));
+      let direction = (convert.convertType === "MINT");
+      let fromAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+      if (fromAccount == 0) { // token ignore decimals
+        let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
+        value = value.multipliedBy(Math.pow(10, decimals));
       }
       value = value.toFixed();
       // neither apiServer nor storeman agent adopt the fee, they get fee from iwan or config contract,
       // so do not distinguish networkFee and operateFee, and ignore returned fee value of apiServer
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol);
-      let toChainType = tokenPair.toChainType;
+      let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType,
