@@ -291,6 +291,20 @@
       "walletChainId": 181
     },
     {
+      "chainId": "2147493655",
+      "chainType": "S",
+      "chainName": "Sonic",
+      "symbol": "S",
+      "chainDecimals": 18,
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "CircleBridge": {
+        "domain": 13,
+        "crossScAddr": "",
+        "crossScAddrV2" : "0x508927b6247179D72142B60Fc69f5E4d58cbEb64"
+      },
+      "walletChainId": 146
+    },
+    {
       "chainId": "2147484466",
       "chainType": "VET",
       "chainName": "VeChain",
