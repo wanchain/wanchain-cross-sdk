@@ -134,8 +134,12 @@ module.exports = class ProcessBurnFromCardano {
       if (executionUnits) {
         console.debug("executionUnits: %O", executionUnits);
       } else {
-        console.error("evaluateTx: %O", evaluateTx);
-        throw new Error("Failed to evaluate tx, please try again later");
+        console.error("evaluateTx result: %O", evaluateTx);
+        if (evaluateTx.error === 3012) {
+          throw new Error("UTXO Consolidation Required");
+        } else {
+          throw new Error("Failed to evaluate tx, please try again later");
+        }
       }
       if ((executionUnits.memory > costModelParameters.maxExecutionUnitsPerTransaction.memory)
           || (executionUnits.steps > costModelParameters.maxExecutionUnitsPerTransaction.steps)) {
