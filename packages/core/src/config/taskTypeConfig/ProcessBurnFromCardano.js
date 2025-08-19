@@ -136,7 +136,7 @@ module.exports = class ProcessBurnFromCardano {
       } else {
         console.error("evaluateTx result: %O", evaluateTx);
         if (evaluateTx.error === 3012) {
-          throw new Error("Overspending The Budget");
+          throw new Error("UTXO Consolidation Required");
         } else {
           throw new Error("Failed to evaluate tx, please try again later");
         }
