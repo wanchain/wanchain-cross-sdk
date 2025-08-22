@@ -6,7 +6,7 @@ class AssetPairs {
   constructor() {
     this.assetPairList = [];
     this.smgList = [];
-    this.tokens = new Set(); // not need to be classified by chain
+    this.tokens = new Set(); // must be lowercase, not need to be classified by chain
   }
 
   setAssetPairs(tokenPairs, smgs, configService = null) {
@@ -64,6 +64,9 @@ class AssetPairs {
         };
         return assetPair;
       });
+      // add special address
+      this.tokens.add("11111111111111111111111111111111"); // Solana system program
+      this.tokens.add("T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb".toLowerCase()); // Tron black hole address(0)
       this.assetPairList = pairList.sort(this.sortBy);
     }
   }
