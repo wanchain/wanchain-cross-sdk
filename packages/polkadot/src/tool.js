@@ -11,7 +11,7 @@ const SS58Format = {
   substrate: 42,
 };
 
-function getSS58Format(chain, network) {
+function getSS58Format(chain, network) { // compatible for chainType and chainName
   if (["DOT", "Polkadot"].includes(chain)) {
     return (network === "mainnet")? SS58Format.polkadot : SS58Format.westend;
   } else if (["PHA", "Phala"].includes(chain)) {
@@ -21,14 +21,14 @@ function getSS58Format(chain, network) {
   }
 }
 
-function validateAddress(address, network, chain) {
+function validateAddress(address, options = {}) { // options: {network, chain}
   try {
-    let format = getSS58Format(chain, network);
+    let format = getSS58Format(options.chain, options.network);
     let addr = encodeAddress(address, format);
-    console.log("polkadot %s %s address %s formatted to %s", chain, network, address, addr);
+    console.log("polkadot %s %s address %s formatted to %s", options.chain, options.network, address, addr);
     return (address === addr);
   } catch(err) {
-    console.log("polkadot %s %s address %s is invalid: %s", chain, network, address, err);
+    console.log("polkadot %s %s address %s is invalid: %s", options.chain, options.network, address, err);
     return false;
   }
 }

@@ -656,7 +656,7 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigSc": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D",
+  "crossConfigSc": "0x86704C09EE544cF5e3BA2f92E35d1f65f10F7014",
   "crossTask": {
     "scAddr": "0xD4782Ce66E5Deea91dF0a8d0626411C16E2E4Fe0",
     "tokens": {

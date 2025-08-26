@@ -1,7 +1,7 @@
 const {Address, Cell, beginCell: sdkBeginCell} = require("@ton/core");
 const {getSecureRandomNumber} = require('@ton/crypto');
 
-function validateAddress(address, network) {
+function validateAddress(address, options) { // options: {network, chain}
   try {
     if (Address.isFriendly(address)) {
       let addr = Address.parseFriendly(address);
@@ -10,7 +10,7 @@ function validateAddress(address, network) {
       // console.log({rawAddr});
       // let raw = Address.parseRaw(rawAddr);
       // console.log("str: %s", raw.toString({testOnly: true, bounceable: true}))
-      return (addr.isTestOnly === (network === "testnet"));
+      return (addr.isTestOnly === (options.network === "testnet"));
     } else {
       return false;
     }

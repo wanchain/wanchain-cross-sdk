@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2508221730", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2508261850", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -265,7 +265,7 @@ class WanBridge extends EventEmitter {
     return quota;
   }
 
-  validateAddress(chainName, address, options = {}) {
+  validateAddress(chainName, address, options = {}) { // validate address format and basic static rule
     options = Object.assign({debug: true, checkToken: true}, options);
     let chainType = this.tokenPairService.getChainType(chainName);
     let result = this.storemanService.validateAddress(chainType, address);
@@ -281,6 +281,21 @@ class WanBridge extends EventEmitter {
       return false;
     }
     return true;
+  }
+
+  async validateRecipient(chainName, address) { // it asynchronous because it relies on remote services
+    let valid = this.validateAddress(chainName, address);
+    if (valid) {
+      if (chainName === "Cardano") { // cross swap
+        valid = await this.storemanService.checkAdaRecipient(address);
+      } else if (chainName === "Solana") { // system program
+        valid = await this.storemanService.checkSolRecipient(address);
+      }
+    }
+    if (valid === false) {
+      console.log("SDK: validateRecipient, chainName: %s, address: %s, result: %s", chainName, address, valid);
+    }
+    return valid;
   }
 
   validateXrpTokenAmount(amount) {
@@ -813,9 +828,14 @@ class WanBridge extends EventEmitter {
         let tonTool = this.configService.getExtension(toChainType).tool;
         isMatch = tonTool.parseAddress(taskRedeemHash.toAccount).equals(tonTool.parseAddress(ccTask.toAccount));
       } else {
-        let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
-        let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
-        isMatch = tool.cmpAddress(expectedToAccount, actualToAccount);
+        try {
+          let expectedToAccount = tool.getStandardAddressInfo(toChainType, ccTask.innerToAccount || ccTask.toAccount, this.configService.getExtension(toChainType)).native;
+          let actualToAccount = tool.getStandardAddressInfo(toChainType, taskRedeemHash.toAccount, this.configService.getExtension(toChainType)).native;
+          isMatch = tool.cmpAddress(expectedToAccount, actualToAccount);
+        } catch (err) {
+          console.error("_onRedeemTxHash %s getStandardAddressInfo error: %O", toChainType, err);
+          isMatch = false;
+        }
       }
       if (!isMatch) {
         console.error("actual toAccount %s does not match expected toAccount %s", taskRedeemHash.toAccount, ccTask.innerToAccount || ccTask.toAccount);

@@ -4,8 +4,8 @@ const BigNumber = require("bignumber.js");
 
 module.exports = class crossChainFees {
   async init(frameworkService) {
-    let cofigService = frameworkService.getService("ConfigService");
-    this.subsidyAbi = cofigService.getAbi("subsidyCrossSc");
+    let configService = frameworkService.getService("ConfigService");
+    this.subsidyAbi = configService.getAbi("subsidyCrossSc");
     this.iwan = frameworkService.getService("iWanConnectorService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");

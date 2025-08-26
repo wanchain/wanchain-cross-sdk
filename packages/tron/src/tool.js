@@ -2,7 +2,7 @@ const TronWeb = require('tronweb');
 
 const tronweb = new TronWeb({fullHost: "https://api.nileex.io"});
 
-function validateAddress(address, network, chain) {
+function validateAddress(address) {
   let isValid = tronweb.isAddress(address);
   if (isValid) {
     return (address.substr(0, 2) !== "41");
@@ -25,6 +25,8 @@ function getStandardAddressInfo(address) {
     tronweb.setAddress(address);
     evm = "0x" + tronweb.defaultAddress.hex.substr(2);
     native = tronweb.defaultAddress.base58;
+  } else {
+    throw new Error("Tron address is invalid: " + address);
   }
   // ignore cctp address as it is not supported now
   return {native, evm, text: evm, compact: evm}; // always treat tron as evm except ui, so text address is evm format

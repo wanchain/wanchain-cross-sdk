@@ -2,7 +2,6 @@
 
 const BigNumber = require("bignumber.js");
 const tool = require("../../utils/tool.js");
-const configAbi = require("../abi/crossConfig.json");
 
 module.exports = class ProcessPhaMintFromPhala {
   constructor(frameworkService) {
@@ -14,6 +13,7 @@ module.exports = class ProcessPhaMintFromPhala {
     let webStores = this.frameworkService.getService("WebStores");
     let configService = this.frameworkService.getService("ConfigService");
     let configScAddr = configService.getGlobalConfig("crossConfigSc");
+    let crossConfigAbi = configService.getAbi("crossConfig");
     let iwan = this.frameworkService.getService("iWanConnectorService");
     let params = stepData.params;
 
@@ -22,7 +22,7 @@ module.exports = class ProcessPhaMintFromPhala {
 
       // 2 生成交易串
       let args = [params.toChainID, params.fromChainID, Number(params.tokenPairID)];
-      let tpInfo = await iwan.callScFunc("WAN", configScAddr, "parseDestProjectChainInfo", args, configAbi);
+      let tpInfo = await iwan.callScFunc("WAN", configScAddr, "parseDestProjectChainInfo", args, crossConfigAbi); // current new cross config sc DO NOT supported this method any more
       if ((!tpInfo.projectSrcChainID) || (!tpInfo.projectTokenPairID)) {
         throw new Error("Invalid token pair");
       }

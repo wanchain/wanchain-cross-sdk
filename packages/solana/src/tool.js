@@ -1,6 +1,6 @@
 import * as anchor from '@coral-xyz/anchor';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
-import { PublicKey, Keypair } from '@solana/web3.js';
+import { PublicKey, Keypair, SystemProgram } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync as getAssociatedTokenAddressSyncFn } from '@solana/spl-token';
 
 function validateAddress(address) {
@@ -13,20 +13,20 @@ function validateAddress(address) {
 }
 
 function getStandardAddressInfo(address) {
-  let native = "", evm = "", cctp = "", input = address;
   try { // address is ATA for cctp, it is not on curve, can not call validateAddress
-    if (/^(0x)?[0-9A-Fa-f]+$/.test(address)) { // decoded format, only used to check apiServer toAddr
-      address = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
+    let bs58Addr = address;
+    if ((address !== SystemProgram.programId.toString()) && (/^(0x)?[0-9A-Fa-f]+$/.test(address))) { // decoded format, only used to check apiServer toAddr
+      bs58Addr = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
     }
-    new PublicKey(address);
-    let decoded = bs58.decode(address);
-    native = address;
-    evm = asciiToHex(native);
-    cctp = '0x' + Buffer.from(decoded).toString('hex');
+    new PublicKey(bs58Addr);
+    let decoded = bs58.decode(bs58Addr);
+    let native = bs58Addr;
+    let evm = asciiToHex(native);
+    let cctp = '0x' + Buffer.from(decoded).toString('hex');
+    return {native, evm, text: native, cctp, compact: cctp};
   } catch (err) {
-    console.error("Solana address %s is invalid", input);
+    throw new Error("Solana address is invalid: " + address);
   }
-  return {native, evm, text: native, cctp, compact: cctp};
 }
 
 function hexStrip0x(hexStr) {
