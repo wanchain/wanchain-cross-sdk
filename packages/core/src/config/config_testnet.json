@@ -29,6 +29,11 @@
       "MaskChainId": 11155111,
       "ScScanInfo": {
         "taskInterval": 15000
+      },
+      "dapp": {
+        "swap": {
+          "scAddr": "0xaa70ceedbc229c5d989f4524fadfb36fb6795723"
+        }
       }
     },
     {
