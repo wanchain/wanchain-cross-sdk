@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2508261850", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2508291610", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
     this.configService = this._service.getService("ConfigService");
@@ -605,6 +605,8 @@ class WanBridge extends EventEmitter {
         bip44ChainId: chainInfo.chainId,
         symbol: chainInfo.symbol || chainInfo.chainType,
         chainId: chainInfo.walletChainId,
+        blockTime: chainInfo.blockTime || 12,
+        blockConfirmations: chainInfo.blockConfirmations || 1,
         highlightEndTime
       }
     }
