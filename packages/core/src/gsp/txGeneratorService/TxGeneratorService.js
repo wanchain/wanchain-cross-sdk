@@ -159,7 +159,7 @@ module.exports = class TxGeneratorService{
     }
 
     genDappData(chainType, tokenPairID, dapp) {
-      console.debug(dapp);
+      console.debug("dapp info: %O", dapp);
       let data = "";
       if (dapp.name === "swap") {
         let tp = this.tokenPairService.getTokenPair(tokenPairID);
