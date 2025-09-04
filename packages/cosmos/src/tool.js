@@ -4,7 +4,7 @@ const Amino = require("@cosmjs/amino");
 const encoding = require("@cosmjs/encoding");
 const { bech32 } = require('bech32');
 
-const AddressPrefix = {
+const AddressPrefix = { // compatible for chainType and chainName
   Cosmos: "cosmos",
   ATOM: "cosmos",
   Noble: "noble",
@@ -13,12 +13,12 @@ const AddressPrefix = {
   KAVA: "kava",
 }
 
-function validateAddress(address, network, chain) {
+function validateAddress(address, options = {}) { // options: {network, chain}
   try {
     encoding.fromBech32(address);
-    return (address.indexOf(AddressPrefix[chain]) === 0);
+    return (address.indexOf(AddressPrefix[options.chain]) === 0);
   } catch (err) {
-    // console.error("cosmos validateAddress %s error: %O", address, err);
+    // console.error("cosmos validateAddress %s %s error: %O", options.chain, address, err);
     return false;
   }
 }
@@ -32,15 +32,14 @@ function gpk2Address(gpk, chain) {
 }
 
 function getStandardAddressInfo(address, chain = "Noble") {
-  let native = "", evm = "", cctp = "";
-  if (validateAddress(address, "", chain)) {
-    native = address;
-    evm = asciiToHex(native);
-    cctp = '0x' + Buffer.from(bech32.fromWords(bech32.decode(native).words)).toString('hex');
+  if (validateAddress(address, {chain})) {
+    let native = address;
+    let evm = asciiToHex(native);
+    let cctp = '0x' + Buffer.from(bech32.fromWords(bech32.decode(native).words)).toString('hex');
+    return {native, evm, text: native, cctp, compact: cctp};
   } else {
-    console.error("%s address %s is invalid", chain, address);
+    throw new Error(chain + " address is invalid: " + address);
   }
-  return {native, evm, text: native, cctp, compact: cctp};
 }
 
 // according to web3.utils.asciiToHex

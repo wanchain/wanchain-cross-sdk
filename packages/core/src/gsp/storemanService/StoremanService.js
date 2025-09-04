@@ -60,12 +60,12 @@ class StoremanService {
       return {maxQuota: "0", minQuota: "0"};
     }
 
-    validateAddress(chainType, address) {
+    validateAddress(chainType, address) { // validate address format and basic static rule
       let result = false;
-      let extension = this.configService.getExtension(chainType);
       let network = this.configService.getNetwork();
+      let extension = this.configService.getExtension(chainType);
       if (extension && extension.tool && extension.tool.validateAddress) {
-        result = extension.tool.validateAddress(address, network, chainType);
+        result = extension.tool.validateAddress(address, {network, chain: chainType});
       } else if ("WAN" === chainType) {
         result = tool.isValidWanAddress(address);
       } else if ("BTC" === chainType) {
@@ -85,6 +85,40 @@ class StoremanService {
         }
       }
       return result;
+    }
+
+    async checkAdaRecipient(address) { // address format should have been validated by validateAddress
+      try {
+        let network = this.configService.getNetwork();
+        let tool = this.configService.getExtension("ADA").tool;
+        let sriptHash = tool.validateAddress(address, {network, retScriptHash: true});
+        if (typeof(sriptHash) === "boolean") {
+          return sriptHash;
+        }
+        let configScAddr = this.configService.getGlobalConfig("crossConfigSc");
+        let crossConfigAbi = this.configService.getAbi("crossConfig");
+        let key = "2147485463:ScriptReceiver:" + sriptHash;
+        let result = await this.iwan.callScFunc("WAN", configScAddr, "getValue", [key], crossConfigAbi); // DO NOT supported anymore by new cross config sc
+        return (result == 1); // bytes
+      } catch (err) {
+        console.error("checkSolRecipient %s error: %O", err);
+        return false;
+      }
+    }
+
+    async checkSolRecipient(address) { // address format should have been validated by validateAddress
+      try {
+        let accountInfo = await this.iwan.getAccountInfo("SOL", address);
+        if (!accountInfo) { // account not exist is valid for SystemAccount, uninitialized accounts are owned by System Program
+          return true;
+        }
+        let tool = this.configService.getExtension("SOL").tool;
+        let sysProgId = tool.getSystemProgramId();
+        return (sysProgId.equals(tool.getPublicKey(accountInfo.owner)) && (!accountInfo.executable));
+      } catch (err) {
+        console.error("checkSolRecipient %s error: %O", err);
+        return false;
+      }
     }
 
     async getAccountBalance(assetPairId, chainType, addr, options = {}) {

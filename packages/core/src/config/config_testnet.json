@@ -6,7 +6,9 @@
       "chainName": "Wanchain",
       "crossScAddr": "0x62de27e16f6f31d9aa5b02f4599fc6e21b339e79",
       "chainDecimals": 18,
-      "walletChainId": 999
+      "walletChainId": 999,
+      "blockConfirmations": 12,
+      "blockTime": 5
     },
     {
       "chainId": "2147483708",
@@ -19,7 +21,9 @@
         "crossScAddrV2": "0xf0750293079b29573A752Bc7222aAaEbf3208308"
       },
       "chainDecimals": 18,
-      "walletChainId": 11155111
+      "walletChainId": 11155111,
+      "blockConfirmations": 6,
+      "blockTime": 12
     },
     {
       "chainId": "2147484362",
@@ -27,7 +31,9 @@
       "chainName": "BNB Chain",
       "crossScAddr": "0xb12513cFCb13b7bE59Ba431C040B7206B0a211b9",
       "chainDecimals": 18,
-      "walletChainId": 97
+      "walletChainId": 97,
+      "blockConfirmations": 12,
+      "blockTime": 3
     },
     {
       "chainId": "2147492648",
@@ -40,7 +46,9 @@
         "crossScAddrV2" : "0x7dc37a6ACfe3eD545f5500811C0E12D71b21bcA7"
       },
       "chainDecimals": 18,
-      "walletChainId": 43113
+      "walletChainId": 43113,
+      "blockConfirmations": 12,
+      "blockTime": 2.3
     },
     {
       "chainId": "1073741825",
@@ -49,7 +57,9 @@
       "symbol": "DEV",
       "chainDecimals": 18,
       "crossScAddr": "0x9274Be9167c7dBa7F81b61d3870e0272cB8474f6",
-      "walletChainId": 1287
+      "walletChainId": 1287,
+      "blockConfirmations": 12,
+      "blockTime": 12
     },
     {
       "chainId": "2147484614",
@@ -63,7 +73,9 @@
         "crossScAddr": "0x2c88f07Ae3b7B6bb2Ecd62dEF2Dc2E139cE22194",
         "crossScAddrV2" : "0x5F09De765c1B35B6454321adB3E36E15418bbc0C"
       },
-      "walletChainId": 80002
+      "walletChainId": 80002,
+      "blockConfirmations": 500,
+      "blockTime": 2
     },
     {
       "chainId": "1073741826",
@@ -77,7 +89,9 @@
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f",
         "crossScAddrV2": "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
-      "walletChainId": 421614
+      "walletChainId": 421614,
+      "blockConfirmations": 1,
+      "blockTime": 0.3
     },
     {
       "chainId": "2147484655",
@@ -85,7 +99,9 @@
       "chainName": "Fantom",
       "chainDecimals": 18,
       "crossScAddr": "0x265FC66e84939f36D90Ee38734afe4a770D2c114",
-      "walletChainId": 4002
+      "walletChainId": 4002,
+      "blockConfirmations": 10,
+      "blockTime": 2.8
     },
     {
       "chainId": "2147484262",
@@ -99,7 +115,9 @@
         "crossScAddrV2" : "0xCbB55130E7DA1fF04c36D61f75CC615A7854eeb8"
       },
       "chainDecimals": 18,
-      "walletChainId": 11155420
+      "walletChainId": 11155420,
+      "blockConfirmations": 1,
+      "blockTime": 2
     },
     {
       "chainId": "2147484644",
@@ -107,7 +125,9 @@
       "chainName": "OKT Chain",
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "chainDecimals": 18,
-      "walletChainId": 65
+      "walletChainId": 65,
+      "blockConfirmations": 20,
+      "blockTime": 3.8
     },
     {
       "chainId": "2147484198",
@@ -116,7 +136,9 @@
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "subsidyCrossSc": "0x70114d2a0Ec788BaFee869aCf7FD1F8c76491799",
       "chainDecimals": 18,
-      "walletChainId": 51
+      "walletChainId": 51,
+      "blockConfirmations": 32,
+      "blockTime": 2
     },
     {
       "chainId": "1073741829",
@@ -124,7 +146,9 @@
       "chainName": "Clover P-Chain",
       "crossScAddr": "0xCef19151F44fC3df678554F35c1dd7F29afacDE8",
       "chainDecimals": 18,
-      "walletChainId": 1024
+      "walletChainId": 1024,
+      "blockConfirmations": 12,
+      "blockTime": 12
     },
     {
       "chainId": "1073741830",
@@ -132,7 +156,9 @@
       "chainName": "f(x)Core",
       "crossScAddr": "0x4f1aB74c2a9E8f591e8A80768e115C9f75935bAD",
       "chainDecimals": 18,
-      "walletChainId": 90001
+      "walletChainId": 90001,
+      "blockConfirmations": 32,
+      "blockTime": 5.4
     },
     {
       "chainId": "2147483843",
@@ -140,7 +166,9 @@
       "chainName": "Tron",
       "crossScAddr": "0xf1b7f2e5aaccce1e39ad9baa8ff6aa828a01ce19",
       "crossScAddrNative": "TY1JDH5SJzKSmZvDMVX5ozWWyddqmqKWD9",
-      "chainDecimals": 6
+      "chainDecimals": 6,
+      "blockConfirmations": 20,
+      "blockTime": 3
     },
     {
       "chainId": "2147484458",
@@ -149,7 +177,9 @@
       "crossScAddr": "0x0758fe272Ab2DeDcd182B84D3e3F9310F21a4153",
       "chainDecimals": 18,
       "walletChainId": 81,
-      "minReserved": 0.0001
+      "minReserved": 0.0001,
+      "blockConfirmations": 3,
+      "blockTime": 12
     },
     {
       "chainId": "2147484625",
@@ -157,7 +187,9 @@
       "chainName": "Telos",
       "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
       "chainDecimals": 18,
-      "walletChainId": 41
+      "walletChainId": 41,
+      "blockConfirmations": 120,
+      "blockTime": 0.5
     },
     {
       "chainId": "1073741833",
@@ -165,7 +197,9 @@
       "chainName": "Gather",
       "crossScAddr": "0x7e0195A43a5DD27C507A1f0B2371d543c9e4dfc9",
       "chainDecimals": 18,
-      "walletChainId": 356256156
+      "walletChainId": 356256156,
+      "blockConfirmations": 20,
+      "blockTime": 13.2
     },
     {
       "chainId": "1073741834",
@@ -173,7 +207,9 @@
       "chainName": "Metis",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 59902
+      "walletChainId": 59902,
+      "blockConfirmations": 30,
+      "blockTime": 2
     },
     {
       "chainId": "1073741835",
@@ -181,7 +217,9 @@
       "chainName": "X Layer",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 195
+      "walletChainId": 195,
+      "blockConfirmations": 150,
+      "blockTime": 6
     },
     {
       "chainId": "1073741836",
@@ -189,7 +227,9 @@
       "chainName": "Songbird",
       "crossScAddr": "0xfc9a863EDFEA47F6e4e6954Be978d447133D87ce",
       "chainDecimals": 18,
-      "walletChainId": 16
+      "walletChainId": 16,
+      "blockConfirmations": 100,
+      "blockTime": 1
     },
     {
       "chainId": "1073741837",
@@ -198,7 +238,9 @@
       "symbol": "ETH",
       "crossScAddr": "0x18De061bB6B635d114a9EA8721a6C63D0F6F3571",
       "chainDecimals": 18,
-      "walletChainId": 300
+      "walletChainId": 300,
+      "blockConfirmations": 30,
+      "blockTime": 1
     },
     {
       "chainId": "1073741839",
@@ -206,7 +248,9 @@
       "chainName": "Horizen EON",
       "crossScAddr": "0x6E81E127a280Cd17BeBc7704Ce28a0226295A12b",
       "chainDecimals": 18,
-      "walletChainId": 1663
+      "walletChainId": 1663,
+      "blockConfirmations": 100,
+      "blockTime": 19.2
     },
     {
       "chainId": "1073741840",
@@ -214,7 +258,9 @@
       "chainName": "VinuChain",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 206
+      "walletChainId": 206,
+      "blockConfirmations": 10,
+      "blockTime": 65.7
     },
     {
       "chainId": "1073741838",
@@ -223,7 +269,9 @@
       "symbol": "ETH",
       "crossScAddr": "0xD21F22E9E434F3814A950Ad136D882fCFfB9685c",
       "chainDecimals": 18,
-      "walletChainId": 2442
+      "walletChainId": 2442,
+      "blockConfirmations": 300,
+      "blockTime": 6
     },
     {
       "chainId": "1073741841",
@@ -237,7 +285,9 @@
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "chainDecimals": 18,
-      "walletChainId": 84532
+      "walletChainId": 84532,
+      "blockConfirmations": 200,
+      "blockTime": 2
     },
     {
       "chainId": "1073741842",
@@ -246,7 +296,9 @@
       "symbol": "ETH",
       "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
       "chainDecimals": 18,
-      "walletChainId": 59141
+      "walletChainId": 59141,
+      "blockConfirmations": 64,
+      "blockTime": 6
     },
     {
       "chainId": "1073741845",
@@ -255,7 +307,9 @@
       "symbol": "BNB",
       "crossScAddr": "0x34Cd1Ce396C29075381fD2c61B0959Ce640FECc9",
       "chainDecimals": 18,
-      "walletChainId": 5611
+      "walletChainId": 5611,
+      "blockConfirmations": 12,
+      "blockTime": 1
     },
     {
       "chainId": "2147536400",
@@ -263,7 +317,9 @@
       "chainName": "Celo",
       "crossScAddr": "0xc12cF8cC8Eff1F39c9e60dA81d11745c25c59501",
       "chainDecimals": 18,
-      "walletChainId": 44787
+      "walletChainId": 44787,
+      "blockConfirmations": 80,
+      "blockTime": 5
     },
     {
       "chainId": "1073741846",
@@ -272,7 +328,9 @@
       "symbol": "ETH",
       "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
       "chainDecimals": 18,
-      "walletChainId": 168587773
+      "walletChainId": 168587773,
+      "blockConfirmations": 600,
+      "blockTime": 6
     },
     {
       "chainId": "2147483961",
@@ -281,7 +339,9 @@
       "symbol": "ZIL",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "chainDecimals": 18,
-      "walletChainId": 33103
+      "walletChainId": 33103,
+      "blockConfirmations": 1,
+      "blockTime": 35
     },
     {
       "chainId": "1073741851",
@@ -290,7 +350,9 @@
       "symbol": "WATER",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 1501869
+      "walletChainId": 1501869,
+      "blockConfirmations": 3,
+      "blockTime": 5
     },
     {
       "chainId": "1073741852",
@@ -299,7 +361,9 @@
       "symbol": "FTN",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 4058
+      "walletChainId": 4058,
+      "blockConfirmations": 1,
+      "blockTime": 12
     },
     {
       "chainId": "1073741854",
@@ -308,7 +372,9 @@
       "symbol": "LRPO",
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 12020499
+      "walletChainId": 12020499,
+      "blockConfirmations": 1,
+      "blockTime": 12
     },
     {
       "chainId": "2147493655",
@@ -322,7 +388,9 @@
         "crossScAddr": "",
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
-      "walletChainId": 57054
+      "walletChainId": 57054,
+      "blockConfirmations": 20,
+      "blockTime": 0.6
     },
     {
       "chainId": "2147484466",
@@ -330,7 +398,9 @@
       "chainName": "VeChain",
       "symbol": "VET",
       "chainDecimals": 18,
-      "crossScAddr": "0x8dc369fa992f2f3c38474e84b0a93cc9957b1b73"
+      "crossScAddr": "0x8dc369fa992f2f3c38474e84b0a93cc9957b1b73",
+      "blockConfirmations": 12,
+      "blockTime": 10
     },
     {
       "chainId": "2147493445",
@@ -339,7 +409,9 @@
       "symbol": "NRG",
       "chainDecimals": 18,
       "crossScAddr": "0x95492fD2f5b2D2e558e8aF811f951e2DCbc846d3",
-      "walletChainId": 49797
+      "walletChainId": 49797,
+      "blockConfirmations": 30,
+      "blockTime": 60
     },
     {
       "chainId": "2154655314",
@@ -348,7 +420,9 @@
       "symbol": "BROCK",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "walletChainId": 7771
+      "walletChainId": 7771,
+      "blockConfirmations": 64,
+      "blockTime": 2
     },
     {
       "chainId": "1073741848",
@@ -357,7 +431,9 @@
       "symbol": "DIONE",
       "chainDecimals": 18,
       "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
-      "walletChainId": 131313
+      "walletChainId": 131313,
+      "blockConfirmations": 1,
+      "blockTime": 20
     },
     {
       "chainId": "1073741849",
@@ -366,7 +442,9 @@
       "symbol": "PLYR",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "walletChainId": 62831
+      "walletChainId": 62831,
+      "blockConfirmations": 1,
+      "blockTime": 20
     },
     {
       "chainId": "1073741853",
@@ -375,7 +453,9 @@
       "symbol": "1073741853",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "walletChainId": 997
+      "walletChainId": 997,
+      "blockConfirmations": 4,
+      "blockTime": 3
     },
     {
       "chainId": "1073741850",
@@ -384,7 +464,9 @@
       "symbol": "EDX",
       "chainDecimals": 18,
       "crossScAddr": "0xFDa7a6d11fDd32F18e8d8d9ce1e97A9575141875",
-      "walletChainId": 1995
+      "walletChainId": 1995,
+      "blockConfirmations": 3,
+      "blockTime": 5
     },
     {
       "chainId": "1073741856",
@@ -393,7 +475,9 @@
       "symbol": "SHIDO",
       "chainDecimals": 18,
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
-      "walletChainId": 9007
+      "walletChainId": 9007,
+      "blockConfirmations": 6,
+      "blockTime": 2
     },
     {
       "chainId": "1073741857",
@@ -407,7 +491,9 @@
         "crossScAddr": "",
         "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
-      "walletChainId": 4801
+      "walletChainId": 4801,
+      "blockConfirmations": 6,
+      "blockTime": 2
     },
     {
       "chainId": "1073741858",
@@ -421,7 +507,9 @@
         "crossScAddr": "",
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
-      "walletChainId": 1301
+      "walletChainId": 1301,
+      "blockConfirmations": 12,
+      "blockTime": 1
     }
   ],
   "iWanConnectorService": {
@@ -453,7 +541,9 @@
       "burnFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
       "walletChainId": "testnet",
-      "txScanInterval": 60000
+      "txScanInterval": 60000,
+      "blockConfirmations": 2,
+      "blockTime": 600
     },
     {
       "chainId": "2147483650",
@@ -462,7 +552,9 @@
       "network": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
-      "txScanInterval": 60000
+      "txScanInterval": 60000,
+      "blockConfirmations": 4,
+      "blockTime": 150
     },
     {
       "chainId": "2147483651",
@@ -471,7 +563,9 @@
       "network": "testnet",
       "mintFromChainHandle": "MintBtcFromBitcoinHandle",
       "chainDecimals": 8,
-      "txScanInterval": 60000
+      "txScanInterval": 60000,
+      "blockConfirmations": 9,
+      "blockTime": 60
     },
     {
       "chainId": "2147483792",
@@ -479,7 +573,9 @@
       "chainName": "XRP Ledger",
       "mintFromChainHandle": "MintXrpFromRippleHandle",
       "chainDecimals": 6,
-      "minReserved": 2
+      "minReserved": 2,
+      "blockConfirmations": 1,
+      "blockTime": 3.5
     },
     {
       "chainId": "2147484002",
@@ -488,14 +584,18 @@
       "symbol": "WND",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
       "chainDecimals": 12,
-      "minReserved": 0.01
+      "minReserved": 0.01,
+      "blockConfirmations": 3,
+      "blockTime": 6
     },
     {
       "chainId": "1073741831",
       "chainType": "PHA",
       "chainName": "Phala",
       "mintFromChainHandle": "MintDotFromPolkaHandle",
-      "chainDecimals": 12
+      "chainDecimals": 12,
+      "blockConfirmations": 2,
+      "blockTime": 13
     },
     {
       "chainId": "2147485463",
@@ -520,7 +620,9 @@
           "cborHex": "590b4e590b4b0100003323233223322323232323232323232323232323232323232323232323232323322323222232325335323232350082235002223232325335332335500132335018223335003220020020013500122001123300102b0302350012223302e3301c0033500e223333500123263202f335738921024c680002f200123263202f3357389201024c680002f23263202f3357389201024c680002f333573466e200052000033032301512001323302c503100132350012222222222220085008102e15335001102e1335738920104686d6d330002d3232333573466e1c005200202f02e30020013235001222222222222333553021120013350222233553022120012350012233550420023355302512001235001223355045002333500123303f4800000488cc1000080048cc0fc005200000133553022120012350012233550420023335001233553026120012350012233550460023550280010012233355502302a0020012335530261200123500122335504600235502700100133355501e025002001503c2350012235001222200300c500732001355030223350014800088d4008894cd4ccd5cd19b8f00200903203113007001130060033200135502f223350014800088d4008894cd4ccd5cd19b8f002007031030100113006003135001220023333573466e1cd55cea801a4000466442466002006004646464646464646464646464646666ae68cdc39aab9d500c480008cccccccccccc88888888888848cccccccccccc00403403002c02802402001c01801401000c008cd407807cd5d0a80619a80f00f9aba1500b33501e02035742a014666aa044eb94084d5d0a804999aa8113ae502135742a01066a03c04e6ae85401cccd540880a1d69aba150063232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd40c9d69aba150023033357426ae8940088c98c80d4cd5ce01b01a81989aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a8193ad35742a00460666ae84d5d1280111931901a99ab9c036035033135573ca00226ea8004d5d09aba2500223263203133573806406205e26aae7940044dd50009aba1500533501e75c6ae854010ccd540880908004d5d0a801999aa8113ae200135742a004604c6ae84d5d1280111931901699ab9c02e02d02b135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d55cf280089baa00135742a006602c6ae84d5d1280191931900f99ab9c02001f01d3333573466e1cd55ce9baa0044800080788c98c8078cd5ce00f80f00e080e89931900e99ab9c4901035054350001d135573ca00226ea8004444888ccd54c010480054088cd54c01c480048d400488cd5409c008d54024004ccd54c0104800488d4008894cd4ccd54c03048004c8cd403888ccd400c88008008004d40048800448cc004894cd400840a040040948d400488cc028008014018400c4cd409801000d408c004cd54c01c480048d400488c8cd540a000cc004014c8004d540a0894cd40044d5402800c884d4008894cd4cc03000802044888cc0080280104c01800c008c8004d5408488448894cd40044008884cc014008ccd54c01c480040140100044484888c00c0104484888c004010c8004d540788844894cd400454080884cd4084c010008cd54c01848004010004c8004d5407488448894cd40044d400c88004884ccd401488008c010008ccd54c01c4800401401000448848cc00400c00888ccd5cd19b8f0020010190181232230023758002640026aa036446666aae7c004940708cd406cc010d5d080118019aba2002012232323333573466e1cd55cea8012400046644246600200600460146ae854008c014d5d09aba2500223263201233573802602402026aae7940044dd50009191919191999ab9a3370e6aae75401120002333322221233330010050040030023232323333573466e1cd55cea8012400046644246600200600460266ae854008cd4034048d5d09aba2500223263201733573803002e02a26aae7940044dd50009aba150043335500875ca00e6ae85400cc8c8c8cccd5cd19b875001480108c84888c008010d5d09aab9e500323333573466e1d4009200223212223001004375c6ae84d55cf280211999ab9a3370ea00690001091100191931900c99ab9c01a019017016015135573aa00226ea8004d5d0a80119a804bae357426ae8940088c98c804ccd5ce00a00980889aba25001135744a00226aae7940044dd5000899aa800bae75a224464460046eac004c8004d5406088c8cccd55cf8011280d119a80c99aa80d98031aab9d5002300535573ca00460086ae8800c0404d5d080089119191999ab9a3370ea0029000119091180100198029aba135573ca00646666ae68cdc3a801240044244002464c6402066ae700440400380344d55cea80089baa001232323333573466e1d400520062321222230040053007357426aae79400c8cccd5cd19b875002480108c848888c008014c024d5d09aab9e500423333573466e1d400d20022321222230010053007357426aae7940148cccd5cd19b875004480008c848888c00c014dd71aba135573ca00c464c6402066ae7004404003803403002c4d55cea80089baa001232323333573466e1cd55cea80124000466442466002006004600a6ae854008dd69aba135744a004464c6401866ae700340300284d55cf280089baa0012323333573466e1cd55cea800a400046eb8d5d09aab9e500223263200a33573801601401026ea80048c8c8c8c8c8cccd5cd19b8750014803084888888800c8cccd5cd19b875002480288488888880108cccd5cd19b875003480208cc8848888888cc004024020dd71aba15005375a6ae84d5d1280291999ab9a3370ea00890031199109111111198010048041bae35742a00e6eb8d5d09aba2500723333573466e1d40152004233221222222233006009008300c35742a0126eb8d5d09aba2500923333573466e1d40192002232122222223007008300d357426aae79402c8cccd5cd19b875007480008c848888888c014020c038d5d09aab9e500c23263201333573802802602202001e01c01a01801626aae7540104d55cf280189aab9e5002135573ca00226ea80048c8c8c8c8cccd5cd19b875001480088ccc888488ccc00401401000cdd69aba15004375a6ae85400cdd69aba135744a00646666ae68cdc3a80124000464244600400660106ae84d55cf280311931900619ab9c00d00c00a009135573aa00626ae8940044d55cf280089baa001232323333573466e1d400520022321223001003375c6ae84d55cf280191999ab9a3370ea004900011909118010019bae357426aae7940108c98c8024cd5ce00500480380309aab9d50011375400224464646666ae68cdc3a800a40084244400246666ae68cdc3a8012400446424446006008600c6ae84d55cf280211999ab9a3370ea00690001091100111931900519ab9c00b00a008007006135573aa00226ea80048c8cccd5cd19b8750014800880308cccd5cd19b8750024800080308c98c8018cd5ce00380300200189aab9d37540029309000a4810350543100225335002100110062233700004002640026aa00e444a66a00220044426a004446600e66601000400c002006640026aa00c4444a66a00220044426a00444a66a666ae68cdc3800a4000014012266601000e00c006266601000e66a0162466600201000600400c006244004244002224400424424466002008006224424660020060042246460020024466006600400400266a24466a244660046600891011c607374414c712fd6108e936f38a4edc60a75c8ce4b2cf1ff33ae4f150048810d4e46544d436865636b436f696e00488114d734af46711b8df3db5c8e5ed8527ce8dec9ca23002212330010030022001221233001003002200101"
         },
         "ogmios": "https://preprodogmios.wanchain.org/uriservice"
-      }
+      },
+      "blockConfirmations": 30,
+      "blockTime": 12
     },
     {
       "chainId": "2147483766",
@@ -528,7 +630,9 @@
       "chainName": "Cosmos",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
-      "walletChainId": "provider"
+      "walletChainId": "provider",
+      "blockConfirmations": 10,
+      "blockTime": 6
     },
     {
       "chainId": "1073741844",
@@ -542,7 +646,9 @@
         "feeHolder": "noble102rkzjw0p7a6t27ywsgggj2mjhzrarqlu66ys2"
       },
       "chainDecimals": 6,
-      "walletChainId": "grand-1"
+      "walletChainId": "grand-1",
+      "blockConfirmations": 1,
+      "blockTime": 20
     },
     {
       "chainId": "2147484149",
@@ -564,7 +670,9 @@
       },
       "chainDecimals": 9,
       "walletChainId": "devnet",
-      "minReserved": 0.001
+      "minReserved": 0.001,
+      "blockConfirmations": 1,
+      "blockTime": 0.4
     },
     {
       "chainId": "2147483931",
@@ -580,7 +688,9 @@
       "rpc": {
         "url" : "https://testnet-api.algonode.cloud",
         "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
-      }
+      },
+      "blockConfirmations": 1,
+      "blockTime": 3
     },
     {
       "chainId": "2147484432",
@@ -611,7 +721,9 @@
         "treasury": "0x7170137d4a6431bf83351ac025baf462909bffe2877d87716374fb42b9629ebe"
       },
       "chainDecimals": 9,
-      "walletChainId": "sui:testnet"
+      "walletChainId": "sui:testnet",
+      "blockConfirmations": 1,
+      "blockTime": 0.24
     },
     {
       "chainId": "2147484107",
@@ -619,7 +731,9 @@
       "chainName": "Kava",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
-      "walletChainId": "kava_2221-16000"
+      "walletChainId": "kava_2221-16000",
+      "blockConfirmations": 1,
+      "blockTime": 6
     },
     {
       "chainId": "2147484255",
@@ -630,7 +744,9 @@
       "burnFromChainHandle": "MintFromTon",
       "chainDecimals": 9,
       "walletChainId": -3,
-      "rpc": "https://testnet.toncenter.com"
+      "rpc": "https://testnet.toncenter.com",
+      "blockConfirmations": 1,
+      "blockTime": 5
     }
   ],
   "tokenPairCfg": [
@@ -656,7 +772,7 @@
     }
   ],
   "LockTxTimeout": 86400000,
-  "crossConfigSc": "0x6778eF561cB8Ae82ec74B8A707951adfaa597f6D",
+  "crossConfigSc": "0x86704C09EE544cF5e3BA2f92E35d1f65f10F7014",
   "crossTask": {
     "scAddr": "0xD4782Ce66E5Deea91dF0a8d0626411C16E2E4Fe0",
     "tokens": {

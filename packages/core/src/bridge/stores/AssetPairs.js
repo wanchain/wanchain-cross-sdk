@@ -6,7 +6,7 @@ class AssetPairs {
   constructor() {
     this.assetPairList = [];
     this.smgList = [];
-    this.tokens = new Set(); // not need to be classified by chain
+    this.tokens = new Set(); // must be lowercase, not need to be classified by chain
   }
 
   setAssetPairs(tokenPairs, smgs, configService = null) {
@@ -64,6 +64,8 @@ class AssetPairs {
         };
         return assetPair;
       });
+      // add special address
+      this.tokens.add("T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb".toLowerCase()); // Tron black hole address(0)
       this.assetPairList = pairList.sort(this.sortBy);
     }
   }
@@ -107,7 +109,7 @@ class AssetPairs {
       result = new BigNumber(account).toFixed();
     } else if (chainType === "SUI") { // SUI token is id::symbol::SYMBOL
       result = tool.ascii2letter(account).split("::")[0];
-    } else {
+    } else { // let it throw exception to expose bug on init phrase
       result = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
     // console.log("getTokenAccount: %s, %s => %s", chainType, account, result);
@@ -115,8 +117,13 @@ class AssetPairs {
   }
 
   isTokenAccount(chainType, account, extension) {
-    let checkAccount = tool.getStandardAddressInfo(chainType, account, extension).native.toLowerCase();
-    return this.tokens.has(checkAccount);
+    try {
+      let checkAccount = tool.getStandardAddressInfo(chainType, account, extension).native.toLowerCase();
+      return this.tokens.has(checkAccount);
+    } catch (err) {
+      console.error("check %s %s isTokenAccount error: %O", chainType, account, err);
+      return true; // return true to stop crosschain
+    }
   }
 }
 

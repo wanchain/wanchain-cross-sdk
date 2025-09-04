@@ -20,6 +20,7 @@ const abis = {
   "subsidyCrossSc": require("../../config/abi/feeSubsidy.json"),
   "algorandBridge": require("../../config/abi/algorand/bridge.json"),
   "rewardTask": require("../../config/abi/rewardTask.json"),
+  "crossConfig": require("../../config/abi/crossConfig.json"),
 }
 
 module.exports = class ConfigService {

@@ -138,6 +138,8 @@ function getXdcAddressInfo(address) {
   } else if (isValidXdcAddress(address)) {
     native = address;
     evm = "0x" + address.substr(3);
+  } else {
+    throw new Error("XDC address is invalid: " + address);
   }
   // ignore cctp address as it is not supported now
   return {native, evm, text: evm, compact: evm};

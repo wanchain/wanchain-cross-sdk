@@ -9,16 +9,15 @@ function validateAddress(address) {
 }
 
 function getStandardAddressInfo(address) {
-  let native = "", evm = "", compact = "";
   if (validateAddress(address)) {
-    native = address;
-    evm = asciiToHex(native);
+    let native = address;
+    let evm = asciiToHex(native);
     // ignore cctp address as it is not supported now
-    compact = '0x' + Buffer.from(algosdk.decodeAddress(native).publicKey).toString('hex');
+    let compact = '0x' + Buffer.from(algosdk.decodeAddress(native).publicKey).toString('hex');
+    return {native, evm, text: native, compact};
   } else {
-    console.error("Algorand address %s is invalid", address);
+    throw new Error("Algorand address is invalid: " + address);
   }
-  return {native, evm, text: native, compact};
 }
 
 // according to web3.utils.asciiToHex

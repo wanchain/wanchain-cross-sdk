@@ -4,13 +4,6 @@ const BigNumber = require('bignumber.js');
 
 let wasm = null;
 
-const ValidateAddrRules = {
-  "1e3b5107e8b1dcab9056fd2359e12c75f12690769744a305682cbb3c": true,
-  "f914c5d0766e672010fc6c08897c0b37836471f508d9ade865b571c4": true,
-  "67f33146617a5e61936081db3b2117cbf59bd2123748f58ac9678656": true,
-  "94caa739acfab40764e598bd5be4365b6a361e74a2a7bbd731284665": true,
-}
-
 function setWasm(_wasm) {
   wasm = _wasm;
 }
@@ -24,8 +17,8 @@ function bytesAddressToBinary(bytes) {
 }
 
 // WAValidator can not valid testnet address
-function validateAddress(address, network) {
-  let networkId = (network === "testnet")? 0 : 1;
+function validateAddress(address, options = {}) { // options: {network, chain, retScriptHash}
+  let networkId = (options.network === "testnet")? 0 : 1;
   try {
     if ((address.substr(0, 3) === "Ae2") || (address.substr(0, 2) === "Dd")) { // Byron
       let addr = wasm.ByronAddress.from_base58(address);
@@ -41,24 +34,26 @@ function validateAddress(address, network) {
         if (parseInt(prefix, 2) <= 7) {
           let typedAddr = wasm.BaseAddress.from_address(addr) || wasm.EnterpriseAddress.from_address(addr);
           if (typedAddr) {
-            let kind = typedAddr.payment_cred().kind();
+            let payCred = typedAddr.payment_cred();
+            let kind = payCred.kind();
             if (kind === wasm.CredKind.Key) {
               return true;
+            } else if (options.retScriptHash) {
+              return payCred.to_scripthash().to_hex(); // to further check if only accept specified script hashs
             } else {
-              return (ValidateAddrRules[typedAddr.payment_cred().to_scripthash().to_hex()] === true);
+              return true;
             }
           }
         }
       }
     }
   } catch (err) {
-    console.debug("ADA validate %s address %s error: %O", network, address, err);
+    console.debug("ADA validate networkId %s address %s error: %O", networkId, address, err);
   }
   return false;
 }
 
 function getStandardAddressInfo(address) {
-  let native = "", evm = "", compact = "";
   try {
     let addr;
     if ((address.substr(0, 3) === "Ae2") || (address.substr(0, 2) === "Dd")) { // Byron
@@ -66,14 +61,14 @@ function getStandardAddressInfo(address) {
     } else if ((address.substr(0, 5) === "addr1") || (address.substr(0, 10) === "addr_test1")) { // Shelley
       addr = wasm.Address.from_bech32(address);
     }
-    native = address;
-    evm = asciiToHex(native);
+    let native = address;
+    let evm = asciiToHex(native);
     // ignore cctp address as it is not supported now
-    compact = '0x' + Buffer.from(addr.to_bytes()).toString('hex');
+    let compact = '0x' + Buffer.from(addr.to_bytes()).toString('hex');
+    return {native, evm, text: native, compact};
   } catch (err) {
-    console.error("Cardano address %s is invalid: %O", address, err);
+    throw new Error("Cardano address is invalid: " + address);
   }
-  return {native, evm, text: native, compact};
 }
 
 // according to web3.utils.asciiToHex
