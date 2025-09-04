@@ -470,6 +470,22 @@
       "walletChainId": 480,
       "blockConfirmations": 6,
       "blockTime": 2
+    },
+    {
+      "chainId": "1073741858",
+      "chainType": "UNIETH",
+      "chainName": "Unichain",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x9C11539603661b6c90E65E96Aa8aC4B8E4b914c8",
+      "CircleBridge": {
+        "domain": 10,
+        "crossScAddr": "",
+        "crossScAddrV2" : "0x22C835B306916ec6cb3568e7ffD61bF821Ed593d"
+      },
+      "walletChainId": 130,
+      "blockConfirmations": 12,
+      "blockTime": 1
     }
   ],
   "iWanConnectorService": {
