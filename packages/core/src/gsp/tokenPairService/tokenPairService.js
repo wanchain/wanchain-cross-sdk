@@ -22,6 +22,7 @@ class TokenPairService {
         this.chainName2Type = new Map(); // internal use chainType and frontend use chainName
         this.assetAlias2Type = new Map(); // for logo
         this.fromChainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
+        this.tokenInfos = new Map(); // only for reward tasks, add tokens as needed
     }
 
     async init(frameworkService, options) {
@@ -751,6 +752,25 @@ class TokenPairService {
 
     getChainHighlightEndTime(chainId) {
       return this.chainHighlightEndTime.get(chainId) || 0;
+    }
+
+    getTokenInfo(chainType, tokenAddr) { // be care of performance as it is traversal to find the token, only support original format address like evm
+      let tokenAccount = tokenAddr.toLowerCase();
+      let key = chainType + "-" + tokenAccount;
+      let cache = this.tokenInfos.get(key);
+      if (cache === undefined) {
+        for (let [, tp] of this.m_mapTokenPair) {
+          if ((tp.fromChainType === chainType) && (tp.fromAccount === tokenAccount)) {
+            cache = {symbol: tp.readableSymbol, decimals: tp.fromDecimals};
+            break;
+          } else if ((tp.toChainType === chainType) && (tp.toAccount === tokenAccount)) {
+            cache = {symbol: tp.readableSymbol, decimals: tp.toDecimals};
+            break;
+          }
+        }
+        this.tokenInfos.set(key, cache || null); // save null in the cache to avoid repeated searches
+      }
+      return cache;
     }
 };
 

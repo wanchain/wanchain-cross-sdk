@@ -749,6 +749,7 @@ class StoremanService {
           status = 4; // Expired
         }
       }
+      let rewardToken = this.getRewardTaskTokenInfo("WAN", task[8]);
       return {
         id: Number(task[0]),
         name: task[1],
@@ -764,16 +765,17 @@ class StoremanService {
         },
         reward: {
           token: task[8].toLowerCase(),
-          symbol: this.crossTaskCfg.tokens[task[8].toLowerCase()].symbol,
+          symbol: rewardToken.symbol,
           amount: task[9],
-          decimals: this.crossTaskCfg.tokens[task[8].toLowerCase()].decimals
+          decimals: rewardToken.decimals
         },
         collateral: task[10].map(c=> {
+          let collateralToken = this.getRewardTaskTokenInfo("WAN", c[0]);
           return {
             token: c[0],
-            symbol: this.crossTaskCfg.tokens[c[0].toLowerCase()].symbol,
+            symbol: collateralToken.symbol,
             amount: c[1],
-            decimals: this.crossTaskCfg.tokens[c[0].toLowerCase()].decimals,
+            decimals: collateralToken.decimals,
             usage: Number(c[2])
           }
         }),
@@ -786,9 +788,19 @@ class StoremanService {
         status
       };
     } catch (err) { // reward and collateral tokens maybe not defined in sdk
-      console.error("formatRewardTask error: %O", task);
+      console.error("formatRewardTask error: %s, %O", err, task);
       return null;
     }
+  }
+
+  getRewardTaskTokenInfo(chainType, tokenAddr) {
+    tokenAddr = tokenAddr.toLowerCase();
+    let info = this.crossTaskCfg.tokens[tokenAddr];
+    if (!info) {
+      let tokenPairService = this.frameworkService.getService("TokenPairService");
+      info = tokenPairService.getTokenInfo(chainType, tokenAddr);
+    }
+    return info;
   }
 
   async waitTxReceipt(chainType, txHash, timeout = 0, interval = 3000) { // ms

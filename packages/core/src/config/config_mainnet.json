@@ -702,33 +702,17 @@
   "crossTask": {
     "scAddr": "0x2D7744dBD92E6569b453Dc4414773dF72E869c78",
     "tokens": {
-      "0x0000000000000000000000000000000000000000": {
-        "symbol": "WAN",
-        "decimals": 18
-      },
       "0xc45ae7e9932bea4e220467c937fb6d3df4987001": {
         "symbol": "XP",
         "decimals": 18
-      },
-      "0x11e77e27af5539872efed10abaa0b408cfd9fbbd": {
-        "symbol": "USDT",
-        "decimals": 6
       },
       "0x2ea407aa69be7367bf231e76b51fab9ec436766c": {
         "symbol": "xWAN",
         "decimals": 18
       },
-      "0x52a9cea01c4cbdd669883e41758b8eb8e8e2b34b": {
-        "symbol": "USDC",
-        "decimals": 6
-      },
-      "0xe3ae74d1518a76715ab4c7bedf1af73893cd435a": {
-        "symbol": "ETH",
+      "0xf79c808ad7bdb2eb7b383a1f28e4a4061eb127a3": {
+        "symbol": "B3TR",
         "decimals": 18
-      },
-      "0x50c439b6d602297252505a6799d84ea5928bcfb6": {
-        "symbol": "BTC",
-        "decimals": 8
       }
     }
   },
