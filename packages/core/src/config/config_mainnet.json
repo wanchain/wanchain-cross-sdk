@@ -709,10 +709,6 @@
       "0x2ea407aa69be7367bf231e76b51fab9ec436766c": {
         "symbol": "xWAN",
         "decimals": 18
-      },
-      "0xf79c808ad7bdb2eb7b383a1f28e4a4061eb127a3": {
-        "symbol": "B3TR",
-        "decimals": 18
       }
     }
   },
