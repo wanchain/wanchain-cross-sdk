@@ -135,6 +135,10 @@
       "chainName": "XDC Network",
       "crossScAddr": "0x18eDFE1e49CA89157384832482c66E95Ea9B0Fca",
       "subsidyCrossSc": "0x70114d2a0Ec788BaFee869aCf7FD1F8c76491799",
+      "CircleBridge": {
+        "domain": 18,
+        "crossScAddrV2": "0x15618F79663c27613CF895709BD4f1C2D28e49A2"
+      },
       "chainDecimals": 18,
       "walletChainId": 51,
       "blockConfirmations": 32,

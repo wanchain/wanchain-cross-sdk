@@ -462,6 +462,10 @@ class TokenPairService {
         direction = "t2f";
       } else if (tokenPair.id === "722") { // CARDS ethereum -> wanchain
         direction = "f2t";
+      } else if (tokenPair.id === "136") { // // migrating xdc wrapped wanUSDC to circle USDC, internal assetType is USDC but represent as wanUSDC
+        tokenPair.assetAlias = "wanUSDC";
+        this.assetAlias2Type.set("wanUSDC", "USDC");
+        direction = "t2f";
       }
       tokenPair.direction = direction;
     }
