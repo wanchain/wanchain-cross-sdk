@@ -125,18 +125,23 @@ class TokenPairService {
               }
               return false;
             });
+            let preferHides = [];
             let activeTokenPairs = tokenPairs.filter(tp => {
-              if (tp.readableSymbol === "USDC") { // prefer is only for USDC now
+              let assetName = tp.assetAlias || tp.readableSymbol; // exclude migrated tokens which should have alias
+              if (assetName === "USDC") { // prefer is only for USDC now
                 let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
                 let prefer = preferTokenPairs.get(k);
                 if (prefer && prefer.id !== tp.id) {
-                  // console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
+                  preferHides.push(tp.id);
                   return false;
                 }
               }
               tokenPairMap.set(tp.id, tp);
               return this.updateChainAssets(tp);
             });
+            if (preferHides.length) {
+              console.debug("prefer %s hide token pairs: %s", this.prefer, preferHides.toString());
+            }
             let ts1 = Date.now();
             let ps = [
               this.getSmgs(ts1)
