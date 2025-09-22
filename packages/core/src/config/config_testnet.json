@@ -389,7 +389,6 @@
       "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
       "CircleBridge": {
         "domain": 13,
-        "crossScAddr": "",
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "walletChainId": 57054,
@@ -492,7 +491,6 @@
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "CircleBridge": {
         "domain": 14,
-        "crossScAddr": "",
         "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
       "walletChainId": 4801,
@@ -508,12 +506,26 @@
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "CircleBridge": {
         "domain": 10,
-        "crossScAddr": "",
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "walletChainId": 1301,
       "blockConfirmations": 12,
       "blockTime": 1
+    },
+    {
+      "chainId": "2166483766",
+      "chainType": "SEI",
+      "chainName": "Sei",
+      "symbol": "SEI",
+      "chainDecimals": 18,
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "CircleBridge": {
+        "domain": 16,
+        "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
+      },
+      "walletChainId": 1328,
+      "blockConfirmations": 1,
+      "blockTime": 0.5
     }
   ],
   "iWanConnectorService": {
