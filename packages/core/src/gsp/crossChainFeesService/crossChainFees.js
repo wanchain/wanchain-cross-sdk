@@ -44,7 +44,7 @@ module.exports = class crossChainFees {
     let unit = this.chainInfoService.getCoinSymbol(fromChainType);
     // check subsidy
     let isSubsidy = false;
-    if (srcChainInfo.subsidyCrossSc) {
+    if (srcChainInfo.subsidyCrossSc && (!options.bridge)) {
       let destChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
       let args = [srcChainInfo.chainId, destChainInfo.chainId];
       isSubsidy = await this.iwan.callScFunc(srcChainInfo.chainType, srcChainInfo.subsidyCrossSc, "subsidized", args, this.subsidyAbi);
