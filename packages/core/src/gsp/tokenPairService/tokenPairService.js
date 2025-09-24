@@ -110,7 +110,8 @@ class TokenPairService {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
                 if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
                   if (this.checkCustomization(tp)) {
-                    if (tp.readableSymbol === "USDC") { // prefer is only for USDC now
+                    let assetName = tp.assetAlias || tp.readableSymbol; // exclude migrated tokens which should have alias
+                    if (assetName === "USDC") { // prefer is only for USDC now
                       if (((this.prefer === "cctp") && (tp.bridge === "Circle")) // WanBridge dapp prefer cctp, xFlow prefer wanchain bridge
                       || ((this.prefer === "wb") && !tp.bridge)) {
                         let k1 = tp.fromChainType + tp.toChainType + tp.readableSymbol;
