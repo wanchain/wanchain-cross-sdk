@@ -32,6 +32,10 @@ class Pera {
     }
   }
 
+  disconnect() {
+    this.wallet.disconnect();
+  }
+
   async signTransaction(txGroups) {
     let signedTxn = await this.wallet.signTransaction(txGroups);
     return signedTxn;

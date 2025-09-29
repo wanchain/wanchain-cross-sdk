@@ -17,7 +17,7 @@ class TronLink {
     return 0;
   }
 
-  async getAccounts(network) {
+  async getAccounts() {
     if (this.tronLink) {
       // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject
       await this.tronLink.request({method: 'tron_requestAccounts'});
@@ -25,8 +25,8 @@ class TronLink {
     if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
       return [this.tronWeb.defaultAddress.base58];
     } else {
-      console.error("%s not installed or unavailable", this.name);
-      throw new Error("Not installed or unavailable");
+      console.error("%s not installed or locked", this.name);
+      throw new Error("Not installed or locked");
     }
   }
 
@@ -35,7 +35,7 @@ class TronLink {
     return balance;
   }
 
-  async sendTransaction(tx, sender) {
+  async sendTransaction(tx) {
     let signedTx = await this.tronWeb.trx.sign(tx);
     let result = await this.tronWeb.trx.sendRawTransaction(signedTx);
     return result.transaction.txID;

@@ -14,9 +14,12 @@ const DefaultProvider = {
 }
 
 class PolkadotJs {
-  constructor(provider, chain) { // Polkadot, Phala
+  constructor(network) {
     this.name = "polkadot{.js}";
-    this.setChain(chain, provider);
+    this.chain = ""; // Polkadot, Phala
+    this.provider = null; // WsProvider
+    this.api = null; // ApiPromise
+    this.network = network;
   }
 
   // standard function
