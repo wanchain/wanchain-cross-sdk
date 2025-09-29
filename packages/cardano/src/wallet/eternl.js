@@ -2,10 +2,18 @@ const wasm = require("../wasm");
 const tool = require("../tool.js");
 
 class Eternl {
-  constructor() {
-    this.name = "Eternl";
-    this.wallet = window.cardano.eternl;
-    this.wasm = wasm.getWasm();
+  constructor(provider) {
+    if (window.cardano?.eternl) {
+      this.name = "Eternl";
+      if (!['mainnet', 'testnet'].includes(provider)) {
+        throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
+      }
+      this.wallet = window.cardano.eternl;
+      this.wasm = wasm.getWasm();
+    } else {
+      window.open('https://eternl.io');
+      throw new Error('please install eternl wallet');
+    }
   }
 
   // standard function

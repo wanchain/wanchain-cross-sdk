@@ -1,11 +1,18 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
-
 class Yoroi {
   constructor() {
-    this.name = "Yoroi";
-    this.wallet = window.cardano.yoroi;
-    this.wasm = wasm.getWasm();
+    if (window.cardano?.yoroi) {
+      this.name = "Yoroi";
+      if (!['mainnet', 'testnet'].includes(provider)) {
+        throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
+      }
+      this.wallet = window.cardano.yoroi;
+      this.wasm = wasm.getWasm();
+    } else {
+      window.open('https://yoroiwallet.com');
+      throw new Error('please install yoroi wallet');
+    }
   }
 
   // standard function

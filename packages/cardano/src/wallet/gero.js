@@ -2,10 +2,18 @@ const wasm = require("../wasm");
 const tool = require("../tool.js");
 
 class Gero {
-  constructor() {
-    this.name = "Gero";
-    this.wallet = window.cardano.gerowallet;
-    this.wasm = wasm.getWasm();
+  constructor(provider) {
+    if (window.cardano?.gerowallet) {
+      this.name = "Gero";
+      if (!['mainnet', 'testnet'].includes(provider)) {
+        throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
+      }
+      this.wallet = window.cardano.gerowallet;
+      this.wasm = wasm.getWasm();
+    } else {
+      window.open('https://www.gerowallet.io');
+      throw new Error('please install gero wallet');
+    }
   }
 
   // standard function
