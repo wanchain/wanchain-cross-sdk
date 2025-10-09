@@ -110,7 +110,8 @@ class TokenPairService {
               if ((tp.ancestorSymbol !== "EOS") && !["66"].includes(tp.id)) { // ignore deprecated tokenpairs
                 if (this.updateTokenPairInfo(tp)) { // ignore unsupported token pair
                   if (this.checkCustomization(tp)) {
-                    if (tp.readableSymbol === "USDC") { // prefer is only for USDC now
+                    let assetName = tp.assetAlias || tp.readableSymbol; // exclude migrated tokens which should have alias
+                    if (assetName === "USDC") { // prefer is only for USDC now
                       if (((this.prefer === "cctp") && (tp.bridge === "Circle")) // WanBridge dapp prefer cctp, xFlow prefer wanchain bridge
                       || ((this.prefer === "wb") && !tp.bridge)) {
                         let k1 = tp.fromChainType + tp.toChainType + tp.readableSymbol;
@@ -125,18 +126,23 @@ class TokenPairService {
               }
               return false;
             });
+            let preferHides = [];
             let activeTokenPairs = tokenPairs.filter(tp => {
-              if (tp.readableSymbol === "USDC") { // prefer is only for USDC now
+              let assetName = tp.assetAlias || tp.readableSymbol; // exclude migrated tokens which should have alias
+              if (assetName === "USDC") { // prefer is only for USDC now
                 let k = tp.fromChainType + tp.toChainType + tp.readableSymbol;
                 let prefer = preferTokenPairs.get(k);
                 if (prefer && prefer.id !== tp.id) {
-                  // console.debug("ignore %s token pair %s(%s, %s<->%s): prefer %s %s", tp.bridge || 'wb', tp.id, tp.ancestorSymbol, tp.fromChainName, tp.toChainName, this.prefer, prefer.id);
+                  preferHides.push(tp.id);
                   return false;
                 }
               }
               tokenPairMap.set(tp.id, tp);
               return this.updateChainAssets(tp);
             });
+            if (preferHides.length) {
+              console.debug("prefer %s hide token pairs: %s", this.prefer, preferHides.toString());
+            }
             let ts1 = Date.now();
             let ps = [
               this.getSmgs(ts1)
@@ -462,6 +468,10 @@ class TokenPairService {
         direction = "t2f";
       } else if (tokenPair.id === "722") { // CARDS ethereum -> wanchain
         direction = "f2t";
+      } else if (tokenPair.id === "136") { // // migrating xdc wrapped wanUSDC to circle USDC, internal assetType is USDC but represent as wanUSDC
+        tokenPair.assetAlias = "wanUSDC";
+        this.assetAlias2Type.set("wanUSDC", "USDC");
+        direction = "t2f";
       }
       tokenPair.direction = direction;
     }

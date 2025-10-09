@@ -98,7 +98,7 @@ class StoremanService {
         let configScAddr = this.configService.getGlobalConfig("crossConfigSc");
         let crossConfigAbi = this.configService.getAbi("crossConfig");
         let key = "2147485463:ScriptReceiver:" + sriptHash;
-        let result = await this.iwan.callScFunc("WAN", configScAddr, "getValue", [key], crossConfigAbi); // DO NOT supported anymore by new cross config sc
+        let result = await this.iwan.callScFunc("WAN", configScAddr, "getValue", [key], crossConfigAbi);
         return (result == 1); // bytes
       } catch (err) {
         console.error("checkSolRecipient %s error: %O", err);
