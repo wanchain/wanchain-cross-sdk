@@ -486,6 +486,17 @@
       "walletChainId": 130,
       "blockConfirmations": 12,
       "blockTime": 1
+    },
+    {
+      "chainId": "1073741859",
+      "chainType": "0G",
+      "chainName": "0G",
+      "symbol": "0G",
+      "chainDecimals": 18,
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "walletChainId": 16661,
+      "blockConfirmations": 1,
+      "blockTime": 0.7
     }
   ],
   "iWanConnectorService": {
