@@ -537,6 +537,17 @@
       "walletChainId": 16602,
       "blockConfirmations": 1,
       "blockTime": 0.7
+    },
+    {
+      "chainId": "1073741861",
+      "chainType": "XPL",
+      "chainName": "Plasma",
+      "symbol": "XPL",
+      "chainDecimals": 18,
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "walletChainId": 9746,
+      "blockConfirmations": 1,
+      "blockTime": 1
     }
   ],
   "iWanConnectorService": {
