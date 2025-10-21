@@ -8,7 +8,7 @@ class Web3Wallet {
     this.type = type; // the type is not mandatory, many web3-compatible wallets are slightly different, can be handled differently according to the type
   }
 
-  async getMetaMask() {
+  async getWallet() {
     let web3Provider;
     if (window.ethereum) {
       web3Provider = window.ethereum;
