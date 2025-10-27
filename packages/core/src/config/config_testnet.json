@@ -299,6 +299,10 @@
       "chainName": "Linea",
       "symbol": "ETH",
       "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
+      "CircleBridge": {
+        "domain": 11,
+        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
+      },
       "chainDecimals": 18,
       "walletChainId": 59141,
       "blockConfirmations": 64,
