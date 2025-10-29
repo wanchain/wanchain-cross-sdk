@@ -323,9 +323,9 @@
       "chainId": "2147536400",
       "chainType": "CELO",
       "chainName": "Celo",
-      "crossScAddr": "0xc12cF8cC8Eff1F39c9e60dA81d11745c25c59501",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "chainDecimals": 18,
-      "walletChainId": 44787,
+      "walletChainId": 11142220,
       "blockConfirmations": 80,
       "blockTime": 5
     },
