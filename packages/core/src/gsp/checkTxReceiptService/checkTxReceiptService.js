@@ -8,7 +8,8 @@ const CustomizedScanBatchSize = {
   OKT: 300,
   OKB: 100,
   MATIC: 100,
-  SEI: 500
+  SEI: 500,
+  FTM: 500
 };
 
 module.exports = class CheckTxReceiptService {

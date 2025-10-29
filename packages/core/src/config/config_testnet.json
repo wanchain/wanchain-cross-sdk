@@ -390,12 +390,12 @@
       "chainName": "Sonic",
       "symbol": "S",
       "chainDecimals": 18,
-      "crossScAddr": "0x05211bBC9E0C1ED3bE0252021Cf558718ab65189",
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 13,
         "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
-      "walletChainId": 57054,
+      "walletChainId": 14601,
       "blockConfirmations": 20,
       "blockTime": 0.6
     },
