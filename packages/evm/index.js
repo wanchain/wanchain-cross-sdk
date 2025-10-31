@@ -3,11 +3,13 @@ const RabbyWallet = require("./src/wallet/rabby");
 const OKXWallet = require("./src/wallet/okx");
 const XDCWallet = require("./src/wallet/xdc");
 const CtrlWallet = require("./src/wallet/ctrl");
+const WalletConnect = require("./src/wallet/walletconnect");
 
 module.exports = {
   MetamaskWallet,
   RabbyWallet,
   OKXWallet,
   XDCWallet,
-  CtrlWallet
+  CtrlWallet,
+  WalletConnect
 };
