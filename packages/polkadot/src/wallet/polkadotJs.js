@@ -5,7 +5,7 @@ const BigNumber = require('bignumber.js');
 
 const DefaultProvider = {
   Polkadot: {
-    mainnet: "wss://rpc.polkadot.io",
+    mainnet: "wss://polkadot-asset-hub-rpc.polkadot.io",
     testnet: "wss://westend-asset-hub-rpc.polkadot.io"
   },
   Phala: {
