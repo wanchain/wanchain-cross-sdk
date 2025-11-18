@@ -8,7 +8,9 @@ const CustomizedScanBatchSize = {
   SGB: 30,
   OKT: 300,
   OKB: 100,
-  MATIC: 100
+  MATIC: 100,
+  SEI: 500,
+  FTM: 500
 };
 
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
