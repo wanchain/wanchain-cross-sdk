@@ -41,6 +41,7 @@ class Web3Wallet {
     }
     let web3 = new Web3(web3Provider);
     this.web3 = web3;
+    return this.web3;
   }
 
   async getChainId() {

@@ -25,6 +25,7 @@ class CtrlWallet {
     }
     let web3 = new Web3(ctrlProvider);
     this.web3 = web3;
+    return this.web3;
   }
 
   async getNetworkId() {
