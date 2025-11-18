@@ -15,7 +15,7 @@ class CtrlWallet {
         ctrlProvider = window.ctrlEthProviders['Ctrl Wallet'].provider;
         const status = await ctrlProvider.enable();
         console.log('status', status);
-        checkEnable(status);
+        Tools.checkEnable(status);
       } catch (error) {
         throw new Error(error);
       }

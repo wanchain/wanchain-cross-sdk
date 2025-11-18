@@ -14,7 +14,7 @@ class OKXWallet {
       web3Provider = window.okxwallet || window.okexchain;
       try {
         const status = await web3Provider.enable();
-        checkEnable(status);
+        Tools.checkEnable(status);
       } catch (error) {
         throw new Error(error); 
       }

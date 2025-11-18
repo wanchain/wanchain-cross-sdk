@@ -3,7 +3,7 @@ class UniSatWallet {
   constructor(provider) {
     if (window.unisat) {
       this.name = "Unisat";
-      if (!['mainnet', 'testnet'].includes(provider)) {
+      if (!['mainnet', 'testnet'].includes(provider.network)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.unisat;
