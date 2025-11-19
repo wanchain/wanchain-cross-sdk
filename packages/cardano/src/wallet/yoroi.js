@@ -4,7 +4,7 @@ class Yoroi {
   constructor(provider) {
     if (window.cardano?.yoroi) {
       this.name = "Yoroi";
-      if (!['mainnet', 'testnet'].includes(provider.network)) {
+      if (!['mainnet', 'testnet'].includes(provider)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.cardano.yoroi;

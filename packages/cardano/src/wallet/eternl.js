@@ -5,7 +5,7 @@ class Eternl {
   constructor(provider) {
     if (window.cardano?.eternl) {
       this.name = "Eternl";
-      if (!['mainnet', 'testnet'].includes(provider.network)) {
+      if (!['mainnet', 'testnet'].includes(provider)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.cardano.eternl;
