@@ -5,7 +5,7 @@ class Gero {
   constructor(provider) {
     if (window.cardano?.gerowallet) {
       this.name = "Gero";
-      if (!['mainnet', 'testnet'].includes(provider)) {
+      if (!['mainnet', 'testnet'].includes(provider.network)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.cardano.gerowallet;

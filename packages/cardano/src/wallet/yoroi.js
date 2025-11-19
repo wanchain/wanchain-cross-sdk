@@ -1,10 +1,10 @@
 const wasm = require("../wasm");
 const tool = require("../tool.js");
 class Yoroi {
-  constructor() {
+  constructor(provider) {
     if (window.cardano?.yoroi) {
       this.name = "Yoroi";
-      if (!['mainnet', 'testnet'].includes(provider)) {
+      if (!['mainnet', 'testnet'].includes(provider.network)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.cardano.yoroi;

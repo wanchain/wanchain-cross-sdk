@@ -5,7 +5,7 @@ class Lace {
   constructor(provider) {
     if (window.cardano?.lace) {
       this.name = "Lace";
-      if (!['mainnet', 'testnet'].includes(provider)) {
+      if (!['mainnet', 'testnet'].includes(provider.network)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.cardano = window.cardano;
