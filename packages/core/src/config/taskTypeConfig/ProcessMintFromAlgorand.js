@@ -101,8 +101,9 @@ module.exports = class ProcessMintFromAlgorand {
           chain: params.toChainType,
           taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction),
           fromChain: "ALGO",
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txId,
+          txHash: txId,
           toAddr: params.toAddr
         }
       };

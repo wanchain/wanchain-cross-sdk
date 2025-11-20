@@ -70,8 +70,9 @@ module.exports = class ProcessErc20UserFastBurn extends ProcessBase {
             fromBlockNumber: blockNumber,
             taskType,
             fromChain: params.scChainType,
+            // for api server
             fromAddr: params.fromAddr,
-            chainHash: stepData.txHash,
+            txHash: stepData.txHash,
             toAddr: params.toAddr
         };
         return {txEventTopics, convertCheckInfo};

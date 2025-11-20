@@ -68,7 +68,7 @@ module.exports = class ConfigService {
           let symbols = ext.getSymbols();
           if (chains && symbols && (chains.length === symbols.length)) {
             if (ext.init) {
-              await ext.init();
+              await ext.init(this.network);
             }
             symbols.forEach((symbol, i) => {
               this.extensions.set(symbol, ext);

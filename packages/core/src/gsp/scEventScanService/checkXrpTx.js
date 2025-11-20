@@ -25,7 +25,7 @@ module.exports = class CheckXrpTx {
                 xrpAddr: obj.toAddr,
                 chainType: obj.fromChain,
                 chainAddr: obj.fromAddr,
-                chainHash: obj.chainHash
+                chainHash: obj.chainHash || obj.txHash
             };
             let ret = await axios.post(url, postJson);
             if (ret.data.success === true) {

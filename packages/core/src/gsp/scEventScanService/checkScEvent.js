@@ -15,10 +15,7 @@ const CustomizedScanBatchSize = {
 
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
 const AlgoEventTypes = ["algoBURN"];
-
-// CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
-// const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
-const CctpEvmReceiveEventHash = "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d";
+const DustEventTypes = ["dustCLAIM"]; // not real event, just simulation
 
 module.exports = class CheckScEvent {
   constructor(frameworkService) {
@@ -36,19 +33,23 @@ module.exports = class CheckScEvent {
     this.eventService = this.frameworkService.getService("EventService");
     this.configService = this.frameworkService.getService("ConfigService");
     this.storemanService = this.frameworkService.getService("StoremanService");
-    this.crossScAbi = this.configService.getAbi("crossSc");
-    this.cctpProxyAbi = this.configService.getAbi("cctpProxy");
-    this.cctpMessageTransmitterAbi = this.configService.getAbi("cctpMessageTransmitter");
-    this.cctpTokenMessengerAbi = this.configService.getAbi("cctpTokenMessenger");
-    this.cctpV2ProxyAbi = this.configService.getAbi("cctpV2Proxy");
-    this.cctpV2MessageTransmitterAbi = this.configService.getAbi("cctpV2MessageTransmitter");
-    this.cctpV2TokenMessengerAbi = this.configService.getAbi("cctpV2TokenMessenger");
     if (chainInfo.chainType === "ALGO") {
       this.eventTypes = AlgoEventTypes;
       this.eventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
       let extension = this.configService.getExtension("ALGO");
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
-    } else {
+    } else if (chainInfo.chainType === "DUST") {
+      this.eventTypes = DustEventTypes;
+      this.eventHandler.set("dustCLAIM", this.processDustClaim.bind(this));
+      this.tool = this.configService.getExtension("DUST").tool;
+    } else { // evm
+      this.crossScAbi = this.configService.getAbi("crossSc");
+      this.cctpProxyAbi = this.configService.getAbi("cctpProxy");
+      this.cctpMessageTransmitterAbi = this.configService.getAbi("cctpMessageTransmitter");
+      this.cctpTokenMessengerAbi = this.configService.getAbi("cctpTokenMessenger");
+      this.cctpV2ProxyAbi = this.configService.getAbi("cctpV2Proxy");
+      this.cctpV2MessageTransmitterAbi = this.configService.getAbi("cctpV2MessageTransmitter");
+      this.cctpV2TokenMessengerAbi = this.configService.getAbi("cctpV2TokenMessenger");      
       this.eventTypes = EvmEventTypes;
       this.eventHandler.set("MINT", this.processSmgMintLogger.bind(this));
       this.eventHandler.set("BURN", this.processSmgReleaseLogger.bind(this));
@@ -130,6 +131,12 @@ module.exports = class CheckScEvent {
     let eventHash = ""; // not used
     let eventName = "SmgReleaseLogger";
     await this.processScLogger("algoBURN", eventHash, eventName);
+  }
+
+  async processDustClaim() {
+    let eventHash = ""; // not used
+    let eventName = ""; // not used
+    await this.processScLogger("dustCLAIM", eventHash, eventName);
   }
 
   getEventHash(abi, eventName) {
@@ -228,6 +235,8 @@ module.exports = class CheckScEvent {
           } else if (this.chainInfo.chainType === "TRX") {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
+          } else if (task.taskType === "dustCLAIM") {
+            event = await this.scanDustClaim(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID, task.taskType === "BURN");
           } else {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             let topics = [eventHash, eventUnique.toLowerCase()];
@@ -448,6 +457,14 @@ module.exports = class CheckScEvent {
     } catch (err) {
       return null;
     }
+  }
+
+  async scanDustClaim(fromBlock, toBlock, txHash, uniqueID, isNative) {
+    let claimable = await this.tool.checkClaimable(uniqueID, isNative);
+    if (claimable) { // there are no smg txHash, use user txHash instead
+      return {txHash, toAccount: "", value: ""};
+    }
+    return null;
   }
 
   async updateUIAndStorage(task, txHash, toAccount, value) {

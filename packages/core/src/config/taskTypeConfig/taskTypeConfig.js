@@ -113,5 +113,17 @@ module.exports = [
     {
       "name": "ProcessMintFromTon",
       "handle": require("./ProcessMintFromTon")
+    },
+    {
+      "name": "ProcessMidnightRechargeFee",
+      "handle": require("./ProcessMidnightRechargeFee")
+    },
+    {
+      "name": "ProcessBurnFromMidnight",
+      "handle": require("./ProcessBurnFromMidnight")
+    },
+    {
+      "name": "ProcessMidnightClaim",
+      "handle": require("./ProcessMidnightClaim")
     }
 ]

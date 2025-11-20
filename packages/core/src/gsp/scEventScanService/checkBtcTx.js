@@ -30,7 +30,7 @@ module.exports = class CheckBtcTx{
             let postJson = {
                 chainType: obj.fromChain,
                 chainAddr: obj.fromAddr,
-                chainHash: obj.chainHash
+                chainHash: obj.chainHash || obj.txHash
             };
             let addrField = this.chainType.toLowerCase() + "Addr";
             postJson[addrField] = obj.toAddr;

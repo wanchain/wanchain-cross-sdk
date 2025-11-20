@@ -87,9 +87,8 @@ module.exports = class ProcessMintFromSui {
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, direction),
-          // for xrp api server
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txHash,
           toAddr: params.toAddr
         }
       };

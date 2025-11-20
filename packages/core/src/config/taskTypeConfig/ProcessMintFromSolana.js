@@ -78,9 +78,9 @@ module.exports = class ProcessMintFromSolana {
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction? "MINT" : "BURN")),
-          // for xrp api server
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txHash,
+          txHash,
           toAddr: params.toAddr
         }
       };

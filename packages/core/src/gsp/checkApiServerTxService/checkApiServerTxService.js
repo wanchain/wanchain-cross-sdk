@@ -54,7 +54,6 @@ module.exports = class CheckApiServerTxService {
                     if (ret.data.success && ret.data.data) {
                       task.uniqueID = ret.data.data.hashX;
                       task.fromChain = this.chainType;
-                      task.chainHash = task.txHash;
                       await this.eventService.emitEvent("TaskStepResult", {
                         ccTaskId: task.ccTaskId,
                         stepIndex: task.stepIndex,

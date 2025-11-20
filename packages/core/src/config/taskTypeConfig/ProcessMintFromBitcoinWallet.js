@@ -46,8 +46,9 @@ module.exports = class ProcessMintFromBitcoinWallet {
           chain: params.toChainType,
           taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction),
           fromChain: params.fromChainType,
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txHash,
+          txHash,
           toAddr: params.toAddr
         }
       };

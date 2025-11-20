@@ -20,7 +20,7 @@ module.exports = class ScEventScanService {
 
     // evm event add similar chains
     let eventChains = this.configService.getGlobalConfig("StoremanService");
-    let nonEvmChains = ["ALGO"];
+    let nonEvmChains = ["ALGO", "DUST"];
     for (let chain of nonEvmChains) {
       let extension = this.configService.getExtension(chain);
       let info = this.chainInfoService.getChainInfoByType(chain);

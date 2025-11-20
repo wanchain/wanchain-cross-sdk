@@ -66,8 +66,9 @@ module.exports = class ProcessErc20UserFastMint extends ProcessBase {
             fromBlockNumber: blockNumber,
             taskType,
             fromChain: params.scChainType,
+            // for api server
             fromAddr: params.fromAddr,
-            chainHash: stepData.txHash,
+            txHash: stepData.txHash,
             toAddr: params.toAddr
         };
         return {txEventTopics, convertCheckInfo};

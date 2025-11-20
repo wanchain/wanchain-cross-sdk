@@ -85,5 +85,9 @@ module.exports = [
     {
       "name": "MintFromTon",
       "handle": require("./MintFromTon")
-    }
+    },
+    {
+      "name": "BurnFromMidnight",
+      "handle": require("./BurnFromMidnight")
+    },
 ]
