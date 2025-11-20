@@ -1,4 +1,4 @@
-const algosdk = require('algosdk');
+import algosdk from "algosdk";
 
 function validateAddress(address) {
   if (address.length === 58) { // 58-character base32 string includes the checksum
@@ -36,22 +36,26 @@ function getAlgoSdk() {
 }
 
 function getPrefixKey(prefix, id) {
-  let len = 8 + prefix.length;
-  let b = Buffer.alloc(2 + len);
-  b.writeUint16BE(len, 0);
-  b.write(prefix, 2);
-  b.writeBigUInt64BE(BigInt(id), 2 + prefix.length)
-  return new Uint8Array(b);
+    let len = 8 + prefix.length;
+    let b = Buffer.alloc(2 + len);
+    b.writeUint16BE(len, 0);
+    b.write(prefix, 2);
+    b.writeBigUInt64BE(BigInt(id), 2 + prefix.length);
+    return new Uint8Array(b);
 }
 
 function getLogCodec(types) {
   return algosdk.ABIType.from(types);
 }
-
-module.exports = {
-  validateAddress,
-  getStandardAddressInfo,
-  getAlgoSdk,
-  getPrefixKey,
-  getLogCodec
-}
+export { validateAddress };
+export { getStandardAddressInfo };
+export { getAlgoSdk };
+export { getPrefixKey };
+export { getLogCodec };
+export default {
+    validateAddress,
+    getStandardAddressInfo,
+    getAlgoSdk,
+    getPrefixKey,
+    getLogCodec
+};

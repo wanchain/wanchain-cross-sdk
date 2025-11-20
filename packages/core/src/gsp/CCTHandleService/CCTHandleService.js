@@ -1,12 +1,9 @@
+import ccTypeConfig from "../../config/ccTypeConfig/ccTypeConfig.js";
 "use strict";
-
-let ccTypeConfig = require("../../config/ccTypeConfig/ccTypeConfig.js");
-
-module.exports = class CCTHandleService {
+export default (class CCTHandleService {
     constructor() {
         this.mapCCTypeToHandler = new Map(); // ccType => Hanlder
     }
-
     async init(frameworkService) {
         try {
             this.frameworkService = frameworkService;
@@ -19,7 +16,6 @@ module.exports = class CCTHandleService {
             console.log("CCTHandleService init err:", err);
         }
     }
-
     async getConvertInfo(convert) {
         let tokenPairService = this.frameworkService.getService("TokenPairService");
         let tokenPair = tokenPairService.getTokenPair(convert.tokenPairId);
@@ -27,7 +23,8 @@ module.exports = class CCTHandleService {
         if (convert.handler) { // some simple tasks directly specify handlers, not associated with cross-chain tasks
             let simpleHandle = this.mapCCTypeToHandler.get(convert.handler);
             handler = new simpleHandle(this.frameworkService);
-        } else {
+        }
+        else {
             let ccType = tokenPair.ccType[convert.convertType];
             let CCTypeHandle = this.mapCCTypeToHandler.get(ccType);
             handler = new CCTypeHandle(this.frameworkService);
@@ -35,9 +32,7 @@ module.exports = class CCTHandleService {
         let steps = await handler.process(tokenPair, convert);
         return steps;
     }
-
     async addCCTHandle(ccType, CCTHandle) {
         this.mapCCTypeToHandler.set(ccType, CCTHandle);
     }
-};
-
+});

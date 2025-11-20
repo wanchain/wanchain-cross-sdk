@@ -1,7 +1,9 @@
-const VeWorldWallet = require("./src/wallet/veWorld");
-
-module.exports = {
-  getChains: () => ["VeChain"],
-  getSymbols: () => ["VET"],
-  VeWorldWallet
+import VeWorldWallet from "./src/wallet/veWorld.js";
+export const getChains = () => ["VeChain"];
+export const getSymbols = () => ["VET"];
+export { VeWorldWallet };
+export default {
+    getChains,
+    getSymbols,
+    VeWorldWallet
 };

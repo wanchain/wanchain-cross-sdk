@@ -1,5 +1,4 @@
-const protobuf = require('protobufjs');
-
+import * as protobuf from "protobufjs";
 const source = `
   syntax = "proto3";
 
@@ -245,11 +244,10 @@ const source = `
   }
 
   message MsgRemoveRemoteTokenMessengerResponse {}
-`
+`;
 const root = protobuf.parse(source).root;
 const MsgDepositForBurn = root.lookupType("circle.cctp.v1.MsgDepositForBurn");
-// console.log("MsgDepositForBurn: %O", MsgDepositForBurn);
-
-module.exports = {
-  MsgDepositForBurn
+export { MsgDepositForBurn };
+export default {
+    MsgDepositForBurn
 };

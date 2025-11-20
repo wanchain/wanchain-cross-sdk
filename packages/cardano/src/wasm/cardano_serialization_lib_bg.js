@@ -2,78 +2,59 @@ let wasm;
 export function __wbg_set_wasm(val) {
     wasm = val;
 }
-
-
 const heap = new Array(128).fill(undefined);
-
 heap.push(undefined, null, true, false);
-
 function getObject(idx) { return heap[idx]; }
-
 let heap_next = heap.length;
-
 function dropObject(idx) {
-    if (idx < 132) return;
+    if (idx < 132)
+        return;
     heap[idx] = heap_next;
     heap_next = idx;
 }
-
 function takeObject(idx) {
     const ret = getObject(idx);
     dropObject(idx);
     return ret;
 }
-
 const lTextDecoder = typeof TextDecoder === 'undefined' ? (0, module.require)('util').TextDecoder : TextDecoder;
-
 let cachedTextDecoder = new lTextDecoder('utf-8', { ignoreBOM: true, fatal: true });
-
 cachedTextDecoder.decode();
-
 let cachedUint8Memory0 = null;
-
 function getUint8Memory0() {
     if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
         cachedUint8Memory0 = new Uint8Array(wasm.memory.buffer);
     }
     return cachedUint8Memory0;
 }
-
 function getStringFromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
-
 function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
+    if (heap_next === heap.length)
+        heap.push(heap.length + 1);
     const idx = heap_next;
     heap_next = heap[idx];
-
     heap[idx] = obj;
     return idx;
 }
-
 let WASM_VECTOR_LEN = 0;
-
 const lTextEncoder = typeof TextEncoder === 'undefined' ? (0, module.require)('util').TextEncoder : TextEncoder;
-
 let cachedTextEncoder = new lTextEncoder('utf-8');
-
 const encodeString = (typeof cachedTextEncoder.encodeInto === 'function'
     ? function (arg, view) {
-    return cachedTextEncoder.encodeInto(arg, view);
-}
+        return cachedTextEncoder.encodeInto(arg, view);
+    }
     : function (arg, view) {
-    const buf = cachedTextEncoder.encode(arg);
-    view.set(buf);
-    return {
-        read: arg.length,
-        written: buf.length
-    };
-});
-
+        const buf = cachedTextEncoder.encode(arg);
+        view.set(buf);
+        return {
+            read: arg.length,
+            written: buf.length
+        };
+    });
 function passStringToWasm0(arg, malloc, realloc) {
-
     if (realloc === undefined) {
         const buf = cachedTextEncoder.encode(arg);
         const ptr = malloc(buf.length, 1) >>> 0;
@@ -81,20 +62,16 @@ function passStringToWasm0(arg, malloc, realloc) {
         WASM_VECTOR_LEN = buf.length;
         return ptr;
     }
-
     let len = arg.length;
     let ptr = malloc(len, 1) >>> 0;
-
     const mem = getUint8Memory0();
-
     let offset = 0;
-
     for (; offset < len; offset++) {
         const code = arg.charCodeAt(offset);
-        if (code > 0x7F) break;
+        if (code > 0x7F)
+            break;
         mem[ptr + offset] = code;
     }
-
     if (offset !== len) {
         if (offset !== 0) {
             arg = arg.slice(offset);
@@ -102,33 +79,27 @@ function passStringToWasm0(arg, malloc, realloc) {
         ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
         const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
         const ret = encodeString(arg, view);
-
         offset += ret.written;
         ptr = realloc(ptr, len, offset, 1) >>> 0;
     }
-
     WASM_VECTOR_LEN = offset;
     return ptr;
 }
-
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
-
 let cachedInt32Memory0 = null;
-
 function getInt32Memory0() {
     if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
         cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
     }
     return cachedInt32Memory0;
 }
-
 function debugString(val) {
     // primitive types
     const type = typeof val;
     if (type == 'number' || type == 'boolean' || val == null) {
-        return  `${val}`;
+        return `${val}`;
     }
     if (type == 'string') {
         return `"${val}"`;
@@ -137,7 +108,8 @@ function debugString(val) {
         const description = val.description;
         if (description == null) {
             return 'Symbol';
-        } else {
+        }
+        else {
             return `Symbol(${description})`;
         }
     }
@@ -145,7 +117,8 @@ function debugString(val) {
         const name = val.name;
         if (typeof name == 'string' && name.length > 0) {
             return `Function(${name})`;
-        } else {
+        }
+        else {
             return 'Function';
         }
     }
@@ -156,7 +129,7 @@ function debugString(val) {
         if (length > 0) {
             debug += debugString(val[0]);
         }
-        for(let i = 1; i < length; i++) {
+        for (let i = 1; i < length; i++) {
             debug += ', ' + debugString(val[i]);
         }
         debug += ']';
@@ -167,7 +140,8 @@ function debugString(val) {
     let className;
     if (builtInMatches.length > 1) {
         className = builtInMatches[1];
-    } else {
+    }
+    else {
         // Failed to match the standard '[object ClassName]'
         return toString.call(val);
     }
@@ -177,7 +151,8 @@ function debugString(val) {
         // easier than looping through ownProperties of `val`.
         try {
             return 'Object(' + JSON.stringify(val) + ')';
-        } catch (_) {
+        }
+        catch (_) {
             return 'Object';
         }
     }
@@ -188,40 +163,33 @@ function debugString(val) {
     // TODO we could test for more things here, like `Set`s and `Map`s.
     return className;
 }
-
 function _assertClass(instance, klass) {
     if (!(instance instanceof klass)) {
         throw new Error(`expected instance of ${klass.name}`);
     }
     return instance.ptr;
 }
-
 function getArrayU8FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
-
 function passArray8ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 1, 1) >>> 0;
     getUint8Memory0().set(arg, ptr / 1);
     WASM_VECTOR_LEN = arg.length;
     return ptr;
 }
-
 let cachedUint32Memory0 = null;
-
 function getUint32Memory0() {
     if (cachedUint32Memory0 === null || cachedUint32Memory0.byteLength === 0) {
         cachedUint32Memory0 = new Uint32Array(wasm.memory.buffer);
     }
     return cachedUint32Memory0;
 }
-
 function getArrayU32FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return getUint32Memory0().subarray(ptr / 4, ptr / 4 + len);
 }
-
 function passArray32ToWasm0(arg, malloc) {
     const ptr = malloc(arg.length * 4, 4) >>> 0;
     getUint32Memory0().set(arg, ptr / 4);
@@ -248,11 +216,11 @@ export function create_send_all(address, utxos, config) {
             throw takeObject(r1);
         }
         return TransactionBatchList.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {TransactionHash} tx_body_hash
 * @param {ByronAddress} addr
@@ -266,7 +234,6 @@ export function make_daedalus_bootstrap_witness(tx_body_hash, addr, key) {
     const ret = wasm.make_daedalus_bootstrap_witness(tx_body_hash.__wbg_ptr, addr.__wbg_ptr, key.__wbg_ptr);
     return BootstrapWitness.__wrap(ret);
 }
-
 /**
 * @param {TransactionHash} tx_body_hash
 * @param {ByronAddress} addr
@@ -280,7 +247,6 @@ export function make_icarus_bootstrap_witness(tx_body_hash, addr, key) {
     const ret = wasm.make_icarus_bootstrap_witness(tx_body_hash.__wbg_ptr, addr.__wbg_ptr, key.__wbg_ptr);
     return BootstrapWitness.__wrap(ret);
 }
-
 /**
 * @param {TransactionHash} tx_body_hash
 * @param {PrivateKey} sk
@@ -292,7 +258,6 @@ export function make_vkey_witness(tx_body_hash, sk) {
     const ret = wasm.make_vkey_witness(tx_body_hash.__wbg_ptr, sk.__wbg_ptr);
     return Vkeywitness.__wrap(ret);
 }
-
 /**
 * @param {AuxiliaryData} auxiliary_data
 * @returns {AuxiliaryDataHash}
@@ -302,7 +267,6 @@ export function hash_auxiliary_data(auxiliary_data) {
     const ret = wasm.hash_auxiliary_data(auxiliary_data.__wbg_ptr);
     return AuxiliaryDataHash.__wrap(ret);
 }
-
 /**
 * @param {TransactionBody} tx_body
 * @returns {TransactionHash}
@@ -312,7 +276,6 @@ export function hash_transaction(tx_body) {
     const ret = wasm.hash_transaction(tx_body.__wbg_ptr);
     return TransactionHash.__wrap(ret);
 }
-
 /**
 * @param {PlutusData} plutus_data
 * @returns {DataHash}
@@ -322,7 +285,6 @@ export function hash_plutus_data(plutus_data) {
     const ret = wasm.hash_plutus_data(plutus_data.__wbg_ptr);
     return DataHash.__wrap(ret);
 }
-
 /**
 * @param {Redeemers} redeemers
 * @param {Costmdls} cost_models
@@ -340,7 +302,6 @@ export function hash_script_data(redeemers, cost_models, datums) {
     const ret = wasm.hash_script_data(redeemers.__wbg_ptr, cost_models.__wbg_ptr, ptr0);
     return ScriptDataHash.__wrap(ret);
 }
-
 /**
 * @param {TransactionBody} txbody
 * @param {BigNum} pool_deposit
@@ -361,11 +322,11 @@ export function get_implicit_input(txbody, pool_deposit, key_deposit) {
             throw takeObject(r1);
         }
         return Value.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {TransactionBody} txbody
 * @param {BigNum} pool_deposit
@@ -386,11 +347,11 @@ export function get_deposit(txbody, pool_deposit, key_deposit) {
             throw takeObject(r1);
         }
         return BigNum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 *returns minimal amount of ada for the output for case when the amount is included to the output
 * @param {TransactionOutput} output
@@ -410,11 +371,11 @@ export function min_ada_for_output(output, data_cost) {
             throw takeObject(r1);
         }
         return BigNum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * Receives a script JSON string
 * and returns a NativeScript.
@@ -444,11 +405,11 @@ export function encode_json_str_to_native_script(json, self_xpub, schema) {
             throw takeObject(r1);
         }
         return NativeScript.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {string} password
 * @param {string} salt
@@ -477,18 +438,19 @@ export function encrypt_with_password(password, salt, nonce, data) {
         var ptr5 = r0;
         var len5 = r1;
         if (r3) {
-            ptr5 = 0; len5 = 0;
+            ptr5 = 0;
+            len5 = 0;
             throw takeObject(r2);
         }
         deferred6_0 = ptr5;
         deferred6_1 = len5;
         return getStringFromWasm0(ptr5, len5);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_free(deferred6_0, deferred6_1, 1);
     }
 }
-
 /**
 * @param {string} password
 * @param {string} data
@@ -511,18 +473,19 @@ export function decrypt_with_password(password, data) {
         var ptr3 = r0;
         var len3 = r1;
         if (r3) {
-            ptr3 = 0; len3 = 0;
+            ptr3 = 0;
+            len3 = 0;
             throw takeObject(r2);
         }
         deferred4_0 = ptr3;
         deferred4_1 = len3;
         return getStringFromWasm0(ptr3, len3);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
     }
 }
-
 /**
 * @param {Transaction} tx
 * @param {LinearFee} linear_fee
@@ -541,11 +504,11 @@ export function min_fee(tx, linear_fee) {
             throw takeObject(r1);
         }
         return BigNum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {ExUnits} ex_units
 * @param {ExUnitPrices} ex_unit_prices
@@ -564,11 +527,11 @@ export function calculate_ex_units_ceil_cost(ex_units, ex_unit_prices) {
             throw takeObject(r1);
         }
         return BigNum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {Transaction} tx
 * @param {ExUnitPrices} ex_unit_prices
@@ -587,11 +550,11 @@ export function min_script_fee(tx, ex_unit_prices) {
             throw takeObject(r1);
         }
         return BigNum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {number} total_ref_scripts_size
 * @param {UnitInterval} ref_script_coins_per_byte
@@ -609,11 +572,11 @@ export function min_ref_script_fee(total_ref_scripts_size, ref_script_coins_per_
             throw takeObject(r1);
         }
         return BigNum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {string} json
 * @param {PlutusDatumSchema} schema
@@ -632,11 +595,11 @@ export function encode_json_str_to_plutus_datum(json, schema) {
             throw takeObject(r1);
         }
         return PlutusData.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {PlutusData} datum
 * @param {PlutusDatumSchema} schema
@@ -656,18 +619,19 @@ export function decode_plutus_datum_to_json_str(datum, schema) {
         var ptr1 = r0;
         var len1 = r1;
         if (r3) {
-            ptr1 = 0; len1 = 0;
+            ptr1 = 0;
+            len1 = 0;
             throw takeObject(r2);
         }
         deferred2_0 = ptr1;
         deferred2_1 = len1;
         return getStringFromWasm0(ptr1, len1);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
 }
-
 /**
 * @param {Uint8Array} bytes
 * @returns {TransactionMetadatum}
@@ -678,7 +642,6 @@ export function encode_arbitrary_bytes_as_metadatum(bytes) {
     const ret = wasm.encode_arbitrary_bytes_as_metadatum(ptr0, len0);
     return TransactionMetadatum.__wrap(ret);
 }
-
 /**
 * @param {TransactionMetadatum} metadata
 * @returns {Uint8Array}
@@ -698,11 +661,11 @@ export function decode_arbitrary_bytes_from_metadatum(metadata) {
         var v1 = getArrayU8FromWasm0(r0, r1).slice();
         wasm.__wbindgen_free(r0, r1 * 1, 1);
         return v1;
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {string} json
 * @param {MetadataJsonSchema} schema
@@ -721,11 +684,11 @@ export function encode_json_str_to_metadatum(json, schema) {
             throw takeObject(r1);
         }
         return TransactionMetadatum.__wrap(r0);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
     }
 }
-
 /**
 * @param {TransactionMetadatum} metadatum
 * @param {MetadataJsonSchema} schema
@@ -745,22 +708,24 @@ export function decode_metadatum_to_json_str(metadatum, schema) {
         var ptr1 = r0;
         var len1 = r1;
         if (r3) {
-            ptr1 = 0; len1 = 0;
+            ptr1 = 0;
+            len1 = 0;
             throw takeObject(r2);
         }
         deferred2_0 = ptr1;
         deferred2_1 = len1;
         return getStringFromWasm0(ptr1, len1);
-    } finally {
+    }
+    finally {
         wasm.__wbindgen_add_to_stack_pointer(16);
         wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
 }
-
 function handleError(f, args) {
     try {
         return f.apply(this, args);
-    } catch (e) {
+    }
+    catch (e) {
         wasm.__wbindgen_exn_store(addHeapObject(e));
     }
 }
@@ -776,140 +741,140 @@ function handleError(f, args) {
 *      on either side when tested so proceed with caution
 */
 export const PlutusDatumSchema = Object.freeze({
-/**
-* ScriptDataJsonNoSchema in cardano-node.
-*
-* This is the format used by --script-data-value in cardano-cli
-* This tries to accept most JSON but does not support the full spectrum of Plutus datums.
-* From JSON:
-* * null/true/false/floats NOT supported
-* * strings starting with 0x are treated as hex bytes. All other strings are encoded as their utf8 bytes.
-* To JSON:
-* * ConstrPlutusData not supported in ANY FORM (neither keys nor values)
-* * Lists not supported in keys
-* * Maps not supported in keys
-*/
-BasicConversions:0,"0":"BasicConversions",
-/**
-* ScriptDataJsonDetailedSchema in cardano-node.
-*
-* This is the format used by --script-data-file in cardano-cli
-* This covers almost all (only minor exceptions) Plutus datums, but the JSON must conform to a strict schema.
-* The schema specifies that ALL keys and ALL values must be contained in a JSON map with 2 cases:
-* 1. For ConstrPlutusData there must be two fields "constructor" contianing a number and "fields" containing its fields
-*    e.g. { "constructor": 2, "fields": [{"int": 2}, {"list": [{"bytes": "CAFEF00D"}]}]}
-* 2. For all other cases there must be only one field named "int", "bytes", "list" or "map"
-*    Integer's value is a JSON number e.g. {"int": 100}
-*    Bytes' value is a hex string representing the bytes WITHOUT any prefix e.g. {"bytes": "CAFEF00D"}
-*    Lists' value is a JSON list of its elements encoded via the same schema e.g. {"list": [{"bytes": "CAFEF00D"}]}
-*    Maps' value is a JSON list of objects, one for each key-value pair in the map, with keys "k" and "v"
-*          respectively with their values being the plutus datum encoded via this same schema
-*          e.g. {"map": [
-*              {"k": {"int": 2}, "v": {"int": 5}},
-*              {"k": {"map": [{"k": {"list": [{"int": 1}]}, "v": {"bytes": "FF03"}}]}, "v": {"list": []}}
-*          ]}
-* From JSON:
-* * null/true/false/floats NOT supported
-* * the JSON must conform to a very specific schema
-* To JSON:
-* * all Plutus datums should be fully supported outside of the integer range limitations outlined above.
-*/
-DetailedSchema:1,"1":"DetailedSchema", });
-/**
-*/
-export const RedeemerTagKind = Object.freeze({ Spend:0,"0":"Spend",Mint:1,"1":"Mint",Cert:2,"2":"Cert",Reward:3,"3":"Reward",Vote:4,"4":"Vote",VotingProposal:5,"5":"VotingProposal", });
+    /**
+    * ScriptDataJsonNoSchema in cardano-node.
+    *
+    * This is the format used by --script-data-value in cardano-cli
+    * This tries to accept most JSON but does not support the full spectrum of Plutus datums.
+    * From JSON:
+    * * null/true/false/floats NOT supported
+    * * strings starting with 0x are treated as hex bytes. All other strings are encoded as their utf8 bytes.
+    * To JSON:
+    * * ConstrPlutusData not supported in ANY FORM (neither keys nor values)
+    * * Lists not supported in keys
+    * * Maps not supported in keys
+    */
+    BasicConversions: 0, "0": "BasicConversions",
+    /**
+    * ScriptDataJsonDetailedSchema in cardano-node.
+    *
+    * This is the format used by --script-data-file in cardano-cli
+    * This covers almost all (only minor exceptions) Plutus datums, but the JSON must conform to a strict schema.
+    * The schema specifies that ALL keys and ALL values must be contained in a JSON map with 2 cases:
+    * 1. For ConstrPlutusData there must be two fields "constructor" contianing a number and "fields" containing its fields
+    *    e.g. { "constructor": 2, "fields": [{"int": 2}, {"list": [{"bytes": "CAFEF00D"}]}]}
+    * 2. For all other cases there must be only one field named "int", "bytes", "list" or "map"
+    *    Integer's value is a JSON number e.g. {"int": 100}
+    *    Bytes' value is a hex string representing the bytes WITHOUT any prefix e.g. {"bytes": "CAFEF00D"}
+    *    Lists' value is a JSON list of its elements encoded via the same schema e.g. {"list": [{"bytes": "CAFEF00D"}]}
+    *    Maps' value is a JSON list of objects, one for each key-value pair in the map, with keys "k" and "v"
+    *          respectively with their values being the plutus datum encoded via this same schema
+    *          e.g. {"map": [
+    *              {"k": {"int": 2}, "v": {"int": 5}},
+    *              {"k": {"map": [{"k": {"list": [{"int": 1}]}, "v": {"bytes": "FF03"}}]}, "v": {"list": []}}
+    *          ]}
+    * From JSON:
+    * * null/true/false/floats NOT supported
+    * * the JSON must conform to a very specific schema
+    * To JSON:
+    * * all Plutus datums should be fully supported outside of the integer range limitations outlined above.
+    */
+    DetailedSchema: 1, "1": "DetailedSchema",
+});
 /**
 */
-export const MIRPot = Object.freeze({ Reserves:0,"0":"Reserves",Treasury:1,"1":"Treasury", });
+export const RedeemerTagKind = Object.freeze({ Spend: 0, "0": "Spend", Mint: 1, "1": "Mint", Cert: 2, "2": "Cert", Reward: 3, "3": "Reward", Vote: 4, "4": "Vote", VotingProposal: 5, "5": "VotingProposal", });
 /**
 */
-export const DRepKind = Object.freeze({ KeyHash:0,"0":"KeyHash",ScriptHash:1,"1":"ScriptHash",AlwaysAbstain:2,"2":"AlwaysAbstain",AlwaysNoConfidence:3,"3":"AlwaysNoConfidence", });
+export const MIRPot = Object.freeze({ Reserves: 0, "0": "Reserves", Treasury: 1, "1": "Treasury", });
 /**
 */
-export const VoterKind = Object.freeze({ ConstitutionalCommitteeHotKeyHash:0,"0":"ConstitutionalCommitteeHotKeyHash",ConstitutionalCommitteeHotScriptHash:1,"1":"ConstitutionalCommitteeHotScriptHash",DRepKeyHash:2,"2":"DRepKeyHash",DRepScriptHash:3,"3":"DRepScriptHash",StakingPoolKeyHash:4,"4":"StakingPoolKeyHash", });
+export const DRepKind = Object.freeze({ KeyHash: 0, "0": "KeyHash", ScriptHash: 1, "1": "ScriptHash", AlwaysAbstain: 2, "2": "AlwaysAbstain", AlwaysNoConfidence: 3, "3": "AlwaysNoConfidence", });
 /**
 */
-export const CredKind = Object.freeze({ Key:0,"0":"Key",Script:1,"1":"Script", });
+export const VoterKind = Object.freeze({ ConstitutionalCommitteeHotKeyHash: 0, "0": "ConstitutionalCommitteeHotKeyHash", ConstitutionalCommitteeHotScriptHash: 1, "1": "ConstitutionalCommitteeHotScriptHash", DRepKeyHash: 2, "2": "DRepKeyHash", DRepScriptHash: 3, "3": "DRepScriptHash", StakingPoolKeyHash: 4, "4": "StakingPoolKeyHash", });
 /**
 */
-export const GovernanceActionKind = Object.freeze({ ParameterChangeAction:0,"0":"ParameterChangeAction",HardForkInitiationAction:1,"1":"HardForkInitiationAction",TreasuryWithdrawalsAction:2,"2":"TreasuryWithdrawalsAction",NoConfidenceAction:3,"3":"NoConfidenceAction",UpdateCommitteeAction:4,"4":"UpdateCommitteeAction",NewConstitutionAction:5,"5":"NewConstitutionAction",InfoAction:6,"6":"InfoAction", });
+export const CredKind = Object.freeze({ Key: 0, "0": "Key", Script: 1, "1": "Script", });
 /**
 */
-export const CborContainerType = Object.freeze({ Array:0,"0":"Array",Map:1,"1":"Map", });
+export const GovernanceActionKind = Object.freeze({ ParameterChangeAction: 0, "0": "ParameterChangeAction", HardForkInitiationAction: 1, "1": "HardForkInitiationAction", TreasuryWithdrawalsAction: 2, "2": "TreasuryWithdrawalsAction", NoConfidenceAction: 3, "3": "NoConfidenceAction", UpdateCommitteeAction: 4, "4": "UpdateCommitteeAction", NewConstitutionAction: 5, "5": "NewConstitutionAction", InfoAction: 6, "6": "InfoAction", });
 /**
 */
-export const LanguageKind = Object.freeze({ PlutusV1:0,"0":"PlutusV1",PlutusV2:1,"1":"PlutusV2",PlutusV3:2,"2":"PlutusV3", });
+export const CborContainerType = Object.freeze({ Array: 0, "0": "Array", Map: 1, "1": "Map", });
 /**
 */
-export const NetworkIdKind = Object.freeze({ Testnet:0,"0":"Testnet",Mainnet:1,"1":"Mainnet", });
+export const LanguageKind = Object.freeze({ PlutusV1: 0, "0": "PlutusV1", PlutusV2: 1, "1": "PlutusV2", PlutusV3: 2, "2": "PlutusV3", });
 /**
 */
-export const NativeScriptKind = Object.freeze({ ScriptPubkey:0,"0":"ScriptPubkey",ScriptAll:1,"1":"ScriptAll",ScriptAny:2,"2":"ScriptAny",ScriptNOfK:3,"3":"ScriptNOfK",TimelockStart:4,"4":"TimelockStart",TimelockExpiry:5,"5":"TimelockExpiry", });
+export const NetworkIdKind = Object.freeze({ Testnet: 0, "0": "Testnet", Mainnet: 1, "1": "Mainnet", });
+/**
+*/
+export const NativeScriptKind = Object.freeze({ ScriptPubkey: 0, "0": "ScriptPubkey", ScriptAll: 1, "1": "ScriptAll", ScriptAny: 2, "2": "ScriptAny", ScriptNOfK: 3, "3": "ScriptNOfK", TimelockStart: 4, "4": "TimelockStart", TimelockExpiry: 5, "5": "TimelockExpiry", });
 /**
 */
 export const CoinSelectionStrategyCIP2 = Object.freeze({
-/**
-* Performs CIP2's Largest First ada-only selection. Will error if outputs contain non-ADA assets.
-*/
-LargestFirst:0,"0":"LargestFirst",
-/**
-* Performs CIP2's Random Improve ada-only selection. Will error if outputs contain non-ADA assets.
-*/
-RandomImprove:1,"1":"RandomImprove",
-/**
-* Same as LargestFirst, but before adding ADA, will insert by largest-first for each asset type.
-*/
-LargestFirstMultiAsset:2,"2":"LargestFirstMultiAsset",
-/**
-* Same as RandomImprove, but before adding ADA, will insert by random-improve for each asset type.
-*/
-RandomImproveMultiAsset:3,"3":"RandomImproveMultiAsset", });
-/**
-*/
-export const PlutusDataKind = Object.freeze({ ConstrPlutusData:0,"0":"ConstrPlutusData",Map:1,"1":"Map",List:2,"2":"List",Integer:3,"3":"Integer",Bytes:4,"4":"Bytes", });
+    /**
+    * Performs CIP2's Largest First ada-only selection. Will error if outputs contain non-ADA assets.
+    */
+    LargestFirst: 0, "0": "LargestFirst",
+    /**
+    * Performs CIP2's Random Improve ada-only selection. Will error if outputs contain non-ADA assets.
+    */
+    RandomImprove: 1, "1": "RandomImprove",
+    /**
+    * Same as LargestFirst, but before adding ADA, will insert by largest-first for each asset type.
+    */
+    LargestFirstMultiAsset: 2, "2": "LargestFirstMultiAsset",
+    /**
+    * Same as RandomImprove, but before adding ADA, will insert by random-improve for each asset type.
+    */
+    RandomImproveMultiAsset: 3, "3": "RandomImproveMultiAsset",
+});
 /**
 */
-export const TransactionMetadatumKind = Object.freeze({ MetadataMap:0,"0":"MetadataMap",MetadataList:1,"1":"MetadataList",Int:2,"2":"Int",Bytes:3,"3":"Bytes",Text:4,"4":"Text", });
+export const PlutusDataKind = Object.freeze({ ConstrPlutusData: 0, "0": "ConstrPlutusData", Map: 1, "1": "Map", List: 2, "2": "List", Integer: 3, "3": "Integer", Bytes: 4, "4": "Bytes", });
 /**
 */
-export const MIRKind = Object.freeze({ ToOtherPot:0,"0":"ToOtherPot",ToStakeCredentials:1,"1":"ToStakeCredentials", });
+export const TransactionMetadatumKind = Object.freeze({ MetadataMap: 0, "0": "MetadataMap", MetadataList: 1, "1": "MetadataList", Int: 2, "2": "Int", Bytes: 3, "3": "Bytes", Text: 4, "4": "Text", });
 /**
 */
-export const AddressKind = Object.freeze({ Base:0,"0":"Base",Pointer:1,"1":"Pointer",Enterprise:2,"2":"Enterprise",Reward:3,"3":"Reward",Byron:4,"4":"Byron",Malformed:5,"5":"Malformed", });
+export const MIRKind = Object.freeze({ ToOtherPot: 0, "0": "ToOtherPot", ToStakeCredentials: 1, "1": "ToStakeCredentials", });
 /**
 */
-export const BlockEra = Object.freeze({ Byron:0,"0":"Byron",Shelley:1,"1":"Shelley",Allegra:2,"2":"Allegra",Mary:3,"3":"Mary",Alonzo:4,"4":"Alonzo",Babbage:5,"5":"Babbage",Conway:6,"6":"Conway",Unknown:7,"7":"Unknown", });
+export const AddressKind = Object.freeze({ Base: 0, "0": "Base", Pointer: 1, "1": "Pointer", Enterprise: 2, "2": "Enterprise", Reward: 3, "3": "Reward", Byron: 4, "4": "Byron", Malformed: 5, "5": "Malformed", });
 /**
 */
-export const RelayKind = Object.freeze({ SingleHostAddr:0,"0":"SingleHostAddr",SingleHostName:1,"1":"SingleHostName",MultiHostName:2,"2":"MultiHostName", });
+export const BlockEra = Object.freeze({ Byron: 0, "0": "Byron", Shelley: 1, "1": "Shelley", Allegra: 2, "2": "Allegra", Mary: 3, "3": "Mary", Alonzo: 4, "4": "Alonzo", Babbage: 5, "5": "Babbage", Conway: 6, "6": "Conway", Unknown: 7, "7": "Unknown", });
 /**
 */
-export const MetadataJsonSchema = Object.freeze({ NoConversions:0,"0":"NoConversions",BasicConversions:1,"1":"BasicConversions",DetailedSchema:2,"2":"DetailedSchema", });
+export const RelayKind = Object.freeze({ SingleHostAddr: 0, "0": "SingleHostAddr", SingleHostName: 1, "1": "SingleHostName", MultiHostName: 2, "2": "MultiHostName", });
 /**
 */
-export const VoteKind = Object.freeze({ No:0,"0":"No",Yes:1,"1":"Yes",Abstain:2,"2":"Abstain", });
+export const MetadataJsonSchema = Object.freeze({ NoConversions: 0, "0": "NoConversions", BasicConversions: 1, "1": "BasicConversions", DetailedSchema: 2, "2": "DetailedSchema", });
+/**
+*/
+export const VoteKind = Object.freeze({ No: 0, "0": "No", Yes: 1, "1": "Yes", Abstain: 2, "2": "Abstain", });
 /**
 * Used to choosed the schema for a script JSON string
 */
-export const ScriptSchema = Object.freeze({ Wallet:0,"0":"Wallet",Node:1,"1":"Node", });
+export const ScriptSchema = Object.freeze({ Wallet: 0, "0": "Wallet", Node: 1, "1": "Node", });
 /**
 */
-export const CertificateKind = Object.freeze({ StakeRegistration:0,"0":"StakeRegistration",StakeDeregistration:1,"1":"StakeDeregistration",StakeDelegation:2,"2":"StakeDelegation",PoolRegistration:3,"3":"PoolRegistration",PoolRetirement:4,"4":"PoolRetirement",GenesisKeyDelegation:5,"5":"GenesisKeyDelegation",MoveInstantaneousRewardsCert:6,"6":"MoveInstantaneousRewardsCert",CommitteeHotAuth:7,"7":"CommitteeHotAuth",CommitteeColdResign:8,"8":"CommitteeColdResign",DRepDeregistration:9,"9":"DRepDeregistration",DRepRegistration:10,"10":"DRepRegistration",DRepUpdate:11,"11":"DRepUpdate",StakeAndVoteDelegation:12,"12":"StakeAndVoteDelegation",StakeRegistrationAndDelegation:13,"13":"StakeRegistrationAndDelegation",StakeVoteRegistrationAndDelegation:14,"14":"StakeVoteRegistrationAndDelegation",VoteDelegation:15,"15":"VoteDelegation",VoteRegistrationAndDelegation:16,"16":"VoteRegistrationAndDelegation", });
+export const CertificateKind = Object.freeze({ StakeRegistration: 0, "0": "StakeRegistration", StakeDeregistration: 1, "1": "StakeDeregistration", StakeDelegation: 2, "2": "StakeDelegation", PoolRegistration: 3, "3": "PoolRegistration", PoolRetirement: 4, "4": "PoolRetirement", GenesisKeyDelegation: 5, "5": "GenesisKeyDelegation", MoveInstantaneousRewardsCert: 6, "6": "MoveInstantaneousRewardsCert", CommitteeHotAuth: 7, "7": "CommitteeHotAuth", CommitteeColdResign: 8, "8": "CommitteeColdResign", DRepDeregistration: 9, "9": "DRepDeregistration", DRepRegistration: 10, "10": "DRepRegistration", DRepUpdate: 11, "11": "DRepUpdate", StakeAndVoteDelegation: 12, "12": "StakeAndVoteDelegation", StakeRegistrationAndDelegation: 13, "13": "StakeRegistrationAndDelegation", StakeVoteRegistrationAndDelegation: 14, "14": "StakeVoteRegistrationAndDelegation", VoteDelegation: 15, "15": "VoteDelegation", VoteRegistrationAndDelegation: 16, "16": "VoteRegistrationAndDelegation", });
 /**
 * Each new language uses a different namespace for hashing its script
 * This is because you could have a language where the same bytes have different semantics
 * So this avoids scripts in different languages mapping to the same hash
 * Note that the enum value here is different than the enum value for deciding the cost model of a script
 */
-export const ScriptHashNamespace = Object.freeze({ NativeScript:0,"0":"NativeScript",PlutusScript:1,"1":"PlutusScript",PlutusScriptV2:2,"2":"PlutusScriptV2",PlutusScriptV3:3,"3":"PlutusScriptV3", });
-
+export const ScriptHashNamespace = Object.freeze({ NativeScript: 0, "0": "NativeScript", PlutusScript: 1, "1": "PlutusScript", PlutusScriptV2: 2, "2": "PlutusScriptV2", PlutusScriptV3: 3, "3": "PlutusScriptV3", });
 const AddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_address_free(ptr >>> 0));
 /**
 */
 export class Address {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Address.prototype);
@@ -917,14 +882,12 @@ export class Address {
         AddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_address_free(ptr);
@@ -946,7 +909,8 @@ export class Address {
                 throw takeObject(r1);
             }
             return Address.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -966,13 +930,15 @@ export class Address {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -991,7 +957,8 @@ export class Address {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1012,7 +979,8 @@ export class Address {
                 throw takeObject(r1);
             }
             return Address.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1051,7 +1019,8 @@ export class Address {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -1073,7 +1042,8 @@ export class Address {
                 throw takeObject(r1);
             }
             return Address.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1089,7 +1059,8 @@ export class Address {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1112,13 +1083,15 @@ export class Address {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -1140,7 +1113,8 @@ export class Address {
                 throw takeObject(r1);
             }
             return Address.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1158,19 +1132,18 @@ export class Address {
                 throw takeObject(r1);
             }
             return r0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const AnchorFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_anchor_free(ptr >>> 0));
 /**
 */
 export class Anchor {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Anchor.prototype);
@@ -1178,14 +1151,12 @@ export class Anchor {
         AnchorFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AnchorFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_anchor_free(ptr);
@@ -1202,7 +1173,8 @@ export class Anchor {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1223,7 +1195,8 @@ export class Anchor {
                 throw takeObject(r1);
             }
             return Anchor.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1241,7 +1214,8 @@ export class Anchor {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -1263,7 +1237,8 @@ export class Anchor {
                 throw takeObject(r1);
             }
             return Anchor.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1283,13 +1258,15 @@ export class Anchor {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -1308,7 +1285,8 @@ export class Anchor {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1329,7 +1307,8 @@ export class Anchor {
                 throw takeObject(r1);
             }
             return Anchor.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1359,14 +1338,12 @@ export class Anchor {
         return Anchor.__wrap(ret);
     }
 }
-
 const AnchorDataHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_anchordatahash_free(ptr >>> 0));
 /**
 */
 export class AnchorDataHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(AnchorDataHash.prototype);
@@ -1374,14 +1351,12 @@ export class AnchorDataHash {
         AnchorDataHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AnchorDataHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_anchordatahash_free(ptr);
@@ -1403,7 +1378,8 @@ export class AnchorDataHash {
                 throw takeObject(r1);
             }
             return AnchorDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1419,7 +1395,8 @@ export class AnchorDataHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1442,13 +1419,15 @@ export class AnchorDataHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -1470,7 +1449,8 @@ export class AnchorDataHash {
                 throw takeObject(r1);
             }
             return AnchorDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1488,7 +1468,8 @@ export class AnchorDataHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -1510,19 +1491,18 @@ export class AnchorDataHash {
                 throw takeObject(r1);
             }
             return AnchorDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const AssetNameFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_assetname_free(ptr >>> 0));
 /**
 */
 export class AssetName {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(AssetName.prototype);
@@ -1530,14 +1510,12 @@ export class AssetName {
         AssetNameFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AssetNameFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_assetname_free(ptr);
@@ -1554,7 +1532,8 @@ export class AssetName {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1575,7 +1554,8 @@ export class AssetName {
                 throw takeObject(r1);
             }
             return AssetName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1593,7 +1573,8 @@ export class AssetName {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -1615,7 +1596,8 @@ export class AssetName {
                 throw takeObject(r1);
             }
             return AssetName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1635,13 +1617,15 @@ export class AssetName {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -1660,7 +1644,8 @@ export class AssetName {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1681,7 +1666,8 @@ export class AssetName {
                 throw takeObject(r1);
             }
             return AssetName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1702,7 +1688,8 @@ export class AssetName {
                 throw takeObject(r1);
             }
             return AssetName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1718,19 +1705,18 @@ export class AssetName {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const AssetNamesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_assetnames_free(ptr >>> 0));
 /**
 */
 export class AssetNames {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(AssetNames.prototype);
@@ -1738,14 +1724,12 @@ export class AssetNames {
         AssetNamesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AssetNamesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_assetnames_free(ptr);
@@ -1762,7 +1746,8 @@ export class AssetNames {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1783,7 +1768,8 @@ export class AssetNames {
                 throw takeObject(r1);
             }
             return AssetNames.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1801,7 +1787,8 @@ export class AssetNames {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -1823,7 +1810,8 @@ export class AssetNames {
                 throw takeObject(r1);
             }
             return AssetNames.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1843,13 +1831,15 @@ export class AssetNames {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -1868,7 +1858,8 @@ export class AssetNames {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1889,7 +1880,8 @@ export class AssetNames {
                 throw takeObject(r1);
             }
             return AssetNames.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1923,14 +1915,12 @@ export class AssetNames {
         wasm.assetnames_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const AssetsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_assets_free(ptr >>> 0));
 /**
 */
 export class Assets {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Assets.prototype);
@@ -1938,14 +1928,12 @@ export class Assets {
         AssetsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AssetsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_assets_free(ptr);
@@ -1962,7 +1950,8 @@ export class Assets {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -1983,7 +1972,8 @@ export class Assets {
                 throw takeObject(r1);
             }
             return Assets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2001,7 +1991,8 @@ export class Assets {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -2023,7 +2014,8 @@ export class Assets {
                 throw takeObject(r1);
             }
             return Assets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2043,13 +2035,15 @@ export class Assets {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -2068,7 +2062,8 @@ export class Assets {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2089,7 +2084,8 @@ export class Assets {
                 throw takeObject(r1);
             }
             return Assets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2135,14 +2131,12 @@ export class Assets {
         return AssetNames.__wrap(ret);
     }
 }
-
 const AuxiliaryDataFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_auxiliarydata_free(ptr >>> 0));
 /**
 */
 export class AuxiliaryData {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(AuxiliaryData.prototype);
@@ -2150,14 +2144,12 @@ export class AuxiliaryData {
         AuxiliaryDataFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AuxiliaryDataFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_auxiliarydata_free(ptr);
@@ -2174,7 +2166,8 @@ export class AuxiliaryData {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2195,7 +2188,8 @@ export class AuxiliaryData {
                 throw takeObject(r1);
             }
             return AuxiliaryData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2213,7 +2207,8 @@ export class AuxiliaryData {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -2235,7 +2230,8 @@ export class AuxiliaryData {
                 throw takeObject(r1);
             }
             return AuxiliaryData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2255,13 +2251,15 @@ export class AuxiliaryData {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -2280,7 +2278,8 @@ export class AuxiliaryData {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2301,7 +2300,8 @@ export class AuxiliaryData {
                 throw takeObject(r1);
             }
             return AuxiliaryData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2368,14 +2368,12 @@ export class AuxiliaryData {
         wasm.auxiliarydata_set_prefer_alonzo_format(this.__wbg_ptr, prefer);
     }
 }
-
 const AuxiliaryDataHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_auxiliarydatahash_free(ptr >>> 0));
 /**
 */
 export class AuxiliaryDataHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(AuxiliaryDataHash.prototype);
@@ -2383,14 +2381,12 @@ export class AuxiliaryDataHash {
         AuxiliaryDataHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AuxiliaryDataHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_auxiliarydatahash_free(ptr);
@@ -2412,7 +2408,8 @@ export class AuxiliaryDataHash {
                 throw takeObject(r1);
             }
             return AuxiliaryDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2428,7 +2425,8 @@ export class AuxiliaryDataHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2451,13 +2449,15 @@ export class AuxiliaryDataHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -2479,7 +2479,8 @@ export class AuxiliaryDataHash {
                 throw takeObject(r1);
             }
             return AuxiliaryDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2497,7 +2498,8 @@ export class AuxiliaryDataHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -2519,19 +2521,18 @@ export class AuxiliaryDataHash {
                 throw takeObject(r1);
             }
             return AuxiliaryDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const AuxiliaryDataSetFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_auxiliarydataset_free(ptr >>> 0));
 /**
 */
 export class AuxiliaryDataSet {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(AuxiliaryDataSet.prototype);
@@ -2539,14 +2540,12 @@ export class AuxiliaryDataSet {
         AuxiliaryDataSetFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         AuxiliaryDataSetFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_auxiliarydataset_free(ptr);
@@ -2595,19 +2594,18 @@ export class AuxiliaryDataSet {
             var v1 = getArrayU32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4, 4);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const BaseAddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_baseaddress_free(ptr >>> 0));
 /**
 */
 export class BaseAddress {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(BaseAddress.prototype);
@@ -2615,14 +2613,12 @@ export class BaseAddress {
         BaseAddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BaseAddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_baseaddress_free(ptr);
@@ -2677,14 +2673,12 @@ export class BaseAddress {
         return ret;
     }
 }
-
 const BigIntFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_bigint_free(ptr >>> 0));
 /**
 */
 export class BigInt {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(BigInt.prototype);
@@ -2692,14 +2686,12 @@ export class BigInt {
         BigIntFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BigIntFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_bigint_free(ptr);
@@ -2716,7 +2708,8 @@ export class BigInt {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2737,7 +2730,8 @@ export class BigInt {
                 throw takeObject(r1);
             }
             return BigInt.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2755,7 +2749,8 @@ export class BigInt {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -2777,7 +2772,8 @@ export class BigInt {
                 throw takeObject(r1);
             }
             return BigInt.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2797,13 +2793,15 @@ export class BigInt {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -2822,7 +2820,8 @@ export class BigInt {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2843,7 +2842,8 @@ export class BigInt {
                 throw takeObject(r1);
             }
             return BigInt.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2885,7 +2885,8 @@ export class BigInt {
                 throw takeObject(r1);
             }
             return BigInt.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -2903,7 +2904,8 @@ export class BigInt {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -2990,14 +2992,12 @@ export class BigInt {
         return BigInt.__wrap(ret);
     }
 }
-
 const BigNumFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_bignum_free(ptr >>> 0));
 /**
 */
 export class BigNum {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(BigNum.prototype);
@@ -3005,14 +3005,12 @@ export class BigNum {
         BigNumFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BigNumFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_bignum_free(ptr);
@@ -3029,7 +3027,8 @@ export class BigNum {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3050,7 +3049,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3068,7 +3068,8 @@ export class BigNum {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3090,7 +3091,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3110,13 +3112,15 @@ export class BigNum {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -3135,7 +3139,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3156,7 +3161,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3177,7 +3183,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3195,7 +3202,8 @@ export class BigNum {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3246,7 +3254,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3266,7 +3275,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3286,7 +3296,8 @@ export class BigNum {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3337,14 +3348,12 @@ export class BigNum {
         return BigNum.__wrap(ret);
     }
 }
-
 const Bip32PrivateKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_bip32privatekey_free(ptr >>> 0));
 /**
 */
 export class Bip32PrivateKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Bip32PrivateKey.prototype);
@@ -3352,14 +3361,12 @@ export class Bip32PrivateKey {
         Bip32PrivateKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Bip32PrivateKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_bip32privatekey_free(ptr);
@@ -3415,7 +3422,8 @@ export class Bip32PrivateKey {
                 throw takeObject(r1);
             }
             return Bip32PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3432,7 +3440,8 @@ export class Bip32PrivateKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3450,7 +3459,8 @@ export class Bip32PrivateKey {
                 throw takeObject(r1);
             }
             return Bip32PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3485,7 +3495,8 @@ export class Bip32PrivateKey {
                 throw takeObject(r1);
             }
             return Bip32PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3501,7 +3512,8 @@ export class Bip32PrivateKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3522,7 +3534,8 @@ export class Bip32PrivateKey {
                 throw takeObject(r1);
             }
             return Bip32PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3540,7 +3553,8 @@ export class Bip32PrivateKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3570,7 +3584,8 @@ export class Bip32PrivateKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3588,7 +3603,8 @@ export class Bip32PrivateKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3610,19 +3626,18 @@ export class Bip32PrivateKey {
                 throw takeObject(r1);
             }
             return Bip32PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const Bip32PublicKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_bip32publickey_free(ptr >>> 0));
 /**
 */
 export class Bip32PublicKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Bip32PublicKey.prototype);
@@ -3630,14 +3645,12 @@ export class Bip32PublicKey {
         Bip32PublicKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Bip32PublicKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_bip32publickey_free(ptr);
@@ -3659,7 +3672,8 @@ export class Bip32PublicKey {
                 throw takeObject(r1);
             }
             return Bip32PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3677,7 +3691,8 @@ export class Bip32PublicKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3694,7 +3709,8 @@ export class Bip32PublicKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3712,7 +3728,8 @@ export class Bip32PublicKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3734,7 +3751,8 @@ export class Bip32PublicKey {
                 throw takeObject(r1);
             }
             return Bip32PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3750,7 +3768,8 @@ export class Bip32PublicKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3771,7 +3790,8 @@ export class Bip32PublicKey {
                 throw takeObject(r1);
             }
             return Bip32PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3820,19 +3840,18 @@ export class Bip32PublicKey {
                 throw takeObject(r1);
             }
             return Bip32PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const BlockFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_block_free(ptr >>> 0));
 /**
 */
 export class Block {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Block.prototype);
@@ -3840,14 +3859,12 @@ export class Block {
         BlockFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BlockFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_block_free(ptr);
@@ -3864,7 +3881,8 @@ export class Block {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3885,7 +3903,8 @@ export class Block {
                 throw takeObject(r1);
             }
             return Block.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3903,7 +3922,8 @@ export class Block {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -3925,7 +3945,8 @@ export class Block {
                 throw takeObject(r1);
             }
             return Block.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3945,13 +3966,15 @@ export class Block {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -3970,7 +3993,8 @@ export class Block {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -3991,7 +4015,8 @@ export class Block {
                 throw takeObject(r1);
             }
             return Block.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4035,7 +4060,8 @@ export class Block {
             var v1 = getArrayU32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4, 4);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4058,14 +4084,12 @@ export class Block {
         return Block.__wrap(ret);
     }
 }
-
 const BlockHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_blockhash_free(ptr >>> 0));
 /**
 */
 export class BlockHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(BlockHash.prototype);
@@ -4073,14 +4097,12 @@ export class BlockHash {
         BlockHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BlockHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_blockhash_free(ptr);
@@ -4102,7 +4124,8 @@ export class BlockHash {
                 throw takeObject(r1);
             }
             return BlockHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4118,7 +4141,8 @@ export class BlockHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4141,13 +4165,15 @@ export class BlockHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -4169,7 +4195,8 @@ export class BlockHash {
                 throw takeObject(r1);
             }
             return BlockHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4187,7 +4214,8 @@ export class BlockHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -4209,19 +4237,18 @@ export class BlockHash {
                 throw takeObject(r1);
             }
             return BlockHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const BootstrapWitnessFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_bootstrapwitness_free(ptr >>> 0));
 /**
 */
 export class BootstrapWitness {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(BootstrapWitness.prototype);
@@ -4229,14 +4256,12 @@ export class BootstrapWitness {
         BootstrapWitnessFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BootstrapWitnessFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_bootstrapwitness_free(ptr);
@@ -4253,7 +4278,8 @@ export class BootstrapWitness {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4274,7 +4300,8 @@ export class BootstrapWitness {
                 throw takeObject(r1);
             }
             return BootstrapWitness.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4292,7 +4319,8 @@ export class BootstrapWitness {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -4314,7 +4342,8 @@ export class BootstrapWitness {
                 throw takeObject(r1);
             }
             return BootstrapWitness.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4334,13 +4363,15 @@ export class BootstrapWitness {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -4359,7 +4390,8 @@ export class BootstrapWitness {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4380,7 +4412,8 @@ export class BootstrapWitness {
                 throw takeObject(r1);
             }
             return BootstrapWitness.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4410,7 +4443,8 @@ export class BootstrapWitness {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4426,7 +4460,8 @@ export class BootstrapWitness {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4448,14 +4483,12 @@ export class BootstrapWitness {
         return BootstrapWitness.__wrap(ret);
     }
 }
-
 const BootstrapWitnessesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_bootstrapwitnesses_free(ptr >>> 0));
 /**
 */
 export class BootstrapWitnesses {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(BootstrapWitnesses.prototype);
@@ -4463,14 +4496,12 @@ export class BootstrapWitnesses {
         BootstrapWitnessesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         BootstrapWitnessesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_bootstrapwitnesses_free(ptr);
@@ -4487,7 +4518,8 @@ export class BootstrapWitnesses {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4508,7 +4540,8 @@ export class BootstrapWitnesses {
                 throw takeObject(r1);
             }
             return BootstrapWitnesses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4526,7 +4559,8 @@ export class BootstrapWitnesses {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -4548,7 +4582,8 @@ export class BootstrapWitnesses {
                 throw takeObject(r1);
             }
             return BootstrapWitnesses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4568,13 +4603,15 @@ export class BootstrapWitnesses {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -4593,7 +4630,8 @@ export class BootstrapWitnesses {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4614,7 +4652,8 @@ export class BootstrapWitnesses {
                 throw takeObject(r1);
             }
             return BootstrapWitnesses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4652,14 +4691,12 @@ export class BootstrapWitnesses {
         return ret !== 0;
     }
 }
-
 const ByronAddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_byronaddress_free(ptr >>> 0));
 /**
 */
 export class ByronAddress {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ByronAddress.prototype);
@@ -4667,14 +4704,12 @@ export class ByronAddress {
         ByronAddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ByronAddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_byronaddress_free(ptr);
@@ -4693,7 +4728,8 @@ export class ByronAddress {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -4710,7 +4746,8 @@ export class ByronAddress {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4731,7 +4768,8 @@ export class ByronAddress {
                 throw takeObject(r1);
             }
             return ByronAddress.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4756,7 +4794,8 @@ export class ByronAddress {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4774,7 +4813,8 @@ export class ByronAddress {
                 throw takeObject(r1);
             }
             return r0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4795,7 +4835,8 @@ export class ByronAddress {
                 throw takeObject(r1);
             }
             return ByronAddress.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4836,14 +4877,12 @@ export class ByronAddress {
         return ret === 0 ? undefined : ByronAddress.__wrap(ret);
     }
 }
-
 const CertificateFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_certificate_free(ptr >>> 0));
 /**
 */
 export class Certificate {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Certificate.prototype);
@@ -4851,14 +4890,12 @@ export class Certificate {
         CertificateFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CertificateFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_certificate_free(ptr);
@@ -4875,7 +4912,8 @@ export class Certificate {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4896,7 +4934,8 @@ export class Certificate {
                 throw takeObject(r1);
             }
             return Certificate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4914,7 +4953,8 @@ export class Certificate {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -4936,7 +4976,8 @@ export class Certificate {
                 throw takeObject(r1);
             }
             return Certificate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -4956,13 +4997,15 @@ export class Certificate {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -4981,7 +5024,8 @@ export class Certificate {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5002,7 +5046,8 @@ export class Certificate {
                 throw takeObject(r1);
             }
             return Certificate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5034,7 +5079,8 @@ export class Certificate {
                 throw takeObject(r1);
             }
             return Certificate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5066,7 +5112,8 @@ export class Certificate {
                 throw takeObject(r1);
             }
             return Certificate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5359,14 +5406,12 @@ export class Certificate {
         return ret !== 0;
     }
 }
-
 const CertificatesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_certificates_free(ptr >>> 0));
 /**
 */
 export class Certificates {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Certificates.prototype);
@@ -5374,14 +5419,12 @@ export class Certificates {
         CertificatesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CertificatesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_certificates_free(ptr);
@@ -5398,7 +5441,8 @@ export class Certificates {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5419,7 +5463,8 @@ export class Certificates {
                 throw takeObject(r1);
             }
             return Certificates.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5437,7 +5482,8 @@ export class Certificates {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -5459,7 +5505,8 @@ export class Certificates {
                 throw takeObject(r1);
             }
             return Certificates.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5479,13 +5526,15 @@ export class Certificates {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -5504,7 +5553,8 @@ export class Certificates {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5525,7 +5575,8 @@ export class Certificates {
                 throw takeObject(r1);
             }
             return Certificates.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5563,14 +5614,12 @@ export class Certificates {
         return ret !== 0;
     }
 }
-
 const CertificatesBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_certificatesbuilder_free(ptr >>> 0));
 /**
 */
 export class CertificatesBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(CertificatesBuilder.prototype);
@@ -5578,14 +5627,12 @@ export class CertificatesBuilder {
         CertificatesBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CertificatesBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_certificatesbuilder_free(ptr);
@@ -5610,7 +5657,8 @@ export class CertificatesBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5629,7 +5677,8 @@ export class CertificatesBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5648,7 +5697,8 @@ export class CertificatesBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5691,7 +5741,8 @@ export class CertificatesBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5713,7 +5764,8 @@ export class CertificatesBuilder {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5732,14 +5784,12 @@ export class CertificatesBuilder {
         return Certificates.__wrap(ret);
     }
 }
-
 const ChangeConfigFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_changeconfig_free(ptr >>> 0));
 /**
 */
 export class ChangeConfig {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ChangeConfig.prototype);
@@ -5747,14 +5797,12 @@ export class ChangeConfig {
         ChangeConfigFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ChangeConfigFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_changeconfig_free(ptr);
@@ -5796,14 +5844,12 @@ export class ChangeConfig {
         return ChangeConfig.__wrap(ret);
     }
 }
-
 const CommitteeFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_committee_free(ptr >>> 0));
 /**
 */
 export class Committee {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Committee.prototype);
@@ -5811,14 +5857,12 @@ export class Committee {
         CommitteeFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CommitteeFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_committee_free(ptr);
@@ -5835,7 +5879,8 @@ export class Committee {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5856,7 +5901,8 @@ export class Committee {
                 throw takeObject(r1);
             }
             return Committee.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5874,7 +5920,8 @@ export class Committee {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -5896,7 +5943,8 @@ export class Committee {
                 throw takeObject(r1);
             }
             return Committee.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5916,13 +5964,15 @@ export class Committee {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -5941,7 +5991,8 @@ export class Committee {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -5962,7 +6013,8 @@ export class Committee {
                 throw takeObject(r1);
             }
             return Committee.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6009,19 +6061,18 @@ export class Committee {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const CommitteeColdResignFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_committeecoldresign_free(ptr >>> 0));
 /**
 */
 export class CommitteeColdResign {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(CommitteeColdResign.prototype);
@@ -6029,14 +6080,12 @@ export class CommitteeColdResign {
         CommitteeColdResignFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CommitteeColdResignFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_committeecoldresign_free(ptr);
@@ -6053,7 +6102,8 @@ export class CommitteeColdResign {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6074,7 +6124,8 @@ export class CommitteeColdResign {
                 throw takeObject(r1);
             }
             return CommitteeColdResign.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6092,7 +6143,8 @@ export class CommitteeColdResign {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -6114,7 +6166,8 @@ export class CommitteeColdResign {
                 throw takeObject(r1);
             }
             return CommitteeColdResign.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6134,13 +6187,15 @@ export class CommitteeColdResign {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -6159,7 +6214,8 @@ export class CommitteeColdResign {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6180,7 +6236,8 @@ export class CommitteeColdResign {
                 throw takeObject(r1);
             }
             return CommitteeColdResign.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6226,14 +6283,12 @@ export class CommitteeColdResign {
         return ret !== 0;
     }
 }
-
 const CommitteeHotAuthFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_committeehotauth_free(ptr >>> 0));
 /**
 */
 export class CommitteeHotAuth {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(CommitteeHotAuth.prototype);
@@ -6241,14 +6296,12 @@ export class CommitteeHotAuth {
         CommitteeHotAuthFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CommitteeHotAuthFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_committeehotauth_free(ptr);
@@ -6265,7 +6318,8 @@ export class CommitteeHotAuth {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6286,7 +6340,8 @@ export class CommitteeHotAuth {
                 throw takeObject(r1);
             }
             return CommitteeHotAuth.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6304,7 +6359,8 @@ export class CommitteeHotAuth {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -6326,7 +6382,8 @@ export class CommitteeHotAuth {
                 throw takeObject(r1);
             }
             return CommitteeHotAuth.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6346,13 +6403,15 @@ export class CommitteeHotAuth {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -6371,7 +6430,8 @@ export class CommitteeHotAuth {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6392,7 +6452,8 @@ export class CommitteeHotAuth {
                 throw takeObject(r1);
             }
             return CommitteeHotAuth.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6429,14 +6490,12 @@ export class CommitteeHotAuth {
         return ret !== 0;
     }
 }
-
 const ConstitutionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_constitution_free(ptr >>> 0));
 /**
 */
 export class Constitution {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Constitution.prototype);
@@ -6444,14 +6503,12 @@ export class Constitution {
         ConstitutionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ConstitutionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_constitution_free(ptr);
@@ -6468,7 +6525,8 @@ export class Constitution {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6489,7 +6547,8 @@ export class Constitution {
                 throw takeObject(r1);
             }
             return Constitution.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6507,7 +6566,8 @@ export class Constitution {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -6529,7 +6589,8 @@ export class Constitution {
                 throw takeObject(r1);
             }
             return Constitution.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6549,13 +6610,15 @@ export class Constitution {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -6574,7 +6637,8 @@ export class Constitution {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6595,7 +6659,8 @@ export class Constitution {
                 throw takeObject(r1);
             }
             return Constitution.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6634,14 +6699,12 @@ export class Constitution {
         return Constitution.__wrap(ret);
     }
 }
-
 const ConstrPlutusDataFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_constrplutusdata_free(ptr >>> 0));
 /**
 */
 export class ConstrPlutusData {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ConstrPlutusData.prototype);
@@ -6649,14 +6712,12 @@ export class ConstrPlutusData {
         ConstrPlutusDataFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ConstrPlutusDataFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_constrplutusdata_free(ptr);
@@ -6673,7 +6734,8 @@ export class ConstrPlutusData {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6694,7 +6756,8 @@ export class ConstrPlutusData {
                 throw takeObject(r1);
             }
             return ConstrPlutusData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6712,7 +6775,8 @@ export class ConstrPlutusData {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -6734,7 +6798,8 @@ export class ConstrPlutusData {
                 throw takeObject(r1);
             }
             return ConstrPlutusData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6764,14 +6829,12 @@ export class ConstrPlutusData {
         return ConstrPlutusData.__wrap(ret);
     }
 }
-
 const CostModelFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_costmodel_free(ptr >>> 0));
 /**
 */
 export class CostModel {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(CostModel.prototype);
@@ -6779,14 +6842,12 @@ export class CostModel {
         CostModelFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CostModelFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_costmodel_free(ptr);
@@ -6803,7 +6864,8 @@ export class CostModel {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6824,7 +6886,8 @@ export class CostModel {
                 throw takeObject(r1);
             }
             return CostModel.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6842,7 +6905,8 @@ export class CostModel {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -6864,7 +6928,8 @@ export class CostModel {
                 throw takeObject(r1);
             }
             return CostModel.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6884,13 +6949,15 @@ export class CostModel {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -6909,7 +6976,8 @@ export class CostModel {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6930,7 +6998,8 @@ export class CostModel {
                 throw takeObject(r1);
             }
             return CostModel.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6962,7 +7031,8 @@ export class CostModel {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6981,7 +7051,8 @@ export class CostModel {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -6993,14 +7064,12 @@ export class CostModel {
         return ret >>> 0;
     }
 }
-
 const CostmdlsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_costmdls_free(ptr >>> 0));
 /**
 */
 export class Costmdls {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Costmdls.prototype);
@@ -7008,14 +7077,12 @@ export class Costmdls {
         CostmdlsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CostmdlsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_costmdls_free(ptr);
@@ -7032,7 +7099,8 @@ export class Costmdls {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7053,7 +7121,8 @@ export class Costmdls {
                 throw takeObject(r1);
             }
             return Costmdls.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7071,7 +7140,8 @@ export class Costmdls {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -7093,7 +7163,8 @@ export class Costmdls {
                 throw takeObject(r1);
             }
             return Costmdls.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7113,13 +7184,15 @@ export class Costmdls {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -7138,7 +7211,8 @@ export class Costmdls {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7159,7 +7233,8 @@ export class Costmdls {
                 throw takeObject(r1);
             }
             return Costmdls.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7214,14 +7289,12 @@ export class Costmdls {
         return Costmdls.__wrap(ret);
     }
 }
-
 const CredentialFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_credential_free(ptr >>> 0));
 /**
 */
 export class Credential {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Credential.prototype);
@@ -7229,14 +7302,12 @@ export class Credential {
         CredentialFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CredentialFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_credential_free(ptr);
@@ -7299,7 +7370,8 @@ export class Credential {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7320,7 +7392,8 @@ export class Credential {
                 throw takeObject(r1);
             }
             return Credential.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7338,7 +7411,8 @@ export class Credential {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -7360,7 +7434,8 @@ export class Credential {
                 throw takeObject(r1);
             }
             return Credential.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7380,13 +7455,15 @@ export class Credential {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -7405,7 +7482,8 @@ export class Credential {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7426,19 +7504,18 @@ export class Credential {
                 throw takeObject(r1);
             }
             return Credential.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const CredentialsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_credentials_free(ptr >>> 0));
 /**
 */
 export class Credentials {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Credentials.prototype);
@@ -7446,14 +7523,12 @@ export class Credentials {
         CredentialsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         CredentialsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_credentials_free(ptr);
@@ -7470,7 +7545,8 @@ export class Credentials {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7491,7 +7567,8 @@ export class Credentials {
                 throw takeObject(r1);
             }
             return Credentials.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7509,7 +7586,8 @@ export class Credentials {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -7531,7 +7609,8 @@ export class Credentials {
                 throw takeObject(r1);
             }
             return Credentials.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7551,13 +7630,15 @@ export class Credentials {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -7576,7 +7657,8 @@ export class Credentials {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7597,7 +7679,8 @@ export class Credentials {
                 throw takeObject(r1);
             }
             return Credentials.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7635,14 +7718,12 @@ export class Credentials {
         return ret !== 0;
     }
 }
-
 const DNSRecordAorAAAAFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_dnsrecordaoraaaa_free(ptr >>> 0));
 /**
 */
 export class DNSRecordAorAAAA {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DNSRecordAorAAAA.prototype);
@@ -7650,14 +7731,12 @@ export class DNSRecordAorAAAA {
         DNSRecordAorAAAAFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DNSRecordAorAAAAFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_dnsrecordaoraaaa_free(ptr);
@@ -7674,7 +7753,8 @@ export class DNSRecordAorAAAA {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7695,7 +7775,8 @@ export class DNSRecordAorAAAA {
                 throw takeObject(r1);
             }
             return DNSRecordAorAAAA.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7713,7 +7794,8 @@ export class DNSRecordAorAAAA {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -7735,7 +7817,8 @@ export class DNSRecordAorAAAA {
                 throw takeObject(r1);
             }
             return DNSRecordAorAAAA.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7755,13 +7838,15 @@ export class DNSRecordAorAAAA {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -7780,7 +7865,8 @@ export class DNSRecordAorAAAA {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7801,7 +7887,8 @@ export class DNSRecordAorAAAA {
                 throw takeObject(r1);
             }
             return DNSRecordAorAAAA.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7822,7 +7909,8 @@ export class DNSRecordAorAAAA {
                 throw takeObject(r1);
             }
             return DNSRecordAorAAAA.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7840,20 +7928,19 @@ export class DNSRecordAorAAAA {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
     }
 }
-
 const DNSRecordSRVFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_dnsrecordsrv_free(ptr >>> 0));
 /**
 */
 export class DNSRecordSRV {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DNSRecordSRV.prototype);
@@ -7861,14 +7948,12 @@ export class DNSRecordSRV {
         DNSRecordSRVFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DNSRecordSRVFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_dnsrecordsrv_free(ptr);
@@ -7885,7 +7970,8 @@ export class DNSRecordSRV {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7906,7 +7992,8 @@ export class DNSRecordSRV {
                 throw takeObject(r1);
             }
             return DNSRecordSRV.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7924,7 +8011,8 @@ export class DNSRecordSRV {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -7946,7 +8034,8 @@ export class DNSRecordSRV {
                 throw takeObject(r1);
             }
             return DNSRecordSRV.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -7966,13 +8055,15 @@ export class DNSRecordSRV {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -7991,7 +8082,8 @@ export class DNSRecordSRV {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8012,7 +8104,8 @@ export class DNSRecordSRV {
                 throw takeObject(r1);
             }
             return DNSRecordSRV.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8033,7 +8126,8 @@ export class DNSRecordSRV {
                 throw takeObject(r1);
             }
             return DNSRecordSRV.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8051,20 +8145,19 @@ export class DNSRecordSRV {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
     }
 }
-
 const DRepFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_drep_free(ptr >>> 0));
 /**
 */
 export class DRep {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DRep.prototype);
@@ -8072,14 +8165,12 @@ export class DRep {
         DRepFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DRepFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_drep_free(ptr);
@@ -8096,7 +8187,8 @@ export class DRep {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8117,7 +8209,8 @@ export class DRep {
                 throw takeObject(r1);
             }
             return DRep.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8135,7 +8228,8 @@ export class DRep {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -8157,7 +8251,8 @@ export class DRep {
                 throw takeObject(r1);
             }
             return DRep.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8177,13 +8272,15 @@ export class DRep {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -8202,7 +8299,8 @@ export class DRep {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8223,7 +8321,8 @@ export class DRep {
                 throw takeObject(r1);
             }
             return DRep.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8305,13 +8404,15 @@ export class DRep {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -8333,19 +8434,18 @@ export class DRep {
                 throw takeObject(r1);
             }
             return DRep.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const DRepDeregistrationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_drepderegistration_free(ptr >>> 0));
 /**
 */
 export class DRepDeregistration {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DRepDeregistration.prototype);
@@ -8353,14 +8453,12 @@ export class DRepDeregistration {
         DRepDeregistrationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DRepDeregistrationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_drepderegistration_free(ptr);
@@ -8377,7 +8475,8 @@ export class DRepDeregistration {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8398,7 +8497,8 @@ export class DRepDeregistration {
                 throw takeObject(r1);
             }
             return DRepDeregistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8416,7 +8516,8 @@ export class DRepDeregistration {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -8438,7 +8539,8 @@ export class DRepDeregistration {
                 throw takeObject(r1);
             }
             return DRepDeregistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8458,13 +8560,15 @@ export class DRepDeregistration {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -8483,7 +8587,8 @@ export class DRepDeregistration {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8504,7 +8609,8 @@ export class DRepDeregistration {
                 throw takeObject(r1);
             }
             return DRepDeregistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8541,14 +8647,12 @@ export class DRepDeregistration {
         return ret !== 0;
     }
 }
-
 const DRepRegistrationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_drepregistration_free(ptr >>> 0));
 /**
 */
 export class DRepRegistration {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DRepRegistration.prototype);
@@ -8556,14 +8660,12 @@ export class DRepRegistration {
         DRepRegistrationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DRepRegistrationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_drepregistration_free(ptr);
@@ -8580,7 +8682,8 @@ export class DRepRegistration {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8601,7 +8704,8 @@ export class DRepRegistration {
                 throw takeObject(r1);
             }
             return DRepRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8619,7 +8723,8 @@ export class DRepRegistration {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -8641,7 +8746,8 @@ export class DRepRegistration {
                 throw takeObject(r1);
             }
             return DRepRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8661,13 +8767,15 @@ export class DRepRegistration {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -8686,7 +8794,8 @@ export class DRepRegistration {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8707,7 +8816,8 @@ export class DRepRegistration {
                 throw takeObject(r1);
             }
             return DRepRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8764,14 +8874,12 @@ export class DRepRegistration {
         return ret !== 0;
     }
 }
-
 const DRepUpdateFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_drepupdate_free(ptr >>> 0));
 /**
 */
 export class DRepUpdate {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DRepUpdate.prototype);
@@ -8779,14 +8887,12 @@ export class DRepUpdate {
         DRepUpdateFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DRepUpdateFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_drepupdate_free(ptr);
@@ -8803,7 +8909,8 @@ export class DRepUpdate {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8824,7 +8931,8 @@ export class DRepUpdate {
                 throw takeObject(r1);
             }
             return DRepUpdate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8842,7 +8950,8 @@ export class DRepUpdate {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -8864,7 +8973,8 @@ export class DRepUpdate {
                 throw takeObject(r1);
             }
             return DRepUpdate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8884,13 +8994,15 @@ export class DRepUpdate {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -8909,7 +9021,8 @@ export class DRepUpdate {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8930,7 +9043,8 @@ export class DRepUpdate {
                 throw takeObject(r1);
             }
             return DRepUpdate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -8976,14 +9090,12 @@ export class DRepUpdate {
         return ret !== 0;
     }
 }
-
 const DRepVotingThresholdsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_drepvotingthresholds_free(ptr >>> 0));
 /**
 */
 export class DRepVotingThresholds {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DRepVotingThresholds.prototype);
@@ -8991,14 +9103,12 @@ export class DRepVotingThresholds {
         DRepVotingThresholdsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DRepVotingThresholdsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_drepvotingthresholds_free(ptr);
@@ -9015,7 +9125,8 @@ export class DRepVotingThresholds {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9036,7 +9147,8 @@ export class DRepVotingThresholds {
                 throw takeObject(r1);
             }
             return DRepVotingThresholds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9054,7 +9166,8 @@ export class DRepVotingThresholds {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -9076,7 +9189,8 @@ export class DRepVotingThresholds {
                 throw takeObject(r1);
             }
             return DRepVotingThresholds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9096,13 +9210,15 @@ export class DRepVotingThresholds {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -9121,7 +9237,8 @@ export class DRepVotingThresholds {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9142,7 +9259,8 @@ export class DRepVotingThresholds {
                 throw takeObject(r1);
             }
             return DRepVotingThresholds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9314,14 +9432,12 @@ export class DRepVotingThresholds {
         return UnitInterval.__wrap(ret);
     }
 }
-
 const DataCostFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_datacost_free(ptr >>> 0));
 /**
 */
 export class DataCost {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DataCost.prototype);
@@ -9329,14 +9445,12 @@ export class DataCost {
         DataCostFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DataCostFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_datacost_free(ptr);
@@ -9358,14 +9472,12 @@ export class DataCost {
         return BigNum.__wrap(ret);
     }
 }
-
 const DataHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_datahash_free(ptr >>> 0));
 /**
 */
 export class DataHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DataHash.prototype);
@@ -9373,14 +9485,12 @@ export class DataHash {
         DataHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DataHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_datahash_free(ptr);
@@ -9402,7 +9512,8 @@ export class DataHash {
                 throw takeObject(r1);
             }
             return DataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9418,7 +9529,8 @@ export class DataHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9441,13 +9553,15 @@ export class DataHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -9469,7 +9583,8 @@ export class DataHash {
                 throw takeObject(r1);
             }
             return DataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9487,7 +9602,8 @@ export class DataHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -9509,19 +9625,18 @@ export class DataHash {
                 throw takeObject(r1);
             }
             return DataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const DatumSourceFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_datumsource_free(ptr >>> 0));
 /**
 */
 export class DatumSource {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(DatumSource.prototype);
@@ -9529,14 +9644,12 @@ export class DatumSource {
         DatumSourceFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         DatumSourceFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_datumsource_free(ptr);
@@ -9560,14 +9673,12 @@ export class DatumSource {
         return DatumSource.__wrap(ret);
     }
 }
-
 const Ed25519KeyHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_ed25519keyhash_free(ptr >>> 0));
 /**
 */
 export class Ed25519KeyHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Ed25519KeyHash.prototype);
@@ -9575,14 +9686,12 @@ export class Ed25519KeyHash {
         Ed25519KeyHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Ed25519KeyHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_ed25519keyhash_free(ptr);
@@ -9604,7 +9713,8 @@ export class Ed25519KeyHash {
                 throw takeObject(r1);
             }
             return Ed25519KeyHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9620,7 +9730,8 @@ export class Ed25519KeyHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9643,13 +9754,15 @@ export class Ed25519KeyHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -9671,7 +9784,8 @@ export class Ed25519KeyHash {
                 throw takeObject(r1);
             }
             return Ed25519KeyHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9689,7 +9803,8 @@ export class Ed25519KeyHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -9711,19 +9826,18 @@ export class Ed25519KeyHash {
                 throw takeObject(r1);
             }
             return Ed25519KeyHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const Ed25519KeyHashesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_ed25519keyhashes_free(ptr >>> 0));
 /**
 */
 export class Ed25519KeyHashes {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Ed25519KeyHashes.prototype);
@@ -9731,14 +9845,12 @@ export class Ed25519KeyHashes {
         Ed25519KeyHashesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Ed25519KeyHashesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_ed25519keyhashes_free(ptr);
@@ -9755,7 +9867,8 @@ export class Ed25519KeyHashes {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9776,7 +9889,8 @@ export class Ed25519KeyHashes {
                 throw takeObject(r1);
             }
             return Ed25519KeyHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9794,7 +9908,8 @@ export class Ed25519KeyHashes {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -9816,7 +9931,8 @@ export class Ed25519KeyHashes {
                 throw takeObject(r1);
             }
             return Ed25519KeyHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9836,13 +9952,15 @@ export class Ed25519KeyHashes {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -9861,7 +9979,8 @@ export class Ed25519KeyHashes {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9882,7 +10001,8 @@ export class Ed25519KeyHashes {
                 throw takeObject(r1);
             }
             return Ed25519KeyHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9936,14 +10056,12 @@ export class Ed25519KeyHashes {
         return ret === 0 ? undefined : Ed25519KeyHashes.__wrap(ret);
     }
 }
-
 const Ed25519SignatureFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_ed25519signature_free(ptr >>> 0));
 /**
 */
 export class Ed25519Signature {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Ed25519Signature.prototype);
@@ -9951,14 +10069,12 @@ export class Ed25519Signature {
         Ed25519SignatureFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Ed25519SignatureFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_ed25519signature_free(ptr);
@@ -9975,7 +10091,8 @@ export class Ed25519Signature {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -9993,7 +10110,8 @@ export class Ed25519Signature {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -10012,7 +10130,8 @@ export class Ed25519Signature {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -10034,7 +10153,8 @@ export class Ed25519Signature {
                 throw takeObject(r1);
             }
             return Ed25519Signature.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10055,7 +10175,8 @@ export class Ed25519Signature {
                 throw takeObject(r1);
             }
             return Ed25519Signature.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10076,19 +10197,18 @@ export class Ed25519Signature {
                 throw takeObject(r1);
             }
             return Ed25519Signature.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const EnterpriseAddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_enterpriseaddress_free(ptr >>> 0));
 /**
 */
 export class EnterpriseAddress {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(EnterpriseAddress.prototype);
@@ -10096,14 +10216,12 @@ export class EnterpriseAddress {
         EnterpriseAddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         EnterpriseAddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_enterpriseaddress_free(ptr);
@@ -10149,14 +10267,12 @@ export class EnterpriseAddress {
         return ret;
     }
 }
-
 const ExUnitPricesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_exunitprices_free(ptr >>> 0));
 /**
 */
 export class ExUnitPrices {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ExUnitPrices.prototype);
@@ -10164,14 +10280,12 @@ export class ExUnitPrices {
         ExUnitPricesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ExUnitPricesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_exunitprices_free(ptr);
@@ -10188,7 +10302,8 @@ export class ExUnitPrices {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10209,7 +10324,8 @@ export class ExUnitPrices {
                 throw takeObject(r1);
             }
             return ExUnitPrices.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10227,7 +10343,8 @@ export class ExUnitPrices {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -10249,7 +10366,8 @@ export class ExUnitPrices {
                 throw takeObject(r1);
             }
             return ExUnitPrices.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10269,13 +10387,15 @@ export class ExUnitPrices {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -10294,7 +10414,8 @@ export class ExUnitPrices {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10315,7 +10436,8 @@ export class ExUnitPrices {
                 throw takeObject(r1);
             }
             return ExUnitPrices.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10345,14 +10467,12 @@ export class ExUnitPrices {
         return ExUnitPrices.__wrap(ret);
     }
 }
-
 const ExUnitsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_exunits_free(ptr >>> 0));
 /**
 */
 export class ExUnits {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ExUnits.prototype);
@@ -10360,14 +10480,12 @@ export class ExUnits {
         ExUnitsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ExUnitsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_exunits_free(ptr);
@@ -10384,7 +10502,8 @@ export class ExUnits {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10405,7 +10524,8 @@ export class ExUnits {
                 throw takeObject(r1);
             }
             return ExUnits.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10423,7 +10543,8 @@ export class ExUnits {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -10445,7 +10566,8 @@ export class ExUnits {
                 throw takeObject(r1);
             }
             return ExUnits.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10465,13 +10587,15 @@ export class ExUnits {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -10490,7 +10614,8 @@ export class ExUnits {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10511,7 +10636,8 @@ export class ExUnits {
                 throw takeObject(r1);
             }
             return ExUnits.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10541,16 +10667,14 @@ export class ExUnits {
         return ExUnits.__wrap(ret);
     }
 }
-
 const FixedBlockFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_fixedblock_free(ptr >>> 0));
 /**
 * Read only view of a block with more strict structs for hash sensitive structs.
 * Warning: This is experimental and may be removed or changed in the future.
 */
 export class FixedBlock {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(FixedBlock.prototype);
@@ -10558,14 +10682,12 @@ export class FixedBlock {
         FixedBlockFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         FixedBlockFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_fixedblock_free(ptr);
@@ -10587,7 +10709,8 @@ export class FixedBlock {
                 throw takeObject(r1);
             }
             return FixedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10608,7 +10731,8 @@ export class FixedBlock {
                 throw takeObject(r1);
             }
             return FixedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10652,7 +10776,8 @@ export class FixedBlock {
             var v1 = getArrayU32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4, 4);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10664,14 +10789,12 @@ export class FixedBlock {
         return BlockHash.__wrap(ret);
     }
 }
-
 const FixedTransactionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_fixedtransaction_free(ptr >>> 0));
 /**
 */
 export class FixedTransaction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(FixedTransaction.prototype);
@@ -10679,14 +10802,12 @@ export class FixedTransaction {
         FixedTransactionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         FixedTransactionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_fixedtransaction_free(ptr);
@@ -10703,7 +10824,8 @@ export class FixedTransaction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10724,7 +10846,8 @@ export class FixedTransaction {
                 throw takeObject(r1);
             }
             return FixedTransaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10742,7 +10865,8 @@ export class FixedTransaction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -10764,7 +10888,8 @@ export class FixedTransaction {
                 throw takeObject(r1);
             }
             return FixedTransaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10789,7 +10914,8 @@ export class FixedTransaction {
                 throw takeObject(r1);
             }
             return FixedTransaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10817,7 +10943,8 @@ export class FixedTransaction {
                 throw takeObject(r1);
             }
             return FixedTransaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10840,7 +10967,8 @@ export class FixedTransaction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10858,7 +10986,8 @@ export class FixedTransaction {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10876,7 +11005,8 @@ export class FixedTransaction {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10899,7 +11029,8 @@ export class FixedTransaction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10930,7 +11061,8 @@ export class FixedTransaction {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -10956,20 +11088,19 @@ export class FixedTransaction {
                 wasm.__wbindgen_free(r0, r1 * 1, 1);
             }
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const FixedTransactionBodiesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_fixedtransactionbodies_free(ptr >>> 0));
 /**
 * Warning: This is experimental and may be removed or changed in the future.
 */
 export class FixedTransactionBodies {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(FixedTransactionBodies.prototype);
@@ -10977,14 +11108,12 @@ export class FixedTransactionBodies {
         FixedTransactionBodiesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         FixedTransactionBodiesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_fixedtransactionbodies_free(ptr);
@@ -11006,7 +11135,8 @@ export class FixedTransactionBodies {
                 throw takeObject(r1);
             }
             return FixedTransactionBodies.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11027,7 +11157,8 @@ export class FixedTransactionBodies {
                 throw takeObject(r1);
             }
             return FixedTransactionBodies.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11061,16 +11192,14 @@ export class FixedTransactionBodies {
         wasm.fixedtransactionbodies_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const FixedTransactionBodyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_fixedtransactionbody_free(ptr >>> 0));
 /**
 * Read-only view of a transaction body. With correct hash and original bytes.
 * Warning: This is experimental and may be removed in the future.
 */
 export class FixedTransactionBody {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(FixedTransactionBody.prototype);
@@ -11078,14 +11207,12 @@ export class FixedTransactionBody {
         FixedTransactionBodyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         FixedTransactionBodyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_fixedtransactionbody_free(ptr);
@@ -11107,7 +11234,8 @@ export class FixedTransactionBody {
                 throw takeObject(r1);
             }
             return FixedTransactionBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11128,7 +11256,8 @@ export class FixedTransactionBody {
                 throw takeObject(r1);
             }
             return FixedTransactionBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11158,20 +11287,19 @@ export class FixedTransactionBody {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const FixedVersionedBlockFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_fixedversionedblock_free(ptr >>> 0));
 /**
 * Warning: This is experimental and may be removed in the future.
 */
 export class FixedVersionedBlock {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(FixedVersionedBlock.prototype);
@@ -11179,14 +11307,12 @@ export class FixedVersionedBlock {
         FixedVersionedBlockFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         FixedVersionedBlockFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_fixedversionedblock_free(ptr);
@@ -11208,7 +11334,8 @@ export class FixedVersionedBlock {
                 throw takeObject(r1);
             }
             return FixedVersionedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11229,7 +11356,8 @@ export class FixedVersionedBlock {
                 throw takeObject(r1);
             }
             return FixedVersionedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11248,14 +11376,12 @@ export class FixedVersionedBlock {
         return ret;
     }
 }
-
 const GeneralTransactionMetadataFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_generaltransactionmetadata_free(ptr >>> 0));
 /**
 */
 export class GeneralTransactionMetadata {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GeneralTransactionMetadata.prototype);
@@ -11263,14 +11389,12 @@ export class GeneralTransactionMetadata {
         GeneralTransactionMetadataFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GeneralTransactionMetadataFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_generaltransactionmetadata_free(ptr);
@@ -11287,7 +11411,8 @@ export class GeneralTransactionMetadata {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11308,7 +11433,8 @@ export class GeneralTransactionMetadata {
                 throw takeObject(r1);
             }
             return GeneralTransactionMetadata.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11326,7 +11452,8 @@ export class GeneralTransactionMetadata {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -11348,7 +11475,8 @@ export class GeneralTransactionMetadata {
                 throw takeObject(r1);
             }
             return GeneralTransactionMetadata.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11368,13 +11496,15 @@ export class GeneralTransactionMetadata {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -11393,7 +11523,8 @@ export class GeneralTransactionMetadata {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11414,7 +11545,8 @@ export class GeneralTransactionMetadata {
                 throw takeObject(r1);
             }
             return GeneralTransactionMetadata.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11460,14 +11592,12 @@ export class GeneralTransactionMetadata {
         return TransactionMetadatumLabels.__wrap(ret);
     }
 }
-
 const GenesisDelegateHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_genesisdelegatehash_free(ptr >>> 0));
 /**
 */
 export class GenesisDelegateHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GenesisDelegateHash.prototype);
@@ -11475,14 +11605,12 @@ export class GenesisDelegateHash {
         GenesisDelegateHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GenesisDelegateHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_genesisdelegatehash_free(ptr);
@@ -11504,7 +11632,8 @@ export class GenesisDelegateHash {
                 throw takeObject(r1);
             }
             return GenesisDelegateHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11520,7 +11649,8 @@ export class GenesisDelegateHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11543,13 +11673,15 @@ export class GenesisDelegateHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -11571,7 +11703,8 @@ export class GenesisDelegateHash {
                 throw takeObject(r1);
             }
             return GenesisDelegateHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11589,7 +11722,8 @@ export class GenesisDelegateHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -11611,19 +11745,18 @@ export class GenesisDelegateHash {
                 throw takeObject(r1);
             }
             return GenesisDelegateHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const GenesisHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_genesishash_free(ptr >>> 0));
 /**
 */
 export class GenesisHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GenesisHash.prototype);
@@ -11631,14 +11764,12 @@ export class GenesisHash {
         GenesisHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GenesisHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_genesishash_free(ptr);
@@ -11660,7 +11791,8 @@ export class GenesisHash {
                 throw takeObject(r1);
             }
             return GenesisHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11676,7 +11808,8 @@ export class GenesisHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11699,13 +11832,15 @@ export class GenesisHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -11727,7 +11862,8 @@ export class GenesisHash {
                 throw takeObject(r1);
             }
             return GenesisHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11745,7 +11881,8 @@ export class GenesisHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -11767,19 +11904,18 @@ export class GenesisHash {
                 throw takeObject(r1);
             }
             return GenesisHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const GenesisHashesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_genesishashes_free(ptr >>> 0));
 /**
 */
 export class GenesisHashes {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GenesisHashes.prototype);
@@ -11787,14 +11923,12 @@ export class GenesisHashes {
         GenesisHashesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GenesisHashesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_genesishashes_free(ptr);
@@ -11811,7 +11945,8 @@ export class GenesisHashes {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11832,7 +11967,8 @@ export class GenesisHashes {
                 throw takeObject(r1);
             }
             return GenesisHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11850,7 +11986,8 @@ export class GenesisHashes {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -11872,7 +12009,8 @@ export class GenesisHashes {
                 throw takeObject(r1);
             }
             return GenesisHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11892,13 +12030,15 @@ export class GenesisHashes {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -11917,7 +12057,8 @@ export class GenesisHashes {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11938,7 +12079,8 @@ export class GenesisHashes {
                 throw takeObject(r1);
             }
             return GenesisHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -11972,14 +12114,12 @@ export class GenesisHashes {
         wasm.genesishashes_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const GenesisKeyDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_genesiskeydelegation_free(ptr >>> 0));
 /**
 */
 export class GenesisKeyDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GenesisKeyDelegation.prototype);
@@ -11987,14 +12127,12 @@ export class GenesisKeyDelegation {
         GenesisKeyDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GenesisKeyDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_genesiskeydelegation_free(ptr);
@@ -12011,7 +12149,8 @@ export class GenesisKeyDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12032,7 +12171,8 @@ export class GenesisKeyDelegation {
                 throw takeObject(r1);
             }
             return GenesisKeyDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12050,7 +12190,8 @@ export class GenesisKeyDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -12072,7 +12213,8 @@ export class GenesisKeyDelegation {
                 throw takeObject(r1);
             }
             return GenesisKeyDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12092,13 +12234,15 @@ export class GenesisKeyDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -12117,7 +12261,8 @@ export class GenesisKeyDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12138,7 +12283,8 @@ export class GenesisKeyDelegation {
                 throw takeObject(r1);
             }
             return GenesisKeyDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12177,14 +12323,12 @@ export class GenesisKeyDelegation {
         return GenesisKeyDelegation.__wrap(ret);
     }
 }
-
 const GovernanceActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_governanceaction_free(ptr >>> 0));
 /**
 */
 export class GovernanceAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GovernanceAction.prototype);
@@ -12192,14 +12336,12 @@ export class GovernanceAction {
         GovernanceActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GovernanceActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_governanceaction_free(ptr);
@@ -12216,7 +12358,8 @@ export class GovernanceAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12237,7 +12380,8 @@ export class GovernanceAction {
                 throw takeObject(r1);
             }
             return GovernanceAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12255,7 +12399,8 @@ export class GovernanceAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -12277,7 +12422,8 @@ export class GovernanceAction {
                 throw takeObject(r1);
             }
             return GovernanceAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12297,13 +12443,15 @@ export class GovernanceAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -12322,7 +12470,8 @@ export class GovernanceAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12343,7 +12492,8 @@ export class GovernanceAction {
                 throw takeObject(r1);
             }
             return GovernanceAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12467,14 +12617,12 @@ export class GovernanceAction {
         return ret === 0 ? undefined : InfoAction.__wrap(ret);
     }
 }
-
 const GovernanceActionIdFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_governanceactionid_free(ptr >>> 0));
 /**
 */
 export class GovernanceActionId {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GovernanceActionId.prototype);
@@ -12482,14 +12630,12 @@ export class GovernanceActionId {
         GovernanceActionIdFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GovernanceActionIdFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_governanceactionid_free(ptr);
@@ -12506,7 +12652,8 @@ export class GovernanceActionId {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12527,7 +12674,8 @@ export class GovernanceActionId {
                 throw takeObject(r1);
             }
             return GovernanceActionId.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12545,7 +12693,8 @@ export class GovernanceActionId {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -12567,7 +12716,8 @@ export class GovernanceActionId {
                 throw takeObject(r1);
             }
             return GovernanceActionId.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12587,13 +12737,15 @@ export class GovernanceActionId {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -12612,7 +12764,8 @@ export class GovernanceActionId {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12633,7 +12786,8 @@ export class GovernanceActionId {
                 throw takeObject(r1);
             }
             return GovernanceActionId.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12662,14 +12816,12 @@ export class GovernanceActionId {
         return GovernanceActionId.__wrap(ret);
     }
 }
-
 const GovernanceActionIdsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_governanceactionids_free(ptr >>> 0));
 /**
 */
 export class GovernanceActionIds {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(GovernanceActionIds.prototype);
@@ -12677,14 +12829,12 @@ export class GovernanceActionIds {
         GovernanceActionIdsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         GovernanceActionIdsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_governanceactionids_free(ptr);
@@ -12705,13 +12855,15 @@ export class GovernanceActionIds {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -12730,7 +12882,8 @@ export class GovernanceActionIds {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12751,7 +12904,8 @@ export class GovernanceActionIds {
                 throw takeObject(r1);
             }
             return GovernanceActionIds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12785,14 +12939,12 @@ export class GovernanceActionIds {
         return ret >>> 0;
     }
 }
-
 const HardForkInitiationActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_hardforkinitiationaction_free(ptr >>> 0));
 /**
 */
 export class HardForkInitiationAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(HardForkInitiationAction.prototype);
@@ -12800,14 +12952,12 @@ export class HardForkInitiationAction {
         HardForkInitiationActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         HardForkInitiationActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_hardforkinitiationaction_free(ptr);
@@ -12824,7 +12974,8 @@ export class HardForkInitiationAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12845,7 +12996,8 @@ export class HardForkInitiationAction {
                 throw takeObject(r1);
             }
             return HardForkInitiationAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12863,7 +13015,8 @@ export class HardForkInitiationAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -12885,7 +13038,8 @@ export class HardForkInitiationAction {
                 throw takeObject(r1);
             }
             return HardForkInitiationAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12905,13 +13059,15 @@ export class HardForkInitiationAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -12930,7 +13086,8 @@ export class HardForkInitiationAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12951,7 +13108,8 @@ export class HardForkInitiationAction {
                 throw takeObject(r1);
             }
             return HardForkInitiationAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -12990,14 +13148,12 @@ export class HardForkInitiationAction {
         return HardForkInitiationAction.__wrap(ret);
     }
 }
-
 const HeaderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_header_free(ptr >>> 0));
 /**
 */
 export class Header {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Header.prototype);
@@ -13005,14 +13161,12 @@ export class Header {
         HeaderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         HeaderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_header_free(ptr);
@@ -13029,7 +13183,8 @@ export class Header {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13050,7 +13205,8 @@ export class Header {
                 throw takeObject(r1);
             }
             return Header.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13068,7 +13224,8 @@ export class Header {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -13090,7 +13247,8 @@ export class Header {
                 throw takeObject(r1);
             }
             return Header.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13110,13 +13268,15 @@ export class Header {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -13135,7 +13295,8 @@ export class Header {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13156,7 +13317,8 @@ export class Header {
                 throw takeObject(r1);
             }
             return Header.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13186,14 +13348,12 @@ export class Header {
         return Header.__wrap(ret);
     }
 }
-
 const HeaderBodyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_headerbody_free(ptr >>> 0));
 /**
 */
 export class HeaderBody {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(HeaderBody.prototype);
@@ -13201,14 +13361,12 @@ export class HeaderBody {
         HeaderBodyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         HeaderBodyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_headerbody_free(ptr);
@@ -13225,7 +13383,8 @@ export class HeaderBody {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13246,7 +13405,8 @@ export class HeaderBody {
                 throw takeObject(r1);
             }
             return HeaderBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13264,7 +13424,8 @@ export class HeaderBody {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -13286,7 +13447,8 @@ export class HeaderBody {
                 throw takeObject(r1);
             }
             return HeaderBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13306,13 +13468,15 @@ export class HeaderBody {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -13331,7 +13495,8 @@ export class HeaderBody {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13352,7 +13517,8 @@ export class HeaderBody {
                 throw takeObject(r1);
             }
             return HeaderBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13380,7 +13546,8 @@ export class HeaderBody {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13544,14 +13711,12 @@ export class HeaderBody {
         return HeaderBody.__wrap(ret);
     }
 }
-
 const InfoActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_infoaction_free(ptr >>> 0));
 /**
 */
 export class InfoAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(InfoAction.prototype);
@@ -13559,14 +13724,12 @@ export class InfoAction {
         InfoActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         InfoActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_infoaction_free(ptr);
@@ -13579,14 +13742,12 @@ export class InfoAction {
         return InfoAction.__wrap(ret);
     }
 }
-
 const IntFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_int_free(ptr >>> 0));
 /**
 */
 export class Int {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Int.prototype);
@@ -13594,14 +13755,12 @@ export class Int {
         IntFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         IntFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_int_free(ptr);
@@ -13618,7 +13777,8 @@ export class Int {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13639,7 +13799,8 @@ export class Int {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13657,7 +13818,8 @@ export class Int {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -13679,7 +13841,8 @@ export class Int {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13699,13 +13862,15 @@ export class Int {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -13724,7 +13889,8 @@ export class Int {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13745,7 +13911,8 @@ export class Int {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13821,7 +13988,8 @@ export class Int {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13837,7 +14005,8 @@ export class Int {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13857,7 +14026,8 @@ export class Int {
                 throw takeObject(r1);
             }
             return r0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13877,7 +14047,8 @@ export class Int {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -13899,19 +14070,18 @@ export class Int {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const Ipv4Finalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_ipv4_free(ptr >>> 0));
 /**
 */
 export class Ipv4 {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Ipv4.prototype);
@@ -13919,14 +14089,12 @@ export class Ipv4 {
         Ipv4Finalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Ipv4Finalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_ipv4_free(ptr);
@@ -13943,7 +14111,8 @@ export class Ipv4 {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13964,7 +14133,8 @@ export class Ipv4 {
                 throw takeObject(r1);
             }
             return Ipv4.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -13982,7 +14152,8 @@ export class Ipv4 {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -14004,7 +14175,8 @@ export class Ipv4 {
                 throw takeObject(r1);
             }
             return Ipv4.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14024,13 +14196,15 @@ export class Ipv4 {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -14049,7 +14223,8 @@ export class Ipv4 {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14070,7 +14245,8 @@ export class Ipv4 {
                 throw takeObject(r1);
             }
             return Ipv4.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14091,7 +14267,8 @@ export class Ipv4 {
                 throw takeObject(r1);
             }
             return Ipv4.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14107,19 +14284,18 @@ export class Ipv4 {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const Ipv6Finalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_ipv6_free(ptr >>> 0));
 /**
 */
 export class Ipv6 {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Ipv6.prototype);
@@ -14127,14 +14303,12 @@ export class Ipv6 {
         Ipv6Finalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         Ipv6Finalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_ipv6_free(ptr);
@@ -14151,7 +14325,8 @@ export class Ipv6 {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14172,7 +14347,8 @@ export class Ipv6 {
                 throw takeObject(r1);
             }
             return Ipv6.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14190,7 +14366,8 @@ export class Ipv6 {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -14212,7 +14389,8 @@ export class Ipv6 {
                 throw takeObject(r1);
             }
             return Ipv6.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14232,13 +14410,15 @@ export class Ipv6 {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -14257,7 +14437,8 @@ export class Ipv6 {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14278,7 +14459,8 @@ export class Ipv6 {
                 throw takeObject(r1);
             }
             return Ipv6.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14299,7 +14481,8 @@ export class Ipv6 {
                 throw takeObject(r1);
             }
             return Ipv6.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14315,19 +14498,18 @@ export class Ipv6 {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const KESSignatureFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_kessignature_free(ptr >>> 0));
 /**
 */
 export class KESSignature {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(KESSignature.prototype);
@@ -14335,14 +14517,12 @@ export class KESSignature {
         KESSignatureFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         KESSignatureFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_kessignature_free(ptr);
@@ -14359,7 +14539,8 @@ export class KESSignature {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14380,19 +14561,18 @@ export class KESSignature {
                 throw takeObject(r1);
             }
             return KESSignature.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const KESVKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_kesvkey_free(ptr >>> 0));
 /**
 */
 export class KESVKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(KESVKey.prototype);
@@ -14400,14 +14580,12 @@ export class KESVKey {
         KESVKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         KESVKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_kesvkey_free(ptr);
@@ -14429,7 +14607,8 @@ export class KESVKey {
                 throw takeObject(r1);
             }
             return KESVKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14445,7 +14624,8 @@ export class KESVKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14468,13 +14648,15 @@ export class KESVKey {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -14496,7 +14678,8 @@ export class KESVKey {
                 throw takeObject(r1);
             }
             return KESVKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14514,7 +14697,8 @@ export class KESVKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -14536,19 +14720,18 @@ export class KESVKey {
                 throw takeObject(r1);
             }
             return KESVKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const LanguageFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_language_free(ptr >>> 0));
 /**
 */
 export class Language {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Language.prototype);
@@ -14556,14 +14739,12 @@ export class Language {
         LanguageFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         LanguageFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_language_free(ptr);
@@ -14580,7 +14761,8 @@ export class Language {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14601,7 +14783,8 @@ export class Language {
                 throw takeObject(r1);
             }
             return Language.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14619,7 +14802,8 @@ export class Language {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -14641,7 +14825,8 @@ export class Language {
                 throw takeObject(r1);
             }
             return Language.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14661,13 +14846,15 @@ export class Language {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -14686,7 +14873,8 @@ export class Language {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14707,7 +14895,8 @@ export class Language {
                 throw takeObject(r1);
             }
             return Language.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14740,14 +14929,12 @@ export class Language {
         return ret;
     }
 }
-
 const LanguagesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_languages_free(ptr >>> 0));
 /**
 */
 export class Languages {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Languages.prototype);
@@ -14755,14 +14942,12 @@ export class Languages {
         LanguagesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         LanguagesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_languages_free(ptr);
@@ -14805,14 +14990,12 @@ export class Languages {
         return Languages.__wrap(ret);
     }
 }
-
 const LegacyDaedalusPrivateKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_legacydaedalusprivatekey_free(ptr >>> 0));
 /**
 */
 export class LegacyDaedalusPrivateKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(LegacyDaedalusPrivateKey.prototype);
@@ -14820,14 +15003,12 @@ export class LegacyDaedalusPrivateKey {
         LegacyDaedalusPrivateKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         LegacyDaedalusPrivateKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_legacydaedalusprivatekey_free(ptr);
@@ -14849,7 +15030,8 @@ export class LegacyDaedalusPrivateKey {
                 throw takeObject(r1);
             }
             return LegacyDaedalusPrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14865,7 +15047,8 @@ export class LegacyDaedalusPrivateKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14881,19 +15064,18 @@ export class LegacyDaedalusPrivateKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const LinearFeeFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_linearfee_free(ptr >>> 0));
 /**
 */
 export class LinearFee {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(LinearFee.prototype);
@@ -14901,14 +15083,12 @@ export class LinearFee {
         LinearFeeFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         LinearFeeFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_linearfee_free(ptr);
@@ -14939,14 +15119,12 @@ export class LinearFee {
         return LinearFee.__wrap(ret);
     }
 }
-
 const MIRToStakeCredentialsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_mirtostakecredentials_free(ptr >>> 0));
 /**
 */
 export class MIRToStakeCredentials {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MIRToStakeCredentials.prototype);
@@ -14954,14 +15132,12 @@ export class MIRToStakeCredentials {
         MIRToStakeCredentialsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MIRToStakeCredentialsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_mirtostakecredentials_free(ptr);
@@ -14978,7 +15154,8 @@ export class MIRToStakeCredentials {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -14999,7 +15176,8 @@ export class MIRToStakeCredentials {
                 throw takeObject(r1);
             }
             return MIRToStakeCredentials.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15017,7 +15195,8 @@ export class MIRToStakeCredentials {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -15039,7 +15218,8 @@ export class MIRToStakeCredentials {
                 throw takeObject(r1);
             }
             return MIRToStakeCredentials.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15059,13 +15239,15 @@ export class MIRToStakeCredentials {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -15084,7 +15266,8 @@ export class MIRToStakeCredentials {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15105,7 +15288,8 @@ export class MIRToStakeCredentials {
                 throw takeObject(r1);
             }
             return MIRToStakeCredentials.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15151,14 +15335,12 @@ export class MIRToStakeCredentials {
         return Credentials.__wrap(ret);
     }
 }
-
 const MalformedAddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_malformedaddress_free(ptr >>> 0));
 /**
 */
 export class MalformedAddress {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MalformedAddress.prototype);
@@ -15166,14 +15348,12 @@ export class MalformedAddress {
         MalformedAddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MalformedAddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_malformedaddress_free(ptr);
@@ -15190,7 +15370,8 @@ export class MalformedAddress {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15211,14 +15392,12 @@ export class MalformedAddress {
         return ret === 0 ? undefined : MalformedAddress.__wrap(ret);
     }
 }
-
 const MetadataListFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_metadatalist_free(ptr >>> 0));
 /**
 */
 export class MetadataList {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MetadataList.prototype);
@@ -15226,14 +15405,12 @@ export class MetadataList {
         MetadataListFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MetadataListFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_metadatalist_free(ptr);
@@ -15250,7 +15427,8 @@ export class MetadataList {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15271,7 +15449,8 @@ export class MetadataList {
                 throw takeObject(r1);
             }
             return MetadataList.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15289,7 +15468,8 @@ export class MetadataList {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -15311,7 +15491,8 @@ export class MetadataList {
                 throw takeObject(r1);
             }
             return MetadataList.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15345,14 +15526,12 @@ export class MetadataList {
         wasm.metadatalist_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const MetadataMapFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_metadatamap_free(ptr >>> 0));
 /**
 */
 export class MetadataMap {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MetadataMap.prototype);
@@ -15360,14 +15539,12 @@ export class MetadataMap {
         MetadataMapFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MetadataMapFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_metadatamap_free(ptr);
@@ -15384,7 +15561,8 @@ export class MetadataMap {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15405,7 +15583,8 @@ export class MetadataMap {
                 throw takeObject(r1);
             }
             return MetadataMap.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15423,7 +15602,8 @@ export class MetadataMap {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -15445,7 +15625,8 @@ export class MetadataMap {
                 throw takeObject(r1);
             }
             return MetadataMap.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15493,7 +15674,8 @@ export class MetadataMap {
                 throw takeObject(r1);
             }
             return r0 === 0 ? undefined : TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15523,7 +15705,8 @@ export class MetadataMap {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15544,7 +15727,8 @@ export class MetadataMap {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15563,7 +15747,8 @@ export class MetadataMap {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15584,14 +15769,12 @@ export class MetadataMap {
         return MetadataList.__wrap(ret);
     }
 }
-
 const MintFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_mint_free(ptr >>> 0));
 /**
 */
 export class Mint {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Mint.prototype);
@@ -15599,14 +15782,12 @@ export class Mint {
         MintFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MintFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_mint_free(ptr);
@@ -15623,7 +15804,8 @@ export class Mint {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15644,7 +15826,8 @@ export class Mint {
                 throw takeObject(r1);
             }
             return Mint.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15662,7 +15845,8 @@ export class Mint {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -15684,7 +15868,8 @@ export class Mint {
                 throw takeObject(r1);
             }
             return Mint.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15704,13 +15889,15 @@ export class Mint {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -15729,7 +15916,8 @@ export class Mint {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15750,7 +15938,8 @@ export class Mint {
                 throw takeObject(r1);
             }
             return Mint.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15823,14 +16012,12 @@ export class Mint {
         return MultiAsset.__wrap(ret);
     }
 }
-
 const MintAssetsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_mintassets_free(ptr >>> 0));
 /**
 */
 export class MintAssets {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MintAssets.prototype);
@@ -15838,14 +16025,12 @@ export class MintAssets {
         MintAssetsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MintAssetsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_mintassets_free(ptr);
@@ -15875,7 +16060,8 @@ export class MintAssets {
                 throw takeObject(r1);
             }
             return MintAssets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15904,7 +16090,8 @@ export class MintAssets {
                 throw takeObject(r1);
             }
             return r0 === 0 ? undefined : Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15925,14 +16112,12 @@ export class MintAssets {
         return AssetNames.__wrap(ret);
     }
 }
-
 const MintBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_mintbuilder_free(ptr >>> 0));
 /**
 */
 export class MintBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MintBuilder.prototype);
@@ -15940,14 +16125,12 @@ export class MintBuilder {
         MintBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MintBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_mintbuilder_free(ptr);
@@ -15976,7 +16159,8 @@ export class MintBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -15997,7 +16181,8 @@ export class MintBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16015,7 +16200,8 @@ export class MintBuilder {
                 throw takeObject(r1);
             }
             return Mint.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16054,7 +16240,8 @@ export class MintBuilder {
                 throw takeObject(r1);
             }
             return Redeemers.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16073,14 +16260,12 @@ export class MintBuilder {
         return ret !== 0;
     }
 }
-
 const MintWitnessFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_mintwitness_free(ptr >>> 0));
 /**
 */
 export class MintWitness {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MintWitness.prototype);
@@ -16088,14 +16273,12 @@ export class MintWitness {
         MintWitnessFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MintWitnessFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_mintwitness_free(ptr);
@@ -16121,14 +16304,12 @@ export class MintWitness {
         return MintWitness.__wrap(ret);
     }
 }
-
 const MintsAssetsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_mintsassets_free(ptr >>> 0));
 /**
 */
 export class MintsAssets {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MintsAssets.prototype);
@@ -16136,14 +16317,12 @@ export class MintsAssets {
         MintsAssetsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MintsAssetsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_mintsassets_free(ptr);
@@ -16164,13 +16343,15 @@ export class MintsAssets {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -16189,7 +16370,8 @@ export class MintsAssets {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16210,7 +16392,8 @@ export class MintsAssets {
                 throw takeObject(r1);
             }
             return MintsAssets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16244,14 +16427,12 @@ export class MintsAssets {
         return ret >>> 0;
     }
 }
-
 const MoveInstantaneousRewardFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_moveinstantaneousreward_free(ptr >>> 0));
 /**
 */
 export class MoveInstantaneousReward {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MoveInstantaneousReward.prototype);
@@ -16259,14 +16440,12 @@ export class MoveInstantaneousReward {
         MoveInstantaneousRewardFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MoveInstantaneousRewardFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_moveinstantaneousreward_free(ptr);
@@ -16283,7 +16462,8 @@ export class MoveInstantaneousReward {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16304,7 +16484,8 @@ export class MoveInstantaneousReward {
                 throw takeObject(r1);
             }
             return MoveInstantaneousReward.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16322,7 +16503,8 @@ export class MoveInstantaneousReward {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -16344,7 +16526,8 @@ export class MoveInstantaneousReward {
                 throw takeObject(r1);
             }
             return MoveInstantaneousReward.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16364,13 +16547,15 @@ export class MoveInstantaneousReward {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -16389,7 +16574,8 @@ export class MoveInstantaneousReward {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16410,7 +16596,8 @@ export class MoveInstantaneousReward {
                 throw takeObject(r1);
             }
             return MoveInstantaneousReward.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16463,14 +16650,12 @@ export class MoveInstantaneousReward {
         return ret === 0 ? undefined : MIRToStakeCredentials.__wrap(ret);
     }
 }
-
 const MoveInstantaneousRewardsCertFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_moveinstantaneousrewardscert_free(ptr >>> 0));
 /**
 */
 export class MoveInstantaneousRewardsCert {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MoveInstantaneousRewardsCert.prototype);
@@ -16478,14 +16663,12 @@ export class MoveInstantaneousRewardsCert {
         MoveInstantaneousRewardsCertFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MoveInstantaneousRewardsCertFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_moveinstantaneousrewardscert_free(ptr);
@@ -16502,7 +16685,8 @@ export class MoveInstantaneousRewardsCert {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16523,7 +16707,8 @@ export class MoveInstantaneousRewardsCert {
                 throw takeObject(r1);
             }
             return MoveInstantaneousRewardsCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16541,7 +16726,8 @@ export class MoveInstantaneousRewardsCert {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -16563,7 +16749,8 @@ export class MoveInstantaneousRewardsCert {
                 throw takeObject(r1);
             }
             return MoveInstantaneousRewardsCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16583,13 +16770,15 @@ export class MoveInstantaneousRewardsCert {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -16608,7 +16797,8 @@ export class MoveInstantaneousRewardsCert {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16629,7 +16819,8 @@ export class MoveInstantaneousRewardsCert {
                 throw takeObject(r1);
             }
             return MoveInstantaneousRewardsCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16650,14 +16841,12 @@ export class MoveInstantaneousRewardsCert {
         return MoveInstantaneousRewardsCert.__wrap(ret);
     }
 }
-
 const MultiAssetFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_multiasset_free(ptr >>> 0));
 /**
 */
 export class MultiAsset {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MultiAsset.prototype);
@@ -16665,14 +16854,12 @@ export class MultiAsset {
         MultiAssetFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MultiAssetFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_multiasset_free(ptr);
@@ -16689,7 +16876,8 @@ export class MultiAsset {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16710,7 +16898,8 @@ export class MultiAsset {
                 throw takeObject(r1);
             }
             return MultiAsset.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16728,7 +16917,8 @@ export class MultiAsset {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -16750,7 +16940,8 @@ export class MultiAsset {
                 throw takeObject(r1);
             }
             return MultiAsset.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16770,13 +16961,15 @@ export class MultiAsset {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -16795,7 +16988,8 @@ export class MultiAsset {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16816,7 +17010,8 @@ export class MultiAsset {
                 throw takeObject(r1);
             }
             return MultiAsset.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16905,14 +17100,12 @@ export class MultiAsset {
         return MultiAsset.__wrap(ret);
     }
 }
-
 const MultiHostNameFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_multihostname_free(ptr >>> 0));
 /**
 */
 export class MultiHostName {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(MultiHostName.prototype);
@@ -16920,14 +17113,12 @@ export class MultiHostName {
         MultiHostNameFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         MultiHostNameFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_multihostname_free(ptr);
@@ -16944,7 +17135,8 @@ export class MultiHostName {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16965,7 +17157,8 @@ export class MultiHostName {
                 throw takeObject(r1);
             }
             return MultiHostName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -16983,7 +17176,8 @@ export class MultiHostName {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -17005,7 +17199,8 @@ export class MultiHostName {
                 throw takeObject(r1);
             }
             return MultiHostName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17025,13 +17220,15 @@ export class MultiHostName {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -17050,7 +17247,8 @@ export class MultiHostName {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17071,7 +17269,8 @@ export class MultiHostName {
                 throw takeObject(r1);
             }
             return MultiHostName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17092,14 +17291,12 @@ export class MultiHostName {
         return MultiHostName.__wrap(ret);
     }
 }
-
 const NativeScriptFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_nativescript_free(ptr >>> 0));
 /**
 */
 export class NativeScript {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NativeScript.prototype);
@@ -17107,14 +17304,12 @@ export class NativeScript {
         NativeScriptFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NativeScriptFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_nativescript_free(ptr);
@@ -17131,7 +17326,8 @@ export class NativeScript {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17152,7 +17348,8 @@ export class NativeScript {
                 throw takeObject(r1);
             }
             return NativeScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17170,7 +17367,8 @@ export class NativeScript {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -17192,7 +17390,8 @@ export class NativeScript {
                 throw takeObject(r1);
             }
             return NativeScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17212,13 +17411,15 @@ export class NativeScript {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -17237,7 +17438,8 @@ export class NativeScript {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17258,7 +17460,8 @@ export class NativeScript {
                 throw takeObject(r1);
             }
             return NativeScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17383,14 +17586,12 @@ export class NativeScript {
         return Ed25519KeyHashes.__wrap(ret);
     }
 }
-
 const NativeScriptSourceFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_nativescriptsource_free(ptr >>> 0));
 /**
 */
 export class NativeScriptSource {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NativeScriptSource.prototype);
@@ -17398,14 +17599,12 @@ export class NativeScriptSource {
         NativeScriptSourceFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NativeScriptSourceFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_nativescriptsource_free(ptr);
@@ -17448,19 +17647,18 @@ export class NativeScriptSource {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const NativeScriptsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_nativescripts_free(ptr >>> 0));
 /**
 */
 export class NativeScripts {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NativeScripts.prototype);
@@ -17468,14 +17666,12 @@ export class NativeScripts {
         NativeScriptsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NativeScriptsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_nativescripts_free(ptr);
@@ -17521,7 +17717,8 @@ export class NativeScripts {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17542,7 +17739,8 @@ export class NativeScripts {
                 throw takeObject(r1);
             }
             return NativeScripts.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17560,7 +17758,8 @@ export class NativeScripts {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -17582,7 +17781,8 @@ export class NativeScripts {
                 throw takeObject(r1);
             }
             return NativeScripts.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17602,13 +17802,15 @@ export class NativeScripts {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -17627,7 +17829,8 @@ export class NativeScripts {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17648,19 +17851,18 @@ export class NativeScripts {
                 throw takeObject(r1);
             }
             return NativeScripts.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const NetworkIdFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_networkid_free(ptr >>> 0));
 /**
 */
 export class NetworkId {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NetworkId.prototype);
@@ -17668,14 +17870,12 @@ export class NetworkId {
         NetworkIdFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NetworkIdFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_networkid_free(ptr);
@@ -17692,7 +17892,8 @@ export class NetworkId {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17713,7 +17914,8 @@ export class NetworkId {
                 throw takeObject(r1);
             }
             return NetworkId.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17731,7 +17933,8 @@ export class NetworkId {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -17753,7 +17956,8 @@ export class NetworkId {
                 throw takeObject(r1);
             }
             return NetworkId.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17773,13 +17977,15 @@ export class NetworkId {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -17798,7 +18004,8 @@ export class NetworkId {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17819,7 +18026,8 @@ export class NetworkId {
                 throw takeObject(r1);
             }
             return NetworkId.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17845,14 +18053,12 @@ export class NetworkId {
         return ret;
     }
 }
-
 const NetworkInfoFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_networkinfo_free(ptr >>> 0));
 /**
 */
 export class NetworkInfo {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NetworkInfo.prototype);
@@ -17860,14 +18066,12 @@ export class NetworkInfo {
         NetworkInfoFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NetworkInfoFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_networkinfo_free(ptr);
@@ -17917,14 +18121,12 @@ export class NetworkInfo {
         return NetworkInfo.__wrap(ret);
     }
 }
-
 const NewConstitutionActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_newconstitutionaction_free(ptr >>> 0));
 /**
 */
 export class NewConstitutionAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NewConstitutionAction.prototype);
@@ -17932,14 +18134,12 @@ export class NewConstitutionAction {
         NewConstitutionActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NewConstitutionActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_newconstitutionaction_free(ptr);
@@ -17956,7 +18156,8 @@ export class NewConstitutionAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17977,7 +18178,8 @@ export class NewConstitutionAction {
                 throw takeObject(r1);
             }
             return NewConstitutionAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -17995,7 +18197,8 @@ export class NewConstitutionAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -18017,7 +18220,8 @@ export class NewConstitutionAction {
                 throw takeObject(r1);
             }
             return NewConstitutionAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18037,13 +18241,15 @@ export class NewConstitutionAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -18062,7 +18268,8 @@ export class NewConstitutionAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18083,7 +18290,8 @@ export class NewConstitutionAction {
                 throw takeObject(r1);
             }
             return NewConstitutionAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18129,14 +18337,12 @@ export class NewConstitutionAction {
         return ret !== 0;
     }
 }
-
 const NoConfidenceActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_noconfidenceaction_free(ptr >>> 0));
 /**
 */
 export class NoConfidenceAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(NoConfidenceAction.prototype);
@@ -18144,14 +18350,12 @@ export class NoConfidenceAction {
         NoConfidenceActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NoConfidenceActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_noconfidenceaction_free(ptr);
@@ -18168,7 +18372,8 @@ export class NoConfidenceAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18189,7 +18394,8 @@ export class NoConfidenceAction {
                 throw takeObject(r1);
             }
             return NoConfidenceAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18207,7 +18413,8 @@ export class NoConfidenceAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -18229,7 +18436,8 @@ export class NoConfidenceAction {
                 throw takeObject(r1);
             }
             return NoConfidenceAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18249,13 +18457,15 @@ export class NoConfidenceAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -18274,7 +18484,8 @@ export class NoConfidenceAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18295,7 +18506,8 @@ export class NoConfidenceAction {
                 throw takeObject(r1);
             }
             return NoConfidenceAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18323,14 +18535,12 @@ export class NoConfidenceAction {
         return NoConfidenceAction.__wrap(ret);
     }
 }
-
 const NonceFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_nonce_free(ptr >>> 0));
 /**
 */
 export class Nonce {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Nonce.prototype);
@@ -18338,14 +18548,12 @@ export class Nonce {
         NonceFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         NonceFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_nonce_free(ptr);
@@ -18362,7 +18570,8 @@ export class Nonce {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18383,7 +18592,8 @@ export class Nonce {
                 throw takeObject(r1);
             }
             return Nonce.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18401,7 +18611,8 @@ export class Nonce {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -18423,7 +18634,8 @@ export class Nonce {
                 throw takeObject(r1);
             }
             return Nonce.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18443,13 +18655,15 @@ export class Nonce {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -18468,7 +18682,8 @@ export class Nonce {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18489,7 +18704,8 @@ export class Nonce {
                 throw takeObject(r1);
             }
             return Nonce.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18517,7 +18733,8 @@ export class Nonce {
                 throw takeObject(r1);
             }
             return Nonce.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18536,19 +18753,18 @@ export class Nonce {
                 wasm.__wbindgen_free(r0, r1 * 1, 1);
             }
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const OperationalCertFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_operationalcert_free(ptr >>> 0));
 /**
 */
 export class OperationalCert {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(OperationalCert.prototype);
@@ -18556,14 +18772,12 @@ export class OperationalCert {
         OperationalCertFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         OperationalCertFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_operationalcert_free(ptr);
@@ -18580,7 +18794,8 @@ export class OperationalCert {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18601,7 +18816,8 @@ export class OperationalCert {
                 throw takeObject(r1);
             }
             return OperationalCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18619,7 +18835,8 @@ export class OperationalCert {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -18641,7 +18858,8 @@ export class OperationalCert {
                 throw takeObject(r1);
             }
             return OperationalCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18661,13 +18879,15 @@ export class OperationalCert {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -18686,7 +18906,8 @@ export class OperationalCert {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18707,7 +18928,8 @@ export class OperationalCert {
                 throw takeObject(r1);
             }
             return OperationalCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18753,14 +18975,12 @@ export class OperationalCert {
         return OperationalCert.__wrap(ret);
     }
 }
-
 const OutputDatumFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_outputdatum_free(ptr >>> 0));
 /**
 */
 export class OutputDatum {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(OutputDatum.prototype);
@@ -18768,14 +18988,12 @@ export class OutputDatum {
         OutputDatumFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         OutputDatumFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_outputdatum_free(ptr);
@@ -18813,14 +19031,12 @@ export class OutputDatum {
         return ret === 0 ? undefined : PlutusData.__wrap(ret);
     }
 }
-
 const ParameterChangeActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_parameterchangeaction_free(ptr >>> 0));
 /**
 */
 export class ParameterChangeAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ParameterChangeAction.prototype);
@@ -18828,14 +19044,12 @@ export class ParameterChangeAction {
         ParameterChangeActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ParameterChangeActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_parameterchangeaction_free(ptr);
@@ -18852,7 +19066,8 @@ export class ParameterChangeAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18873,7 +19088,8 @@ export class ParameterChangeAction {
                 throw takeObject(r1);
             }
             return ParameterChangeAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18891,7 +19107,8 @@ export class ParameterChangeAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -18913,7 +19130,8 @@ export class ParameterChangeAction {
                 throw takeObject(r1);
             }
             return ParameterChangeAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18933,13 +19151,15 @@ export class ParameterChangeAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -18958,7 +19178,8 @@ export class ParameterChangeAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -18979,7 +19200,8 @@ export class ParameterChangeAction {
                 throw takeObject(r1);
             }
             return ParameterChangeAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19049,14 +19271,12 @@ export class ParameterChangeAction {
         return ParameterChangeAction.__wrap(ret);
     }
 }
-
 const PlutusDataFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutusdata_free(ptr >>> 0));
 /**
 */
 export class PlutusData {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusData.prototype);
@@ -19064,14 +19284,12 @@ export class PlutusData {
         PlutusDataFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusDataFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutusdata_free(ptr);
@@ -19088,7 +19306,8 @@ export class PlutusData {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19109,7 +19328,8 @@ export class PlutusData {
                 throw takeObject(r1);
             }
             return PlutusData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19127,7 +19347,8 @@ export class PlutusData {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -19149,7 +19370,8 @@ export class PlutusData {
                 throw takeObject(r1);
             }
             return PlutusData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19270,7 +19492,8 @@ export class PlutusData {
                 wasm.__wbindgen_free(r0, r1 * 1, 1);
             }
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19291,13 +19514,15 @@ export class PlutusData {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -19320,7 +19545,8 @@ export class PlutusData {
                 throw takeObject(r1);
             }
             return PlutusData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19340,19 +19566,18 @@ export class PlutusData {
                 throw takeObject(r1);
             }
             return PlutusData.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const PlutusListFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutuslist_free(ptr >>> 0));
 /**
 */
 export class PlutusList {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusList.prototype);
@@ -19360,14 +19585,12 @@ export class PlutusList {
         PlutusListFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusListFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutuslist_free(ptr);
@@ -19384,7 +19607,8 @@ export class PlutusList {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19405,7 +19629,8 @@ export class PlutusList {
                 throw takeObject(r1);
             }
             return PlutusList.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19423,7 +19648,8 @@ export class PlutusList {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -19445,7 +19671,8 @@ export class PlutusList {
                 throw takeObject(r1);
             }
             return PlutusList.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19479,14 +19706,12 @@ export class PlutusList {
         wasm.plutuslist_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const PlutusMapFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutusmap_free(ptr >>> 0));
 /**
 */
 export class PlutusMap {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusMap.prototype);
@@ -19494,14 +19719,12 @@ export class PlutusMap {
         PlutusMapFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusMapFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutusmap_free(ptr);
@@ -19518,7 +19741,8 @@ export class PlutusMap {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19539,7 +19763,8 @@ export class PlutusMap {
                 throw takeObject(r1);
             }
             return PlutusMap.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19557,7 +19782,8 @@ export class PlutusMap {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -19579,7 +19805,8 @@ export class PlutusMap {
                 throw takeObject(r1);
             }
             return PlutusMap.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19628,14 +19855,12 @@ export class PlutusMap {
         return PlutusList.__wrap(ret);
     }
 }
-
 const PlutusMapValuesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutusmapvalues_free(ptr >>> 0));
 /**
 */
 export class PlutusMapValues {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusMapValues.prototype);
@@ -19643,14 +19868,12 @@ export class PlutusMapValues {
         PlutusMapValuesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusMapValuesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutusmapvalues_free(ptr);
@@ -19685,14 +19908,12 @@ export class PlutusMapValues {
         wasm.plutusmapvalues_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const PlutusScriptFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutusscript_free(ptr >>> 0));
 /**
 */
 export class PlutusScript {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusScript.prototype);
@@ -19700,14 +19921,12 @@ export class PlutusScript {
         PlutusScriptFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusScriptFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutusscript_free(ptr);
@@ -19724,7 +19943,8 @@ export class PlutusScript {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19745,7 +19965,8 @@ export class PlutusScript {
                 throw takeObject(r1);
             }
             return PlutusScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19763,7 +19984,8 @@ export class PlutusScript {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -19785,7 +20007,8 @@ export class PlutusScript {
                 throw takeObject(r1);
             }
             return PlutusScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19867,7 +20090,8 @@ export class PlutusScript {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19889,7 +20113,8 @@ export class PlutusScript {
                 throw takeObject(r1);
             }
             return PlutusScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19911,7 +20136,8 @@ export class PlutusScript {
                 throw takeObject(r1);
             }
             return PlutusScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19935,7 +20161,8 @@ export class PlutusScript {
                 throw takeObject(r1);
             }
             return PlutusScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19959,7 +20186,8 @@ export class PlutusScript {
                 throw takeObject(r1);
             }
             return PlutusScript.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -19978,14 +20206,12 @@ export class PlutusScript {
         return Language.__wrap(ret);
     }
 }
-
 const PlutusScriptSourceFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutusscriptsource_free(ptr >>> 0));
 /**
 */
 export class PlutusScriptSource {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusScriptSource.prototype);
@@ -19993,14 +20219,12 @@ export class PlutusScriptSource {
         PlutusScriptSourceFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusScriptSourceFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutusscriptsource_free(ptr);
@@ -20045,19 +20269,18 @@ export class PlutusScriptSource {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const PlutusScriptsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutusscripts_free(ptr >>> 0));
 /**
 */
 export class PlutusScripts {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusScripts.prototype);
@@ -20065,14 +20288,12 @@ export class PlutusScripts {
         PlutusScriptsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusScriptsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutusscripts_free(ptr);
@@ -20089,7 +20310,8 @@ export class PlutusScripts {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20110,7 +20332,8 @@ export class PlutusScripts {
                 throw takeObject(r1);
             }
             return PlutusScripts.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20128,7 +20351,8 @@ export class PlutusScripts {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -20150,7 +20374,8 @@ export class PlutusScripts {
                 throw takeObject(r1);
             }
             return PlutusScripts.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20170,13 +20395,15 @@ export class PlutusScripts {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -20195,7 +20422,8 @@ export class PlutusScripts {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20216,7 +20444,8 @@ export class PlutusScripts {
                 throw takeObject(r1);
             }
             return PlutusScripts.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20250,14 +20479,12 @@ export class PlutusScripts {
         wasm.plutusscripts_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const PlutusWitnessFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutuswitness_free(ptr >>> 0));
 /**
 */
 export class PlutusWitness {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusWitness.prototype);
@@ -20265,14 +20492,12 @@ export class PlutusWitness {
         PlutusWitnessFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusWitnessFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutuswitness_free(ptr);
@@ -20347,14 +20572,12 @@ export class PlutusWitness {
         return Redeemer.__wrap(ret);
     }
 }
-
 const PlutusWitnessesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_plutuswitnesses_free(ptr >>> 0));
 /**
 */
 export class PlutusWitnesses {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PlutusWitnesses.prototype);
@@ -20362,14 +20585,12 @@ export class PlutusWitnesses {
         PlutusWitnessesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PlutusWitnessesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_plutuswitnesses_free(ptr);
@@ -20404,14 +20625,12 @@ export class PlutusWitnesses {
         wasm.plutuswitnesses_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const PointerFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_pointer_free(ptr >>> 0));
 /**
 */
 export class Pointer {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Pointer.prototype);
@@ -20419,14 +20638,12 @@ export class Pointer {
         PointerFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PointerFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_pointer_free(ptr);
@@ -20471,7 +20688,8 @@ export class Pointer {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20489,7 +20707,8 @@ export class Pointer {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20507,7 +20726,8 @@ export class Pointer {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20533,14 +20753,12 @@ export class Pointer {
         return BigNum.__wrap(ret);
     }
 }
-
 const PointerAddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_pointeraddress_free(ptr >>> 0));
 /**
 */
 export class PointerAddress {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PointerAddress.prototype);
@@ -20548,14 +20766,12 @@ export class PointerAddress {
         PointerAddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PointerAddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_pointeraddress_free(ptr);
@@ -20610,14 +20826,12 @@ export class PointerAddress {
         return ret;
     }
 }
-
 const PoolMetadataFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_poolmetadata_free(ptr >>> 0));
 /**
 */
 export class PoolMetadata {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PoolMetadata.prototype);
@@ -20625,14 +20839,12 @@ export class PoolMetadata {
         PoolMetadataFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PoolMetadataFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_poolmetadata_free(ptr);
@@ -20649,7 +20861,8 @@ export class PoolMetadata {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20670,7 +20883,8 @@ export class PoolMetadata {
                 throw takeObject(r1);
             }
             return PoolMetadata.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20688,7 +20902,8 @@ export class PoolMetadata {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -20710,7 +20925,8 @@ export class PoolMetadata {
                 throw takeObject(r1);
             }
             return PoolMetadata.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20730,13 +20946,15 @@ export class PoolMetadata {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -20755,7 +20973,8 @@ export class PoolMetadata {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20776,7 +20995,8 @@ export class PoolMetadata {
                 throw takeObject(r1);
             }
             return PoolMetadata.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20806,14 +21026,12 @@ export class PoolMetadata {
         return PoolMetadata.__wrap(ret);
     }
 }
-
 const PoolMetadataHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_poolmetadatahash_free(ptr >>> 0));
 /**
 */
 export class PoolMetadataHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PoolMetadataHash.prototype);
@@ -20821,14 +21039,12 @@ export class PoolMetadataHash {
         PoolMetadataHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PoolMetadataHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_poolmetadatahash_free(ptr);
@@ -20850,7 +21066,8 @@ export class PoolMetadataHash {
                 throw takeObject(r1);
             }
             return PoolMetadataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20866,7 +21083,8 @@ export class PoolMetadataHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20889,13 +21107,15 @@ export class PoolMetadataHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -20917,7 +21137,8 @@ export class PoolMetadataHash {
                 throw takeObject(r1);
             }
             return PoolMetadataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -20935,7 +21156,8 @@ export class PoolMetadataHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -20957,19 +21179,18 @@ export class PoolMetadataHash {
                 throw takeObject(r1);
             }
             return PoolMetadataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const PoolParamsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_poolparams_free(ptr >>> 0));
 /**
 */
 export class PoolParams {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PoolParams.prototype);
@@ -20977,14 +21198,12 @@ export class PoolParams {
         PoolParamsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PoolParamsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_poolparams_free(ptr);
@@ -21001,7 +21220,8 @@ export class PoolParams {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21022,7 +21242,8 @@ export class PoolParams {
                 throw takeObject(r1);
             }
             return PoolParams.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21040,7 +21261,8 @@ export class PoolParams {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -21062,7 +21284,8 @@ export class PoolParams {
                 throw takeObject(r1);
             }
             return PoolParams.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21082,13 +21305,15 @@ export class PoolParams {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -21107,7 +21332,8 @@ export class PoolParams {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21128,7 +21354,8 @@ export class PoolParams {
                 throw takeObject(r1);
             }
             return PoolParams.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21225,14 +21452,12 @@ export class PoolParams {
         return PoolParams.__wrap(ret);
     }
 }
-
 const PoolRegistrationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_poolregistration_free(ptr >>> 0));
 /**
 */
 export class PoolRegistration {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PoolRegistration.prototype);
@@ -21240,14 +21465,12 @@ export class PoolRegistration {
         PoolRegistrationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PoolRegistrationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_poolregistration_free(ptr);
@@ -21264,7 +21487,8 @@ export class PoolRegistration {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21285,7 +21509,8 @@ export class PoolRegistration {
                 throw takeObject(r1);
             }
             return PoolRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21303,7 +21528,8 @@ export class PoolRegistration {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -21325,7 +21551,8 @@ export class PoolRegistration {
                 throw takeObject(r1);
             }
             return PoolRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21345,13 +21572,15 @@ export class PoolRegistration {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -21370,7 +21599,8 @@ export class PoolRegistration {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21391,7 +21621,8 @@ export class PoolRegistration {
                 throw takeObject(r1);
             }
             return PoolRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21412,14 +21643,12 @@ export class PoolRegistration {
         return PoolRegistration.__wrap(ret);
     }
 }
-
 const PoolRetirementFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_poolretirement_free(ptr >>> 0));
 /**
 */
 export class PoolRetirement {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PoolRetirement.prototype);
@@ -21427,14 +21656,12 @@ export class PoolRetirement {
         PoolRetirementFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PoolRetirementFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_poolretirement_free(ptr);
@@ -21451,7 +21678,8 @@ export class PoolRetirement {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21472,7 +21700,8 @@ export class PoolRetirement {
                 throw takeObject(r1);
             }
             return PoolRetirement.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21490,7 +21719,8 @@ export class PoolRetirement {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -21512,7 +21742,8 @@ export class PoolRetirement {
                 throw takeObject(r1);
             }
             return PoolRetirement.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21532,13 +21763,15 @@ export class PoolRetirement {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -21557,7 +21790,8 @@ export class PoolRetirement {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21578,7 +21812,8 @@ export class PoolRetirement {
                 throw takeObject(r1);
             }
             return PoolRetirement.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21607,14 +21842,12 @@ export class PoolRetirement {
         return PoolRetirement.__wrap(ret);
     }
 }
-
 const PoolVotingThresholdsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_poolvotingthresholds_free(ptr >>> 0));
 /**
 */
 export class PoolVotingThresholds {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PoolVotingThresholds.prototype);
@@ -21622,14 +21855,12 @@ export class PoolVotingThresholds {
         PoolVotingThresholdsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PoolVotingThresholdsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_poolvotingthresholds_free(ptr);
@@ -21646,7 +21877,8 @@ export class PoolVotingThresholds {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21667,7 +21899,8 @@ export class PoolVotingThresholds {
                 throw takeObject(r1);
             }
             return PoolVotingThresholds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21685,7 +21918,8 @@ export class PoolVotingThresholds {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -21707,7 +21941,8 @@ export class PoolVotingThresholds {
                 throw takeObject(r1);
             }
             return PoolVotingThresholds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21727,13 +21962,15 @@ export class PoolVotingThresholds {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -21752,7 +21989,8 @@ export class PoolVotingThresholds {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21773,7 +22011,8 @@ export class PoolVotingThresholds {
                 throw takeObject(r1);
             }
             return PoolVotingThresholds.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21830,14 +22069,12 @@ export class PoolVotingThresholds {
         return UnitInterval.__wrap(ret);
     }
 }
-
 const PrivateKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_privatekey_free(ptr >>> 0));
 /**
 */
 export class PrivateKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PrivateKey.prototype);
@@ -21845,14 +22082,12 @@ export class PrivateKey {
         PrivateKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PrivateKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_privatekey_free(ptr);
@@ -21874,7 +22109,8 @@ export class PrivateKey {
                 throw takeObject(r1);
             }
             return PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21892,7 +22128,8 @@ export class PrivateKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -21924,7 +22161,8 @@ export class PrivateKey {
                 throw takeObject(r1);
             }
             return PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21945,7 +22183,8 @@ export class PrivateKey {
                 throw takeObject(r1);
             }
             return PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21961,7 +22200,8 @@ export class PrivateKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -21979,7 +22219,8 @@ export class PrivateKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -22009,7 +22250,8 @@ export class PrivateKey {
                 throw takeObject(r1);
             }
             return PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22027,7 +22269,8 @@ export class PrivateKey {
                 throw takeObject(r1);
             }
             return PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22045,7 +22288,8 @@ export class PrivateKey {
                 throw takeObject(r1);
             }
             return PrivateKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22057,14 +22301,12 @@ export class PrivateKey {
         return PublicKey.__wrap(ret);
     }
 }
-
 const ProposedProtocolParameterUpdatesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_proposedprotocolparameterupdates_free(ptr >>> 0));
 /**
 */
 export class ProposedProtocolParameterUpdates {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ProposedProtocolParameterUpdates.prototype);
@@ -22072,14 +22314,12 @@ export class ProposedProtocolParameterUpdates {
         ProposedProtocolParameterUpdatesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ProposedProtocolParameterUpdatesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_proposedprotocolparameterupdates_free(ptr);
@@ -22096,7 +22336,8 @@ export class ProposedProtocolParameterUpdates {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22117,7 +22358,8 @@ export class ProposedProtocolParameterUpdates {
                 throw takeObject(r1);
             }
             return ProposedProtocolParameterUpdates.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22135,7 +22377,8 @@ export class ProposedProtocolParameterUpdates {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -22157,7 +22400,8 @@ export class ProposedProtocolParameterUpdates {
                 throw takeObject(r1);
             }
             return ProposedProtocolParameterUpdates.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22177,13 +22421,15 @@ export class ProposedProtocolParameterUpdates {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -22202,7 +22448,8 @@ export class ProposedProtocolParameterUpdates {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22223,7 +22470,8 @@ export class ProposedProtocolParameterUpdates {
                 throw takeObject(r1);
             }
             return ProposedProtocolParameterUpdates.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22269,14 +22517,12 @@ export class ProposedProtocolParameterUpdates {
         return GenesisHashes.__wrap(ret);
     }
 }
-
 const ProtocolParamUpdateFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_protocolparamupdate_free(ptr >>> 0));
 /**
 */
 export class ProtocolParamUpdate {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ProtocolParamUpdate.prototype);
@@ -22284,14 +22530,12 @@ export class ProtocolParamUpdate {
         ProtocolParamUpdateFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ProtocolParamUpdateFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_protocolparamupdate_free(ptr);
@@ -22308,7 +22552,8 @@ export class ProtocolParamUpdate {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22329,7 +22574,8 @@ export class ProtocolParamUpdate {
                 throw takeObject(r1);
             }
             return ProtocolParamUpdate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22347,7 +22593,8 @@ export class ProtocolParamUpdate {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -22369,7 +22616,8 @@ export class ProtocolParamUpdate {
                 throw takeObject(r1);
             }
             return ProtocolParamUpdate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22389,13 +22637,15 @@ export class ProtocolParamUpdate {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -22414,7 +22664,8 @@ export class ProtocolParamUpdate {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22435,7 +22686,8 @@ export class ProtocolParamUpdate {
                 throw takeObject(r1);
             }
             return ProtocolParamUpdate.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22483,7 +22735,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22503,7 +22756,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22523,7 +22777,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22571,7 +22826,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22591,7 +22847,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22771,7 +23028,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22791,7 +23049,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22811,7 +23070,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22859,7 +23119,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22879,7 +23140,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22899,7 +23161,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22947,7 +23210,8 @@ export class ProtocolParamUpdate {
             var r0 = getInt32Memory0()[retptr / 4 + 0];
             var r1 = getInt32Memory0()[retptr / 4 + 1];
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -22973,14 +23237,12 @@ export class ProtocolParamUpdate {
         return ProtocolParamUpdate.__wrap(ret);
     }
 }
-
 const ProtocolVersionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_protocolversion_free(ptr >>> 0));
 /**
 */
 export class ProtocolVersion {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ProtocolVersion.prototype);
@@ -22988,14 +23250,12 @@ export class ProtocolVersion {
         ProtocolVersionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ProtocolVersionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_protocolversion_free(ptr);
@@ -23012,7 +23272,8 @@ export class ProtocolVersion {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23033,7 +23294,8 @@ export class ProtocolVersion {
                 throw takeObject(r1);
             }
             return ProtocolVersion.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23051,7 +23313,8 @@ export class ProtocolVersion {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -23073,7 +23336,8 @@ export class ProtocolVersion {
                 throw takeObject(r1);
             }
             return ProtocolVersion.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23093,13 +23357,15 @@ export class ProtocolVersion {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -23118,7 +23384,8 @@ export class ProtocolVersion {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23139,7 +23406,8 @@ export class ProtocolVersion {
                 throw takeObject(r1);
             }
             return ProtocolVersion.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23167,15 +23435,13 @@ export class ProtocolVersion {
         return ProtocolVersion.__wrap(ret);
     }
 }
-
 const PublicKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_publickey_free(ptr >>> 0));
 /**
 * ED25519 key used as public key
 */
 export class PublicKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(PublicKey.prototype);
@@ -23183,14 +23449,12 @@ export class PublicKey {
         PublicKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PublicKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_publickey_free(ptr);
@@ -23212,7 +23476,8 @@ export class PublicKey {
                 throw takeObject(r1);
             }
             return PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23230,7 +23495,8 @@ export class PublicKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -23271,7 +23537,8 @@ export class PublicKey {
                 throw takeObject(r1);
             }
             return PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23287,7 +23554,8 @@ export class PublicKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23305,7 +23573,8 @@ export class PublicKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -23332,26 +23601,24 @@ export class PublicKey {
                 throw takeObject(r1);
             }
             return PublicKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const PublicKeysFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_publickeys_free(ptr >>> 0));
 /**
 */
 export class PublicKeys {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         PublicKeysFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_publickeys_free(ptr);
@@ -23386,14 +23653,12 @@ export class PublicKeys {
         wasm.publickeys_add(this.__wbg_ptr, key.__wbg_ptr);
     }
 }
-
 const RedeemerFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_redeemer_free(ptr >>> 0));
 /**
 */
 export class Redeemer {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Redeemer.prototype);
@@ -23401,14 +23666,12 @@ export class Redeemer {
         RedeemerFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RedeemerFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_redeemer_free(ptr);
@@ -23425,7 +23688,8 @@ export class Redeemer {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23446,7 +23710,8 @@ export class Redeemer {
                 throw takeObject(r1);
             }
             return Redeemer.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23464,7 +23729,8 @@ export class Redeemer {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -23486,7 +23752,8 @@ export class Redeemer {
                 throw takeObject(r1);
             }
             return Redeemer.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23506,13 +23773,15 @@ export class Redeemer {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -23531,7 +23800,8 @@ export class Redeemer {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23552,7 +23822,8 @@ export class Redeemer {
                 throw takeObject(r1);
             }
             return Redeemer.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23600,14 +23871,12 @@ export class Redeemer {
         return Redeemer.__wrap(ret);
     }
 }
-
 const RedeemerTagFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_redeemertag_free(ptr >>> 0));
 /**
 */
 export class RedeemerTag {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(RedeemerTag.prototype);
@@ -23615,14 +23884,12 @@ export class RedeemerTag {
         RedeemerTagFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RedeemerTagFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_redeemertag_free(ptr);
@@ -23639,7 +23906,8 @@ export class RedeemerTag {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23660,7 +23928,8 @@ export class RedeemerTag {
                 throw takeObject(r1);
             }
             return RedeemerTag.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23678,7 +23947,8 @@ export class RedeemerTag {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -23700,7 +23970,8 @@ export class RedeemerTag {
                 throw takeObject(r1);
             }
             return RedeemerTag.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23720,13 +23991,15 @@ export class RedeemerTag {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -23745,7 +24018,8 @@ export class RedeemerTag {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23766,7 +24040,8 @@ export class RedeemerTag {
                 throw takeObject(r1);
             }
             return RedeemerTag.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23820,14 +24095,12 @@ export class RedeemerTag {
         return ret;
     }
 }
-
 const RedeemersFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_redeemers_free(ptr >>> 0));
 /**
 */
 export class Redeemers {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Redeemers.prototype);
@@ -23835,14 +24108,12 @@ export class Redeemers {
         RedeemersFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RedeemersFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_redeemers_free(ptr);
@@ -23859,7 +24130,8 @@ export class Redeemers {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23880,7 +24152,8 @@ export class Redeemers {
                 throw takeObject(r1);
             }
             return Redeemers.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23898,7 +24171,8 @@ export class Redeemers {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -23920,7 +24194,8 @@ export class Redeemers {
                 throw takeObject(r1);
             }
             return Redeemers.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23940,13 +24215,15 @@ export class Redeemers {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -23965,7 +24242,8 @@ export class Redeemers {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -23986,7 +24264,8 @@ export class Redeemers {
                 throw takeObject(r1);
             }
             return Redeemers.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24033,19 +24312,18 @@ export class Redeemers {
                 throw takeObject(r1);
             }
             return ExUnits.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const RelayFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_relay_free(ptr >>> 0));
 /**
 */
 export class Relay {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Relay.prototype);
@@ -24053,14 +24331,12 @@ export class Relay {
         RelayFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RelayFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_relay_free(ptr);
@@ -24077,7 +24353,8 @@ export class Relay {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24098,7 +24375,8 @@ export class Relay {
                 throw takeObject(r1);
             }
             return Relay.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24116,7 +24394,8 @@ export class Relay {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -24138,7 +24417,8 @@ export class Relay {
                 throw takeObject(r1);
             }
             return Relay.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24158,13 +24438,15 @@ export class Relay {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -24183,7 +24465,8 @@ export class Relay {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24204,7 +24487,8 @@ export class Relay {
                 throw takeObject(r1);
             }
             return Relay.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24264,14 +24548,12 @@ export class Relay {
         return ret === 0 ? undefined : MultiHostName.__wrap(ret);
     }
 }
-
 const RelaysFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_relays_free(ptr >>> 0));
 /**
 */
 export class Relays {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Relays.prototype);
@@ -24279,14 +24561,12 @@ export class Relays {
         RelaysFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RelaysFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_relays_free(ptr);
@@ -24303,7 +24583,8 @@ export class Relays {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24324,7 +24605,8 @@ export class Relays {
                 throw takeObject(r1);
             }
             return Relays.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24342,7 +24624,8 @@ export class Relays {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -24364,7 +24647,8 @@ export class Relays {
                 throw takeObject(r1);
             }
             return Relays.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24384,13 +24668,15 @@ export class Relays {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -24409,7 +24695,8 @@ export class Relays {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24430,7 +24717,8 @@ export class Relays {
                 throw takeObject(r1);
             }
             return Relays.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24464,14 +24752,12 @@ export class Relays {
         wasm.relays_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const RewardAddressFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_rewardaddress_free(ptr >>> 0));
 /**
 */
 export class RewardAddress {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(RewardAddress.prototype);
@@ -24479,14 +24765,12 @@ export class RewardAddress {
         RewardAddressFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RewardAddressFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_rewardaddress_free(ptr);
@@ -24532,14 +24816,12 @@ export class RewardAddress {
         return ret;
     }
 }
-
 const RewardAddressesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_rewardaddresses_free(ptr >>> 0));
 /**
 */
 export class RewardAddresses {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(RewardAddresses.prototype);
@@ -24547,14 +24829,12 @@ export class RewardAddresses {
         RewardAddressesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         RewardAddressesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_rewardaddresses_free(ptr);
@@ -24571,7 +24851,8 @@ export class RewardAddresses {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24592,7 +24873,8 @@ export class RewardAddresses {
                 throw takeObject(r1);
             }
             return RewardAddresses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24610,7 +24892,8 @@ export class RewardAddresses {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -24632,7 +24915,8 @@ export class RewardAddresses {
                 throw takeObject(r1);
             }
             return RewardAddresses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24652,13 +24936,15 @@ export class RewardAddresses {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -24677,7 +24963,8 @@ export class RewardAddresses {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24698,7 +24985,8 @@ export class RewardAddresses {
                 throw takeObject(r1);
             }
             return RewardAddresses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24732,14 +25020,12 @@ export class RewardAddresses {
         wasm.rewardaddresses_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const ScriptAllFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scriptall_free(ptr >>> 0));
 /**
 */
 export class ScriptAll {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptAll.prototype);
@@ -24747,14 +25033,12 @@ export class ScriptAll {
         ScriptAllFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptAllFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scriptall_free(ptr);
@@ -24771,7 +25055,8 @@ export class ScriptAll {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24792,7 +25077,8 @@ export class ScriptAll {
                 throw takeObject(r1);
             }
             return ScriptAll.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24810,7 +25096,8 @@ export class ScriptAll {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -24832,7 +25119,8 @@ export class ScriptAll {
                 throw takeObject(r1);
             }
             return ScriptAll.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24852,13 +25140,15 @@ export class ScriptAll {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -24877,7 +25167,8 @@ export class ScriptAll {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24898,7 +25189,8 @@ export class ScriptAll {
                 throw takeObject(r1);
             }
             return ScriptAll.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24919,14 +25211,12 @@ export class ScriptAll {
         return ScriptAll.__wrap(ret);
     }
 }
-
 const ScriptAnyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scriptany_free(ptr >>> 0));
 /**
 */
 export class ScriptAny {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptAny.prototype);
@@ -24934,14 +25224,12 @@ export class ScriptAny {
         ScriptAnyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptAnyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scriptany_free(ptr);
@@ -24958,7 +25246,8 @@ export class ScriptAny {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24979,7 +25268,8 @@ export class ScriptAny {
                 throw takeObject(r1);
             }
             return ScriptAny.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -24997,7 +25287,8 @@ export class ScriptAny {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -25019,7 +25310,8 @@ export class ScriptAny {
                 throw takeObject(r1);
             }
             return ScriptAny.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25039,13 +25331,15 @@ export class ScriptAny {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -25064,7 +25358,8 @@ export class ScriptAny {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25085,7 +25380,8 @@ export class ScriptAny {
                 throw takeObject(r1);
             }
             return ScriptAny.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25106,14 +25402,12 @@ export class ScriptAny {
         return ScriptAny.__wrap(ret);
     }
 }
-
 const ScriptDataHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scriptdatahash_free(ptr >>> 0));
 /**
 */
 export class ScriptDataHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptDataHash.prototype);
@@ -25121,14 +25415,12 @@ export class ScriptDataHash {
         ScriptDataHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptDataHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scriptdatahash_free(ptr);
@@ -25150,7 +25442,8 @@ export class ScriptDataHash {
                 throw takeObject(r1);
             }
             return ScriptDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25166,7 +25459,8 @@ export class ScriptDataHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25189,13 +25483,15 @@ export class ScriptDataHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -25217,7 +25513,8 @@ export class ScriptDataHash {
                 throw takeObject(r1);
             }
             return ScriptDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25235,7 +25532,8 @@ export class ScriptDataHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -25257,19 +25555,18 @@ export class ScriptDataHash {
                 throw takeObject(r1);
             }
             return ScriptDataHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const ScriptHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scripthash_free(ptr >>> 0));
 /**
 */
 export class ScriptHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptHash.prototype);
@@ -25277,14 +25574,12 @@ export class ScriptHash {
         ScriptHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scripthash_free(ptr);
@@ -25306,7 +25601,8 @@ export class ScriptHash {
                 throw takeObject(r1);
             }
             return ScriptHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25322,7 +25618,8 @@ export class ScriptHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25345,13 +25642,15 @@ export class ScriptHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -25373,7 +25672,8 @@ export class ScriptHash {
                 throw takeObject(r1);
             }
             return ScriptHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25391,7 +25691,8 @@ export class ScriptHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -25413,19 +25714,18 @@ export class ScriptHash {
                 throw takeObject(r1);
             }
             return ScriptHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const ScriptHashesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scripthashes_free(ptr >>> 0));
 /**
 */
 export class ScriptHashes {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptHashes.prototype);
@@ -25433,14 +25733,12 @@ export class ScriptHashes {
         ScriptHashesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptHashesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scripthashes_free(ptr);
@@ -25457,7 +25755,8 @@ export class ScriptHashes {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25478,7 +25777,8 @@ export class ScriptHashes {
                 throw takeObject(r1);
             }
             return ScriptHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25496,7 +25796,8 @@ export class ScriptHashes {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -25518,7 +25819,8 @@ export class ScriptHashes {
                 throw takeObject(r1);
             }
             return ScriptHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25538,13 +25840,15 @@ export class ScriptHashes {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -25563,7 +25867,8 @@ export class ScriptHashes {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25584,7 +25889,8 @@ export class ScriptHashes {
                 throw takeObject(r1);
             }
             return ScriptHashes.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25618,14 +25924,12 @@ export class ScriptHashes {
         wasm.scripthashes_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const ScriptNOfKFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scriptnofk_free(ptr >>> 0));
 /**
 */
 export class ScriptNOfK {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptNOfK.prototype);
@@ -25633,14 +25937,12 @@ export class ScriptNOfK {
         ScriptNOfKFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptNOfKFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scriptnofk_free(ptr);
@@ -25657,7 +25959,8 @@ export class ScriptNOfK {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25678,7 +25981,8 @@ export class ScriptNOfK {
                 throw takeObject(r1);
             }
             return ScriptNOfK.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25696,7 +26000,8 @@ export class ScriptNOfK {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -25718,7 +26023,8 @@ export class ScriptNOfK {
                 throw takeObject(r1);
             }
             return ScriptNOfK.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25738,13 +26044,15 @@ export class ScriptNOfK {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -25763,7 +26071,8 @@ export class ScriptNOfK {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25784,7 +26093,8 @@ export class ScriptNOfK {
                 throw takeObject(r1);
             }
             return ScriptNOfK.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25813,14 +26123,12 @@ export class ScriptNOfK {
         return ScriptNOfK.__wrap(ret);
     }
 }
-
 const ScriptPubkeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scriptpubkey_free(ptr >>> 0));
 /**
 */
 export class ScriptPubkey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptPubkey.prototype);
@@ -25828,14 +26136,12 @@ export class ScriptPubkey {
         ScriptPubkeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptPubkeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scriptpubkey_free(ptr);
@@ -25852,7 +26158,8 @@ export class ScriptPubkey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25873,7 +26180,8 @@ export class ScriptPubkey {
                 throw takeObject(r1);
             }
             return ScriptPubkey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25891,7 +26199,8 @@ export class ScriptPubkey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -25913,7 +26222,8 @@ export class ScriptPubkey {
                 throw takeObject(r1);
             }
             return ScriptPubkey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25933,13 +26243,15 @@ export class ScriptPubkey {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -25958,7 +26270,8 @@ export class ScriptPubkey {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -25979,7 +26292,8 @@ export class ScriptPubkey {
                 throw takeObject(r1);
             }
             return ScriptPubkey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26000,14 +26314,12 @@ export class ScriptPubkey {
         return ScriptPubkey.__wrap(ret);
     }
 }
-
 const ScriptRefFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_scriptref_free(ptr >>> 0));
 /**
 */
 export class ScriptRef {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(ScriptRef.prototype);
@@ -26015,14 +26327,12 @@ export class ScriptRef {
         ScriptRefFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ScriptRefFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_scriptref_free(ptr);
@@ -26039,7 +26349,8 @@ export class ScriptRef {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26060,7 +26371,8 @@ export class ScriptRef {
                 throw takeObject(r1);
             }
             return ScriptRef.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26078,7 +26390,8 @@ export class ScriptRef {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -26100,7 +26413,8 @@ export class ScriptRef {
                 throw takeObject(r1);
             }
             return ScriptRef.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26120,13 +26434,15 @@ export class ScriptRef {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -26145,7 +26461,8 @@ export class ScriptRef {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26166,7 +26483,8 @@ export class ScriptRef {
                 throw takeObject(r1);
             }
             return ScriptRef.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26231,19 +26549,18 @@ export class ScriptRef {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const SingleHostAddrFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_singlehostaddr_free(ptr >>> 0));
 /**
 */
 export class SingleHostAddr {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(SingleHostAddr.prototype);
@@ -26251,14 +26568,12 @@ export class SingleHostAddr {
         SingleHostAddrFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         SingleHostAddrFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_singlehostaddr_free(ptr);
@@ -26275,7 +26590,8 @@ export class SingleHostAddr {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26296,7 +26612,8 @@ export class SingleHostAddr {
                 throw takeObject(r1);
             }
             return SingleHostAddr.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26314,7 +26631,8 @@ export class SingleHostAddr {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -26336,7 +26654,8 @@ export class SingleHostAddr {
                 throw takeObject(r1);
             }
             return SingleHostAddr.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26356,13 +26675,15 @@ export class SingleHostAddr {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -26381,7 +26702,8 @@ export class SingleHostAddr {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26402,7 +26724,8 @@ export class SingleHostAddr {
                 throw takeObject(r1);
             }
             return SingleHostAddr.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26448,14 +26771,12 @@ export class SingleHostAddr {
         return SingleHostAddr.__wrap(ret);
     }
 }
-
 const SingleHostNameFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_singlehostname_free(ptr >>> 0));
 /**
 */
 export class SingleHostName {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(SingleHostName.prototype);
@@ -26463,14 +26784,12 @@ export class SingleHostName {
         SingleHostNameFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         SingleHostNameFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_singlehostname_free(ptr);
@@ -26487,7 +26806,8 @@ export class SingleHostName {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26508,7 +26828,8 @@ export class SingleHostName {
                 throw takeObject(r1);
             }
             return SingleHostName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26526,7 +26847,8 @@ export class SingleHostName {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -26548,7 +26870,8 @@ export class SingleHostName {
                 throw takeObject(r1);
             }
             return SingleHostName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26568,13 +26891,15 @@ export class SingleHostName {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -26593,7 +26918,8 @@ export class SingleHostName {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26614,7 +26940,8 @@ export class SingleHostName {
                 throw takeObject(r1);
             }
             return SingleHostName.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26643,14 +26970,12 @@ export class SingleHostName {
         return SingleHostName.__wrap(ret);
     }
 }
-
 const StakeAndVoteDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_stakeandvotedelegation_free(ptr >>> 0));
 /**
 */
 export class StakeAndVoteDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(StakeAndVoteDelegation.prototype);
@@ -26658,14 +26983,12 @@ export class StakeAndVoteDelegation {
         StakeAndVoteDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakeAndVoteDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakeandvotedelegation_free(ptr);
@@ -26682,7 +27005,8 @@ export class StakeAndVoteDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26703,7 +27027,8 @@ export class StakeAndVoteDelegation {
                 throw takeObject(r1);
             }
             return StakeAndVoteDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26721,7 +27046,8 @@ export class StakeAndVoteDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -26743,7 +27069,8 @@ export class StakeAndVoteDelegation {
                 throw takeObject(r1);
             }
             return StakeAndVoteDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26763,13 +27090,15 @@ export class StakeAndVoteDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -26788,7 +27117,8 @@ export class StakeAndVoteDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26809,7 +27139,8 @@ export class StakeAndVoteDelegation {
                 throw takeObject(r1);
             }
             return StakeAndVoteDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26855,14 +27186,12 @@ export class StakeAndVoteDelegation {
         return ret !== 0;
     }
 }
-
 const StakeDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_stakedelegation_free(ptr >>> 0));
 /**
 */
 export class StakeDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(StakeDelegation.prototype);
@@ -26870,14 +27199,12 @@ export class StakeDelegation {
         StakeDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakeDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakedelegation_free(ptr);
@@ -26894,7 +27221,8 @@ export class StakeDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26915,7 +27243,8 @@ export class StakeDelegation {
                 throw takeObject(r1);
             }
             return StakeDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26933,7 +27262,8 @@ export class StakeDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -26955,7 +27285,8 @@ export class StakeDelegation {
                 throw takeObject(r1);
             }
             return StakeDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -26975,13 +27306,15 @@ export class StakeDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -27000,7 +27333,8 @@ export class StakeDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27021,7 +27355,8 @@ export class StakeDelegation {
                 throw takeObject(r1);
             }
             return StakeDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27058,14 +27393,12 @@ export class StakeDelegation {
         return ret !== 0;
     }
 }
-
 const StakeDeregistrationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_stakederegistration_free(ptr >>> 0));
 /**
 */
 export class StakeDeregistration {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(StakeDeregistration.prototype);
@@ -27073,14 +27406,12 @@ export class StakeDeregistration {
         StakeDeregistrationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakeDeregistrationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakederegistration_free(ptr);
@@ -27097,7 +27428,8 @@ export class StakeDeregistration {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27118,7 +27450,8 @@ export class StakeDeregistration {
                 throw takeObject(r1);
             }
             return StakeDeregistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27136,7 +27469,8 @@ export class StakeDeregistration {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -27158,7 +27492,8 @@ export class StakeDeregistration {
                 throw takeObject(r1);
             }
             return StakeDeregistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27178,13 +27513,15 @@ export class StakeDeregistration {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -27203,7 +27540,8 @@ export class StakeDeregistration {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27224,7 +27562,8 @@ export class StakeDeregistration {
                 throw takeObject(r1);
             }
             return StakeDeregistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27270,14 +27609,12 @@ export class StakeDeregistration {
         return ret !== 0;
     }
 }
-
 const StakeRegistrationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_stakeregistration_free(ptr >>> 0));
 /**
 */
 export class StakeRegistration {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(StakeRegistration.prototype);
@@ -27285,14 +27622,12 @@ export class StakeRegistration {
         StakeRegistrationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakeRegistrationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakeregistration_free(ptr);
@@ -27309,7 +27644,8 @@ export class StakeRegistration {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27330,7 +27666,8 @@ export class StakeRegistration {
                 throw takeObject(r1);
             }
             return StakeRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27348,7 +27685,8 @@ export class StakeRegistration {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -27370,7 +27708,8 @@ export class StakeRegistration {
                 throw takeObject(r1);
             }
             return StakeRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27390,13 +27729,15 @@ export class StakeRegistration {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -27415,7 +27756,8 @@ export class StakeRegistration {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27436,7 +27778,8 @@ export class StakeRegistration {
                 throw takeObject(r1);
             }
             return StakeRegistration.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27482,14 +27825,12 @@ export class StakeRegistration {
         return ret !== 0;
     }
 }
-
 const StakeRegistrationAndDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_stakeregistrationanddelegation_free(ptr >>> 0));
 /**
 */
 export class StakeRegistrationAndDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(StakeRegistrationAndDelegation.prototype);
@@ -27497,14 +27838,12 @@ export class StakeRegistrationAndDelegation {
         StakeRegistrationAndDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakeRegistrationAndDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakeregistrationanddelegation_free(ptr);
@@ -27521,7 +27860,8 @@ export class StakeRegistrationAndDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27542,7 +27882,8 @@ export class StakeRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return StakeRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27560,7 +27901,8 @@ export class StakeRegistrationAndDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -27582,7 +27924,8 @@ export class StakeRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return StakeRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27602,13 +27945,15 @@ export class StakeRegistrationAndDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -27627,7 +27972,8 @@ export class StakeRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27648,7 +27994,8 @@ export class StakeRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return StakeRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27694,14 +28041,12 @@ export class StakeRegistrationAndDelegation {
         return ret !== 0;
     }
 }
-
 const StakeVoteRegistrationAndDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_stakevoteregistrationanddelegation_free(ptr >>> 0));
 /**
 */
 export class StakeVoteRegistrationAndDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(StakeVoteRegistrationAndDelegation.prototype);
@@ -27709,14 +28054,12 @@ export class StakeVoteRegistrationAndDelegation {
         StakeVoteRegistrationAndDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StakeVoteRegistrationAndDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_stakevoteregistrationanddelegation_free(ptr);
@@ -27733,7 +28076,8 @@ export class StakeVoteRegistrationAndDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27754,7 +28098,8 @@ export class StakeVoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return StakeVoteRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27772,7 +28117,8 @@ export class StakeVoteRegistrationAndDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -27794,7 +28140,8 @@ export class StakeVoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return StakeVoteRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27814,13 +28161,15 @@ export class StakeVoteRegistrationAndDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -27839,7 +28188,8 @@ export class StakeVoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27860,7 +28210,8 @@ export class StakeVoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return StakeVoteRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -27915,14 +28266,12 @@ export class StakeVoteRegistrationAndDelegation {
         return ret !== 0;
     }
 }
-
 const StringsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_strings_free(ptr >>> 0));
 /**
 */
 export class Strings {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Strings.prototype);
@@ -27930,14 +28279,12 @@ export class Strings {
         StringsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         StringsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_strings_free(ptr);
@@ -27971,7 +28318,8 @@ export class Strings {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -27985,14 +28333,12 @@ export class Strings {
         wasm.strings_add(this.__wbg_ptr, ptr0, len0);
     }
 }
-
 const TimelockExpiryFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_timelockexpiry_free(ptr >>> 0));
 /**
 */
 export class TimelockExpiry {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TimelockExpiry.prototype);
@@ -28000,14 +28346,12 @@ export class TimelockExpiry {
         TimelockExpiryFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TimelockExpiryFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_timelockexpiry_free(ptr);
@@ -28024,7 +28368,8 @@ export class TimelockExpiry {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28045,7 +28390,8 @@ export class TimelockExpiry {
                 throw takeObject(r1);
             }
             return TimelockExpiry.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28063,7 +28409,8 @@ export class TimelockExpiry {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -28085,7 +28432,8 @@ export class TimelockExpiry {
                 throw takeObject(r1);
             }
             return TimelockExpiry.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28105,13 +28453,15 @@ export class TimelockExpiry {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -28130,7 +28480,8 @@ export class TimelockExpiry {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28151,7 +28502,8 @@ export class TimelockExpiry {
                 throw takeObject(r1);
             }
             return TimelockExpiry.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28169,7 +28521,8 @@ export class TimelockExpiry {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28201,14 +28554,12 @@ export class TimelockExpiry {
         return TimelockExpiry.__wrap(ret);
     }
 }
-
 const TimelockStartFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_timelockstart_free(ptr >>> 0));
 /**
 */
 export class TimelockStart {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TimelockStart.prototype);
@@ -28216,14 +28567,12 @@ export class TimelockStart {
         TimelockStartFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TimelockStartFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_timelockstart_free(ptr);
@@ -28240,7 +28589,8 @@ export class TimelockStart {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28261,7 +28611,8 @@ export class TimelockStart {
                 throw takeObject(r1);
             }
             return TimelockStart.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28279,7 +28630,8 @@ export class TimelockStart {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -28301,7 +28653,8 @@ export class TimelockStart {
                 throw takeObject(r1);
             }
             return TimelockStart.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28321,13 +28674,15 @@ export class TimelockStart {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -28346,7 +28701,8 @@ export class TimelockStart {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28367,7 +28723,8 @@ export class TimelockStart {
                 throw takeObject(r1);
             }
             return TimelockStart.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28389,7 +28746,8 @@ export class TimelockStart {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28421,14 +28779,12 @@ export class TimelockStart {
         return TimelockStart.__wrap(ret);
     }
 }
-
 const TransactionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transaction_free(ptr >>> 0));
 /**
 */
 export class Transaction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Transaction.prototype);
@@ -28436,14 +28792,12 @@ export class Transaction {
         TransactionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transaction_free(ptr);
@@ -28460,7 +28814,8 @@ export class Transaction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28481,7 +28836,8 @@ export class Transaction {
                 throw takeObject(r1);
             }
             return Transaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28499,7 +28855,8 @@ export class Transaction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -28521,7 +28878,8 @@ export class Transaction {
                 throw takeObject(r1);
             }
             return Transaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28541,13 +28899,15 @@ export class Transaction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -28566,7 +28926,8 @@ export class Transaction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28587,7 +28948,8 @@ export class Transaction {
                 throw takeObject(r1);
             }
             return Transaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28643,14 +29005,12 @@ export class Transaction {
         return Transaction.__wrap(ret);
     }
 }
-
 const TransactionBatchFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbatch_free(ptr >>> 0));
 /**
 */
 export class TransactionBatch {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBatch.prototype);
@@ -28658,14 +29018,12 @@ export class TransactionBatch {
         TransactionBatchFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBatchFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbatch_free(ptr);
@@ -28686,14 +29044,12 @@ export class TransactionBatch {
         return Transaction.__wrap(ret);
     }
 }
-
 const TransactionBatchListFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbatchlist_free(ptr >>> 0));
 /**
 */
 export class TransactionBatchList {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBatchList.prototype);
@@ -28701,14 +29057,12 @@ export class TransactionBatchList {
         TransactionBatchListFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBatchListFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbatchlist_free(ptr);
@@ -28729,14 +29083,12 @@ export class TransactionBatchList {
         return TransactionBatch.__wrap(ret);
     }
 }
-
 const TransactionBodiesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbodies_free(ptr >>> 0));
 /**
 */
 export class TransactionBodies {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBodies.prototype);
@@ -28744,14 +29096,12 @@ export class TransactionBodies {
         TransactionBodiesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBodiesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbodies_free(ptr);
@@ -28768,7 +29118,8 @@ export class TransactionBodies {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28789,7 +29140,8 @@ export class TransactionBodies {
                 throw takeObject(r1);
             }
             return TransactionBodies.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28807,7 +29159,8 @@ export class TransactionBodies {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -28829,7 +29182,8 @@ export class TransactionBodies {
                 throw takeObject(r1);
             }
             return TransactionBodies.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28849,13 +29203,15 @@ export class TransactionBodies {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -28874,7 +29230,8 @@ export class TransactionBodies {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28895,7 +29252,8 @@ export class TransactionBodies {
                 throw takeObject(r1);
             }
             return TransactionBodies.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28929,14 +29287,12 @@ export class TransactionBodies {
         wasm.transactionbodies_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const TransactionBodyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbody_free(ptr >>> 0));
 /**
 */
 export class TransactionBody {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBody.prototype);
@@ -28944,14 +29300,12 @@ export class TransactionBody {
         TransactionBodyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBodyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbody_free(ptr);
@@ -28968,7 +29322,8 @@ export class TransactionBody {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -28989,7 +29344,8 @@ export class TransactionBody {
                 throw takeObject(r1);
             }
             return TransactionBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29007,7 +29363,8 @@ export class TransactionBody {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -29029,7 +29386,8 @@ export class TransactionBody {
                 throw takeObject(r1);
             }
             return TransactionBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29049,13 +29407,15 @@ export class TransactionBody {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -29074,7 +29434,8 @@ export class TransactionBody {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29095,7 +29456,8 @@ export class TransactionBody {
                 throw takeObject(r1);
             }
             return TransactionBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29138,7 +29500,8 @@ export class TransactionBody {
                 throw takeObject(r2);
             }
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29258,7 +29621,8 @@ export class TransactionBody {
                 throw takeObject(r2);
             }
             return r0 === 0 ? undefined : r1 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29464,14 +29828,12 @@ export class TransactionBody {
         return TransactionBody.__wrap(ret);
     }
 }
-
 const TransactionBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbuilder_free(ptr >>> 0));
 /**
 */
 export class TransactionBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBuilder.prototype);
@@ -29479,14 +29841,12 @@ export class TransactionBuilder {
         TransactionBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbuilder_free(ptr);
@@ -29512,7 +29872,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29558,7 +29919,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29592,7 +29954,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29681,7 +30044,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29704,7 +30068,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return r0 !== 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29726,7 +30091,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29768,7 +30134,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29786,7 +30153,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29807,7 +30175,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29875,7 +30244,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29907,7 +30277,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -29996,7 +30367,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30019,7 +30391,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30063,7 +30436,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30107,7 +30481,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30134,7 +30509,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30163,7 +30539,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30191,7 +30568,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30236,7 +30614,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30278,7 +30657,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30297,7 +30677,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30316,7 +30697,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30335,7 +30717,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30354,7 +30737,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30372,7 +30756,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30403,7 +30788,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return r0 !== 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30425,7 +30811,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return r0 !== 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30451,7 +30838,8 @@ export class TransactionBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30493,7 +30881,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return r0 >>> 0;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30509,7 +30898,8 @@ export class TransactionBuilder {
             var v1 = getArrayU32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4, 4);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30530,7 +30920,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return TransactionBody.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30552,7 +30943,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Transaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30571,7 +30963,8 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return Transaction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30592,19 +30985,18 @@ export class TransactionBuilder {
                 throw takeObject(r1);
             }
             return BigNum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const TransactionBuilderConfigFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbuilderconfig_free(ptr >>> 0));
 /**
 */
 export class TransactionBuilderConfig {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBuilderConfig.prototype);
@@ -30612,27 +31004,23 @@ export class TransactionBuilderConfig {
         TransactionBuilderConfigFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBuilderConfigFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbuilderconfig_free(ptr);
     }
 }
-
 const TransactionBuilderConfigBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionbuilderconfigbuilder_free(ptr >>> 0));
 /**
 */
 export class TransactionBuilderConfigBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionBuilderConfigBuilder.prototype);
@@ -30640,14 +31028,12 @@ export class TransactionBuilderConfigBuilder {
         TransactionBuilderConfigBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionBuilderConfigBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionbuilderconfigbuilder_free(ptr);
@@ -30760,19 +31146,18 @@ export class TransactionBuilderConfigBuilder {
                 throw takeObject(r1);
             }
             return TransactionBuilderConfig.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const TransactionHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionhash_free(ptr >>> 0));
 /**
 */
 export class TransactionHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionHash.prototype);
@@ -30780,14 +31165,12 @@ export class TransactionHash {
         TransactionHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionhash_free(ptr);
@@ -30809,7 +31192,8 @@ export class TransactionHash {
                 throw takeObject(r1);
             }
             return TransactionHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30825,7 +31209,8 @@ export class TransactionHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30848,13 +31233,15 @@ export class TransactionHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -30876,7 +31263,8 @@ export class TransactionHash {
                 throw takeObject(r1);
             }
             return TransactionHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30894,7 +31282,8 @@ export class TransactionHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -30916,19 +31305,18 @@ export class TransactionHash {
                 throw takeObject(r1);
             }
             return TransactionHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const TransactionInputFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactioninput_free(ptr >>> 0));
 /**
 */
 export class TransactionInput {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionInput.prototype);
@@ -30936,14 +31324,12 @@ export class TransactionInput {
         TransactionInputFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionInputFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactioninput_free(ptr);
@@ -30960,7 +31346,8 @@ export class TransactionInput {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30981,7 +31368,8 @@ export class TransactionInput {
                 throw takeObject(r1);
             }
             return TransactionInput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -30999,7 +31387,8 @@ export class TransactionInput {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -31021,7 +31410,8 @@ export class TransactionInput {
                 throw takeObject(r1);
             }
             return TransactionInput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31041,13 +31431,15 @@ export class TransactionInput {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -31066,7 +31458,8 @@ export class TransactionInput {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31087,7 +31480,8 @@ export class TransactionInput {
                 throw takeObject(r1);
             }
             return TransactionInput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31116,14 +31510,12 @@ export class TransactionInput {
         return TransactionInput.__wrap(ret);
     }
 }
-
 const TransactionInputsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactioninputs_free(ptr >>> 0));
 /**
 */
 export class TransactionInputs {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionInputs.prototype);
@@ -31131,14 +31523,12 @@ export class TransactionInputs {
         TransactionInputsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionInputsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactioninputs_free(ptr);
@@ -31155,7 +31545,8 @@ export class TransactionInputs {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31176,7 +31567,8 @@ export class TransactionInputs {
                 throw takeObject(r1);
             }
             return TransactionInputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31194,7 +31586,8 @@ export class TransactionInputs {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -31216,7 +31609,8 @@ export class TransactionInputs {
                 throw takeObject(r1);
             }
             return TransactionInputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31236,13 +31630,15 @@ export class TransactionInputs {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -31261,7 +31657,8 @@ export class TransactionInputs {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31282,7 +31679,8 @@ export class TransactionInputs {
                 throw takeObject(r1);
             }
             return TransactionInputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31328,14 +31726,12 @@ export class TransactionInputs {
         return ret === 0 ? undefined : TransactionInputs.__wrap(ret);
     }
 }
-
 const TransactionMetadatumFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionmetadatum_free(ptr >>> 0));
 /**
 */
 export class TransactionMetadatum {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionMetadatum.prototype);
@@ -31343,14 +31739,12 @@ export class TransactionMetadatum {
         TransactionMetadatumFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionMetadatumFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionmetadatum_free(ptr);
@@ -31367,7 +31761,8 @@ export class TransactionMetadatum {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31388,7 +31783,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31406,7 +31802,8 @@ export class TransactionMetadatum {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -31428,7 +31825,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31476,7 +31874,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31497,7 +31896,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return TransactionMetadatum.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31522,7 +31922,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return MetadataMap.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31540,7 +31941,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return MetadataList.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31558,7 +31960,8 @@ export class TransactionMetadatum {
                 throw takeObject(r1);
             }
             return Int.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31579,7 +31982,8 @@ export class TransactionMetadatum {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31599,26 +32003,26 @@ export class TransactionMetadatum {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
     }
 }
-
 const TransactionMetadatumLabelsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionmetadatumlabels_free(ptr >>> 0));
 /**
 */
 export class TransactionMetadatumLabels {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionMetadatumLabels.prototype);
@@ -31626,14 +32030,12 @@ export class TransactionMetadatumLabels {
         TransactionMetadatumLabelsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionMetadatumLabelsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionmetadatumlabels_free(ptr);
@@ -31650,7 +32052,8 @@ export class TransactionMetadatumLabels {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31671,7 +32074,8 @@ export class TransactionMetadatumLabels {
                 throw takeObject(r1);
             }
             return TransactionMetadatumLabels.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31689,7 +32093,8 @@ export class TransactionMetadatumLabels {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -31711,7 +32116,8 @@ export class TransactionMetadatumLabels {
                 throw takeObject(r1);
             }
             return TransactionMetadatumLabels.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31745,14 +32151,12 @@ export class TransactionMetadatumLabels {
         wasm.transactionmetadatumlabels_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const TransactionOutputFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionoutput_free(ptr >>> 0));
 /**
 */
 export class TransactionOutput {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionOutput.prototype);
@@ -31760,14 +32164,12 @@ export class TransactionOutput {
         TransactionOutputFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionOutputFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionoutput_free(ptr);
@@ -31784,7 +32186,8 @@ export class TransactionOutput {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31805,7 +32208,8 @@ export class TransactionOutput {
                 throw takeObject(r1);
             }
             return TransactionOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31823,7 +32227,8 @@ export class TransactionOutput {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -31845,7 +32250,8 @@ export class TransactionOutput {
                 throw takeObject(r1);
             }
             return TransactionOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31865,13 +32271,15 @@ export class TransactionOutput {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -31890,7 +32298,8 @@ export class TransactionOutput {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -31911,7 +32320,8 @@ export class TransactionOutput {
                 throw takeObject(r1);
             }
             return TransactionOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32011,14 +32421,12 @@ export class TransactionOutput {
         return ret === 2 ? undefined : ret;
     }
 }
-
 const TransactionOutputAmountBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionoutputamountbuilder_free(ptr >>> 0));
 /**
 */
 export class TransactionOutputAmountBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionOutputAmountBuilder.prototype);
@@ -32026,14 +32434,12 @@ export class TransactionOutputAmountBuilder {
         TransactionOutputAmountBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionOutputAmountBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionoutputamountbuilder_free(ptr);
@@ -32085,7 +32491,8 @@ export class TransactionOutputAmountBuilder {
                 throw takeObject(r1);
             }
             return TransactionOutputAmountBuilder.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32103,14 +32510,14 @@ export class TransactionOutputAmountBuilder {
                 throw takeObject(r1);
             }
             return TransactionOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const TransactionOutputBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionoutputbuilder_free(ptr >>> 0));
 /**
 * We introduce a builder-pattern format for creating transaction outputs
@@ -32120,7 +32527,6 @@ const TransactionOutputBuilderFinalization = (typeof FinalizationRegistry === 'u
 * 3. Easier to adapt as the output format gets more complicated in future Cardano releases
 */
 export class TransactionOutputBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionOutputBuilder.prototype);
@@ -32128,14 +32534,12 @@ export class TransactionOutputBuilder {
         TransactionOutputBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionOutputBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionoutputbuilder_free(ptr);
@@ -32197,19 +32601,18 @@ export class TransactionOutputBuilder {
                 throw takeObject(r1);
             }
             return TransactionOutputAmountBuilder.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const TransactionOutputsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionoutputs_free(ptr >>> 0));
 /**
 */
 export class TransactionOutputs {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionOutputs.prototype);
@@ -32217,14 +32620,12 @@ export class TransactionOutputs {
         TransactionOutputsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionOutputsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionoutputs_free(ptr);
@@ -32241,7 +32642,8 @@ export class TransactionOutputs {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32262,7 +32664,8 @@ export class TransactionOutputs {
                 throw takeObject(r1);
             }
             return TransactionOutputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32280,7 +32683,8 @@ export class TransactionOutputs {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -32302,7 +32706,8 @@ export class TransactionOutputs {
                 throw takeObject(r1);
             }
             return TransactionOutputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32322,13 +32727,15 @@ export class TransactionOutputs {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -32347,7 +32754,8 @@ export class TransactionOutputs {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32368,7 +32776,8 @@ export class TransactionOutputs {
                 throw takeObject(r1);
             }
             return TransactionOutputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32402,14 +32811,12 @@ export class TransactionOutputs {
         wasm.transactionoutputs_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const TransactionUnspentOutputFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionunspentoutput_free(ptr >>> 0));
 /**
 */
 export class TransactionUnspentOutput {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionUnspentOutput.prototype);
@@ -32417,14 +32824,12 @@ export class TransactionUnspentOutput {
         TransactionUnspentOutputFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionUnspentOutputFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionunspentoutput_free(ptr);
@@ -32441,7 +32846,8 @@ export class TransactionUnspentOutput {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32462,7 +32868,8 @@ export class TransactionUnspentOutput {
                 throw takeObject(r1);
             }
             return TransactionUnspentOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32480,7 +32887,8 @@ export class TransactionUnspentOutput {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -32502,7 +32910,8 @@ export class TransactionUnspentOutput {
                 throw takeObject(r1);
             }
             return TransactionUnspentOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32522,13 +32931,15 @@ export class TransactionUnspentOutput {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -32547,7 +32958,8 @@ export class TransactionUnspentOutput {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32568,7 +32980,8 @@ export class TransactionUnspentOutput {
                 throw takeObject(r1);
             }
             return TransactionUnspentOutput.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32598,14 +33011,12 @@ export class TransactionUnspentOutput {
         return TransactionOutput.__wrap(ret);
     }
 }
-
 const TransactionUnspentOutputsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionunspentoutputs_free(ptr >>> 0));
 /**
 */
 export class TransactionUnspentOutputs {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionUnspentOutputs.prototype);
@@ -32613,14 +33024,12 @@ export class TransactionUnspentOutputs {
         TransactionUnspentOutputsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionUnspentOutputsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionunspentoutputs_free(ptr);
@@ -32641,13 +33050,15 @@ export class TransactionUnspentOutputs {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -32666,7 +33077,8 @@ export class TransactionUnspentOutputs {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32687,7 +33099,8 @@ export class TransactionUnspentOutputs {
                 throw takeObject(r1);
             }
             return TransactionUnspentOutputs.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32721,14 +33134,12 @@ export class TransactionUnspentOutputs {
         wasm.transactionunspentoutputs_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const TransactionWitnessSetFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionwitnessset_free(ptr >>> 0));
 /**
 */
 export class TransactionWitnessSet {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionWitnessSet.prototype);
@@ -32736,14 +33147,12 @@ export class TransactionWitnessSet {
         TransactionWitnessSetFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionWitnessSetFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionwitnessset_free(ptr);
@@ -32760,7 +33169,8 @@ export class TransactionWitnessSet {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32781,7 +33191,8 @@ export class TransactionWitnessSet {
                 throw takeObject(r1);
             }
             return TransactionWitnessSet.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32799,7 +33210,8 @@ export class TransactionWitnessSet {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -32821,7 +33233,8 @@ export class TransactionWitnessSet {
                 throw takeObject(r1);
             }
             return TransactionWitnessSet.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32841,13 +33254,15 @@ export class TransactionWitnessSet {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -32866,7 +33281,8 @@ export class TransactionWitnessSet {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32887,7 +33303,8 @@ export class TransactionWitnessSet {
                 throw takeObject(r1);
             }
             return TransactionWitnessSet.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -32983,14 +33400,12 @@ export class TransactionWitnessSet {
         return TransactionWitnessSet.__wrap(ret);
     }
 }
-
 const TransactionWitnessSetsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_transactionwitnesssets_free(ptr >>> 0));
 /**
 */
 export class TransactionWitnessSets {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TransactionWitnessSets.prototype);
@@ -32998,14 +33413,12 @@ export class TransactionWitnessSets {
         TransactionWitnessSetsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TransactionWitnessSetsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_transactionwitnesssets_free(ptr);
@@ -33022,7 +33435,8 @@ export class TransactionWitnessSets {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33043,7 +33457,8 @@ export class TransactionWitnessSets {
                 throw takeObject(r1);
             }
             return TransactionWitnessSets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33061,7 +33476,8 @@ export class TransactionWitnessSets {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -33083,7 +33499,8 @@ export class TransactionWitnessSets {
                 throw takeObject(r1);
             }
             return TransactionWitnessSets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33103,13 +33520,15 @@ export class TransactionWitnessSets {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -33128,7 +33547,8 @@ export class TransactionWitnessSets {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33149,7 +33569,8 @@ export class TransactionWitnessSets {
                 throw takeObject(r1);
             }
             return TransactionWitnessSets.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33183,14 +33604,12 @@ export class TransactionWitnessSets {
         wasm.transactionwitnesssets_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const TreasuryWithdrawalsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_treasurywithdrawals_free(ptr >>> 0));
 /**
 */
 export class TreasuryWithdrawals {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TreasuryWithdrawals.prototype);
@@ -33198,14 +33617,12 @@ export class TreasuryWithdrawals {
         TreasuryWithdrawalsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TreasuryWithdrawalsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_treasurywithdrawals_free(ptr);
@@ -33226,13 +33643,15 @@ export class TreasuryWithdrawals {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -33251,7 +33670,8 @@ export class TreasuryWithdrawals {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33272,7 +33692,8 @@ export class TreasuryWithdrawals {
                 throw takeObject(r1);
             }
             return TreasuryWithdrawals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33316,14 +33737,12 @@ export class TreasuryWithdrawals {
         return ret >>> 0;
     }
 }
-
 const TreasuryWithdrawalsActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_treasurywithdrawalsaction_free(ptr >>> 0));
 /**
 */
 export class TreasuryWithdrawalsAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TreasuryWithdrawalsAction.prototype);
@@ -33331,14 +33750,12 @@ export class TreasuryWithdrawalsAction {
         TreasuryWithdrawalsActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TreasuryWithdrawalsActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_treasurywithdrawalsaction_free(ptr);
@@ -33355,7 +33772,8 @@ export class TreasuryWithdrawalsAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33376,7 +33794,8 @@ export class TreasuryWithdrawalsAction {
                 throw takeObject(r1);
             }
             return TreasuryWithdrawalsAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33394,7 +33813,8 @@ export class TreasuryWithdrawalsAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -33416,7 +33836,8 @@ export class TreasuryWithdrawalsAction {
                 throw takeObject(r1);
             }
             return TreasuryWithdrawalsAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33436,13 +33857,15 @@ export class TreasuryWithdrawalsAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -33461,7 +33884,8 @@ export class TreasuryWithdrawalsAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33482,7 +33906,8 @@ export class TreasuryWithdrawalsAction {
                 throw takeObject(r1);
             }
             return TreasuryWithdrawalsAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33521,21 +33946,18 @@ export class TreasuryWithdrawalsAction {
         return TreasuryWithdrawalsAction.__wrap(ret);
     }
 }
-
 const TxBuilderConstantsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_txbuilderconstants_free(ptr >>> 0));
 /**
 */
 export class TxBuilderConstants {
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TxBuilderConstantsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_txbuilderconstants_free(ptr);
@@ -33569,14 +33991,12 @@ export class TxBuilderConstants {
         return Costmdls.__wrap(ret);
     }
 }
-
 const TxInputsBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_txinputsbuilder_free(ptr >>> 0));
 /**
 */
 export class TxInputsBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(TxInputsBuilder.prototype);
@@ -33584,14 +34004,12 @@ export class TxInputsBuilder {
         TxInputsBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         TxInputsBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_txinputsbuilder_free(ptr);
@@ -33670,7 +34088,8 @@ export class TxInputsBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33733,7 +34152,8 @@ export class TxInputsBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33752,14 +34172,12 @@ export class TxInputsBuilder {
         return ret === 0 ? undefined : TransactionInputs.__wrap(ret);
     }
 }
-
 const URLFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_url_free(ptr >>> 0));
 /**
 */
 export class URL {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(URL.prototype);
@@ -33767,14 +34185,12 @@ export class URL {
         URLFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         URLFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_url_free(ptr);
@@ -33791,7 +34207,8 @@ export class URL {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33812,7 +34229,8 @@ export class URL {
                 throw takeObject(r1);
             }
             return URL.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33830,7 +34248,8 @@ export class URL {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -33852,7 +34271,8 @@ export class URL {
                 throw takeObject(r1);
             }
             return URL.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33872,13 +34292,15 @@ export class URL {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -33897,7 +34319,8 @@ export class URL {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33918,7 +34341,8 @@ export class URL {
                 throw takeObject(r1);
             }
             return URL.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33939,7 +34363,8 @@ export class URL {
                 throw takeObject(r1);
             }
             return URL.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -33957,20 +34382,19 @@ export class URL {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
     }
 }
-
 const UnitIntervalFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_unitinterval_free(ptr >>> 0));
 /**
 */
 export class UnitInterval {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(UnitInterval.prototype);
@@ -33978,14 +34402,12 @@ export class UnitInterval {
         UnitIntervalFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         UnitIntervalFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_unitinterval_free(ptr);
@@ -34002,7 +34424,8 @@ export class UnitInterval {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34023,7 +34446,8 @@ export class UnitInterval {
                 throw takeObject(r1);
             }
             return UnitInterval.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34041,7 +34465,8 @@ export class UnitInterval {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -34063,7 +34488,8 @@ export class UnitInterval {
                 throw takeObject(r1);
             }
             return UnitInterval.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34083,13 +34509,15 @@ export class UnitInterval {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -34108,7 +34536,8 @@ export class UnitInterval {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34129,7 +34558,8 @@ export class UnitInterval {
                 throw takeObject(r1);
             }
             return UnitInterval.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34159,14 +34589,12 @@ export class UnitInterval {
         return UnitInterval.__wrap(ret);
     }
 }
-
 const UpdateFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_update_free(ptr >>> 0));
 /**
 */
 export class Update {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Update.prototype);
@@ -34174,14 +34602,12 @@ export class Update {
         UpdateFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         UpdateFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_update_free(ptr);
@@ -34198,7 +34624,8 @@ export class Update {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34219,7 +34646,8 @@ export class Update {
                 throw takeObject(r1);
             }
             return Update.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34237,7 +34665,8 @@ export class Update {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -34259,7 +34688,8 @@ export class Update {
                 throw takeObject(r1);
             }
             return Update.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34279,13 +34709,15 @@ export class Update {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -34304,7 +34736,8 @@ export class Update {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34325,7 +34758,8 @@ export class Update {
                 throw takeObject(r1);
             }
             return Update.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34354,14 +34788,12 @@ export class Update {
         return Update.__wrap(ret);
     }
 }
-
 const UpdateCommitteeActionFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_updatecommitteeaction_free(ptr >>> 0));
 /**
 */
 export class UpdateCommitteeAction {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(UpdateCommitteeAction.prototype);
@@ -34369,14 +34801,12 @@ export class UpdateCommitteeAction {
         UpdateCommitteeActionFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         UpdateCommitteeActionFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_updatecommitteeaction_free(ptr);
@@ -34393,7 +34823,8 @@ export class UpdateCommitteeAction {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34414,7 +34845,8 @@ export class UpdateCommitteeAction {
                 throw takeObject(r1);
             }
             return UpdateCommitteeAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34432,7 +34864,8 @@ export class UpdateCommitteeAction {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -34454,7 +34887,8 @@ export class UpdateCommitteeAction {
                 throw takeObject(r1);
             }
             return UpdateCommitteeAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34474,13 +34908,15 @@ export class UpdateCommitteeAction {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -34499,7 +34935,8 @@ export class UpdateCommitteeAction {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34520,7 +34957,8 @@ export class UpdateCommitteeAction {
                 throw takeObject(r1);
             }
             return UpdateCommitteeAction.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34570,14 +35008,12 @@ export class UpdateCommitteeAction {
         return UpdateCommitteeAction.__wrap(ret);
     }
 }
-
 const VRFCertFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vrfcert_free(ptr >>> 0));
 /**
 */
 export class VRFCert {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VRFCert.prototype);
@@ -34585,14 +35021,12 @@ export class VRFCert {
         VRFCertFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VRFCertFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vrfcert_free(ptr);
@@ -34609,7 +35043,8 @@ export class VRFCert {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34630,7 +35065,8 @@ export class VRFCert {
                 throw takeObject(r1);
             }
             return VRFCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34648,7 +35084,8 @@ export class VRFCert {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -34670,7 +35107,8 @@ export class VRFCert {
                 throw takeObject(r1);
             }
             return VRFCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34690,13 +35128,15 @@ export class VRFCert {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -34715,7 +35155,8 @@ export class VRFCert {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34736,7 +35177,8 @@ export class VRFCert {
                 throw takeObject(r1);
             }
             return VRFCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34752,7 +35194,8 @@ export class VRFCert {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34768,7 +35211,8 @@ export class VRFCert {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34792,19 +35236,18 @@ export class VRFCert {
                 throw takeObject(r1);
             }
             return VRFCert.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const VRFKeyHashFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vrfkeyhash_free(ptr >>> 0));
 /**
 */
 export class VRFKeyHash {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VRFKeyHash.prototype);
@@ -34812,14 +35255,12 @@ export class VRFKeyHash {
         VRFKeyHashFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VRFKeyHashFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vrfkeyhash_free(ptr);
@@ -34841,7 +35282,8 @@ export class VRFKeyHash {
                 throw takeObject(r1);
             }
             return VRFKeyHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34857,7 +35299,8 @@ export class VRFKeyHash {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34880,13 +35323,15 @@ export class VRFKeyHash {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -34908,7 +35353,8 @@ export class VRFKeyHash {
                 throw takeObject(r1);
             }
             return VRFKeyHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -34926,7 +35372,8 @@ export class VRFKeyHash {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -34948,19 +35395,18 @@ export class VRFKeyHash {
                 throw takeObject(r1);
             }
             return VRFKeyHash.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const VRFVKeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vrfvkey_free(ptr >>> 0));
 /**
 */
 export class VRFVKey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VRFVKey.prototype);
@@ -34968,14 +35414,12 @@ export class VRFVKey {
         VRFVKeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VRFVKeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vrfvkey_free(ptr);
@@ -34997,7 +35441,8 @@ export class VRFVKey {
                 throw takeObject(r1);
             }
             return VRFVKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35013,7 +35458,8 @@ export class VRFVKey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35036,13 +35482,15 @@ export class VRFVKey {
             var ptr2 = r0;
             var len2 = r1;
             if (r3) {
-                ptr2 = 0; len2 = 0;
+                ptr2 = 0;
+                len2 = 0;
                 throw takeObject(r2);
             }
             deferred3_0 = ptr2;
             deferred3_1 = len2;
             return getStringFromWasm0(ptr2, len2);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
         }
@@ -35064,7 +35512,8 @@ export class VRFVKey {
                 throw takeObject(r1);
             }
             return VRFVKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35082,7 +35531,8 @@ export class VRFVKey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -35104,19 +35554,18 @@ export class VRFVKey {
                 throw takeObject(r1);
             }
             return VRFVKey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
 }
-
 const ValueFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_value_free(ptr >>> 0));
 /**
 */
 export class Value {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Value.prototype);
@@ -35124,14 +35573,12 @@ export class Value {
         ValueFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         ValueFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_value_free(ptr);
@@ -35148,7 +35595,8 @@ export class Value {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35169,7 +35617,8 @@ export class Value {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35187,7 +35636,8 @@ export class Value {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -35209,7 +35659,8 @@ export class Value {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35229,13 +35680,15 @@ export class Value {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -35254,7 +35707,8 @@ export class Value {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35275,7 +35729,8 @@ export class Value {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35366,7 +35821,8 @@ export class Value {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35386,7 +35842,8 @@ export class Value {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35410,14 +35867,12 @@ export class Value {
         return ret === 0xFFFFFF ? undefined : ret;
     }
 }
-
 const VersionedBlockFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_versionedblock_free(ptr >>> 0));
 /**
 */
 export class VersionedBlock {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VersionedBlock.prototype);
@@ -35425,14 +35880,12 @@ export class VersionedBlock {
         VersionedBlockFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VersionedBlockFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_versionedblock_free(ptr);
@@ -35449,7 +35902,8 @@ export class VersionedBlock {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35470,7 +35924,8 @@ export class VersionedBlock {
                 throw takeObject(r1);
             }
             return VersionedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35488,7 +35943,8 @@ export class VersionedBlock {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -35510,7 +35966,8 @@ export class VersionedBlock {
                 throw takeObject(r1);
             }
             return VersionedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35530,13 +35987,15 @@ export class VersionedBlock {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -35555,7 +36014,8 @@ export class VersionedBlock {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35576,7 +36036,8 @@ export class VersionedBlock {
                 throw takeObject(r1);
             }
             return VersionedBlock.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35606,14 +36067,12 @@ export class VersionedBlock {
         return ret;
     }
 }
-
 const VkeyFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vkey_free(ptr >>> 0));
 /**
 */
 export class Vkey {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Vkey.prototype);
@@ -35621,14 +36080,12 @@ export class Vkey {
         VkeyFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VkeyFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vkey_free(ptr);
@@ -35645,7 +36102,8 @@ export class Vkey {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35666,7 +36124,8 @@ export class Vkey {
                 throw takeObject(r1);
             }
             return Vkey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35684,7 +36143,8 @@ export class Vkey {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -35706,7 +36166,8 @@ export class Vkey {
                 throw takeObject(r1);
             }
             return Vkey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35726,13 +36187,15 @@ export class Vkey {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -35751,7 +36214,8 @@ export class Vkey {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35772,7 +36236,8 @@ export class Vkey {
                 throw takeObject(r1);
             }
             return Vkey.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35793,14 +36258,12 @@ export class Vkey {
         return PublicKey.__wrap(ret);
     }
 }
-
 const VkeysFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vkeys_free(ptr >>> 0));
 /**
 */
 export class Vkeys {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Vkeys.prototype);
@@ -35808,14 +36271,12 @@ export class Vkeys {
         VkeysFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VkeysFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vkeys_free(ptr);
@@ -35850,14 +36311,12 @@ export class Vkeys {
         wasm.vkeys_add(this.__wbg_ptr, elem.__wbg_ptr);
     }
 }
-
 const VkeywitnessFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vkeywitness_free(ptr >>> 0));
 /**
 */
 export class Vkeywitness {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Vkeywitness.prototype);
@@ -35865,14 +36324,12 @@ export class Vkeywitness {
         VkeywitnessFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VkeywitnessFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vkeywitness_free(ptr);
@@ -35889,7 +36346,8 @@ export class Vkeywitness {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35910,7 +36368,8 @@ export class Vkeywitness {
                 throw takeObject(r1);
             }
             return Vkeywitness.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35928,7 +36387,8 @@ export class Vkeywitness {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -35950,7 +36410,8 @@ export class Vkeywitness {
                 throw takeObject(r1);
             }
             return Vkeywitness.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -35970,13 +36431,15 @@ export class Vkeywitness {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -35995,7 +36458,8 @@ export class Vkeywitness {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36016,7 +36480,8 @@ export class Vkeywitness {
                 throw takeObject(r1);
             }
             return Vkeywitness.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36046,14 +36511,12 @@ export class Vkeywitness {
         return Ed25519Signature.__wrap(ret);
     }
 }
-
 const VkeywitnessesFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_vkeywitnesses_free(ptr >>> 0));
 /**
 */
 export class Vkeywitnesses {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Vkeywitnesses.prototype);
@@ -36061,14 +36524,12 @@ export class Vkeywitnesses {
         VkeywitnessesFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VkeywitnessesFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_vkeywitnesses_free(ptr);
@@ -36085,7 +36546,8 @@ export class Vkeywitnesses {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36106,7 +36568,8 @@ export class Vkeywitnesses {
                 throw takeObject(r1);
             }
             return Vkeywitnesses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36124,7 +36587,8 @@ export class Vkeywitnesses {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -36146,7 +36610,8 @@ export class Vkeywitnesses {
                 throw takeObject(r1);
             }
             return Vkeywitnesses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36166,13 +36631,15 @@ export class Vkeywitnesses {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -36191,7 +36658,8 @@ export class Vkeywitnesses {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36212,7 +36680,8 @@ export class Vkeywitnesses {
                 throw takeObject(r1);
             }
             return Vkeywitnesses.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36250,14 +36719,12 @@ export class Vkeywitnesses {
         return ret !== 0;
     }
 }
-
 const VoteDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votedelegation_free(ptr >>> 0));
 /**
 */
 export class VoteDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VoteDelegation.prototype);
@@ -36265,14 +36732,12 @@ export class VoteDelegation {
         VoteDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VoteDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votedelegation_free(ptr);
@@ -36289,7 +36754,8 @@ export class VoteDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36310,7 +36776,8 @@ export class VoteDelegation {
                 throw takeObject(r1);
             }
             return VoteDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36328,7 +36795,8 @@ export class VoteDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -36350,7 +36818,8 @@ export class VoteDelegation {
                 throw takeObject(r1);
             }
             return VoteDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36370,13 +36839,15 @@ export class VoteDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -36395,7 +36866,8 @@ export class VoteDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36416,7 +36888,8 @@ export class VoteDelegation {
                 throw takeObject(r1);
             }
             return VoteDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36453,14 +36926,12 @@ export class VoteDelegation {
         return ret !== 0;
     }
 }
-
 const VoteRegistrationAndDelegationFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_voteregistrationanddelegation_free(ptr >>> 0));
 /**
 */
 export class VoteRegistrationAndDelegation {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VoteRegistrationAndDelegation.prototype);
@@ -36468,14 +36939,12 @@ export class VoteRegistrationAndDelegation {
         VoteRegistrationAndDelegationFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VoteRegistrationAndDelegationFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_voteregistrationanddelegation_free(ptr);
@@ -36492,7 +36961,8 @@ export class VoteRegistrationAndDelegation {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36513,7 +36983,8 @@ export class VoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return VoteRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36531,7 +37002,8 @@ export class VoteRegistrationAndDelegation {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -36553,7 +37025,8 @@ export class VoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return VoteRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36573,13 +37046,15 @@ export class VoteRegistrationAndDelegation {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -36598,7 +37073,8 @@ export class VoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36619,7 +37095,8 @@ export class VoteRegistrationAndDelegation {
                 throw takeObject(r1);
             }
             return VoteRegistrationAndDelegation.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36665,14 +37142,12 @@ export class VoteRegistrationAndDelegation {
         return ret !== 0;
     }
 }
-
 const VoterFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_voter_free(ptr >>> 0));
 /**
 */
 export class Voter {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Voter.prototype);
@@ -36680,14 +37155,12 @@ export class Voter {
         VoterFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VoterFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_voter_free(ptr);
@@ -36704,7 +37177,8 @@ export class Voter {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36725,7 +37199,8 @@ export class Voter {
                 throw takeObject(r1);
             }
             return Voter.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36743,7 +37218,8 @@ export class Voter {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -36765,7 +37241,8 @@ export class Voter {
                 throw takeObject(r1);
             }
             return Voter.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36785,13 +37262,15 @@ export class Voter {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -36810,7 +37289,8 @@ export class Voter {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36831,7 +37311,8 @@ export class Voter {
                 throw takeObject(r1);
             }
             return Voter.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36905,14 +37386,12 @@ export class Voter {
         return ret === 0 ? undefined : Ed25519KeyHash.__wrap(ret);
     }
 }
-
 const VotersFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_voters_free(ptr >>> 0));
 /**
 */
 export class Voters {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Voters.prototype);
@@ -36920,14 +37399,12 @@ export class Voters {
         VotersFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotersFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_voters_free(ptr);
@@ -36948,13 +37425,15 @@ export class Voters {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -36973,7 +37452,8 @@ export class Voters {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -36994,7 +37474,8 @@ export class Voters {
                 throw takeObject(r1);
             }
             return Voters.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37028,14 +37509,12 @@ export class Voters {
         return ret >>> 0;
     }
 }
-
 const VotingBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votingbuilder_free(ptr >>> 0));
 /**
 */
 export class VotingBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VotingBuilder.prototype);
@@ -37043,14 +37522,12 @@ export class VotingBuilder {
         VotingBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotingBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votingbuilder_free(ptr);
@@ -37079,7 +37556,8 @@ export class VotingBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37102,7 +37580,8 @@ export class VotingBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37125,7 +37604,8 @@ export class VotingBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37165,14 +37645,12 @@ export class VotingBuilder {
         return VotingProcedures.__wrap(ret);
     }
 }
-
 const VotingProcedureFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votingprocedure_free(ptr >>> 0));
 /**
 */
 export class VotingProcedure {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VotingProcedure.prototype);
@@ -37180,14 +37658,12 @@ export class VotingProcedure {
         VotingProcedureFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotingProcedureFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votingprocedure_free(ptr);
@@ -37204,7 +37680,8 @@ export class VotingProcedure {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37225,7 +37702,8 @@ export class VotingProcedure {
                 throw takeObject(r1);
             }
             return VotingProcedure.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37243,7 +37721,8 @@ export class VotingProcedure {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -37265,7 +37744,8 @@ export class VotingProcedure {
                 throw takeObject(r1);
             }
             return VotingProcedure.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37285,13 +37765,15 @@ export class VotingProcedure {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -37310,7 +37792,8 @@ export class VotingProcedure {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37331,7 +37814,8 @@ export class VotingProcedure {
                 throw takeObject(r1);
             }
             return VotingProcedure.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37368,14 +37852,12 @@ export class VotingProcedure {
         return ret === 0 ? undefined : Anchor.__wrap(ret);
     }
 }
-
 const VotingProceduresFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votingprocedures_free(ptr >>> 0));
 /**
 */
 export class VotingProcedures {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VotingProcedures.prototype);
@@ -37383,14 +37865,12 @@ export class VotingProcedures {
         VotingProceduresFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotingProceduresFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votingprocedures_free(ptr);
@@ -37407,7 +37887,8 @@ export class VotingProcedures {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37428,7 +37909,8 @@ export class VotingProcedures {
                 throw takeObject(r1);
             }
             return VotingProcedures.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37446,7 +37928,8 @@ export class VotingProcedures {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -37468,7 +37951,8 @@ export class VotingProcedures {
                 throw takeObject(r1);
             }
             return VotingProcedures.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37488,13 +37972,15 @@ export class VotingProcedures {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -37513,7 +37999,8 @@ export class VotingProcedures {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37534,7 +38021,8 @@ export class VotingProcedures {
                 throw takeObject(r1);
             }
             return VotingProcedures.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37584,14 +38072,12 @@ export class VotingProcedures {
         return GovernanceActionIds.__wrap(ret);
     }
 }
-
 const VotingProposalFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votingproposal_free(ptr >>> 0));
 /**
 */
 export class VotingProposal {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VotingProposal.prototype);
@@ -37599,14 +38085,12 @@ export class VotingProposal {
         VotingProposalFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotingProposalFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votingproposal_free(ptr);
@@ -37623,7 +38107,8 @@ export class VotingProposal {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37644,7 +38129,8 @@ export class VotingProposal {
                 throw takeObject(r1);
             }
             return VotingProposal.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37662,7 +38148,8 @@ export class VotingProposal {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -37684,7 +38171,8 @@ export class VotingProposal {
                 throw takeObject(r1);
             }
             return VotingProposal.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37704,13 +38192,15 @@ export class VotingProposal {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -37729,7 +38219,8 @@ export class VotingProposal {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37750,7 +38241,8 @@ export class VotingProposal {
                 throw takeObject(r1);
             }
             return VotingProposal.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37798,14 +38290,12 @@ export class VotingProposal {
         return VotingProposal.__wrap(ret);
     }
 }
-
 const VotingProposalBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votingproposalbuilder_free(ptr >>> 0));
 /**
 */
 export class VotingProposalBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VotingProposalBuilder.prototype);
@@ -37813,14 +38303,12 @@ export class VotingProposalBuilder {
         VotingProposalBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotingProposalBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votingproposalbuilder_free(ptr);
@@ -37845,7 +38333,8 @@ export class VotingProposalBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37864,7 +38353,8 @@ export class VotingProposalBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37897,14 +38387,12 @@ export class VotingProposalBuilder {
         return VotingProposals.__wrap(ret);
     }
 }
-
 const VotingProposalsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_votingproposals_free(ptr >>> 0));
 /**
 */
 export class VotingProposals {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(VotingProposals.prototype);
@@ -37912,14 +38400,12 @@ export class VotingProposals {
         VotingProposalsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         VotingProposalsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_votingproposals_free(ptr);
@@ -37936,7 +38422,8 @@ export class VotingProposals {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37957,7 +38444,8 @@ export class VotingProposals {
                 throw takeObject(r1);
             }
             return VotingProposals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -37975,7 +38463,8 @@ export class VotingProposals {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -37997,7 +38486,8 @@ export class VotingProposals {
                 throw takeObject(r1);
             }
             return VotingProposals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38017,13 +38507,15 @@ export class VotingProposals {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -38042,7 +38534,8 @@ export class VotingProposals {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38063,7 +38556,8 @@ export class VotingProposals {
                 throw takeObject(r1);
             }
             return VotingProposals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38101,14 +38595,12 @@ export class VotingProposals {
         return ret !== 0;
     }
 }
-
 const WithdrawalsFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_withdrawals_free(ptr >>> 0));
 /**
 */
 export class Withdrawals {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(Withdrawals.prototype);
@@ -38116,14 +38608,12 @@ export class Withdrawals {
         WithdrawalsFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         WithdrawalsFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_withdrawals_free(ptr);
@@ -38140,7 +38630,8 @@ export class Withdrawals {
             var v1 = getArrayU8FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 1, 1);
             return v1;
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38161,7 +38652,8 @@ export class Withdrawals {
                 throw takeObject(r1);
             }
             return Withdrawals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38179,7 +38671,8 @@ export class Withdrawals {
             deferred1_0 = r0;
             deferred1_1 = r1;
             return getStringFromWasm0(r0, r1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
         }
@@ -38201,7 +38694,8 @@ export class Withdrawals {
                 throw takeObject(r1);
             }
             return Withdrawals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38221,13 +38715,15 @@ export class Withdrawals {
             var ptr1 = r0;
             var len1 = r1;
             if (r3) {
-                ptr1 = 0; len1 = 0;
+                ptr1 = 0;
+                len1 = 0;
                 throw takeObject(r2);
             }
             deferred2_0 = ptr1;
             deferred2_1 = len1;
             return getStringFromWasm0(ptr1, len1);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
             wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
         }
@@ -38246,7 +38742,8 @@ export class Withdrawals {
                 throw takeObject(r1);
             }
             return takeObject(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38267,7 +38764,8 @@ export class Withdrawals {
                 throw takeObject(r1);
             }
             return Withdrawals.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38313,14 +38811,12 @@ export class Withdrawals {
         return RewardAddresses.__wrap(ret);
     }
 }
-
 const WithdrawalsBuilderFinalization = (typeof FinalizationRegistry === 'undefined')
-    ? { register: () => {}, unregister: () => {} }
+    ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry(ptr => wasm.__wbg_withdrawalsbuilder_free(ptr >>> 0));
 /**
 */
 export class WithdrawalsBuilder {
-
     static __wrap(ptr) {
         ptr = ptr >>> 0;
         const obj = Object.create(WithdrawalsBuilder.prototype);
@@ -38328,14 +38824,12 @@ export class WithdrawalsBuilder {
         WithdrawalsBuilderFinalization.register(obj, obj.__wbg_ptr, obj);
         return obj;
     }
-
     __destroy_into_raw() {
         const ptr = this.__wbg_ptr;
         this.__wbg_ptr = 0;
         WithdrawalsBuilderFinalization.unregister(this);
         return ptr;
     }
-
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_withdrawalsbuilder_free(ptr);
@@ -38362,7 +38856,8 @@ export class WithdrawalsBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38383,7 +38878,8 @@ export class WithdrawalsBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38404,7 +38900,8 @@ export class WithdrawalsBuilder {
             if (r1) {
                 throw takeObject(r0);
             }
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38443,7 +38940,8 @@ export class WithdrawalsBuilder {
                 throw takeObject(r1);
             }
             return Value.__wrap(r0);
-        } finally {
+        }
+        finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
     }
@@ -38462,256 +38960,272 @@ export class WithdrawalsBuilder {
         return Withdrawals.__wrap(ret);
     }
 }
-
 export function __wbindgen_object_drop_ref(arg0) {
     takeObject(arg0);
-};
-
+}
+;
 export function __wbindgen_string_new(arg0, arg1) {
     const ret = getStringFromWasm0(arg0, arg1);
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_number_new(arg0) {
     const ret = arg0;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_error_new(arg0, arg1) {
     const ret = new Error(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_string_get(arg0, arg1) {
     const obj = getObject(arg1);
-    const ret = typeof(obj) === 'string' ? obj : undefined;
+    const ret = typeof (obj) === 'string' ? obj : undefined;
     var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     var len1 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len1;
     getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-};
-
+}
+;
 export function __wbindgen_object_clone_ref(arg0) {
     const ret = getObject(arg0);
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_is_object(arg0) {
     const val = getObject(arg0);
-    const ret = typeof(val) === 'object' && val !== null;
+    const ret = typeof (val) === 'object' && val !== null;
     return ret;
-};
-
+}
+;
 export function __wbg_String_91fba7ded13ba54c(arg0, arg1) {
     const ret = String(getObject(arg1));
     const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len1;
     getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-};
-
+}
+;
 export function __wbg_set_20cbc34131e76824(arg0, arg1, arg2) {
     getObject(arg0)[takeObject(arg1)] = takeObject(arg2);
-};
-
+}
+;
 export function __wbg_crypto_1d1f22824a6a080c(arg0) {
     const ret = getObject(arg0).crypto;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_process_4a72847cc503995b(arg0) {
     const ret = getObject(arg0).process;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_versions_f686565e586dd935(arg0) {
     const ret = getObject(arg0).versions;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_node_104a2ff8d6ea03a2(arg0) {
     const ret = getObject(arg0).node;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_is_string(arg0) {
-    const ret = typeof(getObject(arg0)) === 'string';
+    const ret = typeof (getObject(arg0)) === 'string';
     return ret;
-};
-
-export function __wbg_require_cca90b1a94a0255b() { return handleError(function () {
-    const ret = module.require;
-    return addHeapObject(ret);
-}, arguments) };
-
+}
+;
+export function __wbg_require_cca90b1a94a0255b() {
+    return handleError(function () {
+        const ret = module.require;
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
 export function __wbg_msCrypto_eb05e62b530a1508(arg0) {
     const ret = getObject(arg0).msCrypto;
     return addHeapObject(ret);
-};
-
-export function __wbg_randomFillSync_5c9c955aa56b6049() { return handleError(function (arg0, arg1) {
-    getObject(arg0).randomFillSync(takeObject(arg1));
-}, arguments) };
-
-export function __wbg_getRandomValues_3aa56aa6edec874c() { return handleError(function (arg0, arg1) {
-    getObject(arg0).getRandomValues(getObject(arg1));
-}, arguments) };
-
+}
+;
+export function __wbg_randomFillSync_5c9c955aa56b6049() {
+    return handleError(function (arg0, arg1) {
+        getObject(arg0).randomFillSync(takeObject(arg1));
+    }, arguments);
+}
+;
+export function __wbg_getRandomValues_3aa56aa6edec874c() {
+    return handleError(function (arg0, arg1) {
+        getObject(arg0).getRandomValues(getObject(arg1));
+    }, arguments);
+}
+;
 export function __wbg_new_16b304a2cfa7ff4a() {
     const ret = new Array();
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_is_function(arg0) {
-    const ret = typeof(getObject(arg0)) === 'function';
+    const ret = typeof (getObject(arg0)) === 'function';
     return ret;
-};
-
+}
+;
 export function __wbg_newnoargs_e258087cd0daa0ea(arg0, arg1) {
     const ret = new Function(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_new_d9bc3a0147634640() {
     const ret = new Map();
     return addHeapObject(ret);
-};
-
-export function __wbg_call_27c0f87801dedf93() { return handleError(function (arg0, arg1) {
-    const ret = getObject(arg0).call(getObject(arg1));
-    return addHeapObject(ret);
-}, arguments) };
-
+}
+;
+export function __wbg_call_27c0f87801dedf93() {
+    return handleError(function (arg0, arg1) {
+        const ret = getObject(arg0).call(getObject(arg1));
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
 export function __wbg_new_72fb9a18b5ae2624() {
     const ret = new Object();
     return addHeapObject(ret);
-};
-
-export function __wbg_self_ce0dbfc45cf2f5be() { return handleError(function () {
-    const ret = self.self;
-    return addHeapObject(ret);
-}, arguments) };
-
-export function __wbg_window_c6fb939a7f436783() { return handleError(function () {
-    const ret = window.window;
-    return addHeapObject(ret);
-}, arguments) };
-
-export function __wbg_globalThis_d1e6af4856ba331b() { return handleError(function () {
-    const ret = globalThis.globalThis;
-    return addHeapObject(ret);
-}, arguments) };
-
-export function __wbg_global_207b558942527489() { return handleError(function () {
-    const ret = global.global;
-    return addHeapObject(ret);
-}, arguments) };
-
+}
+;
+export function __wbg_self_ce0dbfc45cf2f5be() {
+    return handleError(function () {
+        const ret = self.self;
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
+export function __wbg_window_c6fb939a7f436783() {
+    return handleError(function () {
+        const ret = window.window;
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
+export function __wbg_globalThis_d1e6af4856ba331b() {
+    return handleError(function () {
+        const ret = globalThis.globalThis;
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
+export function __wbg_global_207b558942527489() {
+    return handleError(function () {
+        const ret = global.global;
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
 export function __wbindgen_is_undefined(arg0) {
     const ret = getObject(arg0) === undefined;
     return ret;
-};
-
+}
+;
 export function __wbg_set_d4638f722068f043(arg0, arg1, arg2) {
     getObject(arg0)[arg1 >>> 0] = takeObject(arg2);
-};
-
-export function __wbg_call_b3ca7c6051f9bec1() { return handleError(function (arg0, arg1, arg2) {
-    const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
-    return addHeapObject(ret);
-}, arguments) };
-
+}
+;
+export function __wbg_call_b3ca7c6051f9bec1() {
+    return handleError(function (arg0, arg1, arg2) {
+        const ret = getObject(arg0).call(getObject(arg1), getObject(arg2));
+        return addHeapObject(ret);
+    }, arguments);
+}
+;
 export function __wbg_set_8417257aaedc936b(arg0, arg1, arg2) {
     const ret = getObject(arg0).set(getObject(arg1), getObject(arg2));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_buffer_12d079cc21e14bdb(arg0) {
     const ret = getObject(arg0).buffer;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_newwithbyteoffsetandlength_aa4a17c33a06e5cb(arg0, arg1, arg2) {
     const ret = new Uint8Array(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_new_63b92bc8671ed464(arg0) {
     const ret = new Uint8Array(getObject(arg0));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_set_a47bac70306a19a7(arg0, arg1, arg2) {
     getObject(arg0).set(getObject(arg1), arg2 >>> 0);
-};
-
+}
+;
 export function __wbg_newwithlength_e9b4878cebadb3d3(arg0) {
     const ret = new Uint8Array(arg0 >>> 0);
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_subarray_a1f73cd4b5b42fe1(arg0, arg1, arg2) {
     const ret = getObject(arg0).subarray(arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_new_d87f272aec784ec0(arg0, arg1) {
     const ret = new Function(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_call_eae29933372a39be(arg0, arg1) {
     const ret = getObject(arg0).call(getObject(arg1));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbindgen_jsval_eq(arg0, arg1) {
     const ret = getObject(arg0) === getObject(arg1);
     return ret;
-};
-
+}
+;
 export function __wbg_self_e0b3266d2d9eba1a(arg0) {
     const ret = getObject(arg0).self;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_require_0993fe224bf8e202(arg0, arg1) {
-    const ret = require(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_crypto_e95a6e54c5c2e37f(arg0) {
     const ret = getObject(arg0).crypto;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_getRandomValues_dc67302a7bd1aec5(arg0) {
     const ret = getObject(arg0).getRandomValues;
     return addHeapObject(ret);
-};
-
+}
+;
 export function __wbg_randomFillSync_dd2297de5917c74e(arg0, arg1, arg2) {
     getObject(arg0).randomFillSync(getArrayU8FromWasm0(arg1, arg2));
-};
-
+}
+;
 export function __wbg_getRandomValues_02639197c8166a96(arg0, arg1, arg2) {
     getObject(arg0).getRandomValues(getArrayU8FromWasm0(arg1, arg2));
-};
-
+}
+;
 export function __wbindgen_debug_string(arg0, arg1) {
     const ret = debugString(getObject(arg1));
     const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len1 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len1;
     getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-};
-
+}
+;
 export function __wbindgen_throw(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
-};
-
+}
+;
 export function __wbindgen_memory() {
     const ret = wasm.memory;
     return addHeapObject(ret);
-};
-
+}
+;

@@ -1,5 +1,4 @@
-const { PeraWalletConnect } = require("@perawallet/connect");
-
+import { PeraWalletConnect } from "@perawallet/connect";
 class Pera {
   constructor(network) {
     this.name = "Pera";
@@ -37,5 +36,4 @@ class Pera {
     return signedTxn;
   }
 }
-
-module.exports = Pera;
+export default Pera;

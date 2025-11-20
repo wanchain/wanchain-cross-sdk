@@ -1,13 +1,10 @@
+import axios from "axios";
 "use strict";
-
-const axios = require("axios");
-
-module.exports = class CheckXrpTx {
+export default (class CheckXrpTx {
     constructor(frameworkService) {
         this.m_frameworkService = frameworkService;
         this.m_CheckAry = [];
     }
-
     async init(chainType) {
         this.m_taskService = this.m_frameworkService.getService("TaskService");
         this.m_configService = this.m_frameworkService.getService("ConfigService");
@@ -17,7 +14,6 @@ module.exports = class CheckXrpTx {
         this.m_taskService.addTask(this, chainInfo.txScanInterval);
         this.m_eventService = this.m_frameworkService.getService("EventService");
     }
-
     async add(obj) {
         try {
             let url = this.m_apiServerConfig.url + "/api/xrp/addTxInfo";
@@ -31,7 +27,8 @@ module.exports = class CheckXrpTx {
             if (ret.data.success === true) {
                 console.log("CheckXrpTx save to apiServer success");
                 this.m_CheckAry.unshift(obj);
-            } else {
+            }
+            else {
                 console.error("CheckXrpTx save to apiServer fail: %O", postJson);
             }
         }
@@ -39,11 +36,9 @@ module.exports = class CheckXrpTx {
             console.log("CheckXrpTx err:", err);
         }
     }
-
     async load(obj) {
         this.m_CheckAry.unshift(obj);
     }
-
     async runTask(taskPara) {
         try {
             if (this.m_CheckAry.length <= 0) {
@@ -60,14 +55,15 @@ module.exports = class CheckXrpTx {
                 if (ret.data.success && ret.data.data) {
                     let eventService = this.m_frameworkService.getService("EventService");
                     let data = ret.data.data;
-                    await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.xrpHash, toAccount: data.xrpAddr, value: data.value});
+                    await eventService.emitEvent("RedeemTxHash", { ccTaskId: obj.ccTaskId, txHash: data.xrpHash, toAccount: data.xrpAddr, value: data.value });
                     let storageService = this.m_frameworkService.getService("StorageService");
                     await storageService.delete("ScEventScanService", obj.uniqueID);
                     this.m_CheckAry.splice(index, 1);
                 }
             }
-        } catch (err) {
+        }
+        catch (err) {
             console.error("CheckXrpTx error: %O", err);
         }
     }
-};
+});

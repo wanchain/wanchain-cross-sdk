@@ -1,39 +1,39 @@
 [
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint32",
-        "name": "sourceDomain",
-        "type": "uint32"
-      },
-      {
-        "indexed": true,
-        "internalType": "uint64",
-        "name": "nonce",
-        "type": "uint64"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "sender",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "messageBody",
-        "type": "bytes"
-      }
-    ],
-    "name": "MessageReceived",
-    "type": "event"
-  }
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "caller",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "sourceDomain",
+                "type": "uint32"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint64",
+                "name": "nonce",
+                "type": "uint64"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes32",
+                "name": "sender",
+                "type": "bytes32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "messageBody",
+                "type": "bytes"
+            }
+        ],
+        "name": "MessageReceived",
+        "type": "event"
+    }
 ]

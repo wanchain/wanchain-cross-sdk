@@ -2,167 +2,155 @@ import * as anchor from '@coral-xyz/anchor';
 import { bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { PublicKey, Keypair, SystemProgram } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync as getAssociatedTokenAddressSyncFn } from '@solana/spl-token';
-
 function validateAddress(address) {
-  try {
-    let pk = new PublicKey(address);
-    return PublicKey.isOnCurve(pk.toBytes());
-  } catch (error) {
-    return false;
-  }
-}
-
-function getStandardAddressInfo(address) {
-  try { // address is ATA for cctp, it is not on curve, can not call validateAddress
-    let bs58Addr = address;
-    if ((address !== SystemProgram.programId.toString()) && (/^(0x)?[0-9A-Fa-f]+$/.test(address))) { // decoded format, only used to check apiServer toAddr
-      bs58Addr = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
+    try {
+        let pk = new PublicKey(address);
+        return PublicKey.isOnCurve(pk.toBytes());
     }
-    new PublicKey(bs58Addr);
-    let decoded = bs58.decode(bs58Addr);
-    let native = bs58Addr;
-    let evm = asciiToHex(native);
-    let cctp = '0x' + Buffer.from(decoded).toString('hex');
-    return {native, evm, text: native, cctp, compact: cctp};
-  } catch (err) {
-    throw new Error("Solana address is invalid: " + address);
-  }
+    catch (error) {
+        return false;
+    }
 }
-
+function getStandardAddressInfo(address) {
+    try { // address is ATA for cctp, it is not on curve, can not call validateAddress
+        let bs58Addr = address;
+        if ((address !== SystemProgram.programId.toString()) && (/^(0x)?[0-9A-Fa-f]+$/.test(address))) { // decoded format, only used to check apiServer toAddr
+            bs58Addr = bs58.encode(Buffer.from(hexStrip0x(address), "hex"));
+        }
+        new PublicKey(bs58Addr);
+        let decoded = bs58.decode(bs58Addr);
+        let native = bs58Addr;
+        let evm = asciiToHex(native);
+        let cctp = '0x' + Buffer.from(decoded).toString('hex');
+        return { native, evm, text: native, cctp, compact: cctp };
+    }
+    catch (err) {
+        throw new Error("Solana address is invalid: " + address);
+    }
+}
 function hexStrip0x(hexStr) {
-  if (0 == hexStr.indexOf('0x')) {
-      return hexStr.slice(2);
-  }
-  return hexStr;
+    if (0 == hexStr.indexOf('0x')) {
+        return hexStr.slice(2);
+    }
+    return hexStr;
 }
-
 // according to web3.utils.asciiToHex
 function asciiToHex(str) {
-	let hexString = '';
-	for (let i = 0; i < str.length; i += 1) {
-		const hexCharCode = str.charCodeAt(i).toString(16);
-		// might need a leading 0
-		hexString += hexCharCode.length % 2 !== 0 ? ('0' + hexCharCode) : hexCharCode;
-	}
-	return '0x' + hexString;
-}
-
-function hex2bytes(hex) {
-  const bytes = [];
-  for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
-  return bytes;
-}
-
-function toBigNumber(value) {
-  return new anchor.BN(value);
-}
-
-function getSystemProgramId() {
-  return anchor.web3.SystemProgram.programId;
-}
-
-function getTokenProgramId() {
-  return TOKEN_PROGRAM_ID;
-}
-
-function findProgramAddress(label, programId, extraSeeds) {
-  const seeds = [Buffer.from(anchor.utils.bytes.utf8.encode(label))];
-  if (extraSeeds) {
-    for (const extraSeed of extraSeeds) {
-      if (typeof extraSeed === "string") {
-        seeds.push(Buffer.from(anchor.utils.bytes.utf8.encode(extraSeed)));
-      } else if (Array.isArray(extraSeed)) {
-        seeds.push(Buffer.from(extraSeed));
-      } else if (Buffer.isBuffer(extraSeed)) {
-        seeds.push(extraSeed);
-      } else {
-        seeds.push(extraSeed.toBuffer());
-      }
+    let hexString = '';
+    for (let i = 0; i < str.length; i += 1) {
+        const hexCharCode = str.charCodeAt(i).toString(16);
+        // might need a leading 0
+        hexString += hexCharCode.length % 2 !== 0 ? ('0' + hexCharCode) : hexCharCode;
     }
-  }
-  const res = anchor.web3.PublicKey.findProgramAddressSync(seeds, programId);
-  return {publicKey: res[0], bump: res[1]};
+    return '0x' + hexString;
 }
-
+function hex2bytes(hex) {
+    const bytes = [];
+    for (let c = 0; c < hex.length; c += 2)
+        bytes.push(parseInt(hex.substr(c, 2), 16));
+    return bytes;
+}
+function toBigNumber(value) {
+    return new anchor.BN(value);
+}
+function getSystemProgramId() {
+    return anchor.web3.SystemProgram.programId;
+}
+function getTokenProgramId() {
+    return TOKEN_PROGRAM_ID;
+}
+function findProgramAddress(label, programId, extraSeeds) {
+    const seeds = [Buffer.from(anchor.utils.bytes.utf8.encode(label))];
+    if (extraSeeds) {
+        for (const extraSeed of extraSeeds) {
+            if (typeof extraSeed === "string") {
+                seeds.push(Buffer.from(anchor.utils.bytes.utf8.encode(extraSeed)));
+            }
+            else if (Array.isArray(extraSeed)) {
+                seeds.push(Buffer.from(extraSeed));
+            }
+            else if (Buffer.isBuffer(extraSeed)) {
+                seeds.push(extraSeed);
+            }
+            else {
+                seeds.push(extraSeed.toBuffer());
+            }
+        }
+    }
+    const res = anchor.web3.PublicKey.findProgramAddressSync(seeds, programId);
+    return { publicKey: res[0], bump: res[1] };
+}
 function getAssociatedTokenAddressSync(tokenAddress, owner, allowOwnerOffCurve = false, tokenOwner = TOKEN_PROGRAM_ID) {
-  if (typeof(tokenAddress) === "string") {
-    tokenAddress = getPublicKey(tokenAddress);
-  }
-  if (typeof(owner) === "string") {
-    owner = getPublicKey(owner);
-  }
-  if (typeof(tokenOwner) === "string") {
-    tokenOwner = getPublicKey(tokenOwner);
-  }
-  if (tokenOwner.equals(TOKEN_PROGRAM_ID) || tokenOwner.equals(TOKEN_2022_PROGRAM_ID)) {
-    return getAssociatedTokenAddressSyncFn(tokenAddress, owner, allowOwnerOffCurve, tokenOwner);
-  } else {
-    throw new Error("Unknown token owner " + tokenOwner.toString());
-  }
+    if (typeof (tokenAddress) === "string") {
+        tokenAddress = getPublicKey(tokenAddress);
+    }
+    if (typeof (owner) === "string") {
+        owner = getPublicKey(owner);
+    }
+    if (typeof (tokenOwner) === "string") {
+        tokenOwner = getPublicKey(tokenOwner);
+    }
+    if (tokenOwner.equals(TOKEN_PROGRAM_ID) || tokenOwner.equals(TOKEN_2022_PROGRAM_ID)) {
+        return getAssociatedTokenAddressSyncFn(tokenAddress, owner, allowOwnerOffCurve, tokenOwner);
+    }
+    else {
+        throw new Error("Unknown token owner " + tokenOwner.toString());
+    }
 }
-
 function getPda(key, id, programId, idBytes) {
-  const res = PublicKey.findProgramAddressSync([Buffer.from(key), new anchor.BN(id).toArrayLike(Buffer, "le", idBytes)], programId);
-  return {publicKey: res[0], bump: res[1]};
+    const res = PublicKey.findProgramAddressSync([Buffer.from(key), new anchor.BN(id).toArrayLike(Buffer, "le", idBytes)], programId);
+    return { publicKey: res[0], bump: res[1] };
 }
-
 function getPublicKey(address) {
-  return new PublicKey(address);
+    return new PublicKey(address);
 }
-
 function getKeypair() {
-  return Keypair.generate();
+    return Keypair.generate();
 }
-
 function setComputeUnitLimit(units) {
-  return anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({units});
+    return anchor.web3.ComputeBudgetProgram.setComputeUnitLimit({ units });
 }
-
 function setComputeUnitPrice(microLamports) {
-  return anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({microLamports});
+    return anchor.web3.ComputeBudgetProgram.setComputeUnitPrice({ microLamports });
 }
-
 const CctpMsgMapping = [
-  ["version", 4],
-  ["sourceDomain", 4],
-  ["destinationDomain", 4],
-  ["nonce", 8],
-  ["sender", 32],
-  ["recipient", 32],
-  ["destinationCaller", 32],
-  ["version", 4],
-  ["burnToken", 32],
-  ["mintRecipient", 32],
-  ["amount", 32],
-  ["messageSender", 32]
+    ["version", 4],
+    ["sourceDomain", 4],
+    ["destinationDomain", 4],
+    ["nonce", 8],
+    ["sender", 32],
+    ["recipient", 32],
+    ["destinationCaller", 32],
+    ["version", 4],
+    ["burnToken", 32],
+    ["mintRecipient", 32],
+    ["amount", 32],
+    ["messageSender", 32]
 ];
-
 function parseCctpDepositMessage(messageHex) {
-  let messageBytes = Buffer.from(hexStrip0x(messageHex), "hex")
-  let begin = 0, msg = {};
-  for (let i = 0; i < CctpMsgMapping.length; i++) {
-    let end = begin + CctpMsgMapping[i][1];
-    msg[CctpMsgMapping[i][0]] = messageBytes.subarray(begin, end);
-    begin = end;
-  }
-  return msg;
+    let messageBytes = Buffer.from(hexStrip0x(messageHex), "hex");
+    let begin = 0, msg = {};
+    for (let i = 0; i < CctpMsgMapping.length; i++) {
+        let end = begin + CctpMsgMapping[i][1];
+        msg[CctpMsgMapping[i][0]] = messageBytes.subarray(begin, end);
+        begin = end;
+    }
+    return msg;
 }
-
 const tools = {
-  validateAddress,
-  getStandardAddressInfo,
-  hex2bytes,
-  toBigNumber,
-  getSystemProgramId,
-  getTokenProgramId,
-  findProgramAddress,
-  getAssociatedTokenAddressSync,
-  getPda,
-  getPublicKey,
-  getKeypair,
-  setComputeUnitLimit,
-  setComputeUnitPrice,
-  parseCctpDepositMessage
-}
-
+    validateAddress,
+    getStandardAddressInfo,
+    hex2bytes,
+    toBigNumber,
+    getSystemProgramId,
+    getTokenProgramId,
+    findProgramAddress,
+    getAssociatedTokenAddressSync,
+    getPda,
+    getPublicKey,
+    getKeypair,
+    setComputeUnitLimit,
+    setComputeUnitPrice,
+    parseCctpDepositMessage
+};
 export default tools;

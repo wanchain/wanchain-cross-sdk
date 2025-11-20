@@ -1,25 +1,20 @@
+import axios from "axios";
 'use strict';
-
-const axios = require("axios");
-
-module.exports = class CheckApiServerTxService {
+export default (class CheckApiServerTxService {
     constructor(chainType) {
         this.chainType = chainType;
         this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "TxService";
         this.checkArray = [];
     }
-
     async init(frameworkService) {
         this.frameworkService = frameworkService;
         this.taskService = frameworkService.getService("TaskService");
         this.webStores = frameworkService.getService("WebStores");
         this.eventService = frameworkService.getService("EventService");
     }
-
     async loadTradeTask(tasks) {
         tasks.forEach(task => this.checkArray.push(task));
     }
-
     async start() {
         let configService = this.frameworkService.getService("ConfigService");
         let apiServerConfig = configService.getGlobalConfig("apiServer");
@@ -27,17 +22,15 @@ module.exports = class CheckApiServerTxService {
         let chainInfoService = this.frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
         if (chainInfo) { // maybe not configured on mainnet
-          this.taskService.addTask(this, chainInfo.txScanInterval);
+            this.taskService.addTask(this, chainInfo.txScanInterval);
         }
     }
-
     async addTask(task) {
         let storageService = this.frameworkService.getService("StorageService");
         await storageService.save(this.serviceName, task.ccTaskId, task);
         this.checkArray.unshift(task);
         //console.debug("addTask:", task, "checkArray:", this.checkArray);
     }
-
     async runTask(taskPara) {
         try {
             // console.log("this.checkArray:", this.checkArray);
@@ -52,25 +45,27 @@ module.exports = class CheckApiServerTxService {
                     let ret = await axios.get(queryUrl);
                     console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
                     if (ret.data.success && ret.data.data) {
-                      task.uniqueID = ret.data.data.hashX;
-                      task.fromChain = this.chainType;
-                      await this.eventService.emitEvent("TaskStepResult", {
-                        ccTaskId: task.ccTaskId,
-                        stepIndex: task.stepIndex,
-                        txHash: task.txHash,
-                        result: "Succeeded"
-                      });
-                      let scEventScanService = this.frameworkService.getService("ScEventScanService");
-                      await scEventScanService.add(task);
-                      await storageService.delete(this.serviceName, task.ccTaskId);
-                      this.checkArray.splice(index, 1);
+                        task.uniqueID = ret.data.data.hashX;
+                        task.fromChain = this.chainType;
+                        await this.eventService.emitEvent("TaskStepResult", {
+                            ccTaskId: task.ccTaskId,
+                            stepIndex: task.stepIndex,
+                            txHash: task.txHash,
+                            result: "Succeeded"
+                        });
+                        let scEventScanService = this.frameworkService.getService("ScEventScanService");
+                        await scEventScanService.add(task);
+                        await storageService.delete(this.serviceName, task.ccTaskId);
+                        this.checkArray.splice(index, 1);
                     }
-                } catch (err) {
+                }
+                catch (err) {
                     console.error("%s runTask error: %O", this.serviceName, err);
                 }
             }
-        } catch (err) {
+        }
+        catch (err) {
             console.error("%s error: %O", this.serviceName, err);
         }
     }
-}
+});

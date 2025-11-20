@@ -1,11 +1,14 @@
-const WanBridge = require('./src/bridge/wanBridge');
-const Web3Wallet = require('./src/wallet/web3Wallet');
-const UnisatWallet = require('./src/wallet/unisat');
-const OkxBitcoinWallet = require('./src/wallet/okxBitcoin');
-
-module.exports = {
-  WanBridge,
-  Web3Wallet,
-  UnisatWallet,
-  OkxBitcoinWallet
+import WanBridge from "./src/bridge/wanBridge.js";
+import Web3Wallet from "./src/wallet/web3Wallet.js";
+import UnisatWallet from "./src/wallet/unisat.js";
+import OkxBitcoinWallet from "./src/wallet/okxBitcoin.js";
+export { WanBridge };
+export { Web3Wallet };
+export { UnisatWallet };
+export { OkxBitcoinWallet };
+export default {
+    WanBridge,
+    Web3Wallet,
+    UnisatWallet,
+    OkxBitcoinWallet
 };

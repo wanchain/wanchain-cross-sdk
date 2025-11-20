@@ -1,50 +1,47 @@
-const {Address, Cell, beginCell: sdkBeginCell} = require("@ton/core");
-const {getSecureRandomNumber} = require('@ton/crypto');
-
-function validateAddress(address, options) { // options: {network, chain}
-  try {
-    if (Address.isFriendly(address)) {
-      let addr = Address.parseFriendly(address);
-      // console.log({addr})
-      // let rawAddr = addr.address.toRawString();
-      // console.log({rawAddr});
-      // let raw = Address.parseRaw(rawAddr);
-      // console.log("str: %s", raw.toString({testOnly: true, bounceable: true}))
-      return (addr.isTestOnly === (options.network === "testnet"));
-    } else {
-      return false;
+import * as core from "@ton/core";
+import * as crypto from "@ton/crypto";
+const { Address, Cell, beginCell: sdkBeginCell } = core;
+const { getSecureRandomNumber } = crypto;
+function validateAddress(address, options) {
+    try {
+        if (Address.isFriendly(address)) {
+            let addr = Address.parseFriendly(address);
+            // console.log({addr})
+            // let rawAddr = addr.address.toRawString();
+            // console.log({rawAddr});
+            // let raw = Address.parseRaw(rawAddr);
+            // console.log("str: %s", raw.toString({testOnly: true, bounceable: true}))
+            return (addr.isTestOnly === (options.network === "testnet"));
+        }
+        else {
+            return false;
+        }
     }
-  } catch (err) {
-    return false;
-  }
+    catch (err) {
+        return false;
+    }
 }
-
 function parseAddress(source) {
-  return Address.parse(source);
+    return Address.parse(source);
 }
-
 async function getQueryId() {
-  let queryId = await getSecureRandomNumber(1, (Math.pow(2, 52) - 1));
-  if (queryId < 0) {
-    queryId = -queryId;
-  }
-  return queryId;
+    let queryId = await getSecureRandomNumber(1, (Math.pow(2, 52) - 1));
+    if (queryId < 0) {
+        queryId = -queryId;
+    }
+    return queryId;
 }
-
 function msg2Cell(body) {
-  return Cell.fromBase64(body);
+    return Cell.fromBase64(body);
 }
-
 function beginCell() {
-  return sdkBeginCell();
+    return sdkBeginCell();
 }
-
 const tools = {
-  validateAddress,
-  parseAddress,
-  getQueryId,
-  msg2Cell,
-  beginCell
-}
-
+    validateAddress,
+    parseAddress,
+    getQueryId,
+    msg2Cell,
+    beginCell
+};
 export default tools;

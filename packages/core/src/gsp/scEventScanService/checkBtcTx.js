@@ -1,28 +1,21 @@
+import axios from "axios";
 "use strict";
-
-const axios = require("axios");
-
-module.exports = class CheckBtcTx{
+export default (class CheckBtcTx {
     constructor(frameworkService, chainType) {
         this.m_frameworkService = frameworkService;
         this.chainType = chainType;
         this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "Tx";
         this.m_CheckAry = [];
     }
-
-  async init() {
+    async init() {
         this.m_taskService = this.m_frameworkService.getService("TaskService");
-
         this.m_configService = this.m_frameworkService.getService("ConfigService");
         this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
-
         let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
         let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
-
         this.m_taskService.addTask(this, chainInfo.txScanInterval);
         this.m_eventService = this.m_frameworkService.getService("EventService");
     }
-
     async add(obj) {
         try {
             console.log("%s add obj: %O", this.serviceName, obj);
@@ -38,18 +31,18 @@ module.exports = class CheckBtcTx{
             if (ret.data.success === true) {
                 console.log("%s save to apiServer success", this.serviceName);
                 this.m_CheckAry.unshift(obj);
-            } else {
+            }
+            else {
                 console.error("%s save to apiServer fail: %O", this.serviceName, postJson);
             }
-        } catch (err) {
+        }
+        catch (err) {
             console.error("%s add error: %O", this.serviceName, err);
         }
     }
-
     async load(obj) {
         this.m_CheckAry.unshift(obj);
     }
-
     async runTask(taskPara) {
         try {
             if (this.m_CheckAry.length <= 0) {
@@ -68,14 +61,15 @@ module.exports = class CheckBtcTx{
                     let txHashField = this.chainType.toLowerCase() + "Hash";
                     let addrField = this.chainType.toLowerCase() + "Addr";
                     let data = ret.data.data;
-                    await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data[txHashField], toAccount: data[addrField], value: data.value});
+                    await eventService.emitEvent("RedeemTxHash", { ccTaskId: obj.ccTaskId, txHash: data[txHashField], toAccount: data[addrField], value: data.value });
                     let storageService = this.m_frameworkService.getService("StorageService");
                     storageService.delete("ScEventScanService", obj.uniqueID);
                     this.m_CheckAry.splice(index, 1);
                 }
             }
-        } catch (err) {
+        }
+        catch (err) {
             console.error("%s runTask err: %O", this.serviceName, err);
         }
     }
-};
+});
