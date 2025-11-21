@@ -249,5 +249,5 @@ const root = protobuf.parse(source).root;
 const MsgDepositForBurn = root.lookupType("circle.cctp.v1.MsgDepositForBurn");
 export { MsgDepositForBurn };
 export default {
-    MsgDepositForBurn
+  MsgDepositForBurn
 };

@@ -6,8 +6,8 @@ export const getSymbols = () => ["SOL"];
 export { PhantomWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    PhantomWallet,
-    tool
+  getChains,
+  getSymbols,
+  PhantomWallet,
+  tool
 };

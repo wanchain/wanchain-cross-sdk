@@ -5,8 +5,8 @@ export const getSymbols = () => ["DUST"];
 export { MidnightLaceWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    MidnightLaceWallet,
-    tool
+  getChains,
+  getSymbols,
+  MidnightLaceWallet,
+  tool
 };

@@ -6,8 +6,8 @@ export const getSymbols = () => ["TON"];
 export { TonkeeperWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    TonkeeperWallet,
-    tool
+  getChains,
+  getSymbols,
+  TonkeeperWallet,
+  tool
 };

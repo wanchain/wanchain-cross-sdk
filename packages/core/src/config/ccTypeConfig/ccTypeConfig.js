@@ -22,92 +22,92 @@ import mintFromTon from "./MintFromTon.js";
 import burnFromMidnight from "./BurnFromMidnight.js";
 'use strict';
 export default [
-    {
-        "name": "MintCoin",
-        "handle": mintCoinHandle
-    },
-    {
-        "name": "MintErc20",
-        "handle": mintErc20Handle
-    },
-    {
-        "name": "BurnErc20",
-        "handle": burnErc20Handle
-    },
-    {
-        "name": "MintBtcFromBitcoinHandle",
-        "handle": mintBtcFromBitcoinHandle
-    },
-    {
-        "name": "MintXrpFromRippleHandle",
-        "handle": mintXrpFromRippleHandle
-    },
-    {
-        "name": "MintDotFromPolkaHandle",
-        "handle": mintDotFromPolkaHandle
-    },
-    {
-        "name": "BurnErc20ProxyToken",
-        "handle": burnErc20ProxyToken
-    },
-    {
-        "name": "MintFromCardano",
-        "handle": mintFromCardano
-    },
-    {
-        "name": "BurnFromCardano",
-        "handle": burnFromCardano
-    },
-    {
-        "name": "CircleBridgeDeposit",
-        "handle": circleBridgeDeposit
-    },
-    {
-        "name": "MintFromCosmos",
-        "handle": mintFromCosmos
-    },
-    {
-        "name": "CircleBridgeNobleDeposit",
-        "handle": circleBridgeNobleDeposit
-    },
-    {
-        "name": "CircleBridgeSolanaDeposit",
-        "handle": circleBridgeSolanaDeposit
-    },
-    {
-        "name": "MintFromAlgorand",
-        "handle": mintFromAlgorand
-    },
-    {
-        "name": "MintFromSolana",
-        "handle": mintFromSolana
-    },
-    {
-        "name": "BurnFromSolana",
-        "handle": burnFromSolana
-    },
-    {
-        "name": "CircleBridgeSuiDeposit",
-        "handle": circleBridgeSuiDeposit
-    },
-    {
-        "name": "ClaimRewardTask",
-        "handle": claimRewardTask
-    },
-    {
-        "name": "MintFromSui",
-        "handle": mintFromSui
-    },
-    {
-        "name": "BurnFromSui",
-        "handle": burnFromSui
-    },
-    {
-        "name": "MintFromTon",
-        "handle": mintFromTon
-    },
-    {
-        "name": "BurnFromMidnight",
-        "handle": burnFromMidnight
-    },
+  {
+    "name": "MintCoin",
+    "handle": mintCoinHandle
+  },
+  {
+    "name": "MintErc20",
+    "handle": mintErc20Handle
+  },
+  {
+    "name": "BurnErc20",
+    "handle": burnErc20Handle
+  },
+  {
+    "name": "MintBtcFromBitcoinHandle",
+    "handle": mintBtcFromBitcoinHandle
+  },
+  {
+    "name": "MintXrpFromRippleHandle",
+    "handle": mintXrpFromRippleHandle
+  },
+  {
+    "name": "MintDotFromPolkaHandle",
+    "handle": mintDotFromPolkaHandle
+  },
+  {
+    "name": "BurnErc20ProxyToken",
+    "handle": burnErc20ProxyToken
+  },
+  {
+    "name": "MintFromCardano",
+    "handle": mintFromCardano
+  },
+  {
+    "name": "BurnFromCardano",
+    "handle": burnFromCardano
+  },
+  {
+    "name": "CircleBridgeDeposit",
+    "handle": circleBridgeDeposit
+  },
+  {
+    "name": "MintFromCosmos",
+    "handle": mintFromCosmos
+  },
+  {
+    "name": "CircleBridgeNobleDeposit",
+    "handle": circleBridgeNobleDeposit
+  },
+  {
+    "name": "CircleBridgeSolanaDeposit",
+    "handle": circleBridgeSolanaDeposit
+  },
+  {
+    "name": "MintFromAlgorand",
+    "handle": mintFromAlgorand
+  },
+  {
+    "name": "MintFromSolana",
+    "handle": mintFromSolana
+  },
+  {
+    "name": "BurnFromSolana",
+    "handle": burnFromSolana
+  },
+  {
+    "name": "CircleBridgeSuiDeposit",
+    "handle": circleBridgeSuiDeposit
+  },
+  {
+    "name": "ClaimRewardTask",
+    "handle": claimRewardTask
+  },
+  {
+    "name": "MintFromSui",
+    "handle": mintFromSui
+  },
+  {
+    "name": "BurnFromSui",
+    "handle": burnFromSui
+  },
+  {
+    "name": "MintFromTon",
+    "handle": mintFromTon
+  },
+  {
+    "name": "BurnFromMidnight",
+    "handle": burnFromMidnight
+  },
 ];

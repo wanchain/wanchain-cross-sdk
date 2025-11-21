@@ -5,8 +5,8 @@ export const getSymbols = () => ["TRX"];
 export { TronLinkWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    TronLinkWallet,
-    tool
+  getChains,
+  getSymbols,
+  TronLinkWallet,
+  tool
 };

@@ -5,8 +5,8 @@ export const getSymbols = () => ["DOT", "PHA"];
 export { PolkadotJsWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    PolkadotJsWallet,
-    tool
+  getChains,
+  getSymbols,
+  PolkadotJsWallet,
+  tool
 };

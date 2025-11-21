@@ -6,8 +6,8 @@ export const getSymbols = () => ["SUI"];
 export { SuiWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    SuiWallet,
-    tool
+  getChains,
+  getSymbols,
+  SuiWallet,
+  tool
 };

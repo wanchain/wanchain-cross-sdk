@@ -1,4 +1,7 @@
-import { WanBridge, Web3Wallet, UnisatWallet, OkxBitcoinWallet } from "./packages/core/index.js";
+import { WanBridge } from "./packages/core/index.js";
+// extensions
+import EvmExtension from './packages/evm';
+import BitcoinExtension from './packages/bitcoin';
 import CardanoExtension from "./packages/cardano/index.js";
 import PolkadotExtension from "./packages/polkadot/index.js";
 import TronExtension from "./packages/tron/index.js";
@@ -10,9 +13,8 @@ import VeChainExtension from "./packages/vechain/index.js";
 import TonExtension from "./packages/ton/index.js";
 import MidnightExtension from "./packages/midnight/index.js";
 export { WanBridge };
-export { Web3Wallet };
-export { UnisatWallet };
-export { OkxBitcoinWallet };
+export { EvmExtension };
+export { BitcoinExtension };
 export { CardanoExtension };
 export { PolkadotExtension };
 export { TronExtension };
@@ -24,18 +26,17 @@ export { VeChainExtension };
 export { TonExtension };
 export { MidnightExtension };
 export default {
-    WanBridge,
-    Web3Wallet,
-    UnisatWallet,
-    OkxBitcoinWallet,
-    CardanoExtension,
-    PolkadotExtension,
-    TronExtension,
-    CosmosExtension,
-    SolanaExtension,
-    AlgorandExtension,
-    SuiExtension,
-    VeChainExtension,
-    TonExtension,
-    MidnightExtension
+  WanBridge,
+  EvmExtension,
+  BitcoinExtension,
+  CardanoExtension,
+  PolkadotExtension,
+  TronExtension,
+  CosmosExtension,
+  SolanaExtension,
+  AlgorandExtension,
+  SuiExtension,
+  VeChainExtension,
+  TonExtension,
+  MidnightExtension
 };

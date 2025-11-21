@@ -1,85 +1,85 @@
 import tool from "../../utils/tool.js";
 'use strict';
 export default (class ProcessBurnFromSolana {
-    constructor(frameworkService) {
-        this.frameworkService = frameworkService;
-        this.webStores = this.frameworkService.getService("WebStores");
-        this.configService = frameworkService.getService("ConfigService");
-        let extension = this.configService.getExtension("SOL");
-        this.tool = extension.tool;
-        this.storemanService = frameworkService.getService("StoremanService");
-        this.tokenPairService = frameworkService.getService("TokenPairService");
-    }
-    async process(stepData, wallet) {
-        let params = stepData.params;
-        try {
-            let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
-            let direction = (tokenPair.fromChainType === "SOL");
-            let fromChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
-            let toChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
-            let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
-            let wanBridgeProgram = wallet.getProgram("wanBridge", fromChainInfo.crossScAddr);
-            let adminBoardProgramId = this.tool.getPublicKey(fromChainInfo.adminBoardProgram);
-            let tokenpairPda = this.tool.getPda("TokenPairInfo", params.tokenPairID, adminBoardProgramId, 4);
-            let configAccountPda = this.tool.findProgramAddress("ConfigData", adminBoardProgramId);
-            let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
-            let destChain = Number(toChainInfo.chainId);
-            let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
-            let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
-            let tokenAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
-            let amount = this.tool.toBigNumber(params.value);
-            let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
-            let accounts = {
-                user: walletPublicKey,
-                feeReceiver: this.tool.getPublicKey(fromChainInfo.feeHolder),
-                adminBoardProgram: adminBoardProgramId,
-                configAccount: configAccountPda.publicKey,
-                tokenPairAccount: tokenpairPda.publicKey,
-                cctpAdminBoardFeeAccount: feePda.publicKey,
-                mappingTokenMint: tokenAddress,
-                tokenManagerProgram: this.tool.getPublicKey(fromChainInfo.tokenManagerProgram),
-                userAta: this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey)
-            };
-            let fee = this.tool.toBigNumber("0"); // agent get service fee from cross config contract by self
-            let unitLimit = this.tool.setComputeUnitLimit(300_000);
-            // let unitPrice = this.tool.setComputeUnitPrice(100_000);
-            // it is not best to encode evm userAccount to ascii format, Buffer from hex is more reasonable, but we do not change it for history compatibility
-            let instruction = await wanBridgeProgram.methods.userBurn(smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)).accounts(accounts).instruction();
-            let tx = await wallet.buildTransaction([unitLimit, instruction]);
-            let txHash = await wallet.sendTransaction(tx);
-            this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-            let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
-            let checker = {
-                chain: "SOL",
-                ccTaskId: params.ccTaskId,
-                stepIndex: stepData.stepIndex,
-                txHash,
-                txCheckInfo: null, // only check tx receipt, no event
-                convertCheckInfo: {
-                    ccTaskId: params.ccTaskId,
-                    stepIndex: stepData.stepIndex,
-                    uniqueID: tool.sha256(txHash),
-                    chain: params.toChainType,
-                    fromBlockNumber: blockNumber,
-                    taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction ? "MINT" : "BURN")),
-                    // for api server
-                    fromAddr: params.fromAddr,
-                    txHash,
-                    toAddr: params.toAddr
-                }
-            };
-            let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
-            await checkTxReceiptService.add(checker);
+  constructor(frameworkService) {
+    this.frameworkService = frameworkService;
+    this.webStores = this.frameworkService.getService("WebStores");
+    this.configService = frameworkService.getService("ConfigService");
+    let extension = this.configService.getExtension("SOL");
+    this.tool = extension.tool;
+    this.storemanService = frameworkService.getService("StoremanService");
+    this.tokenPairService = frameworkService.getService("TokenPairService");
+  }
+  async process(stepData, wallet) {
+    let params = stepData.params;
+    try {
+      let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
+      let direction = (tokenPair.fromChainType === "SOL");
+      let fromChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let toChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
+      let wanBridgeProgram = wallet.getProgram("wanBridge", fromChainInfo.crossScAddr);
+      let adminBoardProgramId = this.tool.getPublicKey(fromChainInfo.adminBoardProgram);
+      let tokenpairPda = this.tool.getPda("TokenPairInfo", params.tokenPairID, adminBoardProgramId, 4);
+      let configAccountPda = this.tool.findProgramAddress("ConfigData", adminBoardProgramId);
+      let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
+      let destChain = Number(toChainInfo.chainId);
+      let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
+      let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
+      let tokenAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
+      let amount = this.tool.toBigNumber(params.value);
+      let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
+      let accounts = {
+        user: walletPublicKey,
+        feeReceiver: this.tool.getPublicKey(fromChainInfo.feeHolder),
+        adminBoardProgram: adminBoardProgramId,
+        configAccount: configAccountPda.publicKey,
+        tokenPairAccount: tokenpairPda.publicKey,
+        cctpAdminBoardFeeAccount: feePda.publicKey,
+        mappingTokenMint: tokenAddress,
+        tokenManagerProgram: this.tool.getPublicKey(fromChainInfo.tokenManagerProgram),
+        userAta: this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey)
+      };
+      let fee = this.tool.toBigNumber("0"); // agent get service fee from cross config contract by self
+      let unitLimit = this.tool.setComputeUnitLimit(300_000);
+      // let unitPrice = this.tool.setComputeUnitPrice(100_000);
+      // it is not best to encode evm userAccount to ascii format, Buffer from hex is more reasonable, but we do not change it for history compatibility
+      let instruction = await wanBridgeProgram.methods.userBurn(smgId, params.tokenPairID, amount, fee, tokenAddress, Buffer.from(params.userAccount)).accounts(accounts).instruction();
+      let tx = await wallet.buildTransaction([unitLimit, instruction]);
+      let txHash = await wallet.sendTransaction(tx);
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
+      let checker = {
+        chain: "SOL",
+        ccTaskId: params.ccTaskId,
+        stepIndex: stepData.stepIndex,
+        txHash,
+        txCheckInfo: null, // only check tx receipt, no event
+        convertCheckInfo: {
+          ccTaskId: params.ccTaskId,
+          stepIndex: stepData.stepIndex,
+          uniqueID: tool.sha256(txHash),
+          chain: params.toChainType,
+          fromBlockNumber: blockNumber,
+          taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction ? "MINT" : "BURN")),
+          // for api server
+          fromAddr: params.fromAddr,
+          txHash,
+          toAddr: params.toAddr
         }
-        catch (err) {
-            console.error("error: %s", err.message);
-            if (["User rejected the request."].includes(err.message)) {
-                this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-            }
-            else {
-                console.error("ProcessBurnFromSolana error: %O", err);
-                this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
-            }
-        }
+      };
+      let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
+      await checkTxReceiptService.add(checker);
     }
+    catch (err) {
+      console.error("error: %s", err.message);
+      if (["User rejected the request."].includes(err.message)) {
+        this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
+      }
+      else {
+        console.error("ProcessBurnFromSolana error: %O", err);
+        this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      }
+    }
+  }
 });

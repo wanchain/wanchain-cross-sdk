@@ -1,117 +1,126 @@
 import wasm from "../wasm/index.js";
 import tool from "../tool.js";
 class Eternl {
-    constructor() {
-        this.name = "Eternl";
-        this.wallet = window.cardano.eternl;
-        this.wasm = wasm.getWasm();
+  constructor(provider) {
+    if (window.cardano?.eternl) {
+      this.name = "Eternl";
+      if (!['mainnet', 'testnet'].includes(provider)) {
+        throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
+      }
+      this.wallet = window.cardano.eternl;
+      this.wasm = wasm.getWasm();
     }
-    // standard function
-    async getChainId() {
-        let cardano = await this.wallet.enable();
-        return cardano.getNetworkId();
+    else {
+      window.open('https://eternl.io');
+      throw new Error('please install eternl wallet');
     }
-    async getAccounts() {
-        try {
-            let cardano = await this.wallet.enable();
-            let accounts = await cardano.getUsedAddresses();
-            accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
-            return accounts;
-        }
-        catch (err) {
-            console.error("%s not installed or not allowed: %O", this.name, err);
-            throw new Error("Not installed or not allowed");
-        }
+  }
+  // standard function
+  async getChainId() {
+    let cardano = await this.wallet.enable();
+    return cardano.getNetworkId();
+  }
+  async getAccounts() {
+    try {
+      let cardano = await this.wallet.enable();
+      let accounts = await cardano.getUsedAddresses();
+      accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
+      return accounts;
     }
-    async getBalance(addr, tokenId) {
-        let accounts = await this.getAccounts();
-        if (accounts.includes(addr)) {
-            let cardano = await this.wallet.enable();
-            let balance = await cardano.getBalance();
-            let value = this.wasm.Value.from_hex(balance);
-            if (tokenId) {
-                let [policyId, assetName] = tokenId.split(".");
-                if (assetName) { // erc20
-                    return tool.getAssetBalance(value.multiasset(), policyId, assetName);
-                }
-                else { // nft
-                    let nfts = tool.getNftInfo(value.multiasset(), tokenId);
-                    return nfts.length.toString();
-                }
-            }
-            else { // coin
-                return value.coin().to_str(); // TODO: sub token locked coin
-            }
-        }
-        else {
-            console.error("%s is not used address", addr);
-            throw new Error("Not used address");
-        }
+    catch (err) {
+      console.error("%s not installed or not allowed: %O", this.name, err);
+      throw new Error("Not installed or not allowed");
     }
-    async getBalances(addr, tokenIds) {
-        let accounts = await this.getAccounts();
-        if (accounts.includes(addr)) {
-            let cardano = await this.wallet.enable();
-            let balance = await cardano.getBalance();
-            let value = this.wasm.Value.from_hex(balance);
-            return tokenIds.map(id => {
-                if (id) {
-                    let [policyId, assetName] = id.split(".");
-                    if (assetName) { // erc20
-                        return tool.getAssetBalance(value.multiasset(), policyId, assetName);
-                    }
-                    else { // nft
-                        let nfts = tool.getNftInfo(value.multiasset(), id);
-                        return nfts.length.toString();
-                    }
-                }
-                else {
-                    return value.coin().to_str(); // TODO: sub token locked coin
-                }
-            });
+  }
+  async getBalance(addr, tokenId) {
+    let accounts = await this.getAccounts();
+    if (accounts.includes(addr)) {
+      let cardano = await this.wallet.enable();
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      if (tokenId) {
+        let [policyId, assetName] = tokenId.split(".");
+        if (assetName) { // erc20
+          return tool.getAssetBalance(value.multiasset(), policyId, assetName);
         }
-        else {
-            console.error("%s is not used address", addr);
-            throw new Error("Not used address");
+        else { // nft
+          let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+          return nfts.length.toString();
         }
+      }
+      else { // coin
+        return value.coin().to_str(); // TODO: sub token locked coin
+      }
     }
-    async getNftInfo(addr, tokenId) {
-        let accounts = await this.getAccounts();
-        if (accounts.includes(addr)) {
-            let cardano = await this.wallet.enable({ extensions: [{ cip: 95 }] });
-            let balance = await cardano.getBalance();
-            let value = this.wasm.Value.from_hex(balance);
-            let nfts = tool.getNftInfo(value.multiasset(), tokenId);
-            return nfts;
+    else {
+      console.error("%s is not used address", addr);
+      throw new Error("Not used address");
+    }
+  }
+  async getBalances(addr, tokenIds) {
+    let accounts = await this.getAccounts();
+    if (accounts.includes(addr)) {
+      let cardano = await this.wallet.enable();
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      return tokenIds.map(id => {
+        if (id) {
+          let [policyId, assetName] = id.split(".");
+          if (assetName) { // erc20
+            return tool.getAssetBalance(value.multiasset(), policyId, assetName);
+          }
+          else { // nft
+            let nfts = tool.getNftInfo(value.multiasset(), id);
+            return nfts.length.toString();
+          }
         }
         else {
-            console.error("%s is not used address", addr);
-            throw new Error("Not used address");
+          return value.coin().to_str(); // TODO: sub token locked coin
         }
+      });
     }
-    async sendTransaction(tx) {
-        let cardano = await this.wallet.enable();
-        tx = this.wasm.Transaction.from_hex(tx);
-        let witnessSet = await cardano.signTx(tx.to_hex(), true);
-        witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
-        let redeemers = tx.witness_set().redeemers();
-        if (redeemers) {
-            witnessSet.set_redeemers(redeemers);
-        }
-        let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
-        let txHash = await cardano.submitTx(transaction.to_hex());
-        return txHash;
+    else {
+      console.error("%s is not used address", addr);
+      throw new Error("Not used address");
     }
-    // customized function
-    async getUtxos() {
-        let cardano = await this.wallet.enable();
-        let utxos = await cardano.getUtxos();
-        return utxos;
+  }
+  async getNftInfo(addr, tokenId) {
+    let accounts = await this.getAccounts();
+    if (accounts.includes(addr)) {
+      let cardano = await this.wallet.enable({ extensions: [{ cip: 95 }] });
+      let balance = await cardano.getBalance();
+      let value = this.wasm.Value.from_hex(balance);
+      let nfts = tool.getNftInfo(value.multiasset(), tokenId);
+      return nfts;
     }
-    async getCollateral() {
-        let cardano = await this.wallet.enable();
-        let utxos = await cardano.getCollateral();
-        return utxos.slice(0, 3);
+    else {
+      console.error("%s is not used address", addr);
+      throw new Error("Not used address");
     }
+  }
+  async sendTransaction(tx) {
+    let cardano = await this.wallet.enable();
+    tx = this.wasm.Transaction.from_hex(tx);
+    let witnessSet = await cardano.signTx(tx.to_hex(), true);
+    witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
+    let redeemers = tx.witness_set().redeemers();
+    if (redeemers) {
+      witnessSet.set_redeemers(redeemers);
+    }
+    let transaction = this.wasm.Transaction.new(tx.body(), witnessSet, tx.auxiliary_data());
+    let txHash = await cardano.submitTx(transaction.to_hex());
+    return txHash;
+  }
+  // customized function
+  async getUtxos() {
+    let cardano = await this.wallet.enable();
+    let utxos = await cardano.getUtxos();
+    return utxos;
+  }
+  async getCollateral() {
+    let cardano = await this.wallet.enable();
+    let utxos = await cardano.getCollateral();
+    return utxos.slice(0, 3);
+  }
 }
 export default Eternl;

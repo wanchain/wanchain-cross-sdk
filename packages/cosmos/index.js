@@ -5,8 +5,8 @@ export const getSymbols = () => ["ATOM", "NOBLE", "KAVA"];
 export { KeplrWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    KeplrWallet,
-    tool
+  getChains,
+  getSymbols,
+  KeplrWallet,
+  tool
 };

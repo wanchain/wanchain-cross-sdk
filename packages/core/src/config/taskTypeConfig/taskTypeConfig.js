@@ -31,128 +31,128 @@ import processBurnFromMidnight from "./ProcessBurnFromMidnight.js";
 import processMidnightClaim from "./ProcessMidnightClaim.js";
 'use strict';
 export default [
-    {
-        "name": "ProcessErc20UserFastMint",
-        "handle": processErc20UserFastMint
-    },
-    {
-        "name": "ProcessErc20Approve",
-        "handle": processErc20Approve
-    },
-    {
-        "name": "ProcessErc20UserFastBurn",
-        "handle": processErc20UserFastBurn
-    },
-    {
-        "name": "ProcessCoinUserFastMint",
-        "handle": processCoinUserFastMint
-    },
-    {
-        "name": "ProcessMintBtcFromBitcoin",
-        "handle": processMintBtcFromBitcoin
-    },
-    {
-        "name": "ProcessMintFromBitcoinWallet",
-        "handle": processMintFromBitcoinWallet
-    },
-    {
-        "name": "ProcessXrpMintFromRipple",
-        "handle": processXrpMintFromRipple
-    },
-    {
-        "name": "ProcessDotMintFromPolka",
-        "handle": processDotMintFromPolka
-    },
-    {
-        "name": "ProcessBurnErc20ProxyToken",
-        "handle": processBurnErc20ProxyToken
-    },
-    {
-        "name": "ProcessErc721Approve",
-        "handle": processErc721Approve
-    },
-    {
-        "name": "ProcessMintFromCardano",
-        "handle": processMintFromCardano
-    },
-    {
-        "name": "ProcessBurnFromCardano",
-        "handle": processBurnFromCardano
-    },
-    {
-        "name": "ProcessPhaMintFromPhala",
-        "handle": processPhaMintFromPhala
-    },
-    {
-        "name": "ProcessCircleBridgeDeposit",
-        "handle": processCircleBridgeDeposit
-    },
-    {
-        "name": "ProcessMintFromCosmos",
-        "handle": processMintFromCosmos
-    },
-    {
-        "name": "ProcessCircleBridgeNobleDeposit",
-        "handle": processCircleBridgeNobleDeposit
-    },
-    {
-        "name": "ProcessCircleBridgeSolanaDeposit",
-        "handle": processCircleBridgeSolanaDeposit
-    },
-    {
-        "name": "ProcessCircleBridgeSolanaReclaim",
-        "handle": processCircleBridgeSolanaReclaim
-    },
-    {
-        "name": "ProcessMintFromAlgorand",
-        "handle": processMintFromAlgorand
-    },
-    {
-        "name": "ProcessMintFromSolana",
-        "handle": processMintFromSolana
-    },
-    {
-        "name": "ProcessBurnFromSolana",
-        "handle": processBurnFromSolana
-    },
-    {
-        "name": "ProcessCircleBridgeSuiDeposit",
-        "handle": processCircleBridgeSuiDeposit
-    },
-    {
-        "name": "ProcessErc20ApproveSync",
-        "handle": processErc20ApproveSync
-    },
-    {
-        "name": "ProcessClaimRewardTask",
-        "handle": processClaimRewardTask
-    },
-    {
-        "name": "ProcessClaimCrossReward",
-        "handle": processClaimCrossReward
-    },
-    {
-        "name": "ProcessMintFromSui",
-        "handle": processMintFromSui
-    },
-    {
-        "name": "ProcessBurnFromSui",
-        "handle": processBurnFromSui
-    },
-    {
-        "name": "ProcessMintFromTon",
-        "handle": processMintFromTon
-    },
-    {
-        "name": "ProcessMidnightRechargeFee",
-        "handle": processMidnightRechargeFee
-    },
-    {
-        "name": "ProcessBurnFromMidnight",
-        "handle": processBurnFromMidnight
-    },
-    {
-        "name": "ProcessMidnightClaim",
-        "handle": processMidnightClaim
-    }
+  {
+    "name": "ProcessErc20UserFastMint",
+    "handle": processErc20UserFastMint
+  },
+  {
+    "name": "ProcessErc20Approve",
+    "handle": processErc20Approve
+  },
+  {
+    "name": "ProcessErc20UserFastBurn",
+    "handle": processErc20UserFastBurn
+  },
+  {
+    "name": "ProcessCoinUserFastMint",
+    "handle": processCoinUserFastMint
+  },
+  {
+    "name": "ProcessMintBtcFromBitcoin",
+    "handle": processMintBtcFromBitcoin
+  },
+  {
+    "name": "ProcessMintFromBitcoinWallet",
+    "handle": processMintFromBitcoinWallet
+  },
+  {
+    "name": "ProcessXrpMintFromRipple",
+    "handle": processXrpMintFromRipple
+  },
+  {
+    "name": "ProcessDotMintFromPolka",
+    "handle": processDotMintFromPolka
+  },
+  {
+    "name": "ProcessBurnErc20ProxyToken",
+    "handle": processBurnErc20ProxyToken
+  },
+  {
+    "name": "ProcessErc721Approve",
+    "handle": processErc721Approve
+  },
+  {
+    "name": "ProcessMintFromCardano",
+    "handle": processMintFromCardano
+  },
+  {
+    "name": "ProcessBurnFromCardano",
+    "handle": processBurnFromCardano
+  },
+  {
+    "name": "ProcessPhaMintFromPhala",
+    "handle": processPhaMintFromPhala
+  },
+  {
+    "name": "ProcessCircleBridgeDeposit",
+    "handle": processCircleBridgeDeposit
+  },
+  {
+    "name": "ProcessMintFromCosmos",
+    "handle": processMintFromCosmos
+  },
+  {
+    "name": "ProcessCircleBridgeNobleDeposit",
+    "handle": processCircleBridgeNobleDeposit
+  },
+  {
+    "name": "ProcessCircleBridgeSolanaDeposit",
+    "handle": processCircleBridgeSolanaDeposit
+  },
+  {
+    "name": "ProcessCircleBridgeSolanaReclaim",
+    "handle": processCircleBridgeSolanaReclaim
+  },
+  {
+    "name": "ProcessMintFromAlgorand",
+    "handle": processMintFromAlgorand
+  },
+  {
+    "name": "ProcessMintFromSolana",
+    "handle": processMintFromSolana
+  },
+  {
+    "name": "ProcessBurnFromSolana",
+    "handle": processBurnFromSolana
+  },
+  {
+    "name": "ProcessCircleBridgeSuiDeposit",
+    "handle": processCircleBridgeSuiDeposit
+  },
+  {
+    "name": "ProcessErc20ApproveSync",
+    "handle": processErc20ApproveSync
+  },
+  {
+    "name": "ProcessClaimRewardTask",
+    "handle": processClaimRewardTask
+  },
+  {
+    "name": "ProcessClaimCrossReward",
+    "handle": processClaimCrossReward
+  },
+  {
+    "name": "ProcessMintFromSui",
+    "handle": processMintFromSui
+  },
+  {
+    "name": "ProcessBurnFromSui",
+    "handle": processBurnFromSui
+  },
+  {
+    "name": "ProcessMintFromTon",
+    "handle": processMintFromTon
+  },
+  {
+    "name": "ProcessMidnightRechargeFee",
+    "handle": processMidnightRechargeFee
+  },
+  {
+    "name": "ProcessBurnFromMidnight",
+    "handle": processBurnFromMidnight
+  },
+  {
+    "name": "ProcessMidnightClaim",
+    "handle": processMidnightClaim
+  }
 ];

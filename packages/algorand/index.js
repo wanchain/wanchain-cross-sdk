@@ -6,8 +6,8 @@ export const getSymbols = () => ["SOL"];
 export { PeraWallet };
 export { tool };
 export default {
-    getChains,
-    getSymbols,
-    PeraWallet,
-    tool
+  getChains,
+  getSymbols,
+  PeraWallet,
+  tool
 };

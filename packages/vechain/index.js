@@ -3,7 +3,7 @@ export const getChains = () => ["VeChain"];
 export const getSymbols = () => ["VET"];
 export { VeWorldWallet };
 export default {
-    getChains,
-    getSymbols,
-    VeWorldWallet
+  getChains,
+  getSymbols,
+  VeWorldWallet
 };

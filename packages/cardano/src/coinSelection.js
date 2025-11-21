@@ -187,90 +187,90 @@ let protocolParameters = null;
  * @module src/lib/CoinSelection
  */
 const CoinSelection = {
-    setWasm: (_wasm) => {
-        wasm = _wasm;
-    },
-    /**
-     * Set protocol parameters required by the algorithm
-     * @param {string} coinsPerUtxoByte
-     * @param {string} minFeeA
-     * @param {string} minFeeB
-     * @param {string} maxTxSize
-     */
-    setProtocolParameters: (coinsPerUtxoByte, minFeeA, minFeeB, maxTxSize) => {
-        protocolParameters = {
-            coinsPerUtxoByte: coinsPerUtxoByte,
-            minFeeA: minFeeA,
-            minFeeB: minFeeB,
-            maxTxSize: maxTxSize,
-        };
-    },
-    /**
-     * Random-Improve coin selection algorithm
-     * @param {UTxOList} inputs - The set of inputs available for selection.
-     * @param {TransactionOutputs} outputs - The set of outputs requested for payment.
-     * @param {int} limit - A limit on the number of inputs that can be selected.
-     * @param {Address} outputAddress - Required by algorithm, no specific meaning.
-     * @return {SelectionResult} - Coin Selection algorithm return
-     */
-    randomImprove: (inputs, outputs, limit, outputAddress) => {
-        if (!protocolParameters)
-            throw new Error('Protocol parameters not set. Use setProtocolParameters().');
-        /** @type {UTxOSelection} */
-        let utxoSelection = {
-            selection: [],
-            remaining: [...inputs], // Shallow copy
-            subset: [],
-            amount: createEmptyValue(),
-            outputAddress
-        };
-        let mergedOutputsAmounts = mergeOutputsAmounts(outputs);
-        // Explode amount in an array of unique asset amount for comparison's sake
-        let splitOutputsAmounts = splitAmounts(mergedOutputsAmounts);
-        // Phase 1: Select enough input
-        for (let i = 0; i < splitOutputsAmounts.length; i++) {
-            createSubSet(utxoSelection, splitOutputsAmounts[i]); // Narrow down for NatToken UTxO
-            utxoSelection = select(utxoSelection, splitOutputsAmounts[i], limit);
-        }
-        // Phase 2: Improve
-        splitOutputsAmounts = sortAmountList(splitOutputsAmounts);
-        for (let i = 0; i < splitOutputsAmounts.length; i++) {
-            createSubSet(utxoSelection, splitOutputsAmounts[i]); // Narrow down for NatToken UTxO
-            let range = {};
-            range.ideal = wasm.Value.new(wasm.BigNum.from_str('0'))
-                .checked_add(splitOutputsAmounts[i])
-                .checked_add(splitOutputsAmounts[i]);
-            range.maximum = wasm.Value.new(wasm.BigNum.from_str('0'))
-                .checked_add(range.ideal)
-                .checked_add(splitOutputsAmounts[i]);
-            improve(utxoSelection, splitOutputsAmounts[i], limit - utxoSelection.selection.length, range);
-        }
-        // Insure change hold enough Ada to cover included native assets and fees
-        if (utxoSelection.remaining.length > 0) {
-            const change = utxoSelection.amount.checked_sub(mergedOutputsAmounts);
-            let minAmount = wasm.Value.new(wasm.min_ada_for_output(wasm.TransactionOutput.new(wasm.Address.from_bech32(utxoSelection.outputAddress), change), wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))));
-            if (compare(change, minAmount) < 0) {
-                // It shouldn't happen, the minAda of change must be considered in advance.
-                // Based on the existing utxoSelection.amount cannot be calculated correctly, and selecting new utxos will cause circular calculation problems
-                console.log("select minAda %s for change", minAmount.coin().to_str());
-                // Not enough, add missing amount and run select one last time
-                const minAda = minAmount
-                    .checked_sub(wasm.Value.new(change.coin()))
-                    .checked_add(wasm.Value.new(utxoSelection.amount.coin()));
-                createSubSet(utxoSelection, minAda);
-                utxoSelection = select(utxoSelection, minAda, limit);
-            }
-        }
-        return {
-            input: utxoSelection.selection,
-            output: outputs,
-            remaining: utxoSelection.remaining,
-            amount: utxoSelection.amount,
-            change: utxoSelection.amount.checked_sub(mergedOutputsAmounts),
-        };
-    },
-    splitAmounts: splitAmounts,
-    compare: compare,
+  setWasm: (_wasm) => {
+    wasm = _wasm;
+  },
+  /**
+   * Set protocol parameters required by the algorithm
+   * @param {string} coinsPerUtxoByte
+   * @param {string} minFeeA
+   * @param {string} minFeeB
+   * @param {string} maxTxSize
+   */
+  setProtocolParameters: (coinsPerUtxoByte, minFeeA, minFeeB, maxTxSize) => {
+    protocolParameters = {
+      coinsPerUtxoByte: coinsPerUtxoByte,
+      minFeeA: minFeeA,
+      minFeeB: minFeeB,
+      maxTxSize: maxTxSize,
+    };
+  },
+  /**
+   * Random-Improve coin selection algorithm
+   * @param {UTxOList} inputs - The set of inputs available for selection.
+   * @param {TransactionOutputs} outputs - The set of outputs requested for payment.
+   * @param {int} limit - A limit on the number of inputs that can be selected.
+   * @param {Address} outputAddress - Required by algorithm, no specific meaning.
+   * @return {SelectionResult} - Coin Selection algorithm return
+   */
+  randomImprove: (inputs, outputs, limit, outputAddress) => {
+    if (!protocolParameters)
+      throw new Error('Protocol parameters not set. Use setProtocolParameters().');
+    /** @type {UTxOSelection} */
+    let utxoSelection = {
+      selection: [],
+      remaining: [...inputs], // Shallow copy
+      subset: [],
+      amount: createEmptyValue(),
+      outputAddress
+    };
+    let mergedOutputsAmounts = mergeOutputsAmounts(outputs);
+    // Explode amount in an array of unique asset amount for comparison's sake
+    let splitOutputsAmounts = splitAmounts(mergedOutputsAmounts);
+    // Phase 1: Select enough input
+    for (let i = 0; i < splitOutputsAmounts.length; i++) {
+      createSubSet(utxoSelection, splitOutputsAmounts[i]); // Narrow down for NatToken UTxO
+      utxoSelection = select(utxoSelection, splitOutputsAmounts[i], limit);
+    }
+    // Phase 2: Improve
+    splitOutputsAmounts = sortAmountList(splitOutputsAmounts);
+    for (let i = 0; i < splitOutputsAmounts.length; i++) {
+      createSubSet(utxoSelection, splitOutputsAmounts[i]); // Narrow down for NatToken UTxO
+      let range = {};
+      range.ideal = wasm.Value.new(wasm.BigNum.from_str('0'))
+        .checked_add(splitOutputsAmounts[i])
+        .checked_add(splitOutputsAmounts[i]);
+      range.maximum = wasm.Value.new(wasm.BigNum.from_str('0'))
+        .checked_add(range.ideal)
+        .checked_add(splitOutputsAmounts[i]);
+      improve(utxoSelection, splitOutputsAmounts[i], limit - utxoSelection.selection.length, range);
+    }
+    // Insure change hold enough Ada to cover included native assets and fees
+    if (utxoSelection.remaining.length > 0) {
+      const change = utxoSelection.amount.checked_sub(mergedOutputsAmounts);
+      let minAmount = wasm.Value.new(wasm.min_ada_for_output(wasm.TransactionOutput.new(wasm.Address.from_bech32(utxoSelection.outputAddress), change), wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))));
+      if (compare(change, minAmount) < 0) {
+        // It shouldn't happen, the minAda of change must be considered in advance.
+        // Based on the existing utxoSelection.amount cannot be calculated correctly, and selecting new utxos will cause circular calculation problems
+        console.log("select minAda %s for change", minAmount.coin().to_str());
+        // Not enough, add missing amount and run select one last time
+        const minAda = minAmount
+          .checked_sub(wasm.Value.new(change.coin()))
+          .checked_add(wasm.Value.new(utxoSelection.amount.coin()));
+        createSubSet(utxoSelection, minAda);
+        utxoSelection = select(utxoSelection, minAda, limit);
+      }
+    }
+    return {
+      input: utxoSelection.selection,
+      output: outputs,
+      remaining: utxoSelection.remaining,
+      amount: utxoSelection.amount,
+      change: utxoSelection.amount.checked_sub(mergedOutputsAmounts),
+    };
+  },
+  splitAmounts: splitAmounts,
+  compare: compare,
 };
 /**
  * Use randomSelect & descSelect algorithm to select enough UTxO to fulfill requested outputs
@@ -282,20 +282,20 @@ const CoinSelection = {
  * @return {UTxOSelection} - Successful random utxo selection.
  */
 function select(utxoSelection, outputAmount, limit) {
-    try {
-        utxoSelection = randomSelect(cloneUTxOSelection(utxoSelection), // Deep copy in case of fallback needed
-        outputAmount, limit - utxoSelection.selection.length);
+  try {
+    utxoSelection = randomSelect(cloneUTxOSelection(utxoSelection), // Deep copy in case of fallback needed
+      outputAmount, limit - utxoSelection.selection.length);
+  }
+  catch (e) {
+    if (e.message === 'INPUT_LIMIT_EXCEEDED') {
+      // Limit reached : Fallback on DescOrdAlgo
+      utxoSelection = descSelect(utxoSelection, outputAmount);
     }
-    catch (e) {
-        if (e.message === 'INPUT_LIMIT_EXCEEDED') {
-            // Limit reached : Fallback on DescOrdAlgo
-            utxoSelection = descSelect(utxoSelection, outputAmount);
-        }
-        else {
-            throw e;
-        }
+    else {
+      throw e;
     }
-    return utxoSelection;
+  }
+  return utxoSelection;
 }
 /**
  * Randomly select enough UTxO to fulfill requested outputs
@@ -307,29 +307,29 @@ function select(utxoSelection, outputAmount, limit) {
  * @return {UTxOSelection} - Successful random utxo selection.
  */
 function randomSelect(utxoSelection, outputAmount, limit) {
-    let nbFreeUTxO = utxoSelection.subset.length;
-    // If quantity is met, return subset into remaining list and exit
-    if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO, utxoSelection.outputAddress)) {
-        utxoSelection.remaining = [
-            ...utxoSelection.remaining,
-            ...utxoSelection.subset,
-        ];
-        utxoSelection.subset = [];
-        return utxoSelection;
-    }
-    if (limit <= 0) {
-        throw new Error('INPUT_LIMIT_EXCEEDED');
-    }
-    if (nbFreeUTxO <= 0) {
-        throw new Error('INPUTS_EXHAUSTED');
-    }
-    /** @type {TransactionUnspentOutput} utxo */
-    let utxo = utxoSelection.subset
-        .splice(Math.floor(Math.random() * nbFreeUTxO), 1)
-        .pop();
-    utxoSelection.selection.push(utxo);
-    utxoSelection.amount = addAmounts(utxo.output().amount(), utxoSelection.amount);
-    return randomSelect(utxoSelection, outputAmount, limit - 1);
+  let nbFreeUTxO = utxoSelection.subset.length;
+  // If quantity is met, return subset into remaining list and exit
+  if (isQtyFulfilled(outputAmount, utxoSelection.amount, nbFreeUTxO, utxoSelection.outputAddress)) {
+    utxoSelection.remaining = [
+      ...utxoSelection.remaining,
+      ...utxoSelection.subset,
+    ];
+    utxoSelection.subset = [];
+    return utxoSelection;
+  }
+  if (limit <= 0) {
+    throw new Error('INPUT_LIMIT_EXCEEDED');
+  }
+  if (nbFreeUTxO <= 0) {
+    throw new Error('INPUTS_EXHAUSTED');
+  }
+  /** @type {TransactionUnspentOutput} utxo */
+  let utxo = utxoSelection.subset
+    .splice(Math.floor(Math.random() * nbFreeUTxO), 1)
+    .pop();
+  utxoSelection.selection.push(utxo);
+  utxoSelection.amount = addAmounts(utxo.output().amount(), utxoSelection.amount);
+  return randomSelect(utxoSelection, outputAmount, limit - 1);
 }
 /**
  * Select enough UTxO in DESC order to fulfill requested outputs
@@ -339,27 +339,27 @@ function randomSelect(utxoSelection, outputAmount, limit) {
  * @return {UTxOSelection} - Successful random utxo selection.
  */
 function descSelect(utxoSelection, outputAmount) {
-    // Sort UTxO subset in DESC order for required Output unit type
-    utxoSelection.subset = utxoSelection.subset.sort((a, b) => {
-        return Number(searchAmountValue(outputAmount, b.output().amount()) -
-            searchAmountValue(outputAmount, a.output().amount()));
-    });
-    do {
-        if (utxoSelection.subset.length <= 0) {
-            throw new Error('INPUTS_EXHAUSTED');
-        }
-        /** @type {TransactionUnspentOutput} utxo */
-        let utxo = utxoSelection.subset.splice(0, 1).pop();
-        utxoSelection.selection.push(utxo);
-        utxoSelection.amount = addAmounts(utxo.output().amount(), utxoSelection.amount);
-    } while (!isQtyFulfilled(outputAmount, utxoSelection.amount, utxoSelection.subset.length - 1, utxoSelection.outputAddress));
-    // Quantity is met, return subset into remaining list and return selection
-    utxoSelection.remaining = [
-        ...utxoSelection.remaining,
-        ...utxoSelection.subset,
-    ];
-    utxoSelection.subset = [];
-    return utxoSelection;
+  // Sort UTxO subset in DESC order for required Output unit type
+  utxoSelection.subset = utxoSelection.subset.sort((a, b) => {
+    return Number(searchAmountValue(outputAmount, b.output().amount()) -
+      searchAmountValue(outputAmount, a.output().amount()));
+  });
+  do {
+    if (utxoSelection.subset.length <= 0) {
+      throw new Error('INPUTS_EXHAUSTED');
+    }
+    /** @type {TransactionUnspentOutput} utxo */
+    let utxo = utxoSelection.subset.splice(0, 1).pop();
+    utxoSelection.selection.push(utxo);
+    utxoSelection.amount = addAmounts(utxo.output().amount(), utxoSelection.amount);
+  } while (!isQtyFulfilled(outputAmount, utxoSelection.amount, utxoSelection.subset.length - 1, utxoSelection.outputAddress));
+  // Quantity is met, return subset into remaining list and return selection
+  utxoSelection.remaining = [
+    ...utxoSelection.remaining,
+    ...utxoSelection.subset,
+  ];
+  utxoSelection.subset = [];
+  return utxoSelection;
 }
 /**
  * Try to improve selection by increasing input amount in [2x,3x] range.
@@ -369,48 +369,48 @@ function descSelect(utxoSelection, outputAmount) {
  * @param {ImproveRange} range - Improvement range target values
  */
 function improve(utxoSelection, outputAmount, limit, range) {
-    let nbFreeUTxO = utxoSelection.subset.length;
-    if (compare(utxoSelection.amount, range.ideal) >= 0 ||
-        nbFreeUTxO <= 0 ||
-        limit <= 0) {
-        // Return subset in remaining
-        utxoSelection.remaining = [
-            ...utxoSelection.remaining,
-            ...utxoSelection.subset,
-        ];
-        utxoSelection.subset = [];
-        return;
+  let nbFreeUTxO = utxoSelection.subset.length;
+  if (compare(utxoSelection.amount, range.ideal) >= 0 ||
+    nbFreeUTxO <= 0 ||
+    limit <= 0) {
+    // Return subset in remaining
+    utxoSelection.remaining = [
+      ...utxoSelection.remaining,
+      ...utxoSelection.subset,
+    ];
+    utxoSelection.subset = [];
+    return;
+  }
+  /** @type {TransactionUnspentOutput} utxo */
+  const utxo = utxoSelection.subset
+    .splice(Math.floor(Math.random() * nbFreeUTxO), 1)
+    .pop();
+  const newAmount = wasm.Value.new(wasm.BigNum.from_str('0'))
+    .checked_add(utxo.output().amount())
+    .checked_add(utxoSelection.amount);
+  let checkIdeal = false;
+  const cmpResult = compare(newAmount, range.ideal);
+  if (cmpResult <= 0) {
+    checkIdeal = true;
+  }
+  else {
+    const idealMargin = range.ideal.checked_sub(outputAmount);
+    if (compare(newAmount, idealMargin.checked_add(range.ideal)) < 0) {
+      checkIdeal = true;
     }
-    /** @type {TransactionUnspentOutput} utxo */
-    const utxo = utxoSelection.subset
-        .splice(Math.floor(Math.random() * nbFreeUTxO), 1)
-        .pop();
-    const newAmount = wasm.Value.new(wasm.BigNum.from_str('0'))
-        .checked_add(utxo.output().amount())
-        .checked_add(utxoSelection.amount);
-    let checkIdeal = false;
-    const cmpResult = compare(newAmount, range.ideal);
-    if (cmpResult <= 0) {
-        checkIdeal = true;
-    }
-    else {
-        const idealMargin = range.ideal.checked_sub(outputAmount);
-        if (compare(newAmount, idealMargin.checked_add(range.ideal)) < 0) {
-            checkIdeal = true;
-        }
-    }
-    if ( // getAmountValue only makes sense when comparing the same assets
+  }
+  if ( // getAmountValue only makes sense when comparing the same assets
     // abs(getAmountValue(range.ideal) - getAmountValue(newAmount)) <
     //   abs(getAmountValue(range.ideal) - getAmountValue(outputAmount)) &&
     checkIdeal && (compare(newAmount, range.maximum) <= 0)) {
-        utxoSelection.selection.push(utxo);
-        utxoSelection.amount = addAmounts(utxo.output().amount(), utxoSelection.amount);
-        limit--;
-    }
-    else {
-        utxoSelection.remaining.push(utxo);
-    }
-    return improve(utxoSelection, outputAmount, limit, range);
+    utxoSelection.selection.push(utxo);
+    utxoSelection.amount = addAmounts(utxo.output().amount(), utxoSelection.amount);
+    limit--;
+  }
+  else {
+    utxoSelection.remaining.push(utxo);
+  }
+  return improve(utxoSelection, outputAmount, limit, range);
 }
 /**
  * Compile all required outputs to a flat amounts list
@@ -418,11 +418,11 @@ function improve(utxoSelection, outputAmount, limit, range) {
  * @return {Value} - The compiled set of amounts requested for payment.
  */
 function mergeOutputsAmounts(outputs) {
-    let compiledAmountList = wasm.Value.new(wasm.BigNum.from_str('0'));
-    for (let i = 0; i < outputs.len(); i++) {
-        compiledAmountList = addAmounts(outputs.get(i).amount(), compiledAmountList);
-    }
-    return compiledAmountList;
+  let compiledAmountList = wasm.Value.new(wasm.BigNum.from_str('0'));
+  for (let i = 0; i < outputs.len(); i++) {
+    compiledAmountList = addAmounts(outputs.get(i).amount(), compiledAmountList);
+  }
+  return compiledAmountList;
 }
 /**
  * Add up an Amounts List values to another Amounts List
@@ -431,7 +431,7 @@ function mergeOutputsAmounts(outputs) {
  * @return {Value}
  */
 function addAmounts(amounts, compiledAmounts) {
-    return compiledAmounts.checked_add(amounts);
+  return compiledAmounts.checked_add(amounts);
 }
 /**
  * Split amounts contained in a single {Value} object in separate {Value} objects
@@ -439,28 +439,28 @@ function addAmounts(amounts, compiledAmounts) {
  * @return {AmountList}
  */
 function splitAmounts(amounts) {
-    let splitAmounts = [];
-    if (amounts.multiasset() && amounts.multiasset().len() > 0) {
-        let mA = amounts.multiasset();
-        for (let i = 0; i < mA.keys().len(); i++) {
-            let scriptHash = mA.keys().get(i);
-            for (let j = 0; j < mA.get(scriptHash).keys().len(); j++) {
-                let _assets = wasm.Assets.new();
-                let assetName = mA.get(scriptHash).keys().get(j);
-                _assets.insert(wasm.AssetName.from_bytes(assetName.to_bytes()), wasm.BigNum.from_bytes(mA.get(scriptHash).get(assetName).to_bytes()));
-                let _multiasset = wasm.MultiAsset.new();
-                _multiasset.insert(wasm.ScriptHash.from_bytes(scriptHash.to_bytes()), _assets);
-                let _value = wasm.Value.new(wasm.BigNum.from_str('0'));
-                _value.set_multiasset(_multiasset);
-                splitAmounts.push(_value);
-            }
-        }
+  let splitAmounts = [];
+  if (amounts.multiasset() && amounts.multiasset().len() > 0) {
+    let mA = amounts.multiasset();
+    for (let i = 0; i < mA.keys().len(); i++) {
+      let scriptHash = mA.keys().get(i);
+      for (let j = 0; j < mA.get(scriptHash).keys().len(); j++) {
+        let _assets = wasm.Assets.new();
+        let assetName = mA.get(scriptHash).keys().get(j);
+        _assets.insert(wasm.AssetName.from_bytes(assetName.to_bytes()), wasm.BigNum.from_bytes(mA.get(scriptHash).get(assetName).to_bytes()));
+        let _multiasset = wasm.MultiAsset.new();
+        _multiasset.insert(wasm.ScriptHash.from_bytes(scriptHash.to_bytes()), _assets);
+        let _value = wasm.Value.new(wasm.BigNum.from_str('0'));
+        _value.set_multiasset(_multiasset);
+        splitAmounts.push(_value);
+      }
     }
-    // Order assets by qty DESC
-    splitAmounts = sortAmountList(splitAmounts, 'DESC');
-    // Insure lovelace is last to account for min ada requirement
-    splitAmounts.push(wasm.Value.new(wasm.BigNum.from_bytes(amounts.coin().to_bytes())));
-    return splitAmounts;
+  }
+  // Order assets by qty DESC
+  splitAmounts = sortAmountList(splitAmounts, 'DESC');
+  // Insure lovelace is last to account for min ada requirement
+  splitAmounts.push(wasm.Value.new(wasm.BigNum.from_bytes(amounts.coin().to_bytes())));
+  return splitAmounts;
 }
 /**
  * Sort a mismatched AmountList ASC/DESC
@@ -469,10 +469,10 @@ function splitAmounts(amounts) {
  * @return {AmountList} - The sorted AmountList
  */
 function sortAmountList(amountList, sortOrder = 'ASC') {
-    return amountList.sort((a, b) => {
-        let sortInt = sortOrder === 'DESC' ? BigInt(-1) : BigInt(1);
-        return Number((getAmountValue(a) - getAmountValue(b)) * sortInt);
-    });
+  return amountList.sort((a, b) => {
+    let sortInt = sortOrder === 'DESC' ? BigInt(-1) : BigInt(1);
+    return Number((getAmountValue(a) - getAmountValue(b)) * sortInt);
+  });
 }
 /**
  * Return BigInt amount value
@@ -480,17 +480,17 @@ function sortAmountList(amountList, sortOrder = 'ASC') {
  * @return {bigint}
  */
 function getAmountValue(amount) {
-    let val = BigInt(0);
-    let lovelace = BigInt(amount.coin().to_str());
-    if (lovelace > 0) {
-        val = lovelace;
-    }
-    else if (amount.multiasset() && amount.multiasset().len() > 0) {
-        let scriptHash = amount.multiasset().keys().get(0);
-        let assetName = amount.multiasset().get(scriptHash).keys().get(0);
-        val = BigInt(amount.multiasset().get(scriptHash).get(assetName).to_str());
-    }
-    return val;
+  let val = BigInt(0);
+  let lovelace = BigInt(amount.coin().to_str());
+  if (lovelace > 0) {
+    val = lovelace;
+  }
+  else if (amount.multiasset() && amount.multiasset().len() > 0) {
+    let scriptHash = amount.multiasset().keys().get(0);
+    let assetName = amount.multiasset().get(scriptHash).keys().get(0);
+    val = BigInt(amount.multiasset().get(scriptHash).get(assetName).to_str());
+  }
+  return val;
 }
 /**
  * Search & Return BigInt amount value
@@ -499,20 +499,20 @@ function getAmountValue(amount) {
  * @return {bigint}
  */
 function searchAmountValue(needle, haystack) {
-    let val = BigInt(0);
-    let lovelace = BigInt(needle.coin().to_str());
-    if (lovelace > 0) {
-        val = BigInt(haystack.coin().to_str());
-    }
-    else if (needle.multiasset() &&
-        haystack.multiasset() &&
-        needle.multiasset().len() > 0 &&
-        haystack.multiasset().len() > 0) {
-        let scriptHash = needle.multiasset().keys().get(0);
-        let assetName = needle.multiasset().get(scriptHash).keys().get(0);
-        val = BigInt(haystack.multiasset().get(scriptHash).get(assetName).to_str());
-    }
-    return val;
+  let val = BigInt(0);
+  let lovelace = BigInt(needle.coin().to_str());
+  if (lovelace > 0) {
+    val = BigInt(haystack.coin().to_str());
+  }
+  else if (needle.multiasset() &&
+    haystack.multiasset() &&
+    needle.multiasset().len() > 0 &&
+    haystack.multiasset().len() > 0) {
+    let scriptHash = needle.multiasset().keys().get(0);
+    let assetName = needle.multiasset().get(scriptHash).keys().get(0);
+    val = BigInt(haystack.multiasset().get(scriptHash).get(assetName).to_str());
+  }
+  return val;
 }
 /**
  * Narrow down remaining UTxO set in case of native token, use full set for lovelace
@@ -520,24 +520,24 @@ function searchAmountValue(needle, haystack) {
  * @param {Value} output - Single compiled output qty requested for payment.
  */
 function createSubSet(utxoSelection, output) {
-    if (BigInt(output.coin().to_str()) < BigInt(1)) {
-        let subset = [];
-        let remaining = [];
-        for (let i = 0; i < utxoSelection.remaining.length; i++) {
-            if (compare(utxoSelection.remaining[i].output().amount(), output) !==
-                undefined) {
-                subset.push(utxoSelection.remaining[i]);
-            }
-            else {
-                remaining.push(utxoSelection.remaining[i]);
-            }
-        }
-        utxoSelection.subset = subset;
-        utxoSelection.remaining = remaining;
+  if (BigInt(output.coin().to_str()) < BigInt(1)) {
+    let subset = [];
+    let remaining = [];
+    for (let i = 0; i < utxoSelection.remaining.length; i++) {
+      if (compare(utxoSelection.remaining[i].output().amount(), output) !==
+        undefined) {
+        subset.push(utxoSelection.remaining[i]);
+      }
+      else {
+        remaining.push(utxoSelection.remaining[i]);
+      }
     }
-    else {
-        utxoSelection.subset = utxoSelection.remaining.splice(0, utxoSelection.remaining.length);
-    }
+    utxoSelection.subset = subset;
+    utxoSelection.remaining = remaining;
+  }
+  else {
+    utxoSelection.subset = utxoSelection.remaining.splice(0, utxoSelection.remaining.length);
+  }
 }
 /**
  * Is Quantity Fulfilled Condition.
@@ -547,24 +547,24 @@ function createSubSet(utxoSelection, output) {
  * @return {boolean}
  */
 function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO, outputAddress) {
-    let amount = outputAmount;
-    if (!outputAmount.multiasset() || outputAmount.multiasset().len() <= 0) {
-        let minAmount = wasm.Value.new(wasm.min_ada_for_output(wasm.TransactionOutput.new(wasm.Address.from_bech32(outputAddress), cumulatedAmount), wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))));
-        // Lovelace min amount to cover assets and number of output need to be met
-        if (compare(cumulatedAmount, minAmount) < 0)
-            return false;
-        // The minAda of the change should be considered in advance, although if the asset is sent in full it will be greater than the actual need
-        amount = amount.checked_add(minAmount);
-        // Try covering the max fees, do not include contract execution consumption
-        if (nbFreeUTxO > 0) {
-            let maxFee = BigInt(protocolParameters.minFeeA) *
-                BigInt(protocolParameters.maxTxSize) +
-                BigInt(protocolParameters.minFeeB);
-            maxFee = wasm.Value.new(wasm.BigNum.from_str(maxFee.toString()));
-            amount = amount.checked_add(maxFee);
-        }
+  let amount = outputAmount;
+  if (!outputAmount.multiasset() || outputAmount.multiasset().len() <= 0) {
+    let minAmount = wasm.Value.new(wasm.min_ada_for_output(wasm.TransactionOutput.new(wasm.Address.from_bech32(outputAddress), cumulatedAmount), wasm.DataCost.new_coins_per_byte(wasm.BigNum.from_str(protocolParameters.coinsPerUtxoByte))));
+    // Lovelace min amount to cover assets and number of output need to be met
+    if (compare(cumulatedAmount, minAmount) < 0)
+      return false;
+    // The minAda of the change should be considered in advance, although if the asset is sent in full it will be greater than the actual need
+    amount = amount.checked_add(minAmount);
+    // Try covering the max fees, do not include contract execution consumption
+    if (nbFreeUTxO > 0) {
+      let maxFee = BigInt(protocolParameters.minFeeA) *
+        BigInt(protocolParameters.maxTxSize) +
+        BigInt(protocolParameters.minFeeB);
+      maxFee = wasm.Value.new(wasm.BigNum.from_str(maxFee.toString()));
+      amount = amount.checked_add(maxFee);
     }
-    return compare(cumulatedAmount, amount) >= 0;
+  }
+  return compare(cumulatedAmount, amount) >= 0;
 }
 /**
  * Return a deep copy of UTxOSelection
@@ -572,13 +572,13 @@ function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO, outputAddress
  * @return {UTxOSelection} Clone - Deep copy
  */
 function cloneUTxOSelection(utxoSelection) {
-    return {
-        selection: cloneUTxOList(utxoSelection.selection),
-        remaining: cloneUTxOList(utxoSelection.remaining),
-        subset: cloneUTxOList(utxoSelection.subset),
-        amount: cloneValue(utxoSelection.amount),
-        outputAddress: utxoSelection.outputAddress
-    };
+  return {
+    selection: cloneUTxOList(utxoSelection.selection),
+    remaining: cloneUTxOList(utxoSelection.remaining),
+    subset: cloneUTxOList(utxoSelection.subset),
+    amount: cloneValue(utxoSelection.amount),
+    outputAddress: utxoSelection.outputAddress
+  };
 }
 /**
  * Return a deep copy of an UTxO List
@@ -594,7 +594,7 @@ const cloneUTxOList = (utxoList) => utxoList.map((utxo) => wasm.TransactionUnspe
 const cloneValue = (value) => wasm.Value.from_bytes(value.to_bytes());
 // Helper
 function abs(big) {
-    return big < 0 ? big * BigInt(-1) : big;
+  return big < 0 ? big * BigInt(-1) : big;
 }
 /**
  * Compare a candidate value to the one in a group if present
@@ -603,35 +603,35 @@ function abs(big) {
  * @return {int} - -1 group lower, 0 equal, 1 group higher, undefined if no match
  */
 function compare(group, candidate) {
-    let gQty = BigInt(group.coin().to_str());
-    let cQty = BigInt(candidate.coin().to_str());
-    if (candidate.multiasset() && candidate.multiasset().len() > 0) {
-        let cScriptHash = candidate.multiasset().keys().get(0);
-        let cAssetName = candidate.multiasset().get(cScriptHash).keys().get(0);
-        if (group.multiasset() && group.multiasset().len()) {
-            if (group.multiasset().get(cScriptHash) &&
-                group.multiasset().get(cScriptHash).get(cAssetName)) {
-                gQty = BigInt(group.multiasset().get(cScriptHash).get(cAssetName).to_str());
-                cQty = BigInt(candidate.multiasset().get(cScriptHash).get(cAssetName).to_str());
-            }
-            else {
-                return undefined;
-            }
-        }
-        else {
-            return undefined;
-        }
+  let gQty = BigInt(group.coin().to_str());
+  let cQty = BigInt(candidate.coin().to_str());
+  if (candidate.multiasset() && candidate.multiasset().len() > 0) {
+    let cScriptHash = candidate.multiasset().keys().get(0);
+    let cAssetName = candidate.multiasset().get(cScriptHash).keys().get(0);
+    if (group.multiasset() && group.multiasset().len()) {
+      if (group.multiasset().get(cScriptHash) &&
+        group.multiasset().get(cScriptHash).get(cAssetName)) {
+        gQty = BigInt(group.multiasset().get(cScriptHash).get(cAssetName).to_str());
+        cQty = BigInt(candidate.multiasset().get(cScriptHash).get(cAssetName).to_str());
+      }
+      else {
+        return undefined;
+      }
     }
-    return gQty >= cQty ? (gQty === cQty ? 0 : 1) : -1;
+    else {
+      return undefined;
+    }
+  }
+  return gQty >= cQty ? (gQty === cQty ? 0 : 1) : -1;
 }
 /**
  * Initialise an empty Value with empty MultiAsset
  * @return {Value} - Initialized empty value
  */
 function createEmptyValue() {
-    const value = wasm.Value.new(wasm.BigNum.from_str('0'));
-    const multiasset = wasm.MultiAsset.new();
-    value.set_multiasset(multiasset);
-    return value;
+  const value = wasm.Value.new(wasm.BigNum.from_str('0'));
+  const multiasset = wasm.MultiAsset.new();
+  value.set_multiasset(multiasset);
+  return value;
 }
 export default CoinSelection;

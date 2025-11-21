@@ -1,751 +1,751 @@
 {
-    "StoremanService": [
-        {
-            "chainId": "2153201998",
-            "chainType": "WAN",
-            "chainName": "Wanchain",
-            "crossScAddr": "0xe85b0d89cbc670733d6a40a9450d8788be13da47",
-            "chainDecimals": 18,
-            "walletChainId": 888,
-            "blockConfirmations": 12,
-            "blockTime": 5
-        },
-        {
-            "chainId": "2147483708",
-            "chainType": "ETH",
-            "chainName": "Ethereum",
-            "crossScAddr": "0xfceaaaeb8d564a9d0e71ef36f027b9d162bc334e",
-            "CircleBridge": {
-                "domain": 0,
-                "crossScAddr": "0xeC0D8Cfd081ccce2D6Ed4E3dd8f248D3cAa3d24B",
-                "crossScAddrV2": "0x4bF9D67a254bD7C8E4a164e8363FFEDeC4128444"
-            },
-            "chainDecimals": 18,
-            "walletChainId": 1,
-            "blockConfirmations": 6,
-            "blockTime": 12
-        },
-        {
-            "chainId": "2147484362",
-            "chainType": "BNB",
-            "chainName": "BNB Chain",
-            "crossScAddr": "0xc3711bdbe7e3063bf6c22e7fed42f782ac82baee",
-            "chainDecimals": 18,
-            "walletChainId": 56,
-            "blockConfirmations": 12,
-            "blockTime": 3
-        },
-        {
-            "chainId": "2147492648",
-            "chainType": "AVAX",
-            "chainName": "Avalanche C-Chain",
-            "crossScAddr": "0x74e121a34a66D54C33f3291f2cdf26B1cd037c3a",
-            "CircleBridge": {
-                "domain": 1,
-                "crossScAddr": "0x0D4d2595B1d83AB6110b4291816D62d1417C5A8B",
-                "crossScAddrV2": "0x1342FE3Ff6Fe8B701d8067AE83A37d10bEc7aB1b"
-            },
-            "chainDecimals": 18,
-            "walletChainId": 43114,
-            "blockConfirmations": 12,
-            "blockTime": 2.3
-        },
-        {
-            "chainId": "1073741825",
-            "chainType": "MOVR",
-            "chainName": "Moonriver",
-            "chainDecimals": 18,
-            "crossScAddr": "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
-            "walletChainId": 1285,
-            "blockConfirmations": 12,
-            "blockTime": 12
-        },
-        {
-            "chainId": "1073741828",
-            "chainType": "GLMR",
-            "chainName": "Moonbeam",
-            "crossScAddr": "0x6372aEc6263AA93EAceDC994D38aa9117B6b95B5",
-            "chainDecimals": 18,
-            "walletChainId": 1284,
-            "blockConfirmations": 12,
-            "blockTime": 12
-        },
-        {
-            "chainId": "2147484614",
-            "chainType": "MATIC",
-            "chainName": "Polygon",
-            "symbol": "POL",
-            "chainDecimals": 18,
-            "crossScAddr": "0x2216072A246A84f7b9CE0f1415Dd239C9bF201aB",
-            "CircleBridge": {
-                "domain": 7,
-                "crossScAddr": "0x30b8d9e757595B5cbAEcdFD81e9Eeccf4B31e53D",
-                "crossScAddrV2": "0xC702c95612cd70B0440571DD7FA9c7B3057C152B"
-            },
-            "walletChainId": 137,
-            "blockConfirmations": 500,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741826",
-            "chainType": "ARETH",
-            "chainName": "Arbitrum",
-            "symbol": "ETH",
-            "chainDecimals": 18,
-            "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-            "CircleBridge": {
-                "domain": 3,
-                "crossScAddr": "0xD4B5f10D61916Bd6E0860144a91Ac658dE8a1437",
-                "crossScAddrV2": "0x65f17bBFb1c2B8eF9165e2F936122b6d88106CC5"
-            },
-            "walletChainId": 42161,
-            "blockConfirmations": 1,
-            "blockTime": 0.3
-        },
-        {
-            "chainId": "2147484655",
-            "chainType": "FTM",
-            "chainName": "Fantom",
-            "chainDecimals": 18,
-            "crossScAddr": "0xCcffE9d337f3c1b16bd271D109e691246fD69ee3",
-            "walletChainId": 250,
-            "blockConfirmations": 10,
-            "blockTime": 2.8
-        },
-        {
-            "chainId": "2147484262",
-            "chainType": "OETH",
-            "chainName": "OP Mainnet",
-            "symbol": "ETH",
-            "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
-            "CircleBridge": {
-                "domain": 2,
-                "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
-                "crossScAddrV2": "0xf5db314d1Bb8e6166a2b54B057dCa934ac3b5d43"
-            },
-            "chainDecimals": 18,
-            "walletChainId": 10,
-            "blockConfirmations": 1,
-            "blockTime": 2
-        },
-        {
-            "chainId": "2147484644",
-            "chainType": "OKT",
-            "chainName": "OKT Chain",
-            "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-            "chainDecimals": 18,
-            "walletChainId": 66,
-            "blockConfirmations": 20,
-            "blockTime": 3.8
-        },
-        {
-            "chainId": "2147484198",
-            "chainType": "XDC",
-            "chainName": "XDC Network",
-            "crossScAddr": "0xf7ba155556e2cd4dfe3fe26e506a14d2f4b97613",
-            "subsidyCrossSc": "0x09cDfc56439643d151585B77899d0dC0f982BcD2",
-            "CircleBridge": {
-                "domain": 18,
-                "crossScAddrV2": "0x77E3695C26FF538B4dB9593B20620b73D00c7059"
-            },
-            "chainDecimals": 18,
-            "walletChainId": 50,
-            "blockConfirmations": 32,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741829",
-            "chainType": "CLV",
-            "chainName": "Clover P-Chain",
-            "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
-            "chainDecimals": 18,
-            "walletChainId": 1024,
-            "blockConfirmations": 12,
-            "blockTime": 12
-        },
-        {
-            "chainId": "1073741830",
-            "chainType": "FX",
-            "chainName": "f(x)Core",
-            "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
-            "chainDecimals": 18,
-            "walletChainId": 530,
-            "blockConfirmations": 32,
-            "blockTime": 5.4
-        },
-        {
-            "chainId": "2147483843",
-            "chainType": "TRX",
-            "chainName": "Tron",
-            "crossScAddr": "0xfe464ebd5bb5d95731f90aa7b9e39df920a61c97",
-            "crossScAddrNative": "TZ9grqg3LwBKiddGra3WGHPdddJz3tow8N",
-            "chainDecimals": 6,
-            "blockConfirmations": 20,
-            "blockTime": 3
-        },
-        {
-            "chainId": "2147484458",
-            "chainType": "ASTR",
-            "chainName": "Astar",
-            "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
-            "chainDecimals": 18,
-            "walletChainId": 592,
-            "minReserved": 0.0001,
-            "blockConfirmations": 3,
-            "blockTime": 12
-        },
-        {
-            "chainId": "2147484625",
-            "chainType": "TLOS",
-            "chainName": "Telos",
-            "crossScAddr": "0x201E5dE97DFc46aAce142B2009332c524c9D8D82",
-            "chainDecimals": 18,
-            "walletChainId": 40,
-            "blockConfirmations": 120,
-            "blockTime": 0.5
-        },
-        {
-            "chainId": "1073741833",
-            "chainType": "GTH",
-            "chainName": "Gather",
-            "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
-            "chainDecimals": 18,
-            "walletChainId": 192837465,
-            "blockConfirmations": 20,
-            "blockTime": 13.2
-        },
-        {
-            "chainId": "1073741834",
-            "chainType": "METIS",
-            "chainName": "Metis",
-            "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
-            "chainDecimals": 18,
-            "walletChainId": 1088,
-            "blockConfirmations": 30,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741835",
-            "chainType": "OKB",
-            "chainName": "X Layer",
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "chainDecimals": 18,
-            "walletChainId": 196,
-            "blockConfirmations": 150,
-            "blockTime": 6
-        },
-        {
-            "chainId": "1073741836",
-            "chainType": "SGB",
-            "chainName": "Songbird",
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "chainDecimals": 18,
-            "walletChainId": 19,
-            "blockConfirmations": 100,
-            "blockTime": 1
-        },
-        {
-            "chainId": "1073741837",
-            "chainType": "ZKETH",
-            "chainName": "zkSync Era",
-            "symbol": "ETH",
-            "crossScAddr": "0x102F0ce7a439d51247167D6233A0a44c3f8389a1",
-            "chainDecimals": 18,
-            "walletChainId": 324,
-            "blockConfirmations": 30,
-            "blockTime": 1
-        },
-        {
-            "chainId": "1073741839",
-            "chainType": "ZEN",
-            "chainName": "Horizen EON",
-            "crossScAddr": "0x97E0883493e8bB7A119A1E36E53ee9E7A2D3CA7b",
-            "chainDecimals": 18,
-            "walletChainId": 7332,
-            "blockConfirmations": 100,
-            "blockTime": 19.2
-        },
-        {
-            "chainId": "1073741840",
-            "chainType": "VC",
-            "chainName": "VinuChain",
-            "crossScAddr": "0x72cCF64EE5E2C7629eE4eEe3e6AD6990289178ae",
-            "chainDecimals": 18,
-            "walletChainId": 207,
-            "blockConfirmations": 10,
-            "blockTime": 65.7
-        },
-        {
-            "chainId": "1073741838",
-            "chainType": "MATICETH",
-            "chainName": "Polygon zkEVM",
-            "symbol": "ETH",
-            "crossScAddr": "0xB13aFe3e965DcD483022b1CC3Adf03Eea039A754",
-            "chainDecimals": 18,
-            "walletChainId": 1101,
-            "blockConfirmations": 300,
-            "blockTime": 6
-        },
-        {
-            "chainId": "1073741841",
-            "chainType": "BASEETH",
-            "chainName": "Base",
-            "symbol": "ETH",
-            "crossScAddr": "0x2715aA7156634256aE75240C2c5543814660CD04",
-            "CircleBridge": {
-                "domain": 6,
-                "crossScAddr": "0x012297F3d1Cb0D685B195A70231730F4c8c86F86",
-                "crossScAddrV2": "0x76C51350705756030c70cCb82EF23345C2a4610E"
-            },
-            "chainDecimals": 18,
-            "walletChainId": 8453,
-            "blockConfirmations": 200,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741842",
-            "chainType": "LINEAETH",
-            "chainName": "Linea",
-            "symbol": "ETH",
-            "crossScAddr": "0xFFB876Bd5Bee99e992cAc826A04396002f5f4a65",
-            "CircleBridge": {
-                "domain": 11,
-                "crossScAddrV2": "0xD6965a9b739240dB7ACD36E3AFb2dfe1dAE7c694"
-            },
-            "chainDecimals": 18,
-            "walletChainId": 59144,
-            "blockConfirmations": 64,
-            "blockTime": 6
-        },
-        {
-            "chainId": "1073741845",
-            "chainType": "OPBNB",
-            "chainName": "opBNB",
-            "symbol": "BNB",
-            "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
-            "chainDecimals": 18,
-            "walletChainId": 204,
-            "blockConfirmations": 12,
-            "blockTime": 1
-        },
-        {
-            "chainId": "2147536400",
-            "chainType": "CELO",
-            "chainName": "Celo",
-            "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
-            "chainDecimals": 18,
-            "walletChainId": 42220,
-            "blockConfirmations": 80,
-            "blockTime": 5
-        },
-        {
-            "chainId": "1073741846",
-            "chainType": "BLASTETH",
-            "chainName": "Blast",
-            "symbol": "ETH",
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "chainDecimals": 18,
-            "walletChainId": 81457,
-            "blockConfirmations": 600,
-            "blockTime": 6
-        },
-        {
-            "chainId": "1073741851",
-            "chainType": "WATER",
-            "chainName": "Waterfall",
-            "symbol": "WATER",
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "chainDecimals": 18,
-            "walletChainId": 181,
-            "blockConfirmations": 3,
-            "blockTime": 5
-        },
-        {
-            "chainId": "2147493655",
-            "chainType": "S",
-            "chainName": "Sonic",
-            "symbol": "S",
-            "chainDecimals": 18,
-            "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
-            "CircleBridge": {
-                "domain": 13,
-                "crossScAddr": "",
-                "crossScAddrV2": "0x508927b6247179D72142B60Fc69f5E4d58cbEb64"
-            },
-            "walletChainId": 146,
-            "blockConfirmations": 20,
-            "blockTime": 0.6
-        },
-        {
-            "chainId": "2147484466",
-            "chainType": "VET",
-            "chainName": "VeChain",
-            "symbol": "VET",
-            "chainDecimals": 18,
-            "crossScAddr": "0xfb37aee0ebfbd3929923d1366ba30df037e9e47c",
-            "blockConfirmations": 12,
-            "blockTime": 10
-        },
-        {
-            "chainId": "2147493445",
-            "chainType": "NRG",
-            "chainName": "Energi",
-            "symbol": "NRG",
-            "chainDecimals": 18,
-            "crossScAddr": "0xbe5187c2a7eb776c1caeed2c37e7599fb05000d3",
-            "walletChainId": 39797,
-            "blockConfirmations": 30,
-            "blockTime": 60
-        },
-        {
-            "chainId": "2154655314",
-            "chainType": "BROCK",
-            "chainName": "Bitrock",
-            "symbol": "BROCK",
-            "chainDecimals": 18,
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "walletChainId": 7171,
-            "blockConfirmations": 64,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741848",
-            "chainType": "DIONE",
-            "chainName": "Odyssey",
-            "symbol": "DIONE",
-            "chainDecimals": 18,
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "walletChainId": 153153,
-            "blockConfirmations": 1,
-            "blockTime": 20
-        },
-        {
-            "chainId": "1073741849",
-            "chainType": "PLYR",
-            "chainName": "PLYR",
-            "symbol": "PLYR",
-            "chainDecimals": 18,
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "walletChainId": 16180,
-            "blockConfirmations": 1,
-            "blockTime": 20
-        },
-        {
-            "chainId": "1073741853",
-            "chainType": "5IRE",
-            "chainName": "5ire",
-            "symbol": "1073741853",
-            "chainDecimals": 18,
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "walletChainId": 995,
-            "blockConfirmations": 4,
-            "blockTime": 3
-        },
-        {
-            "chainId": "1073741850",
-            "chainType": "EDX",
-            "chainName": "edeXa",
-            "symbol": "EDX",
-            "chainDecimals": 18,
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "walletChainId": 5424,
-            "blockConfirmations": 3,
-            "blockTime": 5
-        },
-        {
-            "chainId": "1073741856",
-            "chainType": "SHIDO",
-            "chainName": "Shido",
-            "symbol": "SHIDO",
-            "chainDecimals": 18,
-            "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
-            "walletChainId": 9008,
-            "blockConfirmations": 6,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741857",
-            "chainType": "WORLDETH",
-            "chainName": "World Chain",
-            "symbol": "ETH",
-            "chainDecimals": 18,
-            "crossScAddr": "0x41B0AD2cC2c56950C52E7E34c4fFd6D9C4361284",
-            "CircleBridge": {
-                "domain": 14,
-                "crossScAddr": "",
-                "crossScAddrV2": "0x79d745178BC271A1f29F8fbE9251dfC512db842C"
-            },
-            "walletChainId": 480,
-            "blockConfirmations": 6,
-            "blockTime": 2
-        },
-        {
-            "chainId": "1073741858",
-            "chainType": "UNIETH",
-            "chainName": "Unichain",
-            "symbol": "ETH",
-            "chainDecimals": 18,
-            "crossScAddr": "0x9C11539603661b6c90E65E96Aa8aC4B8E4b914c8",
-            "CircleBridge": {
-                "domain": 10,
-                "crossScAddr": "",
-                "crossScAddrV2": "0x22C835B306916ec6cb3568e7ffD61bF821Ed593d"
-            },
-            "walletChainId": 130,
-            "blockConfirmations": 12,
-            "blockTime": 1
-        },
-        {
-            "chainId": "2166483766",
-            "chainType": "SEI",
-            "chainName": "Sei",
-            "symbol": "SEI",
-            "chainDecimals": 18,
-            "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
-            "CircleBridge": {
-                "domain": 16,
-                "crossScAddrV2": "0xDd8830d9454365a3b81d0EC6F4272AE5337795bb"
-            },
-            "walletChainId": 1329,
-            "blockConfirmations": 1,
-            "blockTime": 0.5
-        },
-        {
-            "chainId": "1073741859",
-            "chainType": "0G",
-            "chainName": "0G",
-            "symbol": "0G",
-            "chainDecimals": 18,
-            "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
-            "walletChainId": 16661,
-            "blockConfirmations": 1,
-            "blockTime": 0.7
-        }
-    ],
-    "iWanConnectorService": {
-        "iWanOption": {
-            "options": [
-                {
-                    "url": "api.wanchain.org",
-                    "port": 8443,
-                    "flag": "ws",
-                    "version": "v3",
-                    "timeout": 300000
-                }
-            ]
-        }
+  "StoremanService": [
+    {
+      "chainId": "2153201998",
+      "chainType": "WAN",
+      "chainName": "Wanchain",
+      "crossScAddr": "0xe85b0d89cbc670733d6a40a9450d8788be13da47",
+      "chainDecimals": 18,
+      "walletChainId": 888,
+      "blockConfirmations": 12,
+      "blockTime": 5
     },
-    "TaskService": {
-        "taskInterval": 3000
+    {
+      "chainId": "2147483708",
+      "chainType": "ETH",
+      "chainName": "Ethereum",
+      "crossScAddr": "0xfceaaaeb8d564a9d0e71ef36f027b9d162bc334e",
+      "CircleBridge": {
+        "domain": 0,
+        "crossScAddr": "0xeC0D8Cfd081ccce2D6Ed4E3dd8f248D3cAa3d24B",
+        "crossScAddrV2": "0x4bF9D67a254bD7C8E4a164e8363FFEDeC4128444"
+      },
+      "chainDecimals": 18,
+      "walletChainId": 1,
+      "blockConfirmations": 6,
+      "blockTime": 12
     },
-    "apiServer": {
-        "url": "https://bridgeapi.wanchain.org"
+    {
+      "chainId": "2147484362",
+      "chainType": "BNB",
+      "chainName": "BNB Chain",
+      "crossScAddr": "0xc3711bdbe7e3063bf6c22e7fed42f782ac82baee",
+      "chainDecimals": 18,
+      "walletChainId": 56,
+      "blockConfirmations": 12,
+      "blockTime": 3
     },
-    "noEthChainInfo": [
-        {
-            "chainId": "2147483648",
-            "chainType": "BTC",
-            "chainName": "Bitcoin",
-            "network": "bitcoin",
-            "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-            "burnFromChainHandle": "MintBtcFromBitcoinHandle",
-            "chainDecimals": 8,
-            "walletChainId": "bitcoin",
-            "txScanInterval": 60000,
-            "blockConfirmations": 2,
-            "blockTime": 600
-        },
-        {
-            "chainId": "2147483650",
-            "chainType": "LTC",
-            "chainName": "Litecoin",
-            "network": "mainnet",
-            "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-            "chainDecimals": 8,
-            "txScanInterval": 60000,
-            "blockConfirmations": 4,
-            "blockTime": 150
-        },
-        {
-            "chainId": "2147483651",
-            "chainType": "DOGE",
-            "chainName": "Dogecoin",
-            "network": "mainnet",
-            "mintFromChainHandle": "MintBtcFromBitcoinHandle",
-            "chainDecimals": 8,
-            "txScanInterval": 60000,
-            "blockConfirmations": 9,
-            "blockTime": 60
-        },
-        {
-            "chainId": "2147483792",
-            "chainType": "XRP",
-            "chainName": "XRP Ledger",
-            "mintFromChainHandle": "MintXrpFromRippleHandle",
-            "chainDecimals": 6,
-            "minReserved": 2,
-            "blockConfirmations": 1,
-            "blockTime": 3.5
-        },
-        {
-            "chainId": "2147484002",
-            "chainType": "DOT",
-            "chainName": "Polkadot",
-            "mintFromChainHandle": "MintDotFromPolkaHandle",
-            "chainDecimals": 10,
-            "minReserved": 1,
-            "blockConfirmations": 3,
-            "blockTime": 6
-        },
-        {
-            "chainId": "1073741831",
-            "chainType": "PHA",
-            "chainName": "Phala",
-            "mintFromChainHandle": "MintDotFromPolkaHandle",
-            "chainDecimals": 12,
-            "blockConfirmations": 2,
-            "blockTime": 13
-        },
-        {
-            "chainId": "2147485463",
-            "chainType": "ADA",
-            "chainName": "Cardano",
-            "crossScAddr": "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
-            "feeHolder": "addr1qyxqtjnck8f0gyzys6kwpydd5lrcjue6tg8f2elqhs65ffy7trczz375trxwfgc7zvkvxrxcr4plz8tnqv6qre7u722qhe650r",
-            "mintFromChainHandle": "MintFromCardano",
-            "burnFromChainHandle": "BurnFromCardano",
-            "chainDecimals": 6,
-            "walletChainId": 1,
-            "tokenScript": {
-                "txHash": "fffb1b66bd78837ea0136587c354ee6a0991b6d0a2954e48d46a476b3ce683df",
-                "index": 0,
-                "cborHex": "590b04590b01010000332323322332232323232323232323232323232323232323232323232323233223232222323253353232323500822323232533553353233029502e001323500122222222222200850061622135002222533500413232533500210011031333573466e2000920000310303301a0033500c223333500123263202d3357389201024c680002d200123263202d3357389201024c680002d23263202d3357389201024c680002d2216102b15335001102b1335738920103686d6d0002a3232333573466e1c005200202c02b3002001323500122222222222233355301f1200133502022335530201200123500122335503f0023355302312001235001223355042002333500123303c4800000488cc0f40080048cc0f00052000001335530201200123500122335503f002333500123355302412001235001223355043002355026001001223335550210280020012335530241200123500122335504300235502500100133355501c02300200150392350012235001222200300c50053200135502d223350014800088d4008894cd4ccd5cd19b8f00200902f02e13007001130060033200135502c223350014800088d4008894cd4ccd5cd19b8f00200702e02d100113006003135001220023333573466e1cd55cea801a4000466442466002006004646464646464646464646464646666ae68cdc39aab9d500c480008cccccccccccc88888888888848cccccccccccc00403403002c02802402001c01801401000c008cd407807cd5d0a80619a80f00f9aba1500b33501e02035742a014666aa044eb94084d5d0a804999aa8113ae502135742a01066a03c04e6ae85401cccd540880a1d69aba150063232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd40c9d69aba150023033357426ae8940088c98c80d4cd5ce01b01a81989aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a8193ad35742a00460666ae84d5d1280111931901a99ab9c036035033135573ca00226ea8004d5d09aba2500223263203133573806406205e26aae7940044dd50009aba1500533501e75c6ae854010ccd540880908004d5d0a801999aa8113ae200135742a004604c6ae84d5d1280111931901699ab9c02e02d02b135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d55cf280089baa00135742a006602c6ae84d5d1280191931900f99ab9c02001f01d3333573466e1cd55ce9baa0044800080788c98c8078cd5ce00f80f00e080e89931900e99ab9c4901035054350001d135573ca00226ea8004444888ccd54c010480054084cd54c01c480048d400488cd54098008d54024004ccd54c0104800488d4008894cd4ccd54c03048004c8cd403888ccd400c88008008004d40048800448cc004894cd4008409c40040908d400488cc028008014018400c4cd409401000d4088004cd54c01c480048d400488c8cd5409c00cc004014c8004d5409c894cd40044d5402800c884d4008894cd4cc03000802044888cc0080280104c01800c008c8004d5408088448894cd40044008884cc014008ccd54c01c480040140100044484888c00c0104484888c004010c8004d540748844894cd40045407c884cd4080c010008cd54c01848004010004c8004d5407088448894cd40044d400c88004884ccd401488008c010008ccd54c01c4800401401000448848cc00400c00888ccd5cd19b8f0020010180171232230023758002640026aa034446666aae7c0049406c8cd4068c010d5d080118019aba2002012232323333573466e1cd55cea8012400046644246600200600460146ae854008c014d5d09aba2500223263201233573802602402026aae7940044dd50009191919191999ab9a3370e6aae75401120002333322221233330010050040030023232323333573466e1cd55cea8012400046644246600200600460266ae854008cd4034048d5d09aba2500223263201733573803002e02a26aae7940044dd50009aba150043335500875ca00e6ae85400cc8c8c8cccd5cd19b875001480108c84888c008010d5d09aab9e500323333573466e1d4009200223212223001004375c6ae84d55cf280211999ab9a3370ea00690001091100191931900c99ab9c01a019017016015135573aa00226ea8004d5d0a80119a804bae357426ae8940088c98c804ccd5ce00a00980889aba25001135744a00226aae7940044dd5000899aa800bae75a224464460046eac004c8004d5405c88c8cccd55cf8011280c919a80c19aa80d18031aab9d5002300535573ca00460086ae8800c0404d5d080089119191999ab9a3370ea0029000119091180100198029aba135573ca00646666ae68cdc3a801240044244002464c6402066ae700440400380344d55cea80089baa001232323333573466e1d400520062321222230040053007357426aae79400c8cccd5cd19b875002480108c848888c008014c024d5d09aab9e500423333573466e1d400d20022321222230010053007357426aae7940148cccd5cd19b875004480008c848888c00c014dd71aba135573ca00c464c6402066ae7004404003803403002c4d55cea80089baa001232323333573466e1cd55cea80124000466442466002006004600a6ae854008dd69aba135744a004464c6401866ae700340300284d55cf280089baa0012323333573466e1cd55cea800a400046eb8d5d09aab9e500223263200a33573801601401026ea80048c8c8c8c8c8cccd5cd19b8750014803084888888800c8cccd5cd19b875002480288488888880108cccd5cd19b875003480208cc8848888888cc004024020dd71aba15005375a6ae84d5d1280291999ab9a3370ea00890031199109111111198010048041bae35742a00e6eb8d5d09aba2500723333573466e1d40152004233221222222233006009008300c35742a0126eb8d5d09aba2500923333573466e1d40192002232122222223007008300d357426aae79402c8cccd5cd19b875007480008c848888888c014020c038d5d09aab9e500c23263201333573802802602202001e01c01a01801626aae7540104d55cf280189aab9e5002135573ca00226ea80048c8c8c8c8cccd5cd19b875001480088ccc888488ccc00401401000cdd69aba15004375a6ae85400cdd69aba135744a00646666ae68cdc3a80124000464244600400660106ae84d55cf280311931900619ab9c00d00c00a009135573aa00626ae8940044d55cf280089baa001232323333573466e1d400520022321223001003375c6ae84d55cf280191999ab9a3370ea004900011909118010019bae357426aae7940108c98c8024cd5ce00500480380309aab9d50011375400224464646666ae68cdc3a800a40084244400246666ae68cdc3a8012400446424446006008600c6ae84d55cf280211999ab9a3370ea00690001091100111931900519ab9c00b00a008007006135573aa00226ea80048c8cccd5cd19b87500148008802c8cccd5cd19b87500248000802c8c98c8018cd5ce00380300200189aab9d37540029309000a48103505431002233700004002640026aa00e444a66a00220044426a004446600e66601000400c002006640026aa00c4444a66a00220044426a00444a66a666ae68cdc3800a4000014012266601000e00c006266601000e66a0162466600201000600400c006244004244002224400424424466002008006224424660020060042246460020024466006600400400266a2446600491011c992eefaec3fed37e3cdd4e9063721f0f2e231d61934a9f538b492f5c0048810a4d436865636b436f696e0022123300100300220011"
-            },
-            "blockConfirmations": 30,
-            "blockTime": 12
-        },
-        {
-            "chainId": "1073741844",
-            "chainType": "NOBLE",
-            "chainName": "Noble",
-            "feeHolder": "noble15wal47p8s029q2hgexfw6m9yjmjuqwkr7wdrp4",
-            "mintFromChainHandle": "MintFromCosmos",
-            "symbol": "USDC",
-            "CircleBridge": {
-                "domain": 4,
-                "feeHolder": "noble1esq4y8zj8u78yrx9h799mkfd5he5jrjgrcl6fn"
-            },
-            "chainDecimals": 6,
-            "walletChainId": "noble-1",
-            "blockConfirmations": 1,
-            "blockTime": 20
-        },
-        {
-            "chainId": "2147484149",
-            "chainType": "SOL",
-            "chainName": "Solana",
-            "crossScAddr": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB",
-            "adminBoardProgram": "7jYCM8k5Nvwg5vyPpLk2yjivQhexPDMXuK8CSbUKqL6B",
-            "tokenManagerProgram": "6PcqfvWkBv3m9F5XBU2kMAedycs6BPzDGfi8zcWam3kH",
-            "feeHolder": "CXxYYAtiUhdUagJNQ6UAB9gmHdxeujUPdn4iRg9HeuSz",
-            "mintFromChainHandle": "MintFromSolana",
-            "burnFromChainHandle": "BurnFromSolana",
-            "CircleBridge": {
-                "domain": 5,
-                "crossScAddr": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
-                "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
-                "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
-                "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3",
-                "feeHolder": "3yaCPbYPPWNZYUBYa8mMLo9QeQqQB6hR9XXHXnXfKEvH"
-            },
-            "chainDecimals": 9,
-            "walletChainId": "mainnet-beta",
-            "minReserved": 0.001,
-            "blockConfirmations": 1,
-            "blockTime": 0.4
-        },
-        {
-            "chainId": "2147484432",
-            "chainType": "SUI",
-            "chainName": "Sui",
-            "symbol": "SUI",
-            "crossScAddr": "0x1c8b984b5d896a916b356171ee7c48eb5b62d8685ffe8da6f5ac30cc1def8c6a",
-            "tokenPairRegistry": "0x1706cef6192f49db4d5650eb93a912ae81694d0f8b90f591e6f489959829b987",
-            "TreasuryCapsRegistry": "0xfd4426caebdca527d2c68c4f9864611a8298819d8f5bd3e494e2347b1dc2bf84",
-            "tokenVault": "0xc22e2bf69d38889a92559f45fd8769838d98dfc85f9e42925c0cb34bd7da06c7",
-            "foundationConfig": "0x8a47c0bcca85466f679a0f5b1e1e1ca0bed02a1ea33dad829fa22e8bfa97bf54",
-            "pauseConfig": "0xfd6f639b37679637d77389038bcfad8e7a128122c18a9b0706d101670af21505",
-            "feeConfig": "0xbb93514a7e8774a4f9aca575793f766e3a21d0a936785129be4f99c0263e1d0f",
-            "oracleStorage": "0x30e1529ff5b1bcaac4dcdc9095ea5a3562c6a26607e6b26b0dfd296ed230c2d1",
-            "clock": "0x6",
-            "mintFromChainHandle": "MintFromSui",
-            "burnFromChainHandle": "BurnFromSui",
-            "CircleBridge": {
-                "domain": 8,
-                "crossScAddr": "0x16b03acd7aa1fd34e913282b69ebd778951db2a4a55b4015f1d7f0d5a7f40b2d",
-                "feeConfig": "0xbb93514a7e8774a4f9aca575793f766e3a21d0a936785129be4f99c0263e1d0f",
-                "feeCollectorConfig": "0xc259516354cac6854e0b40b135a6eec493a55c03f1d865e9c4c4e74f69d8c4cf",
-                "messageTransmitter": "0x08d87d37ba49e785dde270a83f8e979605b03dc552b5548f26fdf2f49bf7ed1b",
-                "messageTransmitterState": "0xf68268c3d9b1df3215f2439400c1c4ea08ac4ef4bb7d6f3ca6a2a239e17510af",
-                "tokenMessengerMinter": "0x2aa6c5d56376c371f88a6cc42e852824994993cb9bab8d3e6450cbe3cb32b94e",
-                "tokenMessengerMinterState": "0x45993eecc0382f37419864992c12faee2238f5cfe22b98ad3bf455baf65c8a2f",
-                "denyList": "0x403",
-                "treasury": "0x57d6725e7a8b49a7b2a612f6bd66ab5f39fc95332ca48be421c3229d514a6de7"
-            },
-            "chainDecimals": 9,
-            "walletChainId": "sui:mainnet",
-            "blockConfirmations": 1,
-            "blockTime": 0.24
-        },
-        {
-            "chainId": "2147484107",
-            "chainType": "KAVA",
-            "chainName": "Kava",
-            "feeHolder": "kava15wal47p8s029q2hgexfw6m9yjmjuqwkr2cvk0u",
-            "mintFromChainHandle": "MintFromCosmos",
-            "chainDecimals": 6,
-            "walletChainId": "kava_2222-10",
-            "blockConfirmations": 1,
-            "blockTime": 6
-        }
-    ],
-    "tokenPairCfg": [
-        {
-            "id": "6",
-            "comment": "EOS token between WAN<->ETH",
-            "mintHandle": "MintErc20",
-            "burnHandle": "BurnErc20"
-        },
-        {
-            "id": "74",
-            "comment": "Ethereum native VEE <-> Avalanche VEE pool",
-            "mintHandle": "MintErc20",
-            "burnHandle": "BurnErc20ProxyToken",
-            "toNativeToken": "0x"
-        },
-        {
-            "id": "178",
-            "comment": "Moonriver native FINN <-> Clove FINN pool",
-            "mintHandle": "MintErc20",
-            "burnHandle": "BurnErc20ProxyToken",
-            "toNativeToken": "0xBeA4928632e482A0A1241B38f596a311Ad7b98B1"
-        }
-    ],
-    "LockTxTimeout": 86400000,
-    "crossConfigSc": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
-    "crossTask": {
-        "scAddr": "0x2D7744dBD92E6569b453Dc4414773dF72E869c78",
-        "tokens": {
-            "0xc45ae7e9932bea4e220467c937fb6d3df4987001": {
-                "symbol": "XP",
-                "decimals": 18
-            },
-            "0x2ea407aa69be7367bf231e76b51fab9ec436766c": {
-                "symbol": "xWAN",
-                "decimals": 18
-            }
-        }
+    {
+      "chainId": "2147492648",
+      "chainType": "AVAX",
+      "chainName": "Avalanche C-Chain",
+      "crossScAddr": "0x74e121a34a66D54C33f3291f2cdf26B1cd037c3a",
+      "CircleBridge": {
+        "domain": 1,
+        "crossScAddr": "0x0D4d2595B1d83AB6110b4291816D62d1417C5A8B",
+        "crossScAddrV2": "0x1342FE3Ff6Fe8B701d8067AE83A37d10bEc7aB1b"
+      },
+      "chainDecimals": 18,
+      "walletChainId": 43114,
+      "blockConfirmations": 12,
+      "blockTime": 2.3
     },
-    "wanPointsServer": "https://wanpoints.wanscan.org",
-    "cctpApiUrl": "https://iris-api.circle.com"
+    {
+      "chainId": "1073741825",
+      "chainType": "MOVR",
+      "chainName": "Moonriver",
+      "chainDecimals": 18,
+      "crossScAddr": "0xdE1Ae3c465354f01189150f3836C7C15A1d6671D",
+      "walletChainId": 1285,
+      "blockConfirmations": 12,
+      "blockTime": 12
+    },
+    {
+      "chainId": "1073741828",
+      "chainType": "GLMR",
+      "chainName": "Moonbeam",
+      "crossScAddr": "0x6372aEc6263AA93EAceDC994D38aa9117B6b95B5",
+      "chainDecimals": 18,
+      "walletChainId": 1284,
+      "blockConfirmations": 12,
+      "blockTime": 12
+    },
+    {
+      "chainId": "2147484614",
+      "chainType": "MATIC",
+      "chainName": "Polygon",
+      "symbol": "POL",
+      "chainDecimals": 18,
+      "crossScAddr": "0x2216072A246A84f7b9CE0f1415Dd239C9bF201aB",
+      "CircleBridge": {
+        "domain": 7,
+        "crossScAddr": "0x30b8d9e757595B5cbAEcdFD81e9Eeccf4B31e53D",
+        "crossScAddrV2": "0xC702c95612cd70B0440571DD7FA9c7B3057C152B"
+      },
+      "walletChainId": 137,
+      "blockConfirmations": 500,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741826",
+      "chainType": "ARETH",
+      "chainName": "Arbitrum",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
+      "CircleBridge": {
+        "domain": 3,
+        "crossScAddr": "0xD4B5f10D61916Bd6E0860144a91Ac658dE8a1437",
+        "crossScAddrV2": "0x65f17bBFb1c2B8eF9165e2F936122b6d88106CC5"
+      },
+      "walletChainId": 42161,
+      "blockConfirmations": 1,
+      "blockTime": 0.3
+    },
+    {
+      "chainId": "2147484655",
+      "chainType": "FTM",
+      "chainName": "Fantom",
+      "chainDecimals": 18,
+      "crossScAddr": "0xCcffE9d337f3c1b16bd271D109e691246fD69ee3",
+      "walletChainId": 250,
+      "blockConfirmations": 10,
+      "blockTime": 2.8
+    },
+    {
+      "chainId": "2147484262",
+      "chainType": "OETH",
+      "chainName": "OP Mainnet",
+      "symbol": "ETH",
+      "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+      "CircleBridge": {
+        "domain": 2,
+        "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
+        "crossScAddrV2": "0xf5db314d1Bb8e6166a2b54B057dCa934ac3b5d43"
+      },
+      "chainDecimals": 18,
+      "walletChainId": 10,
+      "blockConfirmations": 1,
+      "blockTime": 2
+    },
+    {
+      "chainId": "2147484644",
+      "chainType": "OKT",
+      "chainName": "OKT Chain",
+      "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
+      "chainDecimals": 18,
+      "walletChainId": 66,
+      "blockConfirmations": 20,
+      "blockTime": 3.8
+    },
+    {
+      "chainId": "2147484198",
+      "chainType": "XDC",
+      "chainName": "XDC Network",
+      "crossScAddr": "0xf7ba155556e2cd4dfe3fe26e506a14d2f4b97613",
+      "subsidyCrossSc": "0x09cDfc56439643d151585B77899d0dC0f982BcD2",
+      "CircleBridge": {
+        "domain": 18,
+        "crossScAddrV2": "0x77E3695C26FF538B4dB9593B20620b73D00c7059"
+      },
+      "chainDecimals": 18,
+      "walletChainId": 50,
+      "blockConfirmations": 32,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741829",
+      "chainType": "CLV",
+      "chainName": "Clover P-Chain",
+      "crossScAddr": "0xF7Ba155556E2CD4Dfe3Fe26e506A14d2f4b97613",
+      "chainDecimals": 18,
+      "walletChainId": 1024,
+      "blockConfirmations": 12,
+      "blockTime": 12
+    },
+    {
+      "chainId": "1073741830",
+      "chainType": "FX",
+      "chainName": "f(x)Core",
+      "crossScAddr": "0xdF935552FaC687123C642F589296762B632a9Aaf",
+      "chainDecimals": 18,
+      "walletChainId": 530,
+      "blockConfirmations": 32,
+      "blockTime": 5.4
+    },
+    {
+      "chainId": "2147483843",
+      "chainType": "TRX",
+      "chainName": "Tron",
+      "crossScAddr": "0xfe464ebd5bb5d95731f90aa7b9e39df920a61c97",
+      "crossScAddrNative": "TZ9grqg3LwBKiddGra3WGHPdddJz3tow8N",
+      "chainDecimals": 6,
+      "blockConfirmations": 20,
+      "blockTime": 3
+    },
+    {
+      "chainId": "2147484458",
+      "chainType": "ASTR",
+      "chainName": "Astar",
+      "crossScAddr": "0x592dE30Bebff484B5a43A6E8E3ec1a814902E0b6",
+      "chainDecimals": 18,
+      "walletChainId": 592,
+      "minReserved": 0.0001,
+      "blockConfirmations": 3,
+      "blockTime": 12
+    },
+    {
+      "chainId": "2147484625",
+      "chainType": "TLOS",
+      "chainName": "Telos",
+      "crossScAddr": "0x201E5dE97DFc46aAce142B2009332c524c9D8D82",
+      "chainDecimals": 18,
+      "walletChainId": 40,
+      "blockConfirmations": 120,
+      "blockTime": 0.5
+    },
+    {
+      "chainId": "1073741833",
+      "chainType": "GTH",
+      "chainName": "Gather",
+      "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+      "chainDecimals": 18,
+      "walletChainId": 192837465,
+      "blockConfirmations": 20,
+      "blockTime": 13.2
+    },
+    {
+      "chainId": "1073741834",
+      "chainType": "METIS",
+      "chainName": "Metis",
+      "crossScAddr": "0xC6Ae1Db6C66d909F7bFEeEb24F9adb8620bf9dbf",
+      "chainDecimals": 18,
+      "walletChainId": 1088,
+      "blockConfirmations": 30,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741835",
+      "chainType": "OKB",
+      "chainName": "X Layer",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "chainDecimals": 18,
+      "walletChainId": 196,
+      "blockConfirmations": 150,
+      "blockTime": 6
+    },
+    {
+      "chainId": "1073741836",
+      "chainType": "SGB",
+      "chainName": "Songbird",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "chainDecimals": 18,
+      "walletChainId": 19,
+      "blockConfirmations": 100,
+      "blockTime": 1
+    },
+    {
+      "chainId": "1073741837",
+      "chainType": "ZKETH",
+      "chainName": "zkSync Era",
+      "symbol": "ETH",
+      "crossScAddr": "0x102F0ce7a439d51247167D6233A0a44c3f8389a1",
+      "chainDecimals": 18,
+      "walletChainId": 324,
+      "blockConfirmations": 30,
+      "blockTime": 1
+    },
+    {
+      "chainId": "1073741839",
+      "chainType": "ZEN",
+      "chainName": "Horizen EON",
+      "crossScAddr": "0x97E0883493e8bB7A119A1E36E53ee9E7A2D3CA7b",
+      "chainDecimals": 18,
+      "walletChainId": 7332,
+      "blockConfirmations": 100,
+      "blockTime": 19.2
+    },
+    {
+      "chainId": "1073741840",
+      "chainType": "VC",
+      "chainName": "VinuChain",
+      "crossScAddr": "0x72cCF64EE5E2C7629eE4eEe3e6AD6990289178ae",
+      "chainDecimals": 18,
+      "walletChainId": 207,
+      "blockConfirmations": 10,
+      "blockTime": 65.7
+    },
+    {
+      "chainId": "1073741838",
+      "chainType": "MATICETH",
+      "chainName": "Polygon zkEVM",
+      "symbol": "ETH",
+      "crossScAddr": "0xB13aFe3e965DcD483022b1CC3Adf03Eea039A754",
+      "chainDecimals": 18,
+      "walletChainId": 1101,
+      "blockConfirmations": 300,
+      "blockTime": 6
+    },
+    {
+      "chainId": "1073741841",
+      "chainType": "BASEETH",
+      "chainName": "Base",
+      "symbol": "ETH",
+      "crossScAddr": "0x2715aA7156634256aE75240C2c5543814660CD04",
+      "CircleBridge": {
+        "domain": 6,
+        "crossScAddr": "0x012297F3d1Cb0D685B195A70231730F4c8c86F86",
+        "crossScAddrV2": "0x76C51350705756030c70cCb82EF23345C2a4610E"
+      },
+      "chainDecimals": 18,
+      "walletChainId": 8453,
+      "blockConfirmations": 200,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741842",
+      "chainType": "LINEAETH",
+      "chainName": "Linea",
+      "symbol": "ETH",
+      "crossScAddr": "0xFFB876Bd5Bee99e992cAc826A04396002f5f4a65",
+      "CircleBridge": {
+        "domain": 11,
+        "crossScAddrV2": "0xD6965a9b739240dB7ACD36E3AFb2dfe1dAE7c694"
+      },
+      "chainDecimals": 18,
+      "walletChainId": 59144,
+      "blockConfirmations": 64,
+      "blockTime": 6
+    },
+    {
+      "chainId": "1073741845",
+      "chainType": "OPBNB",
+      "chainName": "opBNB",
+      "symbol": "BNB",
+      "crossScAddr": "0xd6b24d0867753082e40778ADdB13E462A02689dE",
+      "chainDecimals": 18,
+      "walletChainId": 204,
+      "blockConfirmations": 12,
+      "blockTime": 1
+    },
+    {
+      "chainId": "2147536400",
+      "chainType": "CELO",
+      "chainName": "Celo",
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "chainDecimals": 18,
+      "walletChainId": 42220,
+      "blockConfirmations": 80,
+      "blockTime": 5
+    },
+    {
+      "chainId": "1073741846",
+      "chainType": "BLASTETH",
+      "chainName": "Blast",
+      "symbol": "ETH",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "chainDecimals": 18,
+      "walletChainId": 81457,
+      "blockConfirmations": 600,
+      "blockTime": 6
+    },
+    {
+      "chainId": "1073741851",
+      "chainType": "WATER",
+      "chainName": "Waterfall",
+      "symbol": "WATER",
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "chainDecimals": 18,
+      "walletChainId": 181,
+      "blockConfirmations": 3,
+      "blockTime": 5
+    },
+    {
+      "chainId": "2147493655",
+      "chainType": "S",
+      "chainName": "Sonic",
+      "symbol": "S",
+      "chainDecimals": 18,
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "CircleBridge": {
+        "domain": 13,
+        "crossScAddr": "",
+        "crossScAddrV2": "0x508927b6247179D72142B60Fc69f5E4d58cbEb64"
+      },
+      "walletChainId": 146,
+      "blockConfirmations": 20,
+      "blockTime": 0.6
+    },
+    {
+      "chainId": "2147484466",
+      "chainType": "VET",
+      "chainName": "VeChain",
+      "symbol": "VET",
+      "chainDecimals": 18,
+      "crossScAddr": "0xfb37aee0ebfbd3929923d1366ba30df037e9e47c",
+      "blockConfirmations": 12,
+      "blockTime": 10
+    },
+    {
+      "chainId": "2147493445",
+      "chainType": "NRG",
+      "chainName": "Energi",
+      "symbol": "NRG",
+      "chainDecimals": 18,
+      "crossScAddr": "0xbe5187c2a7eb776c1caeed2c37e7599fb05000d3",
+      "walletChainId": 39797,
+      "blockConfirmations": 30,
+      "blockTime": 60
+    },
+    {
+      "chainId": "2154655314",
+      "chainType": "BROCK",
+      "chainName": "Bitrock",
+      "symbol": "BROCK",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "walletChainId": 7171,
+      "blockConfirmations": 64,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741848",
+      "chainType": "DIONE",
+      "chainName": "Odyssey",
+      "symbol": "DIONE",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "walletChainId": 153153,
+      "blockConfirmations": 1,
+      "blockTime": 20
+    },
+    {
+      "chainId": "1073741849",
+      "chainType": "PLYR",
+      "chainName": "PLYR",
+      "symbol": "PLYR",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "walletChainId": 16180,
+      "blockConfirmations": 1,
+      "blockTime": 20
+    },
+    {
+      "chainId": "1073741853",
+      "chainType": "5IRE",
+      "chainName": "5ire",
+      "symbol": "1073741853",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "walletChainId": 995,
+      "blockConfirmations": 4,
+      "blockTime": 3
+    },
+    {
+      "chainId": "1073741850",
+      "chainType": "EDX",
+      "chainName": "edeXa",
+      "symbol": "EDX",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "walletChainId": 5424,
+      "blockConfirmations": 3,
+      "blockTime": 5
+    },
+    {
+      "chainId": "1073741856",
+      "chainType": "SHIDO",
+      "chainName": "Shido",
+      "symbol": "SHIDO",
+      "chainDecimals": 18,
+      "crossScAddr": "0xc21E5553c8dDDf2E4a93E5bEDBaE436d4291F603",
+      "walletChainId": 9008,
+      "blockConfirmations": 6,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741857",
+      "chainType": "WORLDETH",
+      "chainName": "World Chain",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x41B0AD2cC2c56950C52E7E34c4fFd6D9C4361284",
+      "CircleBridge": {
+        "domain": 14,
+        "crossScAddr": "",
+        "crossScAddrV2": "0x79d745178BC271A1f29F8fbE9251dfC512db842C"
+      },
+      "walletChainId": 480,
+      "blockConfirmations": 6,
+      "blockTime": 2
+    },
+    {
+      "chainId": "1073741858",
+      "chainType": "UNIETH",
+      "chainName": "Unichain",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x9C11539603661b6c90E65E96Aa8aC4B8E4b914c8",
+      "CircleBridge": {
+        "domain": 10,
+        "crossScAddr": "",
+        "crossScAddrV2": "0x22C835B306916ec6cb3568e7ffD61bF821Ed593d"
+      },
+      "walletChainId": 130,
+      "blockConfirmations": 12,
+      "blockTime": 1
+    },
+    {
+      "chainId": "2166483766",
+      "chainType": "SEI",
+      "chainName": "Sei",
+      "symbol": "SEI",
+      "chainDecimals": 18,
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "CircleBridge": {
+        "domain": 16,
+        "crossScAddrV2": "0xDd8830d9454365a3b81d0EC6F4272AE5337795bb"
+      },
+      "walletChainId": 1329,
+      "blockConfirmations": 1,
+      "blockTime": 0.5
+    },
+    {
+      "chainId": "1073741859",
+      "chainType": "0G",
+      "chainName": "0G",
+      "symbol": "0G",
+      "chainDecimals": 18,
+      "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
+      "walletChainId": 16661,
+      "blockConfirmations": 1,
+      "blockTime": 0.7
+    }
+  ],
+  "iWanConnectorService": {
+    "iWanOption": {
+      "options": [
+        {
+          "url": "api.wanchain.org",
+          "port": 8443,
+          "flag": "ws",
+          "version": "v3",
+          "timeout": 300000
+        }
+      ]
+    }
+  },
+  "TaskService": {
+    "taskInterval": 3000
+  },
+  "apiServer": {
+    "url": "https://bridgeapi.wanchain.org"
+  },
+  "noEthChainInfo": [
+    {
+      "chainId": "2147483648",
+      "chainType": "BTC",
+      "chainName": "Bitcoin",
+      "network": "bitcoin",
+      "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "burnFromChainHandle": "MintBtcFromBitcoinHandle",
+      "chainDecimals": 8,
+      "walletChainId": "bitcoin",
+      "txScanInterval": 60000,
+      "blockConfirmations": 2,
+      "blockTime": 600
+    },
+    {
+      "chainId": "2147483650",
+      "chainType": "LTC",
+      "chainName": "Litecoin",
+      "network": "mainnet",
+      "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "chainDecimals": 8,
+      "txScanInterval": 60000,
+      "blockConfirmations": 4,
+      "blockTime": 150
+    },
+    {
+      "chainId": "2147483651",
+      "chainType": "DOGE",
+      "chainName": "Dogecoin",
+      "network": "mainnet",
+      "mintFromChainHandle": "MintBtcFromBitcoinHandle",
+      "chainDecimals": 8,
+      "txScanInterval": 60000,
+      "blockConfirmations": 9,
+      "blockTime": 60
+    },
+    {
+      "chainId": "2147483792",
+      "chainType": "XRP",
+      "chainName": "XRP Ledger",
+      "mintFromChainHandle": "MintXrpFromRippleHandle",
+      "chainDecimals": 6,
+      "minReserved": 2,
+      "blockConfirmations": 1,
+      "blockTime": 3.5
+    },
+    {
+      "chainId": "2147484002",
+      "chainType": "DOT",
+      "chainName": "Polkadot",
+      "mintFromChainHandle": "MintDotFromPolkaHandle",
+      "chainDecimals": 10,
+      "minReserved": 1,
+      "blockConfirmations": 3,
+      "blockTime": 6
+    },
+    {
+      "chainId": "1073741831",
+      "chainType": "PHA",
+      "chainName": "Phala",
+      "mintFromChainHandle": "MintDotFromPolkaHandle",
+      "chainDecimals": 12,
+      "blockConfirmations": 2,
+      "blockTime": 13
+    },
+    {
+      "chainId": "2147485463",
+      "chainType": "ADA",
+      "chainName": "Cardano",
+      "crossScAddr": "addr1xyw0kswupwx38ljnvq8pwpvae0x69krywdr7cffg3d84ydp9nvv84g58ykxqh90xx6j8ywgjst0dkt430w9lxgdmzncsw5rzpd",
+      "feeHolder": "addr1qyxqtjnck8f0gyzys6kwpydd5lrcjue6tg8f2elqhs65ffy7trczz375trxwfgc7zvkvxrxcr4plz8tnqv6qre7u722qhe650r",
+      "mintFromChainHandle": "MintFromCardano",
+      "burnFromChainHandle": "BurnFromCardano",
+      "chainDecimals": 6,
+      "walletChainId": 1,
+      "tokenScript": {
+        "txHash": "fffb1b66bd78837ea0136587c354ee6a0991b6d0a2954e48d46a476b3ce683df",
+        "index": 0,
+        "cborHex": "590b04590b01010000332323322332232323232323232323232323232323232323232323232323233223232222323253353232323500822323232533553353233029502e001323500122222222222200850061622135002222533500413232533500210011031333573466e2000920000310303301a0033500c223333500123263202d3357389201024c680002d200123263202d3357389201024c680002d23263202d3357389201024c680002d2216102b15335001102b1335738920103686d6d0002a3232333573466e1c005200202c02b3002001323500122222222222233355301f1200133502022335530201200123500122335503f0023355302312001235001223355042002333500123303c4800000488cc0f40080048cc0f00052000001335530201200123500122335503f002333500123355302412001235001223355043002355026001001223335550210280020012335530241200123500122335504300235502500100133355501c02300200150392350012235001222200300c50053200135502d223350014800088d4008894cd4ccd5cd19b8f00200902f02e13007001130060033200135502c223350014800088d4008894cd4ccd5cd19b8f00200702e02d100113006003135001220023333573466e1cd55cea801a4000466442466002006004646464646464646464646464646666ae68cdc39aab9d500c480008cccccccccccc88888888888848cccccccccccc00403403002c02802402001c01801401000c008cd407807cd5d0a80619a80f00f9aba1500b33501e02035742a014666aa044eb94084d5d0a804999aa8113ae502135742a01066a03c04e6ae85401cccd540880a1d69aba150063232323333573466e1cd55cea801240004664424660020060046464646666ae68cdc39aab9d5002480008cc8848cc00400c008cd40c9d69aba150023033357426ae8940088c98c80d4cd5ce01b01a81989aab9e5001137540026ae854008c8c8c8cccd5cd19b8735573aa004900011991091980080180119a8193ad35742a00460666ae84d5d1280111931901a99ab9c036035033135573ca00226ea8004d5d09aba2500223263203133573806406205e26aae7940044dd50009aba1500533501e75c6ae854010ccd540880908004d5d0a801999aa8113ae200135742a004604c6ae84d5d1280111931901699ab9c02e02d02b135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d5d1280089aba25001135744a00226ae8940044d55cf280089baa00135742a006602c6ae84d5d1280191931900f99ab9c02001f01d3333573466e1cd55ce9baa0044800080788c98c8078cd5ce00f80f00e080e89931900e99ab9c4901035054350001d135573ca00226ea8004444888ccd54c010480054084cd54c01c480048d400488cd54098008d54024004ccd54c0104800488d4008894cd4ccd54c03048004c8cd403888ccd400c88008008004d40048800448cc004894cd4008409c40040908d400488cc028008014018400c4cd409401000d4088004cd54c01c480048d400488c8cd5409c00cc004014c8004d5409c894cd40044d5402800c884d4008894cd4cc03000802044888cc0080280104c01800c008c8004d5408088448894cd40044008884cc014008ccd54c01c480040140100044484888c00c0104484888c004010c8004d540748844894cd40045407c884cd4080c010008cd54c01848004010004c8004d5407088448894cd40044d400c88004884ccd401488008c010008ccd54c01c4800401401000448848cc00400c00888ccd5cd19b8f0020010180171232230023758002640026aa034446666aae7c0049406c8cd4068c010d5d080118019aba2002012232323333573466e1cd55cea8012400046644246600200600460146ae854008c014d5d09aba2500223263201233573802602402026aae7940044dd50009191919191999ab9a3370e6aae75401120002333322221233330010050040030023232323333573466e1cd55cea8012400046644246600200600460266ae854008cd4034048d5d09aba2500223263201733573803002e02a26aae7940044dd50009aba150043335500875ca00e6ae85400cc8c8c8cccd5cd19b875001480108c84888c008010d5d09aab9e500323333573466e1d4009200223212223001004375c6ae84d55cf280211999ab9a3370ea00690001091100191931900c99ab9c01a019017016015135573aa00226ea8004d5d0a80119a804bae357426ae8940088c98c804ccd5ce00a00980889aba25001135744a00226aae7940044dd5000899aa800bae75a224464460046eac004c8004d5405c88c8cccd55cf8011280c919a80c19aa80d18031aab9d5002300535573ca00460086ae8800c0404d5d080089119191999ab9a3370ea0029000119091180100198029aba135573ca00646666ae68cdc3a801240044244002464c6402066ae700440400380344d55cea80089baa001232323333573466e1d400520062321222230040053007357426aae79400c8cccd5cd19b875002480108c848888c008014c024d5d09aab9e500423333573466e1d400d20022321222230010053007357426aae7940148cccd5cd19b875004480008c848888c00c014dd71aba135573ca00c464c6402066ae7004404003803403002c4d55cea80089baa001232323333573466e1cd55cea80124000466442466002006004600a6ae854008dd69aba135744a004464c6401866ae700340300284d55cf280089baa0012323333573466e1cd55cea800a400046eb8d5d09aab9e500223263200a33573801601401026ea80048c8c8c8c8c8cccd5cd19b8750014803084888888800c8cccd5cd19b875002480288488888880108cccd5cd19b875003480208cc8848888888cc004024020dd71aba15005375a6ae84d5d1280291999ab9a3370ea00890031199109111111198010048041bae35742a00e6eb8d5d09aba2500723333573466e1d40152004233221222222233006009008300c35742a0126eb8d5d09aba2500923333573466e1d40192002232122222223007008300d357426aae79402c8cccd5cd19b875007480008c848888888c014020c038d5d09aab9e500c23263201333573802802602202001e01c01a01801626aae7540104d55cf280189aab9e5002135573ca00226ea80048c8c8c8c8cccd5cd19b875001480088ccc888488ccc00401401000cdd69aba15004375a6ae85400cdd69aba135744a00646666ae68cdc3a80124000464244600400660106ae84d55cf280311931900619ab9c00d00c00a009135573aa00626ae8940044d55cf280089baa001232323333573466e1d400520022321223001003375c6ae84d55cf280191999ab9a3370ea004900011909118010019bae357426aae7940108c98c8024cd5ce00500480380309aab9d50011375400224464646666ae68cdc3a800a40084244400246666ae68cdc3a8012400446424446006008600c6ae84d55cf280211999ab9a3370ea00690001091100111931900519ab9c00b00a008007006135573aa00226ea80048c8cccd5cd19b87500148008802c8cccd5cd19b87500248000802c8c98c8018cd5ce00380300200189aab9d37540029309000a48103505431002233700004002640026aa00e444a66a00220044426a004446600e66601000400c002006640026aa00c4444a66a00220044426a00444a66a666ae68cdc3800a4000014012266601000e00c006266601000e66a0162466600201000600400c006244004244002224400424424466002008006224424660020060042246460020024466006600400400266a2446600491011c992eefaec3fed37e3cdd4e9063721f0f2e231d61934a9f538b492f5c0048810a4d436865636b436f696e0022123300100300220011"
+      },
+      "blockConfirmations": 30,
+      "blockTime": 12
+    },
+    {
+      "chainId": "1073741844",
+      "chainType": "NOBLE",
+      "chainName": "Noble",
+      "feeHolder": "noble15wal47p8s029q2hgexfw6m9yjmjuqwkr7wdrp4",
+      "mintFromChainHandle": "MintFromCosmos",
+      "symbol": "USDC",
+      "CircleBridge": {
+        "domain": 4,
+        "feeHolder": "noble1esq4y8zj8u78yrx9h799mkfd5he5jrjgrcl6fn"
+      },
+      "chainDecimals": 6,
+      "walletChainId": "noble-1",
+      "blockConfirmations": 1,
+      "blockTime": 20
+    },
+    {
+      "chainId": "2147484149",
+      "chainType": "SOL",
+      "chainName": "Solana",
+      "crossScAddr": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB",
+      "adminBoardProgram": "7jYCM8k5Nvwg5vyPpLk2yjivQhexPDMXuK8CSbUKqL6B",
+      "tokenManagerProgram": "6PcqfvWkBv3m9F5XBU2kMAedycs6BPzDGfi8zcWam3kH",
+      "feeHolder": "CXxYYAtiUhdUagJNQ6UAB9gmHdxeujUPdn4iRg9HeuSz",
+      "mintFromChainHandle": "MintFromSolana",
+      "burnFromChainHandle": "BurnFromSolana",
+      "CircleBridge": {
+        "domain": 5,
+        "crossScAddr": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
+        "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
+        "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
+        "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3",
+        "feeHolder": "3yaCPbYPPWNZYUBYa8mMLo9QeQqQB6hR9XXHXnXfKEvH"
+      },
+      "chainDecimals": 9,
+      "walletChainId": "mainnet-beta",
+      "minReserved": 0.001,
+      "blockConfirmations": 1,
+      "blockTime": 0.4
+    },
+    {
+      "chainId": "2147484432",
+      "chainType": "SUI",
+      "chainName": "Sui",
+      "symbol": "SUI",
+      "crossScAddr": "0x1c8b984b5d896a916b356171ee7c48eb5b62d8685ffe8da6f5ac30cc1def8c6a",
+      "tokenPairRegistry": "0x1706cef6192f49db4d5650eb93a912ae81694d0f8b90f591e6f489959829b987",
+      "TreasuryCapsRegistry": "0xfd4426caebdca527d2c68c4f9864611a8298819d8f5bd3e494e2347b1dc2bf84",
+      "tokenVault": "0xc22e2bf69d38889a92559f45fd8769838d98dfc85f9e42925c0cb34bd7da06c7",
+      "foundationConfig": "0x8a47c0bcca85466f679a0f5b1e1e1ca0bed02a1ea33dad829fa22e8bfa97bf54",
+      "pauseConfig": "0xfd6f639b37679637d77389038bcfad8e7a128122c18a9b0706d101670af21505",
+      "feeConfig": "0xbb93514a7e8774a4f9aca575793f766e3a21d0a936785129be4f99c0263e1d0f",
+      "oracleStorage": "0x30e1529ff5b1bcaac4dcdc9095ea5a3562c6a26607e6b26b0dfd296ed230c2d1",
+      "clock": "0x6",
+      "mintFromChainHandle": "MintFromSui",
+      "burnFromChainHandle": "BurnFromSui",
+      "CircleBridge": {
+        "domain": 8,
+        "crossScAddr": "0x16b03acd7aa1fd34e913282b69ebd778951db2a4a55b4015f1d7f0d5a7f40b2d",
+        "feeConfig": "0xbb93514a7e8774a4f9aca575793f766e3a21d0a936785129be4f99c0263e1d0f",
+        "feeCollectorConfig": "0xc259516354cac6854e0b40b135a6eec493a55c03f1d865e9c4c4e74f69d8c4cf",
+        "messageTransmitter": "0x08d87d37ba49e785dde270a83f8e979605b03dc552b5548f26fdf2f49bf7ed1b",
+        "messageTransmitterState": "0xf68268c3d9b1df3215f2439400c1c4ea08ac4ef4bb7d6f3ca6a2a239e17510af",
+        "tokenMessengerMinter": "0x2aa6c5d56376c371f88a6cc42e852824994993cb9bab8d3e6450cbe3cb32b94e",
+        "tokenMessengerMinterState": "0x45993eecc0382f37419864992c12faee2238f5cfe22b98ad3bf455baf65c8a2f",
+        "denyList": "0x403",
+        "treasury": "0x57d6725e7a8b49a7b2a612f6bd66ab5f39fc95332ca48be421c3229d514a6de7"
+      },
+      "chainDecimals": 9,
+      "walletChainId": "sui:mainnet",
+      "blockConfirmations": 1,
+      "blockTime": 0.24
+    },
+    {
+      "chainId": "2147484107",
+      "chainType": "KAVA",
+      "chainName": "Kava",
+      "feeHolder": "kava15wal47p8s029q2hgexfw6m9yjmjuqwkr2cvk0u",
+      "mintFromChainHandle": "MintFromCosmos",
+      "chainDecimals": 6,
+      "walletChainId": "kava_2222-10",
+      "blockConfirmations": 1,
+      "blockTime": 6
+    }
+  ],
+  "tokenPairCfg": [
+    {
+      "id": "6",
+      "comment": "EOS token between WAN<->ETH",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20"
+    },
+    {
+      "id": "74",
+      "comment": "Ethereum native VEE <-> Avalanche VEE pool",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20ProxyToken",
+      "toNativeToken": "0x"
+    },
+    {
+      "id": "178",
+      "comment": "Moonriver native FINN <-> Clove FINN pool",
+      "mintHandle": "MintErc20",
+      "burnHandle": "BurnErc20ProxyToken",
+      "toNativeToken": "0xBeA4928632e482A0A1241B38f596a311Ad7b98B1"
+    }
+  ],
+  "LockTxTimeout": 86400000,
+  "crossConfigSc": "0x6Dc2fC72584BfFa35Cc6D521a22081dD0217f3b6",
+  "crossTask": {
+    "scAddr": "0x2D7744dBD92E6569b453Dc4414773dF72E869c78",
+    "tokens": {
+      "0xc45ae7e9932bea4e220467c937fb6d3df4987001": {
+        "symbol": "XP",
+        "decimals": 18
+      },
+      "0x2ea407aa69be7367bf231e76b51fab9ec436766c": {
+        "symbol": "xWAN",
+        "decimals": 18
+      }
+    }
+  },
+  "wanPointsServer": "https://wanpoints.wanscan.org",
+  "cctpApiUrl": "https://iris-api.circle.com"
 }
