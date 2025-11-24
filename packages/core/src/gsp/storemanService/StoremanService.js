@@ -3,7 +3,7 @@ import tool from "../../utils/tool.js";
 import axios from "axios";
 import util from "util";
 "use strict";
-const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC"]; // default obtaine from iwan, but some chains are not supported
+const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC", "DUST"]; // default obtaine from iwan, but some chains are not supported
 const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"]; // default obtaine from wallet to optimize batch performance, but some wallets do not support
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
 // DepositForBurn

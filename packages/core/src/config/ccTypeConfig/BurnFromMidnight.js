@@ -19,7 +19,7 @@ export default (class BurnFromMidnight {
       let networkFee = tool.parseFee(convert.fee, convert.value, "DUST", { formatWithDecimals: false, feeType: "networkFee" });
       let steps = [];
       if (networkFee > 0) {
-        let feeBalance = this.tool.getUserFeeBalance(convert.fromAddr);
+        let feeBalance = await this.tool.getUserFeeBalance(convert.fromAddr);
         let rechargeValue = new BigNumber(networkFee).minus(feeBalance);
         if (rechargeValue.gt(0)) {
           let feeParams = {

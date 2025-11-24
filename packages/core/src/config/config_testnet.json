@@ -670,11 +670,10 @@
       "chainId": "1073741862",
       "chainType": "DUST",
       "chainName": "Midnight",
-      "crossScAddr": "0200977b217a300ca8ef78c088a39028341c1845ef11edda84d43c28d3334cd76863",
+      "crossScAddr": "0200925989bf8b91a6841b6808e83c841881a4b4fdf9d3abc64d73c6d272d0fc28af",
       "mintFromChainHandle": "MintFromMidnight",
       "burnFromChainHandle": "BurnFromMidnight",
       "chainDecimals": 6,
-      "walletChainId": 0,
       "blockConfirmations": 30,
       "blockTime": 12
     },

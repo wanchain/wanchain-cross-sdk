@@ -4,8 +4,8 @@ export default (class ProcessBurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
-    let configService = frameworkService.getService("ConfigService");
-    let extension = configService.getExtension("DUST");
+    this.configService = frameworkService.getService("ConfigService");
+    let extension = this.configService.getExtension("DUST");
     this.tool = extension.tool;
   }
   async process(stepData, wallet) {
@@ -14,7 +14,7 @@ export default (class ProcessBurnFromMidnight {
     let params = stepData.params;
     try {
       let sdkWallet = await wallet.getWallet();
-      this.tool.api.setWallet(sdkWallet);
+      this.tool.setApiProviders(this.configService.getNetwork(), sdkWallet);
       let res = await this.tool.api.userBurn(params.storemanGroupId, params.userAccount, params.tokenPairID, params.value);
       let txHash = res.public.txHash;
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
