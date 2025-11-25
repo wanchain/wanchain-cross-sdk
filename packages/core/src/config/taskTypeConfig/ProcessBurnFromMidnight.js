@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-;
+
 export default (class ProcessBurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -8,6 +8,7 @@ export default (class ProcessBurnFromMidnight {
     let extension = this.configService.getExtension("DUST");
     this.tool = extension.tool;
   }
+
   async process(stepData, wallet) {
     // console.debug("ProcessBurnFromMidnight stepData:", stepData);
     let webStores = this.frameworkService.getService("WebStores");
@@ -40,8 +41,7 @@ export default (class ProcessBurnFromMidnight {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessBurnFromMidnight error: %O", err);
       if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.reason)) {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");

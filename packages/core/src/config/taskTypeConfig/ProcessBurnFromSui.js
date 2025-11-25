@@ -1,7 +1,8 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 const DefaultGas = 10_000_000;
+
 export default (class ProcessBurnFromSui {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -12,6 +13,7 @@ export default (class ProcessBurnFromSui {
     this.storemanService = frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -80,12 +82,10 @@ export default (class ProcessBurnFromSui {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (["Rejected from user"].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessBurnFromSui error: %O", err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

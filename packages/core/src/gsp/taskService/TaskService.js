@@ -1,4 +1,4 @@
-;
+
 export default (class TaskService {
   constructor() {
     this.tasks = [];

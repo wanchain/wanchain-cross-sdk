@@ -1,15 +1,17 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 const TaskTypes = {
   DOT: "ProcessDotMintFromPolka",
   PHA: "ProcessPhaMintFromPhala"
 };
+
 export default (class MintDotFromPolkaHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
@@ -35,8 +37,7 @@ export default (class MintDotFromPolkaHandle {
         { name: "userFastMint", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("MintDotFromPolkaHandle error: %O", err);
       throw err;
     }

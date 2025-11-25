@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
-;
+
 export default (class ClaimRewardTask {
   constructor(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.crossTaskCfg = configService.getGlobalConfig("crossTask");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
+
   async process(tokenPair, convert) {
     let steps = [];
     let scAddr = this.crossTaskCfg.scAddr;
@@ -31,8 +32,7 @@ export default (class ClaimRewardTask {
           // approve
           steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
         }
-      }
-      else {
+      } else {
         steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
       }
     }

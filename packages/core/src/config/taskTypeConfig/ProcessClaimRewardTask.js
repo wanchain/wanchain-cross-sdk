@@ -1,14 +1,16 @@
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import ProcessBaseSync from "./processBaseSync.js";
-;
+
 const web3 = new Web3();
+
 export default (class ProcessClaimRewardTask extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
     this.configService = frameworkService.getService("ConfigService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     console.log("ProcessClaimRewardTask params: %O", params);
@@ -16,6 +18,7 @@ export default (class ProcessClaimRewardTask extends ProcessBaseSync {
     let txData = await this.txGeneratorService.generateTx(params.chainType, scData.gasLimit, params.scAddr, scData.coin, scData.data, params.fromAddr);
     await this.sendTx(stepData, txData, wallet);
   }
+
   async genTxData(params) {
     let abi = this.configService.getAbi("rewardTask");
     let sc = new web3.eth.Contract(abi, params.scAddr);

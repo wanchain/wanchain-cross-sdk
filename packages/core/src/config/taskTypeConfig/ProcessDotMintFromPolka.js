@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 // memo should like follows
 // memo_Type + memo_Data, Divided Symbols should be '0x'
 // Type: 1, normal userLock; Data: tokenPairID + toAccount + fee
@@ -13,8 +13,10 @@ const TX_TYPE = {
   smgRelease: 2,
   userLock2NonEvm: 10
 };
+
 const MemoTypeLen = 2;
 const TokenPairIDLen = 4;
+
 export default (class ProcessDotMintFromPolka {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -24,6 +26,7 @@ export default (class ProcessDotMintFromPolka {
     this.chainInfoService = frameworkService.getService("ChainInfoService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
   }
+
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
     // console.debug("ProcessDotMintFromPolka stepData:", stepData);
@@ -72,25 +75,23 @@ export default (class ProcessDotMintFromPolka {
       };
       let checkDotTxService = this.frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addTask(checkPara);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.message === "Cancelled") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessDotMintFromPolka error: %O", err);
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   buildUserLockData(tokenPair, userAccount, toChainInfo) {
     let memo = "", txType;
     tokenPair = Number(tokenPair);
     if (toChainInfo._isEVM) {
       userAccount = tool.hexStrip0x(userAccount);
       txType = TX_TYPE.userLock2Evm;
-    }
-    else {
+    } else {
       userAccount = Buffer.from(userAccount).toString("hex");
       txType = TX_TYPE.userLock2NonEvm;
     }
@@ -98,8 +99,7 @@ export default (class ProcessDotMintFromPolka {
       let type = txType.toString(16).padStart(MemoTypeLen, 0);
       tokenPair = parseInt(tokenPair).toString(16).padStart(TokenPairIDLen, 0);
       memo = type + tokenPair + userAccount;
-    }
-    else {
+    } else {
       console.error("buildUserlockMemo parameter invalid");
     }
     return memo;

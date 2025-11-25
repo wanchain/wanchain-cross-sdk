@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class MintCoinHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     let decimals = (convert.convertType === "MINT") ? tokenPair.fromDecimals : tokenPair.toDecimals;
     let fromChainType = (convert.convertType === "MINT") ? tokenPair.fromChainType : tokenPair.toChainType;

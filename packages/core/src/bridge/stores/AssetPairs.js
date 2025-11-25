@@ -1,11 +1,14 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
+
 class AssetPairs {
+
   constructor() {
     this.assetPairList = [];
     this.smgList = [];
     this.tokens = new Set(); // must be lowercase, not need to be classified by chain
   }
+
   setAssetPairs(tokenPairs, smgs, configService = null) {
     if (smgs) { // maybe only update active tokenpairs by crossTypes
       let smgList = smgs.map(smg => {
@@ -65,68 +68,62 @@ class AssetPairs {
       this.assetPairList = pairList.sort(this.sortBy);
     }
   }
+
   sortBy(a, b) {
     if (a.assetType < b.assetType) {
       return -1;
-    }
-    else if (a.assetType > b.assetType) {
+    } else if (a.assetType > b.assetType) {
       return 1;
     }
     if (a.fromChainName < b.fromChainName) {
       return -1;
-    }
-    else if (a.fromChainName > b.fromChainName) {
+    } else if (a.fromChainName > b.fromChainName) {
       return 1;
     }
     if (a.toChainName < b.toChainName) {
       return -1;
-    }
-    else if (a.toChainName > b.toChainName) {
+    } else if (a.toChainName > b.toChainName) {
       return 1;
     }
     return 0;
   }
+
   isReady() {
     return ((this.assetPairList.length > 0) && (this.smgList.length > 0));
   }
+
   getTokenAccount(chainType, account, configService) {
     let result = "";
     if (account === "0x0000000000000000000000000000000000000000") {
       result = account;
-    }
-    else if (chainType === "XRP") {
+    } else if (chainType === "XRP") {
       result = tool.parseXrpTokenPairAccount(account, false)[1]; // issuer, empty for XRP coin
-    }
-    else if (["NOBLE", "KAVA", "ATOM"].includes(chainType)) { // ascii of token name
+    } else if (["NOBLE", "KAVA", "ATOM"].includes(chainType)) { // ascii of token name
       result = tool.ascii2letter(account);
-    }
-    else if (chainType === "SOL") { // ascii of token account
+    } else if (chainType === "SOL") { // ascii of token account
       result = tool.ascii2letter(account);
-    }
-    else if (chainType === "ADA") { // ascii of policyId.name, not address
+    } else if (chainType === "ADA") { // ascii of policyId.name, not address
       result = tool.ascii2letter(account);
-    }
-    else if (chainType === "ALGO") { // ALGO token is id, not address
+    } else if (chainType === "ALGO") { // ALGO token is id, not address
       result = new BigNumber(account).toFixed();
-    }
-    else if (chainType === "SUI") { // SUI token is id::symbol::SYMBOL
+    } else if (chainType === "SUI") { // SUI token is id::symbol::SYMBOL
       result = tool.ascii2letter(account).split("::")[0];
-    }
-    else { // let it throw exception to expose bug on init phrase
+    } else { // let it throw exception to expose bug on init phrase
       result = tool.getStandardAddressInfo(chainType, account, configService.getExtension(chainType)).native;
     }
     // console.log("getTokenAccount: %s, %s => %s", chainType, account, result);
     return result;
   }
+
   isTokenAccount(chainType, account, extension) {
     try {
       let checkAccount = tool.getStandardAddressInfo(chainType, account, extension).native.toLowerCase();
       return this.tokens.has(checkAccount);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("check %s %s isTokenAccount error: %O", chainType, account, err);
       return true; // return true to stop crosschain
     }
   }
 }
+
 export default AssetPairs;

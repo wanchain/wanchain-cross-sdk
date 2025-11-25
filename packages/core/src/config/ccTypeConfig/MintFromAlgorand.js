@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class MintFromAlgorand {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     try {
       let direction = (convert.convertType === "MINT");
@@ -33,8 +34,7 @@ export default (class MintFromAlgorand {
         { name: "userFastMint", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("Mint %s FromAlgorand error: %O", tokenPair.readableSymbol, err);
       throw err;
     }

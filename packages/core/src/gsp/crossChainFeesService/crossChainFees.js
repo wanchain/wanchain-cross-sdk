@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-;
+
 export default (class crossChainFees {
   async init(frameworkService) {
     let configService = frameworkService.getService("ConfigService");

@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 /* metadata format:
   userLock:
   {
@@ -26,12 +26,14 @@ const TX_TYPE = {
   smgMint: 9,
   invalid: -1
 };
+
 export default (class ProcessMintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
     this.storemanService = frameworkService.getService("StoremanService");
   }
+
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
@@ -98,17 +100,16 @@ export default (class ProcessMintFromCosmos {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.message === "Request rejected") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessMintFromCosmos error: %O", err);
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   buildUserLockData(fromChainType, tokenPair, userAccount) {
     let data = {
       tokenPairID: Number(tokenPair),

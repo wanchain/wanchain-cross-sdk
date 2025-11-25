@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class ProcessCircleBridgeNobleDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -8,6 +8,7 @@ export default (class ProcessCircleBridgeNobleDeposit {
     let configService = frameworkService.getService("ConfigService");
     this.apiServer = configService.getGlobalConfig("apiServer");
   }
+
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
@@ -72,12 +73,10 @@ export default (class ProcessCircleBridgeNobleDeposit {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.message === "Request rejected") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessCircleBridgeNobleDeposit error: %O", err);
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

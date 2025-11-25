@@ -1,7 +1,8 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 const DefaultGas = 10_000_000;
+
 export default (class ProcessMintFromSui {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -12,6 +13,7 @@ export default (class ProcessMintFromSui {
     this.storemanService = frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -37,8 +39,7 @@ export default (class ProcessMintFromSui {
       let crossCoin;
       if (isCoin) {
         [crossCoin] = tx.splitCoins(tx.gas, [crossValue]);
-      }
-      else {
+      } else {
         let assetCoins = await this.storemanService.getSuiCoins(params.fromAddr, coinType);
         let selectedAssetCoins = this.tool.selectCoins(assetCoins, crossValue);
         let assetCoin = selectedAssetCoins[0];
@@ -91,12 +92,10 @@ export default (class ProcessMintFromSui {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (["Rejected from user"].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessMintFromSui error: %O", err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

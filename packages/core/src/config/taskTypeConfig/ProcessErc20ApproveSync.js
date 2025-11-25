@@ -1,9 +1,10 @@
 import ProcessBaseSync from "./processBaseSync.js";
-;
+
 export default (class ProcessErc20ApproveSync extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     let options = { chainType: params.chainType, from: params.fromAddr };

@@ -1,4 +1,4 @@
-;
+
 
 import tool from "../../utils/tool.js";
 
@@ -10,6 +10,7 @@ export default (class ProcessMidnightClaim {
     this.tool = this.configService.getExtension("DUST").tool;
     this.storemanService = frameworkService.getService("StoremanService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     let res, uniqueId = tool.hexStrip0x(params.uniqueId);

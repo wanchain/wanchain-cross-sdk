@@ -42,7 +42,6 @@ class UniSatWallet {
     } else {
       return 'unknown';
     }
-
   }
 
   async getAccounts(network) {

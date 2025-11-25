@@ -805,5 +805,5 @@ class TokenPairService {
     return cache;
   }
 }
-;
+
 export default TokenPairService;

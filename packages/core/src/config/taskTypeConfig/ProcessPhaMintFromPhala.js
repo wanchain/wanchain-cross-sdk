@@ -1,10 +1,11 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class ProcessPhaMintFromPhala {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
   }
+
   async process(stepData, wallet) {
     // console.debug("ProcessPhaMintFromPhala stepData:", stepData);
     let webStores = this.frameworkService.getService("WebStores");
@@ -78,17 +79,16 @@ export default (class ProcessPhaMintFromPhala {
       };
       let checkPhaTxService = this.frameworkService.getService("CheckPhaTxService");
       await checkPhaTxService.addTask(checkPara);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.message === "Cancelled") {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessPhaMintFromPhala error: %O", err);
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   getPhalaAssetId(api, id) {
     return api.createType('XcmV1MultiassetAssetId', {
       Concrete: api.createType('XcmV1MultiLocation', {

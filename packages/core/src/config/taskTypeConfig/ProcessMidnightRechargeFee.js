@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-;
+
 export default (class ProcessMidnightRechargeFee {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -7,6 +7,7 @@ export default (class ProcessMidnightRechargeFee {
     let extension = this.configService.getExtension("DUST");
     this.tool = extension.tool;
   }
+
   async process(stepData, wallet) {
     // console.debug("ProcessMidnightRechargeFee stepData:", stepData);
     let webStores = this.frameworkService.getService("WebStores");
@@ -29,13 +30,11 @@ export default (class ProcessMidnightRechargeFee {
       console.log("ProcessMidnightRechargeFee checker: %O", checker);
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessMidnightRechargeFee error: %O", err);
       if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.info)) { // code 2 include other errors
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }

@@ -5,20 +5,25 @@ import * as xrpAddrCodec from "ripple-address-codec";
 import CrossChainTask from "./stores/CrossChainTask.js";
 import BigNumber from "bignumber.js";
 import util from "util";
+
 const Secp256k1 = elliptic.ec('secp256k1');
+
 // consistant with crosschain contract
 const MAX_NFT_BATCH_SIZE = 10;
+
 const gpkAlgs = {
   ecdsa: 0,
   schnorr: 1,
   schnorr340: 2,
   ed25519: 3,
 };
+
 const gpkCurves = {
   secp256: 0,
   bn256: 1,
   ed25519: 2,
 };
+
 class BridgeTask {
   constructor(bridge, tokenPair, direction, fromAccount, toAccount, amount, wallet) {
     this.id = Date.now();
@@ -29,8 +34,7 @@ class BridgeTask {
     this._toAccount = toAccount;
     if (tokenPair.protocol === "Erc20") {
       this._amount = new BigNumber(amount).toFixed();
-    }
-    else {
+    } else {
       if (amount.length > MAX_NFT_BATCH_SIZE) {
         throw new Error("Max NFT batch size is " + MAX_NFT_BATCH_SIZE);
       }
@@ -52,8 +56,7 @@ class BridgeTask {
     if (this._direction == 'MINT') {
       this._fromChainInfo = fromChainInfo;
       this._toChainInfo = toChainInfo;
-    }
-    else {
+    } else {
       this._fromChainInfo = toChainInfo;
       this._toChainInfo = fromChainInfo;
     }
@@ -68,6 +71,7 @@ class BridgeTask {
     // runtime context
     this._ota = '';
   }
+
   async init(options) {
     console.debug("bridgeTask init at %s ms", tool.getCurTimestamp());
     // check
@@ -119,6 +123,7 @@ class BridgeTask {
     // console.debug({taskData});
     this._task.setTaskData(taskData);
   }
+
   async start() {
     console.debug("bridgeTask tokenpair %s start at %s ms", this._tokenPair.id, tool.getCurTimestamp());
     // build
@@ -133,6 +138,7 @@ class BridgeTask {
     // process
     this._procTaskSteps();
   }
+
   async _checkFee(isSubsidy) {
     let options = { protocol: this._tokenPair.protocol, address: [this._fromAccount || "", this._toAccount] };
     let isErc20 = (this._tokenPair.protocol === "Erc20");
@@ -149,8 +155,7 @@ class BridgeTask {
       if (new BigNumber(subsidyBalance).lt(subsidyFee)) {
         if (isSubsidy === false) { // default is true
           this._fee.networkFee.isSubsidy = false;
-        }
-        else {
+        } else {
           console.error("Not enough balance for fee subsidy: %s/%s %s", subsidyBalance, subsidyFee, this._fee.networkFee.unit);
           return "Not enough balance for fee subsidy";
         }
@@ -165,8 +170,8 @@ class BridgeTask {
     }
     return "";
   }
-  // depends on fee
-  async _checkSmg() {
+
+  async _checkSmg() { // depends on fee
     // get active smg
     let smg = await this._bridge.getSmgInfo();
     this._smg = smg;
@@ -199,8 +204,7 @@ class BridgeTask {
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
       if (agentAmount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
-      }
-      else if (agentAmount.lt(this._quota.minQuota)) {
+      } else if (agentAmount.lt(this._quota.minQuota)) {
         return "Amount is too small";
       }
     }
@@ -222,8 +226,7 @@ class BridgeTask {
           let diff = new BigNumber(chainInfo.minReserved).minus(smgBalance);
           console.error("Amount is too small to activate storeman account, at least %s %s", diff.toFixed(), this._tokenPair.readableSymbol);
           return "Amount is too small to activate storeman account";
-        }
-        else {
+        } else {
           return "Storeman account is inactive";
         }
       }
@@ -243,6 +246,7 @@ class BridgeTask {
     }
     return "";
   }
+
   async _checkFromAccount() {
     let chainType = this._fromChainInfo.chainType;
     if ((chainType === "DUST") || !this._fromAccount) { // third party wallet
@@ -259,8 +263,7 @@ class BridgeTask {
       assetBalance = coinBalance;
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
-    }
-    else {
+    } else {
       assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, { wallet: this._wallet });
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
@@ -274,18 +277,15 @@ class BridgeTask {
         let minBalance = new BigNumber(aInfo['min-balance'] || 0).div(Math.pow(10, chainInfo.chainDecimals));
         console.debug("min balance: %s", minBalance.toFixed());
         requiredCoin = requiredCoin.plus(minBalance);
-      }
-      else {
+      } else {
         return "Wallet account is not found";
       }
-    }
-    else if (chainInfo.minReserved) {
+    } else if (chainInfo.minReserved) {
       requiredCoin = requiredCoin.plus(chainInfo.minReserved);
     }
     if (chainType === "SUI") { // SUI wallet does not check if there is enough gas fee
       requiredCoin = requiredCoin.plus("0.01");
-    }
-    else if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // SOL require minReserved, and need extra depositForBurn messageSentEventData rent
+    } else if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // SOL require minReserved, and need extra depositForBurn messageSentEventData rent
       requiredCoin = requiredCoin.plus("0.00295104");
     }
     console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
@@ -300,6 +300,7 @@ class BridgeTask {
     }
     return "";
   }
+
   async _checkToAccount(options) {
     let chainType = this._toChainInfo.chainType;
     let tokenAccount = (this._direction === "MINT") ? this._tokenPair.toAccount : this._tokenPair.fromAccount;
@@ -326,7 +327,10 @@ class BridgeTask {
           let diff = new BigNumber(chainInfo.minReserved).minus(balance);
           console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
         }
-        return util.format("%s enforces an existential deposit requirement. Make sure that the balance of destination address remains above %s %s.", chainInfo.chainName, chainInfo.minReserved, chainInfo.symbol || chainType);
+        return util.format("%s enforces an existential deposit requirement. Make sure that the balance of destination address remains above %s %s.",
+          chainInfo.chainName,
+          chainInfo.minReserved,
+          chainInfo.symbol || chainType);
       }
     }
     // check xrp token trust line
@@ -337,8 +341,7 @@ class BridgeTask {
           console.error("XRP account %s requires destination tag", this._toAccount);
           return "The destination address requiring the user to input a tag is not supported. Please switch to another suitable XRPL address, such as a standard wallet address.";
         }
-      }
-      catch (err) { // nonexistent account is acceptable
+      } catch (err) { // nonexistent account is acceptable
         let errString = err.toString();
         if (errString !== "Account not found.") {
           return errString;
@@ -357,8 +360,7 @@ class BridgeTask {
             console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line ? line.limit.minus(line.balance).toFixed() : "0");
             return msg;
           }
-        }
-        catch (err) { // "Account not found." or other exceptions
+        } catch (err) { // "Account not found." or other exceptions
           return err.toString();
         }
       }
@@ -378,13 +380,13 @@ class BridgeTask {
           let msg = "No opt-in for token " + assetId;
           return msg;
         }
-      }
-      else {
+      } else {
         return "Recipient account is not found";
       }
     }
     return "";
   }
+
   async _buildTaskSteps() {
     let ccTaskData = this._task.ccTaskData;
     // to get the stepsFunc from server api
@@ -408,6 +410,7 @@ class BridgeTask {
     // console.debug("getConvertInfo: %O", steps);
     return steps;
   }
+
   async _procTaskSteps() {
     let steps = this._task.ccTaskData.stepData;
     console.debug("bridgeTask _procTaskSteps total %d at %s ms", steps.length, tool.getCurTimestamp());
@@ -424,8 +427,7 @@ class BridgeTask {
           console.debug("bridgeTask _procTaskSteps step %s at %s ms", curStep, tool.getCurTimestamp());
           await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
           executedStep = curStep;
-        }
-        else {
+        } else {
           await tool.sleep(3000);
         }
         continue;
@@ -438,8 +440,7 @@ class BridgeTask {
       }
       if (!this._wallet) {
         this._procOtaAddr(stepResult);
-      }
-      else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
+      } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
         await tool.sleep(30000); // wait Moonbeam approve take effect
       }
       await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
@@ -447,6 +448,7 @@ class BridgeTask {
       stepTxHash = "";
     }
   }
+
   _procOtaAddr(stepResult) {
     if (this._ota) {
       return;
@@ -458,21 +460,20 @@ class BridgeTask {
       records.setTaskOtaInfo(this.id, { address: stepResult.address, randomId: stepResult.randomId });
       this._ota = stepResult.address;
       ota.address = this._ota;
-    }
-    else if (chainType === "XRP") {
+    } else if (chainType === "XRP") {
       let xrpAddr = this._getXAddressByTagId(stepResult);
       records.setTaskOtaInfo(this.id, { address: xrpAddr.xAddr, tagId: xrpAddr.tagId, rAddress: xrpAddr.rAddr });
       this._ota = xrpAddr.xAddr;
       ota.address = this._ota;
       ota.rAddress = xrpAddr.rAddr;
       ota.tagId = xrpAddr.tagId;
-    }
-    else {
+    } else {
       throw new Error("Invalid ota chain type " + chainType);
     }
     this._bridge._distributeEvent("ota", ota);
     console.debug("%s OTA: %O", chainType, ota);
   }
+
   async _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") {
     let records = this._bridge.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(this.id);
@@ -491,12 +492,14 @@ class BridgeTask {
       this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
     }
   }
+
   _getSmgXrpClassicAddress() {
     let pubKey = Secp256k1.keyFromPublic("04" + this._gpkInfo.gpk.slice(2), 'hex');
     let compressed = pubKey.getPublic(true, 'hex');
     let deriveAddress = keypairs.deriveAddress(compressed.toUpperCase());
     return deriveAddress;
   }
+
   _getXAddressByTagId(tagId) {
     let deriveAddress = this._getSmgXrpClassicAddress();
     let xrpXAddr = xrpAddrCodec.classicAddressToXAddress(deriveAddress, tagId);
@@ -504,20 +507,20 @@ class BridgeTask {
       xAddr: xrpXAddr,
       rAddr: deriveAddress,
       tagId
-    };
+    }
     return xrpAddr;
   }
+
   _getSmgAddress(chainType) {
     let extension = this._bridge.configService.getExtension(chainType);
     if (extension && extension.tool && extension.tool.gpk2Address) {
       return extension.tool.gpk2Address(this._gpkInfo.gpk, chainType, this._bridge.network);
-    }
-    else if ("XRP" === chainType) {
+    } else if ("XRP" === chainType) {
       return this._getSmgXrpClassicAddress();
-    }
-    else { // only for not-sc-chain to check smg account, other chains should not call this function
+    } else { // only for not-sc-chain to check smg account, other chains should not call this function
       throw new Error("Unknown " + chainType + " smg address");
     }
   }
 }
+
 export default BridgeTask;

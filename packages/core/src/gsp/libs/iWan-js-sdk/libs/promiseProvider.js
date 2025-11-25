@@ -1,5 +1,5 @@
 import assert from "assert";
-;
+
 /**
  * Helper for multiplexing promise implementations
  */

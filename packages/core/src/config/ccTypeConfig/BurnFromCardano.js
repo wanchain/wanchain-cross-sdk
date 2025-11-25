@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class BurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     try {
       let direction = (convert.convertType === "MINT");
@@ -39,8 +40,7 @@ export default (class BurnFromCardano {
         { name: "userFastBurn", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("Burn %s FromCardano error: %O", tokenPair.readableSymbol, err);
       throw err;
     }

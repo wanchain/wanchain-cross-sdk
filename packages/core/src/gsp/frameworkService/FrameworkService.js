@@ -1,4 +1,4 @@
-;
+
 class FrameworkService {
   constructor(options) {
     this.serviceRegistry = {};

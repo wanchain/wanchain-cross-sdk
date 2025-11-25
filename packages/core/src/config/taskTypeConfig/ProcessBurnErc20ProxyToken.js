@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-;
+
 export default (class ProcessBurnErc20ProxyToken extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -18,23 +19,28 @@ export default (class ProcessBurnErc20ProxyToken extends ProcessBase {
         nativeToken = tokenPair.fromNativeToken;
         poolToken = tokenPair.fromAccount;
         chainInfo = tokenPair.fromScInfo;
-      }
-      else {
+      } else {
         nativeToken = tokenPair.toNativeToken;
         poolToken = tokenPair.toAccount;
         chainInfo = tokenPair.toScInfo;
       }
       let txValue = params.fee;
-      let scData = await this.m_txGeneratorService.generateUserBurnData(params.crossScAddr, params.storemanGroupId, params.tokenPairID, params.value, params.userBurnFee, params.tokenAccount, params.userAccount, { tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue });
+      let scData = await this.m_txGeneratorService.generateUserBurnData(params.crossScAddr,
+        params.storemanGroupId,
+        params.tokenPairID,
+        params.value,
+        params.userBurnFee,
+        params.tokenAccount,
+        params.userAccount,
+        {tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue});
       let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
-  // virtual function
+
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);

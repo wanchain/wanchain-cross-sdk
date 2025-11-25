@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import base32 from "hi-base32";
-;
+
 export default (class ProcessMintFromAlgorand {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -12,6 +12,7 @@ export default (class ProcessMintFromAlgorand {
     this.chainInfoService = frameworkService.getService("ChainInfoService");
     this.webStoresService = frameworkService.getService("WebStores");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -100,12 +101,10 @@ export default (class ProcessMintFromAlgorand {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.message && (typeof (err.message) === "string") && err.message.includes("the user has rejected the transaction request")) {
         this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessMintFromAlgorand error: %O", err);
         this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

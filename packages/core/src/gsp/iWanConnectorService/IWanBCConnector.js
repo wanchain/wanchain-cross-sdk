@@ -1,5 +1,5 @@
 import iWanClient from "../libs/iWan-js-sdk/apis/apiInstance.js";
-;
+
 class IWanBCConnector {
   constructor(option) {
     this.m_iWanOption = option;
@@ -187,5 +187,5 @@ class IWanBCConnector {
     return this.apiClient.call(method, options);
   }
 }
-;
+
 export default IWanBCConnector;

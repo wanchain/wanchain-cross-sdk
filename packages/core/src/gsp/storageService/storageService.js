@@ -158,5 +158,5 @@ class StorageService {
     window.localStorage.removeItem(key);
   }
 }
-;
+
 export default StorageService;

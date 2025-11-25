@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class MintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     let direction = (convert.convertType === "MINT");
     let fromChainType = direction ? tokenPair.fromChainType : tokenPair.toChainType;
@@ -35,8 +36,7 @@ export default (class MintFromCosmos {
         { name: "userFastMint", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("Mint %s FromCardano error: %O", tokenPair.readableSymbol, err);
       throw err;
     }

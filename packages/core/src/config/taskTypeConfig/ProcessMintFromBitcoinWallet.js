@@ -1,17 +1,20 @@
 import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "@bitcoinerlab/secp256k1";
 import tool from "../../utils/tool.js";
-;
+
 bitcoin.initEccLib(ecc);
+
 const networks = {
   BTC: bitcoin.networks
 };
+
 export default (class ProcessMintFromBitcoinWallet {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = frameworkService.getService("WebStores");
     this.storemanService = frameworkService.getService("StoremanService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -49,27 +52,26 @@ export default (class ProcessMintFromBitcoinWallet {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (err.code === 4001) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected", "");
-      }
-      else {
+      } else {
         console.error("ProcessMintFromBitcoinWallet error: %O", ProcessMintFromBitcoinWallet, err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   gpk2Addr(fromChainType, gpkInfo) {
     let chainInfoService = this.frameworkService.getService("ChainInfoService");
     let chainInfo = chainInfoService.getChainInfoByType(fromChainType);
     if (gpkInfo.algo == 2) { // schnorr340
       return this.pk2p2tr(gpkInfo.gpk, networks[fromChainType][chainInfo.network]);
-    }
-    else { // only support p2tr now
+    } else { // only support p2tr now
       return "";
     }
   }
+
   pk2p2tr(gpk, network) {
     let xOnlyMpcPk = Buffer.from(gpk.slice(2, 66), 'hex'); // gpk is 0x...
     let redeemScript = this.getP2trRedeemScript(xOnlyMpcPk);
@@ -85,6 +87,7 @@ export default (class ProcessMintFromBitcoinWallet {
     });
     return p2tr.address;
   }
+
   getP2trRedeemScript(xOnlyMpcPk) {
     let redeemScript = bitcoin.script.fromASM(`
       OP_DUP

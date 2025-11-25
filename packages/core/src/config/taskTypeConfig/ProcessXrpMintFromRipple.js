@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import axios from "axios";
-;
+
 export default (class ProcessXrpMintFromRipple {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -8,6 +8,7 @@ export default (class ProcessXrpMintFromRipple {
     this.storemanService = this.frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
   }
+
   async process(stepData, wallet) {
     let WebStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
@@ -15,16 +16,15 @@ export default (class ProcessXrpMintFromRipple {
       let tagId = await this.getTagId(stepData, params.toChainType, params.userAccount, params.storemanGroupId, params.storemanGroupGpk);
       if (tagId) {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", tagId);
-      }
-      else {
+      } else {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessXrpMintFromRipple process error: %O", err);
       WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
     }
   }
+
   async getTagId(stepData, chainType, chainAddr, storemanGroupId, storemanGroupPublicKey) {
     let params = stepData.params;
     try {
@@ -53,13 +53,11 @@ export default (class ProcessXrpMintFromRipple {
         await checkXrpTxService.addTagInfo(data);
         // 添加apiServer端获取的networkFee
         return ret.data.tagId;
-      }
-      else {
+      } else {
         console.error("ProcessXrpMintFromRipple getTagId, url: %s data: %O, result: %O", url, data, ret);
         return 0;
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessXrpMintFromRipple getTagId error: %O", err);
       return 0;
     }

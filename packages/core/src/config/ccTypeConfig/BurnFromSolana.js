@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class BurnFromSolana {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     try {
       let direction = (convert.convertType === "MINT");
@@ -31,8 +32,7 @@ export default (class BurnFromSolana {
         { name: "userFastBurn", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("BurnFromSolana error: %O", err);
       throw err;
     }

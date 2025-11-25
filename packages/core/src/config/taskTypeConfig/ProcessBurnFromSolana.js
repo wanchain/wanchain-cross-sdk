@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-;
+
 export default (class ProcessBurnFromSolana {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -10,6 +10,7 @@ export default (class ProcessBurnFromSolana {
     this.storemanService = frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -70,13 +71,11 @@ export default (class ProcessBurnFromSolana {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("error: %s", err.message);
       if (["User rejected the request."].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessBurnFromSolana error: %O", err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

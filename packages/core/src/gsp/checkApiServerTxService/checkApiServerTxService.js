@@ -1,5 +1,5 @@
 import axios from "axios";
-;
+
 export default (class CheckApiServerTxService {
   constructor(chainType) {
     this.chainType = chainType;

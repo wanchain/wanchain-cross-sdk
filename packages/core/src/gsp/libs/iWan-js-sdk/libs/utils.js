@@ -47,7 +47,7 @@ function promiseOrCallback(callback, fn) {
     });
   });
 }
-;
+
 function newJson(srcObj) {
   let mobj = {};
   if (typeof (srcObj) === "object") {

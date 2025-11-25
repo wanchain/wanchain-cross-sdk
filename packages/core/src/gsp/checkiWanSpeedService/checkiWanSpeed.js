@@ -1,4 +1,4 @@
-;
+
 function idleSleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }

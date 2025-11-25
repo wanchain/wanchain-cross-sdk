@@ -1,18 +1,20 @@
-;
-let WalletRejects = [
+const WalletRejects = [
   "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 1
   "Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 2
   "Confirmation declined by user", // TronLink
 ];
+
 export default (class ProcessBaseSync {
   constructor(frameworkService) {
     this.chainInfoService = frameworkService.getService("ChainInfoService");
     this.storemanService = frameworkService.getService("StoremanService");
     this.txGeneratorService = frameworkService.getService("TxGeneratorService");
   }
+
   // virtual function
   async process(stepData, wallet) {
   }
+
   async sendTx(stepData, txData, wallet) {
     try {
       let params = stepData.params;
@@ -21,20 +23,18 @@ export default (class ProcessBaseSync {
       let txReceipt = await this.storemanService.waitTxReceipt(params.chainType, txHash, 30000, 3000);
       if (txReceipt && (txReceipt.status == 1)) {
         console.log("%s txHash: %s", stepData.name || params.taskType, txHash);
-      }
-      else {
+      } else {
         throw new Error("Send transaction failed");
       }
-    }
-    catch (err) {
+    } catch (err) {
       if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
         throw new Error("Rejected");
-      }
-      else {
+      } else {
         throw err;
       }
     }
   }
+
   async checkWallet(params, wallet) {
     let chainInfo = this.chainInfoService.getChainInfoByType(params.chainType);
     let chainId = await wallet.getChainId();

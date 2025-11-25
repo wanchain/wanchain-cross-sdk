@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import TokenHandler from "./tokenHandler.js";
-;
+
 export default (class CircleBridgeDeposit extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);
   }
+
   async process(tokenPair, convert) {
     let steps = [];
     await this.buildApproveSteps(steps, tokenPair, convert);
@@ -14,6 +15,7 @@ export default (class CircleBridgeDeposit extends TokenHandler {
     //console.log("CircleBridgeDeposit steps: %O", steps);
     return steps;
   }
+
   async buildDeposit(steps, tokenPair, convert) {
     let direction = (convert.convertType === "MINT");
     let chainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;

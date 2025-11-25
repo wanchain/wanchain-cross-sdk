@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class MintXrpFromRipple {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     try {
       let value = new BigNumber(convert.value);
@@ -37,8 +38,7 @@ export default (class MintXrpFromRipple {
         { name: "addTag", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("Mint %s FromRipple error: %O", tokenPair.readableSymbol, err);
       throw err;
     }

@@ -1,11 +1,12 @@
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-;
+
 export default (class ProcessCircleBridgeDeposit extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
     this.storemanService = frameworkService.getService("StoremanService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -21,13 +22,12 @@ export default (class ProcessCircleBridgeDeposit extends ProcessBase {
         await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessCircleBridgeDeposit error: %O", err);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
-  // virtual function
+
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);

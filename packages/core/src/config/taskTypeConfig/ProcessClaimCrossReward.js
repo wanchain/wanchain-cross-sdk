@@ -1,13 +1,15 @@
 import Web3 from "web3";
 import ProcessBaseSync from "./processBaseSync.js";
-;
+
 const web3 = new Web3();
+
 export default (class ProcessClaimCrossReward extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
     this.configService = frameworkService.getService("ConfigService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     let cfg = this.configService.getGlobalConfig("crossTask");
@@ -18,6 +20,7 @@ export default (class ProcessClaimCrossReward extends ProcessBaseSync {
     let txData = await this.txGeneratorService.generateTx(params.chainType, scData.gasLimit, params.scAddr, 0, scData.data, params.fromAddr);
     await this.sendTx(stepData, txData, wallet);
   }
+
   async genTxData(params) {
     let abi = this.configService.getAbi("rewardTask");
     let sc = new web3.eth.Contract(abi, params.scAddr);
@@ -26,14 +29,13 @@ export default (class ProcessClaimCrossReward extends ProcessBaseSync {
     console.debug("ProcessClaimCrossReward gasLimit: %s", gasLimit);
     return { data, gasLimit };
   }
+
   getTxHashBytes(txHash) {
     if (/^0x[0-9a-f]+$/.test(txHash)) {
       return txHash;
-    }
-    else if (/^[0-9a-f]+$/.test(txHash)) {
+    } else if (/^[0-9a-f]+$/.test(txHash)) {
       return '0x' + txHash;
-    }
-    else {
+    } else {
       return web3.utils.asciiToHex(txHash);
     }
   }

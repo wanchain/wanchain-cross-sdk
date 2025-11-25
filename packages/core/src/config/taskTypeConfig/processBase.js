@@ -1,10 +1,11 @@
 import tool from "../../utils/tool.js";
-;
-let WalletRejects = [
+
+const WalletRejects = [
   "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 1
   "Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 2
   "Confirmation declined by user", // TronLink
 ];
+
 export default (class ProcessBase {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
@@ -16,9 +17,11 @@ export default (class ProcessBase {
     this.m_tokenPairService = frameworkService.getService("TokenPairService");
     this.m_txGeneratorService = frameworkService.getService("TxGeneratorService");
   }
+
   // virtual function
   async process(stepData, wallet) {
   }
+
   // virtual function
   async getConvertInfoForCheck(stepData) {
     return {
@@ -26,6 +29,7 @@ export default (class ProcessBase {
       convertCheckInfo: null
     };
   }
+
   async sendTransactionData(stepData, txData, wallet) {
     console.log("processBase sendTransactionData stepData:", stepData);
     let params = stepData.params;
@@ -68,31 +72,28 @@ export default (class ProcessBase {
       console.log("sendTransactionData checker: %O", checker);
       let checkTxReceiptService = this.m_frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if ((err.code === 4001) || WalletRejects.includes(err.toString())) {
         this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected", "");
-      }
-      else {
+      } else {
         console.error("ProcessBase sendTransactionData error:", err);
         this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   async checkChainId(stepData, wallet) {
     let params = stepData.params;
     try {
       let chainId = await wallet.getChainId();
       if (chainId === params.chainId) {
         return true;
-      }
-      else {
+      } else {
         this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Invalid wallet");
         console.error("wallet chainId changes from %s to %s", params.chainId, chainId);
         return false;
       }
-    }
-    catch (err) {
+    } catch (err) {
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Invalid wallet");
       console.error("task %s checkChainId error: %O", params.ccTaskId, err);
       return false;

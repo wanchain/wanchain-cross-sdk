@@ -3,19 +3,22 @@ import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "@bitcoinerlab/secp256k1";
 import axios from "axios";
 import tool from "../../utils/tool.js";
-;
+
 bitcoin.initEccLib(ecc);
+
 const names = {
   BTC: "ProcessMintBtcFromBitcoin",
   LTC: "ProcessMintLtcFromLitecoin",
   DOGE: "ProcessMintDogeFromDogecoin"
 };
+
 const litecoinPrefix = '\\x19Litecoin Signed Message:\n';
 const DogecoinPrefix = "\\x19Dogecoin Signed Message:\n";
 const testnetBip32 = {
   public: 0x019DA462,
   private: 0x019D9CFE,
 };
+
 const networks = {
   BTC: bitcoin.networks,
   LTC: {
@@ -59,10 +62,12 @@ const networks = {
     }
   }
 };
+
 export default (class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
   }
+
   async process(stepData, wallet) {
     let WebStores = this.frameworkService.getService("WebStores");
     let params = stepData.params;
@@ -72,16 +77,15 @@ export default (class ProcessMintBtcFromBitcoin {
       // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, ota.address);
       if (ota.address) {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", { address: ota.address, randomId: ota.randomId });
-      }
-      else {
+      } else {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s err: %O", processorName, err);
       WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
     }
   }
+
   async generateOnetimeAddress(stepData, fromChainType, toChainType, chainAddr, storemanGroupId, gpkInfo) {
     let params = stepData.params;
     try {
@@ -101,8 +105,7 @@ export default (class ProcessMintBtcFromBitcoin {
       if (gpkInfo.algo == 2) { // schnorr340
         ota = this.getP2TR(hashValue, tmpGPK, network);
         console.debug("generate %s p2tr ota %s", fromChainType, ota);
-      }
-      else {
+      } else {
         ota = this.getP2SH(hashValue, tmpGPK, network);
       }
       let url = apiServerConfig.url + "/api/" + fromChainType.toLowerCase() + "/addAddrInfo";
@@ -134,21 +137,20 @@ export default (class ProcessMintBtcFromBitcoin {
           address: ota,
           randomId
         };
-      }
-      else {
+      } else {
         console.error("%s ProcessMintBtcFromBitcoin generateOnetimeAddress, url: %s, data: %O, ret: %O", names[fromChainType], url, data, ret);
         return {
           address: ""
         };
       }
-    }
-    catch (error) {
+    } catch (error) {
       console.error('%s generateOnetimeAddress error: %O', names[fromChainType], error);
       return {
         address: ""
       };
     }
   }
+
   getP2SH(hashVal, publicKey, networkInfo) {
     const p2sh = bitcoin.payments.p2sh({
       network: networkInfo,
@@ -159,6 +161,7 @@ export default (class ProcessMintBtcFromBitcoin {
     });
     return p2sh.address;
   }
+
   getP2TR(hashVal, publicKey, network) {
     const xOnlyMpcPk = Buffer.from(publicKey.slice(2, 66), 'hex');
     const redeemScript = bitcoin.script.fromASM(`

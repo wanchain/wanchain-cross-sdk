@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 /* metadata format:
   userBurn:
   {
@@ -26,6 +26,7 @@ const TX_TYPE = {
   smgMint: 9,
   invalid: -1
 };
+
 export default (class ProcessBurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -36,6 +37,7 @@ export default (class ProcessBurnFromCardano {
     this.wasm = extension.tool.getWasm();
     this.network = configService.getNetwork();
   }
+
   async process(stepData, wallet) {
     let webStores = this.frameworkService.getService("WebStores");
     // console.debug("ProcessBurnFromCardano stepData:", stepData);
@@ -66,8 +68,7 @@ export default (class ProcessBurnFromCardano {
           unit: tokenId.replace(/\./g, ""), // policyId(28 bytes) + name
           quantity: params.value
         });
-      }
-      else { // tokenId = policyId(28 bytes)
+      } else { // tokenId = policyId(28 bytes)
         let tokenIds = params.value.map(v => v.tokenId);
         let mappingIds = await this.storemanService.getNftMappingId(tokenPair.ancestorChainType, tokenPair.ancestorAccount, tokenIds);
         params.value.forEach((v, i) => {
@@ -78,7 +79,10 @@ export default (class ProcessBurnFromCardano {
           });
         });
       }
-      let tempTxOutput = this.wasm.TransactionOutput.new(this.wasm.Address.from_bech32(params.crossScAddr), this.tool.assetsToValue(output.amount));
+      let tempTxOutput = this.wasm.TransactionOutput.new(
+        this.wasm.Address.from_bech32(params.crossScAddr),
+        this.tool.assetsToValue(output.amount)
+      );
       let minAda = this.tool.minAdaRequired(tempTxOutput, epochParameters.coinsPerUtxoByte);
       output.amount[0].quantity = minAda;
       let utxos = await wallet.getUtxos();
@@ -96,8 +100,7 @@ export default (class ProcessBurnFromCardano {
         if (!checkUtxos) {
           throw new Error("UTXOs unavailable, please try again later");
         }
-      }
-      else {
+      } else {
         this.tool.showUtxos(utxos, "burn tx wallet");
         throw new Error("Not enough utxos");
       }
@@ -105,10 +108,13 @@ export default (class ProcessBurnFromCardano {
       let mintBuilder = this.buildMint(params.tokenType, tokenId, params.value);
       let networkFeeOutput = null;
       if (params.networkFee != 0) {
-        networkFeeOutput = this.wasm.TransactionOutput.new(this.wasm.Address.from_bech32(params.feeHolder), this.tool.assetsToValue([{
-          unit: 'lovelace',
-          quantity: params.networkFee
-        }]));
+        networkFeeOutput = this.wasm.TransactionOutput.new(
+          this.wasm.Address.from_bech32(params.feeHolder),
+          this.tool.assetsToValue([{
+            unit: 'lovelace',
+            quantity: params.networkFee
+          }])
+        );
       }
       let tx = await this.buildTx(params.fromAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder);
       console.debug("ProcessBurnFromCardano evaluateTx: %O", tx.to_json());
@@ -116,13 +122,11 @@ export default (class ProcessBurnFromCardano {
       let executionUnits = evaluateTx["mint:0"];
       if (executionUnits) {
         console.debug("executionUnits: %O", executionUnits);
-      }
-      else {
+      } else {
         console.error("evaluateTx result: %O", evaluateTx);
         if (evaluateTx.error === 3012) {
           throw new Error("UTXO Consolidation Required");
-        }
-        else {
+        } else {
           throw new Error("Failed to evaluate tx, please try again later");
         }
       }
@@ -152,17 +156,16 @@ export default (class ProcessBurnFromCardano {
       };
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
       await checkAdaTxService.addTask(checkPara);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessBurnFromCardano error: %O", err);
       if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.info)) { // code 2 include other errors
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   buildMetadata(tokenPairID, fromAccount, toAccount, smgID) {
     let data = {
       1: {
@@ -177,6 +180,7 @@ export default (class ProcessBurnFromCardano {
     data = this.wasm.encode_json_str_to_metadatum(JSON.stringify(data), this.wasm.MetadataJsonSchema.BasicConversions);
     return this.wasm.GeneralTransactionMetadata.from_bytes(data.to_bytes());
   }
+
   async buildCostModels(costModelParameters) {
     let costModels = costModelParameters.costModels;
     let v1 = this.wasm.CostModel.new();
@@ -204,6 +208,7 @@ export default (class ProcessBurnFromCardano {
     console.log("buildCostModels: %O", result.to_js_value());
     return result;
   }
+
   async buildCollateral(wallet) {
     let utxos = await wallet.getCollateral();
     if (utxos.length) {
@@ -214,33 +219,48 @@ export default (class ProcessBurnFromCardano {
       if (!checkUtxos) {
         throw new Error("Collateral utxos unavailable, please try again later");
       }
-    }
-    else {
+    } else {
       throw new Error("No collateral utxos");
     }
     let builder = this.wasm.TxInputsBuilder.new();
     for (let utxo of utxos) {
-      builder.add_regular_input(utxo.output().address(), utxo.input(), utxo.output().amount());
+      builder.add_regular_input(
+        utxo.output().address(),
+        utxo.input(),
+        utxo.output().amount()
+      );
     }
     return builder;
   }
+
   buildMint(tokenType, tokenId, burnedAmount, executionUnits = undefined) {
     let wasm = this.wasm;
     let chainInfoService = this.frameworkService.getService("ChainInfoService");
     let chainInfo = chainInfoService.getChainInfoByType("ADA");
     let tokenScript = (tokenType === "Erc20") ? chainInfo.tokenScript : chainInfo.nft[tokenId];
-    let scriptRefInput = wasm.TransactionInput.new(wasm.TransactionHash.from_hex(tokenScript.txHash), tokenScript.index);
+    let scriptRefInput = wasm.TransactionInput.new(
+      wasm.TransactionHash.from_hex(tokenScript.txHash),
+      tokenScript.index
+    );
     let plutusScript = wasm.PlutusScript.from_bytes_v2(Buffer.from(tokenScript.cborHex, 'hex'));
     let plutusScriptSource = wasm.PlutusScriptSource.new_ref_input(plutusScript.hash(), scriptRefInput, wasm.Language.new_plutus_v2(), plutusScript.bytes().length);
-    let exUnitsMint = wasm.ExUnits.new(wasm.BigNum.from_str(executionUnits ? executionUnits.memory.toString() : "2136910"), wasm.BigNum.from_str(executionUnits ? executionUnits.steps.toString() : "634469356"));
-    let mintRedeemer = wasm.Redeemer.new(wasm.RedeemerTag.new_mint(), wasm.BigNum.from_str('0'), wasm.PlutusData.new_empty_constr_plutus_data(wasm.BigNum.from_str('0')), exUnitsMint);
+
+    let exUnitsMint = wasm.ExUnits.new(
+      wasm.BigNum.from_str(executionUnits ? executionUnits.memory.toString() : "2136910"),
+      wasm.BigNum.from_str(executionUnits ? executionUnits.steps.toString() : "634469356")
+    );
+    let mintRedeemer = wasm.Redeemer.new(
+      wasm.RedeemerTag.new_mint(),
+      wasm.BigNum.from_str('0'),
+      wasm.PlutusData.new_empty_constr_plutus_data(wasm.BigNum.from_str('0')),
+      exUnitsMint
+    );
     let witness = wasm.MintWitness.new_plutus_script(plutusScriptSource, mintRedeemer);
     let builder = wasm.MintBuilder.new();
     if (tokenType === "Erc20") {
       let assetName = wasm.AssetName.new(Buffer.from(tokenId.split(".")[1], 'hex'));
       builder.add_asset(witness, assetName, wasm.Int.from_str('-' + burnedAmount));
-    }
-    else {
+    } else {
       burnedAmount.forEach(v => {
         let assetName = wasm.AssetName.new(Buffer.from(v.assetName, 'hex'));
         builder.add_asset(witness, assetName, wasm.Int.from_str('-' + v.amount.toString()));
@@ -248,25 +268,42 @@ export default (class ProcessBurnFromCardano {
     }
     return builder;
   }
+
   async buildTx(paymentAddr, inputs, networkFeeOutput, epochParameters, costModelParameters, metaData, mintBuilder, collateralBuilder) {
     let wasm = this.wasm;
     let priceMem = epochParameters.priceMem.replace(/\"/g, "").split("/");
     let priceStep = epochParameters.priceStep.replace(/\"/g, "").split("/");
     let txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
-      .coins_per_utxo_byte(wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte))
-      .fee_algo(wasm.LinearFee.new(wasm.BigNum.from_str(epochParameters.linearFee.minFeeA), wasm.BigNum.from_str(epochParameters.linearFee.minFeeB)))
+      .coins_per_utxo_byte(
+        wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte)
+      )
+      .fee_algo(
+        wasm.LinearFee.new(
+          wasm.BigNum.from_str(epochParameters.linearFee.minFeeA),
+          wasm.BigNum.from_str(epochParameters.linearFee.minFeeB)
+        )
+      )
       .key_deposit(wasm.BigNum.from_str(epochParameters.keyDeposit))
-      .pool_deposit(wasm.BigNum.from_str(epochParameters.poolDeposit))
+      .pool_deposit(
+        wasm.BigNum.from_str(epochParameters.poolDeposit)
+      )
       .max_tx_size(epochParameters.maxTxSize)
       .max_value_size(epochParameters.maxValSize)
-      .ex_unit_prices(wasm.ExUnitPrices.new(wasm.UnitInterval.new(wasm.BigNum.from_str(priceMem[0]), wasm.BigNum.from_str(priceMem[1])), wasm.UnitInterval.new(wasm.BigNum.from_str(priceStep[0]), wasm.BigNum.from_str(priceStep[1]))))
+      .ex_unit_prices(wasm.ExUnitPrices.new(
+        wasm.UnitInterval.new(wasm.BigNum.from_str(priceMem[0]), wasm.BigNum.from_str(priceMem[1])),
+        wasm.UnitInterval.new(wasm.BigNum.from_str(priceStep[0]), wasm.BigNum.from_str(priceStep[1]))
+      ))
       .ref_script_coins_per_byte(wasm.UnitInterval.new(wasm.BigNum.from_str(epochParameters.minFeeRefScriptCostPerByte), wasm.BigNum.from_str('1')))
       // .collateral_percentage(epochParameters.collateralPercentage)
       // .max_collateral_inputs(epochParameters.maxCollateralInputs)
       .build();
     let txBuilder = wasm.TransactionBuilder.new(txBuilderConfig);
     for (let utxo of inputs) {
-      txBuilder.add_regular_input(utxo.output().address(), utxo.input(), utxo.output().amount());
+      txBuilder.add_regular_input(
+        utxo.output().address(),
+        utxo.input(),
+        utxo.output().amount()
+      );
     }
     let auxiliaryData = wasm.AuxiliaryData.new();
     auxiliaryData.set_metadata(metaData);

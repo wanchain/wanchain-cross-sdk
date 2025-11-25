@@ -1,7 +1,8 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 const DefaultGas = 10_000_000;
+
 export default (class ProcessCircleBridgeSuiDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -12,6 +13,7 @@ export default (class ProcessCircleBridgeSuiDeposit {
     this.storemanService = frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -92,17 +94,16 @@ export default (class ProcessCircleBridgeSuiDeposit {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (["Rejected from user"].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessCircleBridgeSuiDeposit error: %O", err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }
   }
+
   async getComputeUnitPrice(wallet) {
     try {
       let recentFees = await wallet.getRecentPrioritizationFees();
@@ -116,8 +117,7 @@ export default (class ProcessCircleBridgeSuiDeposit {
       });
       let average = cnt ? Math.ceil(sum / cnt) : 0;
       return average;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("getRecentPrioritizationFees error: %O", err);
       return 0;
     }

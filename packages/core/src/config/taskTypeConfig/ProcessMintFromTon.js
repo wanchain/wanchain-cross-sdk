@@ -1,12 +1,15 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 const TON_COIN_ACCOUNT_STR = 'EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c';
+
 const CrossOpCode = {
   userLock: 0x40000001,
   userBurn: 0x40000003
 };
+
 const DefaultGas = 1_000_000_000;
+
 export default (class ProcessMintFromTon {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -17,6 +20,7 @@ export default (class ProcessMintFromTon {
     this.tokenPairService = frameworkService.getService("TokenPairService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -35,8 +39,7 @@ export default (class ProcessMintFromTon {
       let jwSender, jwCrossSc;
       if (isCoin) {
         tokenAccount = jwSender = jwCrossSc = TON_COIN_ACCOUNT_STR;
-      }
-      else {
+      } else {
         tokenAccount = tool.ascii2letter(tokenAccount);
         let [sender, crossSc] = await Promise.all([
           this.iwan.call("getAssociatedTokenAddress", { chainType: "TON", address: params.fromAddr, tokenScAddr: tokenAccount }),
@@ -70,8 +73,7 @@ export default (class ProcessMintFromTon {
       if (isCoin) {
         msgTo = params.crossScAddr;
         msgBody = body;
-      }
-      else {
+      } else {
         msgTo = jwSender;
         let forwardFee = totalTon.minus(200_000_000); // reserve 0.2 TON for jettonWallet gas
         msgBody = this.tool.beginCell()
@@ -108,12 +110,10 @@ export default (class ProcessMintFromTon {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       if (["Reject request"].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessMintFromTon error: %O", err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

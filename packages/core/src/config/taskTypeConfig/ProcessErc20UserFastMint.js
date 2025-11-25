@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-;
+
 export default (class ProcessErc20UserFastMint extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -14,20 +15,28 @@ export default (class ProcessErc20UserFastMint extends ProcessBase {
       }
       let txData;
       if (wallet.generateUserLockData) { // wallet custumized
-        txData = await wallet.generateUserLockData(params.crossScAddr, params.storemanGroupId, params.tokenPairID, params.value, params.userAccount, { coinValue: params.fee });
-      }
-      else {
-        let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr, params.storemanGroupId, params.tokenPairID, params.value, params.userAccount, { tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee });
+              txData = await wallet.generateUserLockData(params.crossScAddr,
+                params.storemanGroupId,
+                params.tokenPairID,
+                params.value,
+                params.userAccount,
+                {coinValue: params.fee});
+            } else {
+              let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr,
+                params.storemanGroupId,
+                params.tokenPairID,
+                params.value,
+                params.userAccount,
+                {tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee});
         txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.fee, scData.data, params.fromAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessErc20UserFastMint error: %O", err);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
-  // virtual function
+
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);

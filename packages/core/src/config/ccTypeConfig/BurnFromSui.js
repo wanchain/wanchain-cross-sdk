@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class BurnFromSui {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     try {
       let direction = (convert.convertType === "MINT");
@@ -31,8 +32,7 @@ export default (class BurnFromSui {
         { name: "userFastBurn", stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("BurnFromSui error: %O", err);
       throw err;
     }

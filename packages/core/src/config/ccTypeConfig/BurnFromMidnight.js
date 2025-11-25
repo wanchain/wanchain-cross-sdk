@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class BurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -8,6 +8,7 @@ export default (class BurnFromMidnight {
     let extension = this.configService.getExtension("DUST");
     this.tool = extension.tool;
   }
+
   async process(tokenPair, convert) {
     try {
       let direction = (convert.convertType === "MINT");
@@ -49,8 +50,7 @@ export default (class BurnFromMidnight {
       console.debug("Midnight Burn %s params: %O", tokenPair.readableSymbol, burnParams);
       steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params: burnParams });
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("Midnight Burn %s error: %O", tokenPair.readableSymbol, err);
       throw err;
     }

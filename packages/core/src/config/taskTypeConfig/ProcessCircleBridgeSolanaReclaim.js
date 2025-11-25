@@ -1,7 +1,8 @@
 import axios from "axios";
 import tool from "../../utils/tool.js";
-;
+
 const DepositMsg = "Program log:  relay_circle_cctp() circle message_sent_event_data: ";
+
 export default (class ProcessCircleBridgeSolanaReclaim {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -14,6 +15,7 @@ export default (class ProcessCircleBridgeSolanaReclaim {
     this.chainInfoService = this.frameworkService.getService("ChainInfoService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     let queryUrl = this.apiServer.url + "/api/sol/queryTxInfoBySmgPbkHash/cctp/" + params.lockHash;
@@ -50,8 +52,7 @@ export default (class ProcessCircleBridgeSolanaReclaim {
           await checkTxReceiptService.add(checker);
         }
       }
-    }
-    else {
+    } else {
       throw new Error("Not ready");
     }
   }

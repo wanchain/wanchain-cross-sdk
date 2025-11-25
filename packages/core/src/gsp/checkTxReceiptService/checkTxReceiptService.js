@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-;
+
 const DefaultScanBatchSize = 1000;
 const CustomizedScanBatchSize = {
   SGB: 30,

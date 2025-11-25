@@ -1,5 +1,5 @@
 import events from "events";
-;
+
 const EventEmitter = events.EventEmitter;
 export default (class EventService {
   constructor() {

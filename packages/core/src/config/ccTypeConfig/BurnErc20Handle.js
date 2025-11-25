@@ -1,9 +1,10 @@
 import TokenHandler from "./tokenHandler.js";
-;
+
 export default (class BurnErc20Handle extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);
   }
+
   async process(tokenPair, convert) {
     let steps = [];
     await this.buildApproveSteps(steps, tokenPair, convert);

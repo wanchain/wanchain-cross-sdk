@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import CCTypeHandleInterface from "./CCTypeHandleInterface.js";
-;
+
 export default (class TokenHandler extends CCTypeHandleInterface {
   constructor(frameworkService) {
     super();
@@ -10,6 +10,7 @@ export default (class TokenHandler extends CCTypeHandleInterface {
     this.configService = frameworkService.getService("ConfigService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
+
   async process(tokenPair, convert) {
     console.error("Unimplemented interface");
     return {
@@ -17,14 +18,15 @@ export default (class TokenHandler extends CCTypeHandleInterface {
       errCode: "Unknown error"
     };
   }
+
   async buildApproveSteps(steps, tokenPair, convert) {
     if (["Erc721", "Erc1155"].includes(tokenPair.protocol)) {
       return this.buildErc721Approve(steps, tokenPair, convert);
-    }
-    else { // defalut Erc20
+    } else { // defalut Erc20
       return this.buildErc20Approve(steps, tokenPair, convert);
     }
   }
+
   async buildErc20Approve(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
@@ -34,8 +36,7 @@ export default (class TokenHandler extends CCTypeHandleInterface {
     if (tokenPair.bridge === "Circle") {
       let bridgeInfo = chainInfo[tokenPair.bridge + "Bridge"];
       crossScAddr = (convert.route === "CCTPV2") ? bridgeInfo.crossScAddrV2 : bridgeInfo.crossScAddr;
-    }
-    else {
+    } else {
       crossScAddr = convert.fee.networkFee.isSubsidy ? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     }
     let approveParams = {
@@ -48,7 +49,10 @@ export default (class TokenHandler extends CCTypeHandleInterface {
       taskType: "ProcessErc20Approve"
     };
     console.debug("TokenHandler buildErc20Approve %s params: %O", convert.convertType, approveParams);
-    let allowance = await this.iWanConnectorService.getErc20Allowance(chainInfo.chainType, tokenSc, convert.fromAddr, crossScAddr);
+    let allowance = await this.iWanConnectorService.getErc20Allowance(chainInfo.chainType,
+      tokenSc,
+      convert.fromAddr,
+      crossScAddr);
     allowance = new BigNumber(allowance);
     console.debug("%s token %s allowance %s(%s->%s)", chainInfo.chainType, tokenSc, allowance.toFixed(), convert.fromAddr, crossScAddr);
     if (allowance.isGreaterThan(0)) {
@@ -63,11 +67,11 @@ export default (class TokenHandler extends CCTypeHandleInterface {
         // approve
         steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
       }
-    }
-    else {
+    } else {
       steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
     }
   }
+
   async buildErc721Approve(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenSc = (convert.convertType === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
@@ -88,6 +92,7 @@ export default (class TokenHandler extends CCTypeHandleInterface {
       steps.push({ name: "erc721Approve", stepIndex: steps.length + 1, params });
     }
   }
+
   async buildUserFastMint(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = (convert.convertType === "MINT") ? tokenPair.fromDecimals : tokenPair.toDecimals;
@@ -118,6 +123,7 @@ export default (class TokenHandler extends CCTypeHandleInterface {
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
     steps.push({ name: "userFastMint", stepIndex: steps.length + 1, params });
   }
+
   async buildUserFastBurn(steps, tokenPair, convert) {
     let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = (convert.convertType === "MINT") ? tokenPair.fromDecimals : tokenPair.toDecimals;
@@ -148,6 +154,7 @@ export default (class TokenHandler extends CCTypeHandleInterface {
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params });
   }
+
   async setChainId(steps, tokenPair, convert) {
     let chainId = await convert.wallet.getChainId();
     for (let i = 0; i < steps.length; i++) {

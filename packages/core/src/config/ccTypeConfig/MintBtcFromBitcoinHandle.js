@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class MintBtcFromBitcoinHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
   }
+
   async process(tokenPair, convert) {
     let direction = (convert.convertType === "MINT");
     let fromChainType = direction ? tokenPair.fromChainType : tokenPair.toChainType;
@@ -38,8 +39,7 @@ export default (class MintBtcFromBitcoinHandle {
         { name: taskName, stepIndex: 1, params }
       ];
       return steps;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("Mint %s error: %O", fromChainType, err);
       throw err;
     }

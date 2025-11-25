@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class ProcessMintFromSolana {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -12,6 +12,7 @@ export default (class ProcessMintFromSolana {
     this.tokenPairService = frameworkService.getService("TokenPairService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -83,13 +84,11 @@ export default (class ProcessMintFromSolana {
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("error: %s", err.message);
       if (["User rejected the request."].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else {
         console.error("ProcessMintFromSolana error: %O", err);
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }

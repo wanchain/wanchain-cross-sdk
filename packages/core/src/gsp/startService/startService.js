@@ -145,5 +145,5 @@ class StartService {
     return this.frameworkService.getService(serviceName);
   }
 }
-;
+
 export default StartService;

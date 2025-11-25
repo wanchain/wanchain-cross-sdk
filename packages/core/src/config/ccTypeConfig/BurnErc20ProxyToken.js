@@ -1,11 +1,12 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-;
+
 export default (class BurnErc20ProxyToken {
   constructor(frameworkService) {
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
     this.m_chainInfoService = frameworkService.getService("ChainInfoService");
   }
+
   async process(tokenPair, convert) {
     let steps = [];
     // check erc20 token
@@ -15,8 +16,7 @@ export default (class BurnErc20ProxyToken {
       poolToken = tokenPair.fromAccount;
       chainInfo = tokenPair.fromScInfo;
       decimals = tokenPair.fromDecimals;
-    }
-    else {
+    } else {
       nativeToken = tokenPair.toNativeToken;
       poolToken = tokenPair.toAccount;
       chainInfo = tokenPair.toScInfo;
@@ -34,7 +34,8 @@ export default (class BurnErc20ProxyToken {
     };
     console.debug("BurnErc20ProxyToken erc20ApproveParas: %O", erc20ApproveParas);
     let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
-    let allowance = await this.m_iwanBCConnector.getErc20Allowance(chainInfo.chainType, nativeToken, // tokenAddr
+    let allowance = await this.m_iwanBCConnector.getErc20Allowance(chainInfo.chainType,
+      nativeToken,// tokenAddr
       convert.fromAddr, // account
       poolToken); // spender poolAddr
     allowance = new BigNumber(allowance);
@@ -46,12 +47,10 @@ export default (class BurnErc20ProxyToken {
         steps.push({ name: "erc20Approve0", stepIndex: steps.length + 1, params: erc20Approve0ParaJson });
         // 2 approve
         steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: erc20ApproveParas });
-      }
-      else {
+      } else {
         // allowance >= value,无需approve
       }
-    }
-    else {
+    } else {
       // 1 approve
       steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: erc20ApproveParas });
     }

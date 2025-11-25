@@ -1,10 +1,11 @@
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-;
+
 export default (class ProcessErc721Approve extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
   }
+
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
@@ -15,12 +16,12 @@ export default (class ProcessErc721Approve extends ProcessBase {
       let scData = await this.m_txGeneratorService.generatorErc721ApproveData(params.tokenAddr, params.operator, options);
       let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.tokenAddr, 0, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessErc721Approve error: %O", err);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to approve ERC721 token");
     }
   }
+
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let txEventTopics = [

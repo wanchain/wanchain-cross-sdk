@@ -20,7 +20,7 @@ import mintFromSui from "./MintFromSui.js";
 import burnFromSui from "./BurnFromSui.js";
 import mintFromTon from "./MintFromTon.js";
 import burnFromMidnight from "./BurnFromMidnight.js";
-;
+
 export default [
   {
     "name": "MintCoin",

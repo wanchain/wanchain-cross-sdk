@@ -2,6 +2,7 @@ class CrossChainTaskRecords {
   constructor() {
     this.ccTaskRecords = new Map();
   }
+
   addNewTradeTask(ccTaskData) {
     let ccTask = this.ccTaskRecords.get(ccTaskData.ccTaskId);
     if (ccTask) {
@@ -9,20 +10,21 @@ class CrossChainTaskRecords {
     }
     this.ccTaskRecords.set(ccTaskData.ccTaskId, ccTaskData);
   }
+
   modifyTradeTaskStatus(id, ccTaskStatus, errInfo = "") {
     let ccTask = this.ccTaskRecords.get(id);
     if (ccTask) {
       if (!["Failed", "Succeeded", "Error"].includes(ccTask.status)) {
         if (errInfo) { // set errInfo
           ccTask.errInfo = errInfo;
-        }
-        else if ((ccTaskStatus === "Converting") && (ccTask.status === "Timeout")) {
+        } else if ((ccTaskStatus === "Converting") && (ccTask.status === "Timeout")) {
           ccTask.errInfo = ""; // clear temporary Timeout status
         }
         ccTask.status = ccTaskStatus;
       }
     }
   }
+
   setTaskOtaInfo(ccTaskId, ota) {
     // adapted to BTC/XRP crosschain task on 2021.0111     
     let ccTask = this.ccTaskRecords.get(ccTaskId);
@@ -30,6 +32,7 @@ class CrossChainTaskRecords {
       ccTask.ota = ota;
     }
   }
+
   // stepData has already been updated, only need to update task info
   updateTaskByStepResult(ccTaskId, stepIndex, txHash, result, errInfo = "") {
     let isLockTx = false, isLocked = false;
@@ -42,8 +45,7 @@ class CrossChainTaskRecords {
             if (errInfo) {
               ccTask.errInfo = errInfo;
             }
-          }
-          else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
+          } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
             // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
             if (txHash) {
               isLockTx = !ccTask.lockHash;
@@ -59,6 +61,7 @@ class CrossChainTaskRecords {
     }
     return { isLockTx, isLocked };
   }
+
   updateTaskFee(ccTaskId, type, value, rectify = false) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
@@ -68,11 +71,11 @@ class CrossChainTaskRecords {
         ccTask.fee[type].isRatio = false;
         ccTask.fee[type].discount = "1";
       }
-    }
-    else {
+    } else {
       console.error("task %d fee data is damaged", ccTaskId);
     }
   }
+
   setTaskLockTxHash(ccTaskId, txHash, sentAmount, sender, uniqueId) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
@@ -84,6 +87,7 @@ class CrossChainTaskRecords {
       }
     }
   }
+
   setTaskRedeemTxHash(ccTaskId, txHash, receivedAmount) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask) {
@@ -93,9 +97,11 @@ class CrossChainTaskRecords {
       ccTask.receivedAmount = receivedAmount;
     }
   }
+
   removeTradeTask(ccTaskId) {
     this.ccTaskRecords.delete(ccTaskId);
   }
+
   loadTradeTask(ccTaskList) {
     for (let i = 0; i < ccTaskList.length; i++) {
       let ccTask = ccTaskList[i];
@@ -104,12 +110,12 @@ class CrossChainTaskRecords {
           ccTask.protocol = "Erc20"; // for compatibility
         }
         this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
-      }
-      else {
+      } else {
         console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);
       }
     }
   }
+
   // should always be called before saving task information
   setExtraInfo(ccTaskId, info, overwrite = false) {
     // innerToAccount: real toAccount in transaction used by solana cctp
@@ -118,13 +124,13 @@ class CrossChainTaskRecords {
       for (let k in info) {
         if (overwrite || !ccTask[k]) {
           ccTask[k] = info[k];
-        }
-        else {
+        } else {
           console.error("task %s reject overwrite key %s", ccTaskId, k);
         }
       }
     }
   }
+
   // maybe only update txHash, not really finished
   finishTaskStep(ccTaskId, stepIndex, txHash, stepResult, errInfo = "") {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
@@ -143,13 +149,16 @@ class CrossChainTaskRecords {
       }
     }
   }
+
   getTaskById(ccTaskId) {
     return this.ccTaskRecords.get(ccTaskId);
   }
+
   getTaskNumber(protocols) {
     let allTasks = Array.from(this.ccTaskRecords.values()).filter(v => (protocols === undefined) || protocols.includes(v.protocol));
     return allTasks.length;
   }
+
   getTaskByPage(page, number, protocols) {
     let skip = page * number, result = [];
     let allTasks = Array.from(this.ccTaskRecords.values()).filter(v => (protocols === undefined) || protocols.includes(v.protocol)); // should already be sorted in ascending order
@@ -164,4 +173,5 @@ class CrossChainTaskRecords {
     return result;
   }
 }
+
 export default CrossChainTaskRecords;

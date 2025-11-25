@@ -1,6 +1,6 @@
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-;
+
 export default (class ProcessErc20Approve extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
@@ -14,18 +14,17 @@ export default (class ProcessErc20Approve extends ProcessBase {
       let txData, options = { chainType: params.scChainType, from: params.fromAddr };
       if (wallet.generatorErc20ApproveData) { // wallet custumized
         txData = await wallet.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
-      }
-      else {
+      } else {
         let scData = await this.m_txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
         txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.erc20Addr, 0, scData.data, params.fromAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("ProcessErc20Approve error: %O", err);
       this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to approve token");
     }
   }
+
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
     let txEventTopics = [

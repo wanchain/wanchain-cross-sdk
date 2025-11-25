@@ -1,7 +1,7 @@
 import axios from "axios";
 import tool from "../../utils/tool.js";
 import * as bitcoin from "bitcoinjs-lib";
-;
+
 export default (class CheckBtcTxService {
   constructor(chainType = "BTC") {
     this.chainType = chainType;
