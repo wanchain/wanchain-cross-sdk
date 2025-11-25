@@ -92,7 +92,7 @@ export default (class CheckTxReceiptService {
         txReceipt = await this.getTonTxReceipt(obj); // get user txHash by msgHash, and cross txHash by user txHash
       }
       else if (obj.chain === "DUST") {
-        txReceipt = {status: 1};
+        txReceipt = { status: 1 };
       } else {
         txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
       }

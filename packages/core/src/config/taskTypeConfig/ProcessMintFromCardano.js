@@ -161,25 +161,25 @@ export default (class ProcessAdaMintFromCardano {
   buildTx(paymentAddr, inputs, output, networkFeeOutput, epochParameters, metaData) {
     const wasm = this.wasm;
     const txBuilderConfig = wasm.TransactionBuilderConfigBuilder.new()
-    .coins_per_utxo_byte(
-      wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte)
-    )
-    .fee_algo(
-      wasm.LinearFee.new(
-        wasm.BigNum.from_str(epochParameters.linearFee.minFeeA),
-        wasm.BigNum.from_str(epochParameters.linearFee.minFeeB)
+      .coins_per_utxo_byte(
+        wasm.BigNum.from_str(epochParameters.coinsPerUtxoByte)
       )
-    )
-    .key_deposit(wasm.BigNum.from_str(epochParameters.keyDeposit))
-    .pool_deposit(
-      wasm.BigNum.from_str(epochParameters.poolDeposit)
-    )
-    .max_tx_size(epochParameters.maxTxSize)
-    .max_value_size(epochParameters.maxValSize)
-    .ex_unit_prices(wasm.ExUnitPrices.new(
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
-      wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
-    ))
+      .fee_algo(
+        wasm.LinearFee.new(
+          wasm.BigNum.from_str(epochParameters.linearFee.minFeeA),
+          wasm.BigNum.from_str(epochParameters.linearFee.minFeeB)
+        )
+      )
+      .key_deposit(wasm.BigNum.from_str(epochParameters.keyDeposit))
+      .pool_deposit(
+        wasm.BigNum.from_str(epochParameters.poolDeposit)
+      )
+      .max_tx_size(epochParameters.maxTxSize)
+      .max_value_size(epochParameters.maxValSize)
+      .ex_unit_prices(wasm.ExUnitPrices.new(
+        wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1")),
+        wasm.UnitInterval.new(wasm.BigNum.from_str("0"), wasm.BigNum.from_str("1"))
+      ))
       // .collateral_percentage(epochParameters.collateralPercentage)
       // .max_collateral_inputs(epochParameters.maxCollateralInputs)
       .build();

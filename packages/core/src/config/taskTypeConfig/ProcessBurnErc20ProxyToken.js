@@ -32,7 +32,7 @@ export default (class ProcessBurnErc20ProxyToken extends ProcessBase {
         params.userBurnFee,
         params.tokenAccount,
         params.userAccount,
-        {tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue});
+        { tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue });
       let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {

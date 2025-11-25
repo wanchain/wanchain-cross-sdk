@@ -3,7 +3,9 @@ const checkEnable = (accounts) => {
     throw new Error('User denied account access');
   }
 };
+
 export { checkEnable };
+
 export default {
   checkEnable
 };

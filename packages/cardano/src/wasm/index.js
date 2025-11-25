@@ -1,5 +1,7 @@
 import * as wasmBg from "./cardano_serialization_lib_bg.js";
+
 const wasmUrl = new URL("./cardano_serialization_lib_bg.wasm", import.meta.url).href;
+
 let wasm = null;
 async function init() {
   if (!wasm) {
@@ -10,11 +12,14 @@ async function init() {
     wasm = wasmBg;
   }
 }
+
 function getWasm() {
   return wasm;
 }
+
 export { init };
 export { getWasm };
+
 export default {
   init,
   getWasm

@@ -15,19 +15,19 @@ export default (class ProcessErc20UserFastMint extends ProcessBase {
       }
       let txData;
       if (wallet.generateUserLockData) { // wallet custumized
-              txData = await wallet.generateUserLockData(params.crossScAddr,
-                params.storemanGroupId,
-                params.tokenPairID,
-                params.value,
-                params.userAccount,
-                {coinValue: params.fee});
-            } else {
-              let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr,
-                params.storemanGroupId,
-                params.tokenPairID,
-                params.value,
-                params.userAccount,
-                {tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee});
+        txData = await wallet.generateUserLockData(params.crossScAddr,
+          params.storemanGroupId,
+          params.tokenPairID,
+          params.value,
+          params.userAccount,
+          { coinValue: params.fee });
+      } else {
+        let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr,
+          params.storemanGroupId,
+          params.tokenPairID,
+          params.value,
+          params.userAccount,
+          { tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee });
         txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.fee, scData.data, params.fromAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);

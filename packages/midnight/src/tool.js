@@ -61,7 +61,7 @@ async function initializeProviders(network, wallet) {
 };
 
 async function setApiProviders(network, wallet = null) {
-  initNetwork(network === 'testnet'? 2 : 0);
+  initNetwork(network === 'testnet' ? 2 : 0);
   let isInit = !providersCache;
   await initializeProviders(network, wallet);
   await api.init(providersCache);
@@ -84,7 +84,7 @@ async function getUserFeeBalance(address) {
   let ledgerState = await api.getLedgerState();
   let userBytes = getCoinPublicKeyFromShieldAddress(address);
   let key = { bytes: userBytes };
-  let balance = ledgerState.userFeeBalance.member(key)? ledgerState.userFeeBalance.lookup(key).toString() : 0;
+  let balance = ledgerState.userFeeBalance.member(key) ? ledgerState.userFeeBalance.lookup(key).toString() : 0;
   console.debug("getUserFeeBalance %s: %O", address, balance);
   return balance;
 }
@@ -92,7 +92,7 @@ async function checkClaimable(uniqueId, isNative) {
   let ledgerState = await api.getLedgerState();
   let data = isNative ? ledgerState.coinToBeClaimed : ledgerState.mappingTokenToBeClaim;
   let key = { bytes: new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex')) };
-  let result = data.member(key)? data.lookup(key) : null;
+  let result = data.member(key) ? data.lookup(key) : null;
   console.log("checkClaimable %s %s: %O", uniqueId, isNative, result);
   return result;
 }

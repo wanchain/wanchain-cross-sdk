@@ -10,6 +10,7 @@ export const getSymbols = () => ["DUST"];
 export { MidnightLaceWallet };
 export { tool };
 export { init };
+
 export default {
   getChains,
   getSymbols,

@@ -1,4 +1,5 @@
 import { WanBridge } from "./packages/core/index.js";
+
 // extensions
 import EvmExtension from './packages/evm';
 import BitcoinExtension from './packages/bitcoin';
@@ -12,6 +13,7 @@ import SuiExtension from "./packages/sui/index.js";
 import VeChainExtension from "./packages/vechain/index.js";
 import TonExtension from "./packages/ton/index.js";
 import MidnightExtension from "./packages/midnight/index.js";
+
 export { WanBridge };
 export { EvmExtension };
 export { BitcoinExtension };
@@ -25,6 +27,7 @@ export { SuiExtension };
 export { VeChainExtension };
 export { TonExtension };
 export { MidnightExtension };
+
 export default {
   WanBridge,
   EvmExtension,
