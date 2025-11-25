@@ -1,5 +1,5 @@
 import iWanClient from "../libs/iWan-js-sdk/apis/apiInstance.js";
-'use strict';
+;
 class IWanBCConnector {
   constructor(option) {
     this.m_iWanOption = option;

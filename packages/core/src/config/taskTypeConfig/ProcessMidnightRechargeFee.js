@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-'use strict';
+;
 export default (class ProcessMidnightRechargeFee {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -17,6 +17,9 @@ export default (class ProcessMidnightRechargeFee {
       let res = await this.tool.api.userRechargeForFee(params.value);
       let txHash = res.public.txHash;
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      if (res.public.status !== "SucceedEntirely") {
+        throw new Error("Failed");
+      }
       let checker = {
         chain: "DUST",
         ccTaskId: params.ccTaskId,

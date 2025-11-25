@@ -1,5 +1,5 @@
 import axios from "axios";
-"use strict";
+
 export default (class CheckXrpTx {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;

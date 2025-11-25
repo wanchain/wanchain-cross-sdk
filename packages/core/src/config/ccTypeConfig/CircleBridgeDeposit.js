@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import TokenHandler from "./tokenHandler.js";
-'use strict';
+;
 export default (class CircleBridgeDeposit extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);

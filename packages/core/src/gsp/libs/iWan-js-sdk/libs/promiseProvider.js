@@ -1,5 +1,5 @@
 import assert from "assert";
-'use strict';
+;
 /**
  * Helper for multiplexing promise implementations
  */

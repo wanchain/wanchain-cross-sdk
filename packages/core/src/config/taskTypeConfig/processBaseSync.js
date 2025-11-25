@@ -1,4 +1,4 @@
-'use strict';
+;
 let WalletRejects = [
   "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 1
   "Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 2

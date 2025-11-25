@@ -1,5 +1,5 @@
 import BigNumber from "bignumber.js";
-'use strict';
+;
 export default (class ClaimRewardTask {
   constructor(frameworkService) {
     let configService = frameworkService.getService("ConfigService");

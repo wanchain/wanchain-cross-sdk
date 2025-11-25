@@ -1,4 +1,4 @@
-'use strict';
+;
 export default (class CCTypeHandleInterface {
   constructor() {
     if (new.target === CCTypeHandleInterface) {

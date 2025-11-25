@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import Web3 from "web3";
 import ProcessBaseSync from "./processBaseSync.js";
-'use strict';
+;
 const web3 = new Web3();
 export default (class ProcessClaimRewardTask extends ProcessBaseSync {
   constructor(frameworkService) {

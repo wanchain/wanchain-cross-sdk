@@ -18,7 +18,7 @@ import TxTaskHandleService from "../txTaskHandleService/txTaskHandleService.js";
 import TokenPairService from "../tokenPairService/tokenPairService.js";
 import ChainInfoService from "../chainInfoService/chainInfoService.js";
 import CheckApiServerTxService from "../checkApiServerTxService/checkApiServerTxService.js";
-"use strict";
+
 class StartService {
   constructor() {
     this.frameworkService = new FrameworkService();

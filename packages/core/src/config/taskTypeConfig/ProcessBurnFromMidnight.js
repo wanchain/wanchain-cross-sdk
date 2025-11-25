@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-'use strict';
+;
 export default (class ProcessBurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -15,9 +15,12 @@ export default (class ProcessBurnFromMidnight {
     try {
       let sdkWallet = await wallet.getWallet();
       this.tool.setApiProviders(this.configService.getNetwork(), sdkWallet);
-      let res = await this.tool.api.userBurn(params.storemanGroupId, params.userAccount, params.tokenPairID, params.value);
+      let res = await this.tool.api.userBurn(tool.hexStrip0x(params.storemanGroupId), params.userAccount, params.tokenPairID, params.value);
       let txHash = res.public.txHash;
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
+      if (res.public.status !== "SucceedEntirely") {
+        throw new Error("Failed");
+      }
       let checker = {
         chain: "DUST",
         ccTaskId: params.ccTaskId,
@@ -40,10 +43,11 @@ export default (class ProcessBurnFromMidnight {
     }
     catch (err) {
       console.error("ProcessBurnFromMidnight error: %O", err);
-      if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.info)) { // code 2 include other errors
+      if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.reason)) {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
-      }
-      else {
+      } else if (["Transaction has errors: Insufficient balance for token"].includes(err.reason)) {
+        webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance for token");
+      } else {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
       }
     }

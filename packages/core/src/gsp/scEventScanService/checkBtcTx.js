@@ -1,5 +1,5 @@
 import axios from "axios";
-"use strict";
+
 export default (class CheckBtcTx {
   constructor(frameworkService, chainType) {
     this.m_frameworkService = frameworkService;

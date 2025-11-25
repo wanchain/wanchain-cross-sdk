@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import axios from "axios";
-'use strict';
+;
 export default (class ProcessXrpMintFromRipple {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;

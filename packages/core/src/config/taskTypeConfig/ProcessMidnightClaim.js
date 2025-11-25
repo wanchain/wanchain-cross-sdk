@@ -1,4 +1,7 @@
-'use strict';
+;
+
+import tool from "../../utils/tool.js";
+
 export default (class ProcessMidnightClaim {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -9,14 +12,18 @@ export default (class ProcessMidnightClaim {
   }
   async process(stepData, wallet) {
     let params = stepData.params;
-    let res;
+    let res, uniqueId = tool.hexStrip0x(params.uniqueId);
+    let sdkWallet = await wallet.getWallet();
+    this.tool.setApiProviders(this.configService.getNetwork(), sdkWallet);
     if (params.isNative) {
-      res = await this.tool.api.userClaimCoin(params.uniqueId);
-    }
-    else {
-      res = await this.tool.api.userClaimMappingToken(params.uniqueId);
+      res = await this.tool.api.userClaimCoin(uniqueId);
+    } else {
+      res = await this.tool.api.userClaimMappingToken(uniqueId);
     }
     let txHash = res.public.txHash;
+    if (res.public.status !== "SucceedEntirely") {
+      throw new Error("Failed");
+    }
     let checker = {
       chain: "DUST",
       ccTaskId: params.ccTaskId,

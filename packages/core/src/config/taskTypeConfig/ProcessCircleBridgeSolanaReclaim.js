@@ -1,6 +1,6 @@
 import axios from "axios";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 const DepositMsg = "Program log:  relay_circle_cctp() circle message_sent_event_data: ";
 export default (class ProcessCircleBridgeSolanaReclaim {
   constructor(frameworkService) {

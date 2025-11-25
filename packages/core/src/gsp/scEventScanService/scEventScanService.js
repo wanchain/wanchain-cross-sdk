@@ -4,7 +4,7 @@ import CheckXrpTx from "./checkXrpTx.js";
 import CheckApiServerTx from "./checkApiServerTx.js";
 import CheckSuiTx from "./checkSuiTx.js";
 import CheckTonTx from "./checkTonTx.js";
-"use strict";
+
 export default (class ScEventScanService {
   constructor() {
   }

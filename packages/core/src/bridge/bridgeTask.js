@@ -244,10 +244,11 @@ class BridgeTask {
     return "";
   }
   async _checkFromAccount() {
-    if (!this._fromAccount) { // third party wallet
+    let chainType = this._fromChainInfo.chainType;
+    if ((chainType === "DUST") || !this._fromAccount) { // third party wallet
       return "";
     }
-    let chainType = this._fromChainInfo.chainType;
+
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
     let coinBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, { wallet: this._wallet, isCoin: true });
     let assetBalance;

@@ -1,5 +1,5 @@
 import TokenHandler from "./tokenHandler.js";
-'use strict';
+;
 export default (class MintErc20Handle extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);

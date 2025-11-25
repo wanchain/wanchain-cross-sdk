@@ -1,6 +1,6 @@
 import tool from "../../utils/tool.js";
 import taskTypeConfig from "../../config/taskTypeConfig/taskTypeConfig.js";
-"use strict";
+
 export default (class TxTaskHandleService {
   constructor() {
     this.m_mapTaskTypeToHandler = new Map(); // taskType => Handler

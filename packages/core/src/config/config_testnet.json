@@ -670,7 +670,7 @@
       "chainId": "1073741862",
       "chainType": "DUST",
       "chainName": "Midnight",
-      "crossScAddr": "0200925989bf8b91a6841b6808e83c841881a4b4fdf9d3abc64d73c6d272d0fc28af",
+      "crossScAddr": "0200d90f6d68a4e875ca44d2ecd925743cb28e14ff9cc59e34d7178725519414ca00",
       "mintFromChainHandle": "MintFromMidnight",
       "burnFromChainHandle": "BurnFromMidnight",
       "chainDecimals": 6,

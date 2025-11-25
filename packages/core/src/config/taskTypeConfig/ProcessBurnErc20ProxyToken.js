@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-'use strict';
+;
 export default (class ProcessBurnErc20ProxyToken extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);

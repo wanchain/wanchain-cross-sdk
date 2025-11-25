@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 const DefaultGas = 10_000_000;
 export default (class ProcessMintFromSui {
   constructor(frameworkService) {

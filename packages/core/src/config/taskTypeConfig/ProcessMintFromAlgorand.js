@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import base32 from "hi-base32";
-'use strict';
+;
 export default (class ProcessMintFromAlgorand {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;

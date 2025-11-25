@@ -29,7 +29,7 @@ import processMintFromTon from "./ProcessMintFromTon.js";
 import processMidnightRechargeFee from "./ProcessMidnightRechargeFee.js";
 import processBurnFromMidnight from "./ProcessBurnFromMidnight.js";
 import processMidnightClaim from "./ProcessMidnightClaim.js";
-'use strict';
+;
 export default [
   {
     "name": "ProcessErc20UserFastMint",

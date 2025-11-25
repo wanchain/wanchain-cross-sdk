@@ -1,6 +1,6 @@
 import * as wanUtil from "wanchain-util";
 import tool from "../../utils/tool.js";
-"use strict";
+
 const DefaultScanBatchSize = 1000;
 const CustomizedScanBatchSize = {
   SGB: 30,

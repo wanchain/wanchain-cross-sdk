@@ -10,7 +10,7 @@ import { getLedgerNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-
 
 const apiConfig = {
   testnet: {
-    contractAddress: '0200925989bf8b91a6841b6808e83c841881a4b4fdf9d3abc64d73c6d272d0fc28af',
+    contractAddress: '0200d90f6d68a4e875ca44d2ecd925743cb28e14ff9cc59e34d7178725519414ca00',
     indexerUri: 'https://indexer.testnet-02.midnight.network/api/v1/graphql',
     indexerWsUri: 'wss://indexer.testnet-02.midnight.network/api/v1/graphql/ws',
     // node: 'https://rpc.testnet-02.midnight.network',
@@ -24,7 +24,7 @@ let providersCache = null;
 
 async function initializeProviders(network, wallet) {
   const cfg = apiConfig[network];
-  const zkConfigPath = window.location.origin + '/dist';
+  const zkConfigPath = window.location.origin + '/chains/mn/zk';
   providersCache = providersCache || {
     privateStateProvider: levelPrivateStateProvider({
       privateStateStoreName: 'crosschain-state',
@@ -61,35 +61,40 @@ async function initializeProviders(network, wallet) {
 };
 
 async function setApiProviders(network, wallet = null) {
+  initNetwork(network === 'testnet'? 2 : 0);
   let isInit = !providersCache;
   await initializeProviders(network, wallet);
   await api.init(providersCache);
   if (isInit) {
-    initNetwork(network === 'testnet'? 2 : 0);
     await api.join(apiConfig[network].contractAddress);
   }
 }
 
-// WAValidator can not valid testnet address
-function validateAddress(address, options = {}) {
+function validateAddress(address) {
+  try {
+    getCoinPublicKeyFromShieldAddress(address);
+    return true;
+  } catch (err) {
+    // console.error("midnight validateAddress %s error: %O", address, err);
+    return false;
+  }
 }
 function getStandardAddressInfo(address) {
 }
-// function deserializeTx(hex) {
-//   return createUnbalancedTx(Transaction.deserialize(Uint8Array.from(Buffer.from(hex, 'hex')), 2));
 // }
 async function getUserFeeBalance(address) {
   let ledgerState = await api.getLedgerState();
   let userBytes = getCoinPublicKeyFromShieldAddress(address);
-  console.log("address %s %O ledgerState: %O", address, userBytes, ledgerState);
-  let balance = ledgerState.userFeeBalance.lookup({ bytes: userBytes });
-  console.log("getUserFeeBalance %s: %O", address, balance);
+  let key = { bytes: userBytes };
+  let balance = ledgerState.userFeeBalance.member(key)? ledgerState.userFeeBalance.lookup(key).toString() : 0;
+  console.debug("getUserFeeBalance %s: %O", address, balance);
   return balance;
 }
 async function checkClaimable(uniqueId, isNative) {
   let ledgerState = await api.getLedgerState();
   let data = isNative ? ledgerState.coinToBeClaimed : ledgerState.mappingTokenToBeClaim;
-  const result = data.lookup({ bytes: new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex')) });
+  let key = { bytes: new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex')) };
+  let result = data.member(key)? data.lookup(key) : null;
   console.log("checkClaimable %s %s: %O", uniqueId, isNative, result);
   return result;
 }

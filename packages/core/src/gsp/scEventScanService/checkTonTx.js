@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import util from "util";
 import axios from "axios";
 import tool from "../../utils/tool.js";
-"use strict";
+
 export default (class CheckTonTx {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;

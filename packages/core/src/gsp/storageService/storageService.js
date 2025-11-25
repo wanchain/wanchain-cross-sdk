@@ -1,7 +1,7 @@
 import low from "lowdb";
 import LocalStorage from "lowdb/adapters/LocalStorage";
 import FileSync from "lowdb/adapters/FileSync";
-"use strict";
+
 let adapter;
 if (typeof (window) !== "undefined") {
   adapter = new LocalStorage('WanBridgeDb');

@@ -1,4 +1,4 @@
-'use strict';
+;
 export default (class ChainInfoService {
   constructor() {
     this.m_mapChainIdObj = new Map(); // chainId - > chainInfo

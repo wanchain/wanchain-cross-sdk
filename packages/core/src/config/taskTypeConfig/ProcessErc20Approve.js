@@ -1,6 +1,6 @@
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
-'use strict';
+;
 export default (class ProcessErc20Approve extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);

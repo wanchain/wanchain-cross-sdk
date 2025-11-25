@@ -1,7 +1,7 @@
 import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "@bitcoinerlab/secp256k1";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 bitcoin.initEccLib(ecc);
 const networks = {
   BTC: bitcoin.networks

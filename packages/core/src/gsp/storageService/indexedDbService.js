@@ -1,4 +1,4 @@
-"use strict";
+
 let Dexie;
 if (typeof (window) !== "undefined") {
   const module = await import('dexie');

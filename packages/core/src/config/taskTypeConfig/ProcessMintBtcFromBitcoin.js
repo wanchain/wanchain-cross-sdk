@@ -3,7 +3,7 @@ import * as bitcoin from "bitcoinjs-lib";
 import * as ecc from "@bitcoinerlab/secp256k1";
 import axios from "axios";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 bitcoin.initEccLib(ecc);
 const names = {
   BTC: "ProcessMintBtcFromBitcoin",

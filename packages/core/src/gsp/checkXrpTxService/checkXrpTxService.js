@@ -1,6 +1,6 @@
 import axios from "axios";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 export default (class CheckXrpTxService {
   constructor() {
     this.m_xrpCheckTagAry = [];

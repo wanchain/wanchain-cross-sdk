@@ -14,7 +14,7 @@ import feeSubsidy from "../../config/abi/feeSubsidy.json" with { type: "json" };
 import bridge from "../../config/abi/algorand/bridge.json" with { type: "json" };
 import rewardTask from "../../config/abi/rewardTask.json" with { type: "json" };
 import crossConfig from "../../config/abi/crossConfig.json" with { type: "json" };
-'use strict';
+;
 const config = {
   "mainnet": configMainnet,
   "testnet": configTestnet

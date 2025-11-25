@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 export default (class BurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
@@ -29,7 +29,7 @@ export default (class BurnFromMidnight {
             taskType: "ProcessMidnightRechargeFee"
           };
           console.debug("Midnight RechargeFee %s params: %O", tokenPair.readableSymbol, feeParams);
-          steps.push({ name: "rechargeFee", stepIndex: 1, feeParams });
+          steps.push({ name: "rechargeFee", stepIndex: 1, params: feeParams });
         }
       }
       let burnParams = {
@@ -47,7 +47,7 @@ export default (class BurnFromMidnight {
         tokenType
       };
       console.debug("Midnight Burn %s params: %O", tokenPair.readableSymbol, burnParams);
-      steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, burnParams });
+      steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params: burnParams });
       return steps;
     }
     catch (err) {

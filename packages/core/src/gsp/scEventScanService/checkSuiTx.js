@@ -1,4 +1,4 @@
-"use strict";
+
 export default (class CheckSuiTx {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;

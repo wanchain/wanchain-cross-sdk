@@ -1,5 +1,5 @@
 import ProcessBaseSync from "./processBaseSync.js";
-'use strict';
+;
 export default (class ProcessErc20ApproveSync extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);

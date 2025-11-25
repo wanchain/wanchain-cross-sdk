@@ -2,7 +2,7 @@ import crypto from "crypto";
 import Identicon from "identicon.js";
 import tool from "../../utils/tool.js";
 import axios from "axios";
-"use strict";
+
 class TokenPairService {
   constructor() {
     this.m_iwanConnected = false;
@@ -229,6 +229,28 @@ class TokenPairService {
         options = { isAllTokenPairs: true };
       }
       tokenPairs = await this.iwan.getTokenPairs(options);
+      // tokenPairs.push({
+      //   "id": "1236",
+      //   "ancestorChainID": "2153201998",
+      //   "fromChainID": "2153201998",
+      //   "toChainID": "1073741862",
+      //   "ancestorAccount": "0x0000000000000000000000000000000000000000",
+      //   "fromAccount": "0x0000000000000000000000000000000000000000",
+      //   "toAccount": "0x0200d96d148460ac071eb01a5bc84196908b107c8c44a3f0685ddd1d6b69762bd3cd",
+      //   "ancestorName": "wanchain",
+      //   "ancestorSymbol": "WAN",
+      //   "ancestorDecimals": "18",
+      //   "fromName": "wanchain",
+      //   "fromSymbol": "WAN",
+      //   "fromDecimals": "18",
+      //   "name": "wanchain",
+      //   "symbol": "WAN",
+      //   "decimals": "6",
+      //   "fromAccountType": "Erc20",
+      //   "toAccountType": "Erc20",
+      //   "fromAccountIsLayer2": false,
+      //   "toAccountIsLayer2": false
+      // });
       if (this.indexedDbService) {
         tokenPairs.forEach(v => v._ver = tokenPairVer);
         await this.indexedDbService.setCacheData("TokenPair", tokenPairs);

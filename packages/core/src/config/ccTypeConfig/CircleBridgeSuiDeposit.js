@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 export default (class CircleBridgeSuiDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;

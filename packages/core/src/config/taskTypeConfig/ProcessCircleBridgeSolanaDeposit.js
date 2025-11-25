@@ -1,5 +1,5 @@
 import tool from "../../utils/tool.js";
-'use strict';
+;
 export default (class ProcessCircleBridgeSolanaDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;

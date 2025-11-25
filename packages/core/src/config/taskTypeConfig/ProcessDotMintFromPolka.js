@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-'use strict';
+;
 // memo should like follows
 // memo_Type + memo_Data, Divided Symbols should be '0x'
 // Type: 1, normal userLock; Data: tokenPairID + toAccount + fee

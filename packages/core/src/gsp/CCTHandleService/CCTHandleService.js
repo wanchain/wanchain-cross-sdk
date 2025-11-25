@@ -1,5 +1,5 @@
 import ccTypeConfig from "../../config/ccTypeConfig/ccTypeConfig.js";
-"use strict";
+
 export default (class CCTHandleService {
   constructor() {
     this.mapCCTypeToHandler = new Map(); // ccType => Hanlder
