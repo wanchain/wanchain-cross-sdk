@@ -79,9 +79,7 @@ function validateAddress(address) {
     return false;
   }
 }
-function getStandardAddressInfo(address) {
-}
-// }
+
 async function getUserFeeBalance(address) {
   let ledgerState = await api.getLedgerState();
   let userBytes = getCoinPublicKeyFromShieldAddress(address);
@@ -98,19 +96,17 @@ async function checkClaimable(uniqueId, isNative) {
   console.log("checkClaimable %s %s: %O", uniqueId, isNative, result);
   return result;
 }
+
 export { api };
 export { setApiProviders };
 export { validateAddress };
-export { getStandardAddressInfo };
-// export { deserializeTx };
 export { getUserFeeBalance };
 export { checkClaimable };
+
 export default {
   api,
   setApiProviders,
   validateAddress,
-  // getStandardAddressInfo,
-  // deserializeTx,
   getUserFeeBalance,
   checkClaimable
 };

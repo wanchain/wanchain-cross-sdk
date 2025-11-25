@@ -1,12 +1,13 @@
 import algosdk from "algosdk";
+
 function validateAddress(address) {
   if (address.length === 58) { // 58-character base32 string includes the checksum
     return algosdk.isValidAddress(address);
-  }
-  else {
+  } else {
     return false;
   }
 }
+
 function getStandardAddressInfo(address) {
   if (validateAddress(address)) {
     let native = address;
@@ -14,11 +15,11 @@ function getStandardAddressInfo(address) {
     // ignore cctp address as it is not supported now
     let compact = '0x' + Buffer.from(algosdk.decodeAddress(native).publicKey).toString('hex');
     return { native, evm, text: native, compact };
-  }
-  else {
+  } else {
     throw new Error("Algorand address is invalid: " + address);
   }
 }
+
 // according to web3.utils.asciiToHex
 function asciiToHex(str) {
   let hexString = '';
@@ -29,9 +30,11 @@ function asciiToHex(str) {
   }
   return '0x' + hexString;
 }
+
 function getAlgoSdk() {
   return algosdk;
 }
+
 function getPrefixKey(prefix, id) {
   let len = 8 + prefix.length;
   let b = Buffer.alloc(2 + len);
@@ -40,14 +43,17 @@ function getPrefixKey(prefix, id) {
   b.writeBigUInt64BE(BigInt(id), 2 + prefix.length);
   return new Uint8Array(b);
 }
+
 function getLogCodec(types) {
   return algosdk.ABIType.from(types);
 }
+
 export { validateAddress };
 export { getStandardAddressInfo };
 export { getAlgoSdk };
 export { getPrefixKey };
 export { getLogCodec };
+
 export default {
   validateAddress,
   getStandardAddressInfo,

@@ -17,7 +17,11 @@
   "dependencies": {
     "axios": "^1.5.1",
     "bignumber.js": "^9.1.1",
-    "midnight-crosschain": "https://github.com/fridayback/midnight-crosschain.git#0.8"
+    "midnight-crosschain": "https://github.com/fridayback/midnight-crosschain.git#0.8-light",
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "^2.0.2",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "^2.0.2",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "^2.0.2",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "^2.0.2"
   },
   "bugs": {
     "url": "https://github.com/wanchain/wanchain-cross-sdk/issues"

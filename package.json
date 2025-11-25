@@ -61,7 +61,10 @@
     "@ton/core": "0.59.0",
     "@ton/crypto": "3.3.0",
     "tonweb": "^0.0.66",
-    "@midnight-ntwrk/ledger": "4.0.0",
-    "@midnight-ntwrk/midnight-js-types": "2.0.2"
+    "midnight-crosschain": "https://github.com/fridayback/midnight-crosschain.git#0.8-light",
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "^2.0.2",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "^2.0.2",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "^2.0.2",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "^2.0.2"
   }
 }

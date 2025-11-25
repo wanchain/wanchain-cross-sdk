@@ -1,4 +1,5 @@
 import Web3 from "web3";
+
 class WalletConnect {
   constructor(provider, type = "MetaMask") {
     this.name = "walletconnect";
@@ -6,9 +7,11 @@ class WalletConnect {
     this.ethProvider = provider;
     this.type = type; // the type is not mandatory, many web3-compatible wallets are slightly different, can be handled differently according to the type
   }
+
   async getChainId() {
     return this.web3.eth.getChainId();
   }
+
   async getWallet(chainlist) {
     let rpcMap = {};
     Array.from(chainlist).forEach((v) => {
@@ -46,17 +49,18 @@ class WalletConnect {
     this.web3 = web3;
     return this.web3;
   }
+
   async getAccounts(network) {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    }
-    catch (err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
     }
     console.log('accounts', accounts);
     return accounts;
   }
+
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
@@ -68,24 +72,27 @@ class WalletConnect {
         });
     });
   }
+
   async getTxInfo(txHash) {
     try {
       let txInfo = await this.web3.eth.getTransaction(txHash);
       return txInfo;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s wallet getTxInfo %s faild", this.name, txHash);
       return null;
     }
   }
+
   async on(...arg) {
     const result = await this.web3.currentProvider.on(...arg);
     console.log('wcconnect on', result, this.web3);
     return result;
   }
+
   async off(...arg) {
     const result = await this.web3.currentProvider.off(...arg);
     return result;
   }
 }
+
 export default WalletConnect;

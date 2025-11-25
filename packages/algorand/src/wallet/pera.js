@@ -1,4 +1,5 @@
 import { PeraWalletConnect } from "@perawallet/connect";
+
 class Pera {
   constructor(network) {
     this.name = "Pera";
@@ -9,10 +10,13 @@ class Pera {
     let chainId = (network === "mainnet") ? 416001 : 416002;
     this.wallet = new PeraWalletConnect({ chainId });
   }
+
   // standard function
+
   getChainId() {
     return this.wallet.chainId;
   }
+
   async getAccounts() {
     try {
       let accounts = await this.wallet.reconnectSession();
@@ -22,15 +26,16 @@ class Pera {
       }
       console.log("%s accounts: %O", this.name, accounts);
       return accounts;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s connect error: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
   }
+
   disconnect() {
     this.wallet.disconnect();
   }
+
   async signTransaction(txGroups) {
     let signedTxn = await this.wallet.signTransaction(txGroups);
     return signedTxn;

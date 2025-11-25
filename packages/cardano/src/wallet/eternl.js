@@ -1,5 +1,6 @@
 import wasm from "../wasm/index.js";
 import tool from "../tool.js";
+
 class Eternl {
   constructor(provider) {
     if (window.cardano?.eternl) {
@@ -9,29 +10,31 @@ class Eternl {
       }
       this.wallet = window.cardano.eternl;
       this.wasm = wasm.getWasm();
-    }
-    else {
+    } else {
       window.open('https://eternl.io');
       throw new Error('please install eternl wallet');
     }
   }
+
   // standard function
+
   async getChainId() {
     let cardano = await this.wallet.enable();
     return cardano.getNetworkId();
   }
+
   async getAccounts() {
     try {
       let cardano = await this.wallet.enable();
       let accounts = await cardano.getUsedAddresses();
       accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s not installed or not allowed: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
   }
+
   async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
@@ -42,21 +45,19 @@ class Eternl {
         let [policyId, assetName] = tokenId.split(".");
         if (assetName) { // erc20
           return tool.getAssetBalance(value.multiasset(), policyId, assetName);
-        }
-        else { // nft
+        } else { // nft
           let nfts = tool.getNftInfo(value.multiasset(), tokenId);
           return nfts.length.toString();
         }
-      }
-      else { // coin
+      } else { // coin
         return value.coin().to_str(); // TODO: sub token locked coin
       }
-    }
-    else {
+    } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
     }
   }
+
   async getBalances(addr, tokenIds) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
@@ -68,22 +69,20 @@ class Eternl {
           let [policyId, assetName] = id.split(".");
           if (assetName) { // erc20
             return tool.getAssetBalance(value.multiasset(), policyId, assetName);
-          }
-          else { // nft
+          } else { // nft
             let nfts = tool.getNftInfo(value.multiasset(), id);
             return nfts.length.toString();
           }
-        }
-        else {
+        } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
       });
-    }
-    else {
+    } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
     }
   }
+
   async getNftInfo(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
@@ -92,12 +91,12 @@ class Eternl {
       let value = this.wasm.Value.from_hex(balance);
       let nfts = tool.getNftInfo(value.multiasset(), tokenId);
       return nfts;
-    }
-    else {
+    } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
     }
   }
+
   async sendTransaction(tx) {
     let cardano = await this.wallet.enable();
     tx = this.wasm.Transaction.from_hex(tx);
@@ -111,16 +110,20 @@ class Eternl {
     let txHash = await cardano.submitTx(transaction.to_hex());
     return txHash;
   }
+
   // customized function
+
   async getUtxos() {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getUtxos();
     return utxos;
   }
+
   async getCollateral() {
     let cardano = await this.wallet.enable();
     let utxos = await cardano.getCollateral();
     return utxos.slice(0, 3);
   }
 }
+
 export default Eternl;

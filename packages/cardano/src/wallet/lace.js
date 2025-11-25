@@ -1,5 +1,6 @@
 import wasm from "../wasm/index.js";
 import tool from "../tool.js";
+
 class Lace {
   constructor(provider) {
     if (window.cardano?.lace) {
@@ -10,13 +11,14 @@ class Lace {
       this.cardano = window.cardano;
       this.lace = null;
       this.wasm = wasm.getWasm();
-    }
-    else {
+    } else {
       window.open('https://www.lace.io');
       throw new Error('please install lace wallet');
     }
   }
+
   // standard function
+
   async getChainId() {
     if (!this.lace) {
       this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
@@ -24,13 +26,13 @@ class Lace {
     const id = await this.lace.getNetworkId();
     return id;
   }
+
   async getAccounts() {
     try {
       let lace = null;
       if (this.lace) {
         lace = this.lace;
-      }
-      else {
+      } else {
         lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
         this.lace = lace;
       }
@@ -38,12 +40,12 @@ class Lace {
       accounts = [accounts[0]];
       accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s not installed or not allowed: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
   }
+
   async getBalance(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
@@ -56,21 +58,19 @@ class Lace {
         let [policyId, assetName] = tokenId.split(".");
         if (assetName) { // erc20
           return tool.getAssetBalance(value.multiasset(), policyId, assetName);
-        }
-        else { // nft
+        } else { // nft
           let nfts = tool.getNftInfo(value.multiasset(), tokenId);
           return nfts.length.toString();
         }
-      }
-      else { // coin
+      } else { // coin
         return value.coin().to_str(); // TODO: sub token locked coin
       }
-    }
-    else {
+    } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
     }
   }
+
   async getBalances(addr, tokenIds) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
@@ -84,22 +84,20 @@ class Lace {
           let [policyId, assetName] = id.split(".");
           if (assetName) { // erc20
             return tool.getAssetBalance(value.multiasset(), policyId, assetName);
-          }
-          else { // nft
+          } else { // nft
             let nfts = tool.getNftInfo(value.multiasset(), id);
             return nfts.length.toString();
           }
-        }
-        else {
+        } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
       });
-    }
-    else {
+    } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
     }
   }
+
   async getChangedAccounts() {
     try {
       let lace = null;
@@ -108,8 +106,7 @@ class Lace {
         lace = this.lace;
         accounts = await lace.getChangeAddress();
         accounts = [accounts];
-      }
-      else {
+      } else {
         lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
         this.lace = lace;
         accounts = await lace.getUsedAddresses();
@@ -117,12 +114,12 @@ class Lace {
       }
       accounts = accounts.map(v => this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32());
       return accounts;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s not installed or not allowed: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
   }
+
   async getNftInfo(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
@@ -133,12 +130,12 @@ class Lace {
       let value = this.wasm.Value.from_hex(balance);
       let nfts = tool.getNftInfo(value.multiasset(), tokenId);
       return nfts;
-    }
-    else {
+    } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
     }
   }
+
   async sendTransaction(tx) {
     if (!this.lace) {
       this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
@@ -154,7 +151,9 @@ class Lace {
     let txHash = await this.lace.submitTx(transaction.to_hex());
     return txHash;
   }
+
   // customized function
+
   async getUtxos() {
     if (!this.lace) {
       this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
@@ -162,6 +161,7 @@ class Lace {
     let utxos = await this.lace.getUtxos();
     return utxos;
   }
+
   async getCollateral() {
     if (!this.lace) {
       this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
@@ -171,4 +171,5 @@ class Lace {
     return utxos.slice(0, 3);
   }
 }
+
 export default Lace;

@@ -1,14 +1,18 @@
 import BigNumber from "bignumber.js";
 import { Transaction } from "@mysten/sui/transactions";
+
 function validateAddress(address) {
   return /^0x[0-9a-f]{64}$/.test(address);
 }
+
 function getStandardAddressInfo(address) {
   return { native: address, evm: address, text: address, cctp: address, compact: address };
 }
+
 function newTransaction() {
   return new Transaction();
 }
+
 function selectCoins(coins, amount) {
   let selected = [], sumAmount = new BigNumber(0);
   for (let coin of coins) {
@@ -22,6 +26,7 @@ function selectCoins(coins, amount) {
   }
   return [];
 }
+
 const CctpMsgMapping = [
   ["version", 8],
   ["sourceDomain", 8],
@@ -36,6 +41,7 @@ const CctpMsgMapping = [
   ["amount", 64],
   ["messageSender", 64]
 ];
+
 function parseCctpDepositMessage(message) {
   try {
     let hex = Buffer.from(message).toString('hex');
@@ -60,12 +66,12 @@ function parseCctpDepositMessage(message) {
       messageSender: '0x' + msg.messageSender,
     };
     return result;
-  }
-  catch (err) {
+  } catch (err) {
     console.error("SUI parseCctpDepositMessage error: %O", err);
     return null;
   }
 }
+
 const tools = {
   validateAddress,
   getStandardAddressInfo,
@@ -73,4 +79,5 @@ const tools = {
   selectCoins,
   parseCctpDepositMessage
 };
+
 export default tools;

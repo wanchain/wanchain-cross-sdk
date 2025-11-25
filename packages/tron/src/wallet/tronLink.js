@@ -1,5 +1,6 @@
 import BigNumber from "bignumber.js";
 import tool from "../tool.js";
+
 class TronLink {
   constructor(provider) {
     this.name = "TronLink";
@@ -9,10 +10,13 @@ class TronLink {
     this.tronWeb = window.tronWeb;
     this.tronLink = window.tronLink; // chrome v3.22.0 and later inject tronLink object
   }
+
   // standard function
+
   async getChainId() {
     return 0;
   }
+
   async getAccounts() {
     if (this.tronLink) {
       // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject
@@ -20,22 +24,25 @@ class TronLink {
     }
     if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
       return [this.tronWeb.defaultAddress.base58];
-    }
-    else {
+    } else {
       console.error("%s not installed or locked", this.name);
       throw new Error("Not installed or locked");
     }
   }
+
   async getBalance(addr) {
     let balance = await this.tronWeb.trx.getBalance(addr);
     return balance;
   }
+
   async sendTransaction(tx) {
     let signedTx = await this.tronWeb.trx.sign(tx);
     let result = await this.tronWeb.trx.sendRawTransaction(signedTx);
     return result.transaction.txID;
   }
+
   // customized function
+
   async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, extInfo) {
     let fn = "userLock(bytes32,uint256,uint256,bytes)"; // userLock(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
     let params = [
@@ -51,6 +58,7 @@ class TronLink {
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
     return tx.transaction;
   }
+
   async generatorErc20ApproveData(erc20Addr, spenderAddr, value) {
     let fn = "approve(address,uint256)"; // approve(address _spender, uint256 _value)
     let params = [
@@ -64,6 +72,7 @@ class TronLink {
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
     return tx.transaction;
   }
+
   async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, extInfo) {
     let fn = "userBurn(bytes32,uint256,uint256,uint256,address,bytes)"; // userBurn(bytes32 smgID, uint tokenPairID, uint value, uint fee, address tokenAccount, bytes userAccount)
     let params = [
@@ -81,6 +90,7 @@ class TronLink {
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
     return tx.transaction;
   }
+
   async estimateFeeLimit(sc, fn, options, params) {
     // estimate energy
     const estimateEnergy = await this.tronWeb.transactionBuilder.triggerConstantContract(sc, fn, { callValue: options.callValue }, params, this.tronWeb.defaultAddress.base58);
@@ -103,4 +113,5 @@ class TronLink {
     return bandwidthFee.plus(energeFee).times(1.2).toFixed(0);
   }
 }
+
 export default TronLink;

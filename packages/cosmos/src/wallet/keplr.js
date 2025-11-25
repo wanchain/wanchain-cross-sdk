@@ -2,6 +2,7 @@ import * as Stargate from "@cosmjs/stargate";
 import * as ProtoSigning from "@cosmjs/proto-signing";
 import { MsgDepositForBurn } from "../cctp/message.js";
 import Long from "long";
+
 const DefaultChainInfo = {
   "provider": {
     rpc: "https://cosmos-testnet-rpc.itrocket.net",
@@ -24,9 +25,11 @@ const DefaultChainInfo = {
     denom: "ukava"
   }
 };
+
 const MyRegistry = new ProtoSigning.Registry(Stargate.defaultRegistryTypes.concat([
   ["/circle.cctp.v1.MsgDepositForBurn", MsgDepositForBurn],
 ]));
+
 class Keplr {
   constructor() {
     this.name = "Keplr";
@@ -35,20 +38,23 @@ class Keplr {
     this.wallet = window.keplr;
     this.stargateClient = null;
   }
+
   // standard function
+
   async getChainId() {
     return this.chainId;
   }
+
   async getAccounts() {
     try {
       let key = await this.wallet.getKey(this.chainId);
       return [key.bech32Address];
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s getAccounts error: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
   }
+
   // TODO: getBalances, now only support one asset
   async getBalance(addr, denom) {
     let balance = "0";
@@ -64,8 +70,8 @@ class Keplr {
     }
     return balance;
   }
-  // options = {memo, timeoutHeight, gasPrice}
-  async sendTransaction(messages, options) {
+
+  async sendTransaction(messages, options) { // options = {memo, timeoutHeight, gasPrice}
     options = options || {};
     let memo = options.memo || "";
     let timeoutHeight = options.timeoutHeight || 0;
@@ -92,7 +98,9 @@ class Keplr {
     let txHash = await client.signAndBroadcastSync(key.bech32Address, messages, fee, memo, maxHeight);
     return txHash;
   }
+
   // customized function
+
   setChainId(chainId, rpc) {
     this.chainId = chainId;
     this.rpc = rpc || (DefaultChainInfo[chainId] && DefaultChainInfo[chainId].rpc);
@@ -101,6 +109,7 @@ class Keplr {
     }
     this.stargateClient = null;
   }
+
   async getStargateClient() {
     if (!this.stargateClient) {
       let offlineSigner = this.wallet.getOfflineSigner(this.chainId);
@@ -110,4 +119,5 @@ class Keplr {
     return this.stargateClient;
   }
 }
+
 export default Keplr;

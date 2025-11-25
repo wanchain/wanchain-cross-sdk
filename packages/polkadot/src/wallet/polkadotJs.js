@@ -12,6 +12,7 @@ const DefaultProvider = {
     testnet: "wss://rhala-api.phala.network/ws"
   }
 };
+
 class PolkadotJs {
   constructor(network) {
     this.name = "polkadot{.js}";
@@ -22,26 +23,29 @@ class PolkadotJs {
   }
 
   // standard function
+
   async getChainId() {
     return 0;
   }
+
   async getAccounts(network) {
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
       let ss58Format = getSS58Format(this.chain, network);
       let accounts = await web3Accounts({ ss58Format });
       return accounts.map(a => a.address);
-    }
-    else {
+    } else {
       console.error("%s not installed or not allowed", this.name);
       throw new Error("Not installed or not allowed");
     }
   }
+
   async getBalance(addr) {
     let api = await this.getApi();
     let { data: balance } = await api.query.system.account(addr);
     return balance.free;
   }
+
   async sendTransaction(txs, sender) {
     return new Promise(async (resolve, reject) => {
       let api = await this.getApi();
@@ -51,8 +55,7 @@ class PolkadotJs {
         if (status.isBroadcast) {
           console.debug("%s sendTransaction tx %s status: %s", this.chain, txHash, status.type);
           return resolve(txHash);
-        }
-        else if (status.isInBlock || status.isFinalized) {
+        } else if (status.isInBlock || status.isFinalized) {
           let block = status.isInBlock ? status.asInBlock : status.asFinalized;
           console.debug("%s block %s tx %s status: %s", this.chain, block.toString(), txHash, status.type);
           return resolve(txHash);
@@ -62,7 +65,9 @@ class PolkadotJs {
       });
     });
   }
+
   // customized function
+
   setChain(chainName, provider) {
     this.chain = chainName;
     if (provider && typeof (provider) === "string") {
@@ -75,6 +80,7 @@ class PolkadotJs {
     this.provider = provider;
     this.api = null;
   }
+
   async getApi() {
     if (!this.api) {
       this.api = new ApiPromise({ provider: this.provider });
@@ -82,6 +88,7 @@ class PolkadotJs {
     await this.api.isReady;
     return this.api;
   }
+
   async estimateFee(sender, txs) {
     let api = await this.getApi();
     let info = await api.tx.utility.batch(txs).paymentInfo(sender);
@@ -89,4 +96,5 @@ class PolkadotJs {
     return fee;
   }
 }
+
 export default PolkadotJs;

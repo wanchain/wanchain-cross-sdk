@@ -1,7 +1,6 @@
-import * as core from "@ton/core";
-import * as crypto from "@ton/crypto";
-const { Address, Cell, beginCell: sdkBeginCell } = core;
-const { getSecureRandomNumber } = crypto;
+import { Address, Cell, beginCell as sdkBeginCell } from "@ton/core";
+import { getSecureRandomNumber } from "@ton/crypto";
+
 function validateAddress(address, options) {
   try {
     if (Address.isFriendly(address)) {
@@ -12,18 +11,18 @@ function validateAddress(address, options) {
       // let raw = Address.parseRaw(rawAddr);
       // console.log("str: %s", raw.toString({testOnly: true, bounceable: true}))
       return (addr.isTestOnly === (options.network === "testnet"));
-    }
-    else {
+    } else {
       return false;
     }
-  }
-  catch (err) {
+  } catch (err) {
     return false;
   }
 }
+
 function parseAddress(source) {
   return Address.parse(source);
 }
+
 async function getQueryId() {
   let queryId = await getSecureRandomNumber(1, (Math.pow(2, 52) - 1));
   if (queryId < 0) {
@@ -31,12 +30,15 @@ async function getQueryId() {
   }
   return queryId;
 }
+
 function msg2Cell(body) {
   return Cell.fromBase64(body);
 }
+
 function beginCell() {
   return sdkBeginCell();
 }
+
 const tools = {
   validateAddress,
   parseAddress,
@@ -44,4 +46,5 @@ const tools = {
   msg2Cell,
   beginCell
 };
+
 export default tools;
