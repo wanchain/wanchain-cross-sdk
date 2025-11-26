@@ -4,7 +4,7 @@ import ProcessBaseSync from "./processBaseSync.js";
 
 const web3 = new Web3();
 
-export default (class ProcessClaimRewardTask extends ProcessBaseSync {
+class ProcessClaimRewardTask extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
     this.configService = frameworkService.getService("ConfigService");
@@ -28,4 +28,6 @@ export default (class ProcessClaimRewardTask extends ProcessBaseSync {
     console.debug("ProcessClaimRewardTask gasLimit: %s", gasLimit);
     return { data, gasLimit, coin };
   }
-});
+}
+
+export default ProcessClaimRewardTask;

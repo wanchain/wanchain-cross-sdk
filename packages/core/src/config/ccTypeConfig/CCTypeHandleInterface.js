@@ -1,4 +1,4 @@
-export default (class CCTypeHandleInterface {
+class CCTypeHandleInterface {
   constructor() {
     if (new.target === CCTypeHandleInterface) {
       throw new TypeError("Cannot construct Abstract class directly");
@@ -8,4 +8,6 @@ export default (class CCTypeHandleInterface {
   async process(tokenPair, convert) {
     throw new Error("Abstract method!");
   }
-});
+}
+
+export default CCTypeHandleInterface;

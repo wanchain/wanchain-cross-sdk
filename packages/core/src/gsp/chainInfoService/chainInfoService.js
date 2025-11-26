@@ -1,10 +1,11 @@
 
-export default (class ChainInfoService {
+class ChainInfoService {
   constructor() {
     this.m_mapChainIdObj = new Map(); // chainId - > chainInfo
     this.m_mapChainNameObj = new Map(); // chainName - > chainInfo
     this.m_mapChainTypeObj = new Map(); // chainType - > chainInfo
   }
+
   async init(frameworkService) {
     this.m_frameworkService = frameworkService;
     let configService = frameworkService.getService("ConfigService");
@@ -27,20 +28,26 @@ export default (class ChainInfoService {
     // console.log("ChainInfoService this.m_mapChainIdObj:", this.m_mapChainIdObj);
     // console.log("ChainInfoService this.m_mapChainTypeObj:", this.m_mapChainTypeObj);
   }
+
   getChainInfoById(chainId) {
     let obj = this.m_mapChainIdObj.get(chainId);
     return obj;
   }
+
   getChainInfoByName(chainName) {
     let obj = this.m_mapChainNameObj.get(chainName);
     return obj;
   }
+
   getChainInfoByType(chainType) {
     let obj = this.m_mapChainTypeObj.get(chainType);
     return obj;
   }
+
   getCoinSymbol(chainType) {
     let chain = this.m_mapChainTypeObj.get(chainType);
     return chain.symbol || chainType;
   }
-});
+}
+
+export default ChainInfoService;

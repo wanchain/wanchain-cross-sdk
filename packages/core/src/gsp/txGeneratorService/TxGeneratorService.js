@@ -3,14 +3,17 @@ import tool from "../../utils/tool.js";
 import Web3 from "web3";
 
 const web3 = new Web3();
-export default (class TxGeneratorService {
+
+class TxGeneratorService {
   constructor() {
   }
+
   async init(frameworkService) {
     this.frameworkService = frameworkService;
     this.iwan = frameworkService.getService("iWanConnectorService");
     this.configService = frameworkService.getService("ConfigService");
   }
+
   // erc20 approve
   // event: Approval(address indexed owner, address indexed spender, uint256 value)
   // topic[0]: 0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925
@@ -24,6 +27,7 @@ export default (class TxGeneratorService {
     console.debug("%s generatorErc20ApproveData gasLimit: %s", options.chainType, gasLimit);
     return { data, gasLimit };
   }
+
   // nft approve: erc721 & erc1155
   // event: ApprovalForAll(address indexed account, address indexed operator, bool approved)
   // topic[0]: 0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31
@@ -36,6 +40,7 @@ export default (class TxGeneratorService {
     console.debug("%s generatorErc721ApproveData gasLimit: %s", options.chainType, gasLimit);
     return { data, gasLimit };
   }
+
   async generateTx(chainType, gasLimit, toAddress, value, data, from) {
     let gasPrice = await this.iwan.getGasPrice(chainType);
     let rawTx = {
@@ -51,6 +56,7 @@ export default (class TxGeneratorService {
     // console.debug("generateTx: %O", rawTx);
     return rawTx;
   }
+
   // erc20 event: UserLockLogger(bytes32 indexed smgID, uint256 indexed tokenPairID, address indexed tokenAccount, uint256 value, uint256 contractFee, bytes userAccount);
   // erc20 topic[0]: 0x43eb196c5950c738b34cd1760941e0876559e4fb835498fe19016bc039ad61a9
   // nft event: UserLockNFT(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, string[] keys, bytes[] values)
@@ -63,15 +69,13 @@ export default (class TxGeneratorService {
     if (tokenType === "Erc20") {
       value = "0x" + new BigNumber(value).toString(16);
       data = crossScInst.methods.userLock(smgID, tokenPairID, value, userAccount).encodeABI();
-    }
-    else {
+    } else {
       let tokenIDs = [], tokenValues = [];
       value.forEach(v => {
         if (tokenType === "Erc721") {
           tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
           tokenValues.push("0x1");
-        }
-        else if (tokenType === "Erc1155") {
+        } else if (tokenType === "Erc1155") {
           tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
           tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
         }
@@ -86,6 +90,7 @@ export default (class TxGeneratorService {
     console.debug("%s generateUserLockData gasLimit: %s", extInfo.chainType, gasLimit);
     return { data, gasLimit };
   }
+
   // erc20 event: UserBurnLogger(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, uint value, uint contractFee, uint fee, bytes userAccount)
   // erc20 topic[0]: 0xe314e23175856b9484e39ab0547753cf1b5cd0cbe3b0d7018c953d31f23fc767
   // nft event: UserBurnNFT(bytes32 indexed smgID, uint indexed tokenPairID, address indexed tokenAccount, string[] keys, bytes[] values)
@@ -99,15 +104,13 @@ export default (class TxGeneratorService {
       value = "0x" + new BigNumber(value).toString(16);
       fee = "0x" + new BigNumber(fee).toString(16);
       data = crossScInst.methods.userBurn(smgID, tokenPairID, value, fee, tokenAccount, userAccount).encodeABI();
-    }
-    else {
+    } else {
       let tokenIDs = [], tokenValues = [];
       value.forEach(v => {
         if (tokenType === "Erc721") {
           tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
           tokenValues.push("0x1");
-        }
-        else if (tokenType === "Erc1155") {
+        } else if (tokenType === "Erc1155") {
           tokenIDs.push("0x" + new BigNumber(v.tokenId).toString(16));
           tokenValues.push("0x" + new BigNumber(v.amount).toString(16));
         }
@@ -122,6 +125,7 @@ export default (class TxGeneratorService {
     console.debug("%s generateUserBurnData gasLimit: %s", extInfo.chainType, gasLimit);
     return { data, gasLimit };
   }
+
   // event: DepositForBurnWithFee(uint256 amount, uint32 destinationDomain, bytes32 mintRecipient, address burnToken, uint256 fee)
   // topic[0]: 0x6dce5b2406630dbc3a2633f31a15505733a9ede5169532aaab88ac01c77ff1e4
   async generateCircleBridgeDeposit(crossScAddr, destDomain, value, tokenAccount, userAccount, options) {
@@ -134,8 +138,7 @@ export default (class TxGeneratorService {
     if (options.isV2) {
       let anyCaller = '0x' + '0'.repeat(64);
       data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000).encodeABI();
-    }
-    else {
+    } else {
       data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
     }
     let txValue = "0x" + new BigNumber(options.coinValue || 0).toString(16);
@@ -143,4 +146,6 @@ export default (class TxGeneratorService {
     console.debug("%s generateCircleBridgeDeposit gasLimit: %s", options.chainType, gasLimit);
     return { data, gasLimit };
   }
-});
+}
+
+export default TxGeneratorService;

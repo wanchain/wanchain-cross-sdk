@@ -2,6 +2,7 @@ import * as wanUtil from "wanchain-util";
 import tool from "../../utils/tool.js";
 
 const DefaultScanBatchSize = 1000;
+
 const CustomizedScanBatchSize = {
   SGB: 30,
   OKT: 300,
@@ -10,15 +11,18 @@ const CustomizedScanBatchSize = {
   SEI: 500,
   FTM: 500
 };
+
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
 const AlgoEventTypes = ["algoBURN"];
 const DustEventTypes = ["dustCLAIM"]; // not real event, just simulation
-export default (class CheckScEvent {
+
+class CheckScEvent {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.eventHandler = new Map();
     this.eventTasks = new Map();
   }
+
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
@@ -33,13 +37,11 @@ export default (class CheckScEvent {
       this.eventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
       let extension = this.configService.getExtension("ALGO");
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
-    }
-    else if (chainInfo.chainType === "DUST") {
+    } else if (chainInfo.chainType === "DUST") {
       this.eventTypes = DustEventTypes;
       this.eventHandler.set("dustCLAIM", this.processDustClaim.bind(this));
       this.tool = this.configService.getExtension("DUST").tool;
-    }
-    else { // evm
+    } else { // evm
       this.crossScAbi = this.configService.getAbi("crossSc");
       this.cctpProxyAbi = this.configService.getAbi("cctpProxy");
       this.cctpMessageTransmitterAbi = this.configService.getAbi("cctpMessageTransmitter");
@@ -57,6 +59,7 @@ export default (class CheckScEvent {
     }
     this.eventTypes.forEach(v => this.eventTasks.set(v, []));
   }
+
   async add(task) {
     //console.log("CheckScEvent task: %O", task);
     let tasks = this.eventTasks.get(task.taskType);
@@ -64,9 +67,11 @@ export default (class CheckScEvent {
       tasks.unshift(task);
     }
   }
+
   async load(task) {
     await this.add(task);
   }
+
   async runTask(taskPara) {
     try {
       let connected = await this.iwan.isConnected();
@@ -75,57 +80,64 @@ export default (class CheckScEvent {
           let fn = this.eventHandler.get(v);
           if (fn) {
             await fn();
-          }
-          else {
+          } else {
             console.error("CheckScEvent unsupported event type: %s", v);
           }
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s checkScEvent error: %O", this.chainInfo.chainType, err);
     }
   }
+
   async processSmgMintLogger() {
     let eventHash = this.getEventHash(this.crossScAbi, "SmgMintLogger");
     let eventName = "SmgMintLogger";
     await this.processScLogger("MINT", eventHash, eventName);
   }
+
   async processSmgReleaseLogger() {
     let eventHash = this.getEventHash(this.crossScAbi, "SmgReleaseLogger");
     let eventName = "SmgReleaseLogger";
     await this.processScLogger("BURN", eventHash, eventName);
   }
+
   async processSmgMintNft() {
     let eventHash = this.getEventHash(this.crossScAbi, "SmgMintNFT");
     let eventName = "SmgMintNFT";
     await this.processScLogger("MINTNFT", eventHash, eventName);
   }
+
   async processSmgReleaseNft() {
     let eventHash = this.getEventHash(this.crossScAbi, "SmgReleaseNFT");
     let eventName = "SmgReleaseNFT";
     await this.processScLogger("BURNNFT", eventHash, eventName);
   }
+
   async processCircleMint() {
     let eventHash = this.getEventHash(this.cctpMessageTransmitterAbi, "MessageReceived");
     let eventName = "MessageReceived";
     await this.processScLogger("circleMINT", eventHash, eventName);
   }
+
   async processCctpV2Mint() {
     let eventHash = this.getEventHash(this.cctpV2MessageTransmitterAbi, "MessageReceived");
     let eventName = "MessageReceived";
     await this.processScLogger("cctpV2MINT", eventHash, eventName);
   }
+
   async processAlgoBurn() {
     let eventHash = ""; // not used
     let eventName = "SmgReleaseLogger";
     await this.processScLogger("algoBURN", eventHash, eventName);
   }
+
   async processDustClaim() {
     let eventHash = ""; // not used
     let eventName = ""; // not used
     await this.processScLogger("dustCLAIM", eventHash, eventName);
   }
+
   getEventHash(abi, eventName) {
     let prototype = "";
     for (let i = 0; i < abi.length; ++i) {
@@ -144,6 +156,7 @@ export default (class CheckScEvent {
     }
     return '0x' + wanUtil.sha3(prototype).toString('hex');
   }
+
   async processScLogger(type, eventHash, eventName) {
     let tasks = this.eventTasks.get(type);
     let count = tasks.length;
@@ -179,8 +192,7 @@ export default (class CheckScEvent {
             task.depositNonce = deposit.depositNonce;
             task.depositAmount = deposit.depositAmount;
             task.transmitter = transmitter;
-          }
-          else { // throw error to save task
+          } else { // throw error to save task
             throw new Error(this.chainInfo.chainType + " CheckScEvent task " + task.ccTaskId + " parseCctpDeposit error");
           }
         }
@@ -214,22 +226,17 @@ export default (class CheckScEvent {
           if (task.taskType === "circleMINT") {
             let topics = [eventHash, undefined, '0x' + Number(task.depositNonce).toString(16).padStart(64, '0')];
             event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
-          }
-          else if (task.taskType === "cctpV2MINT") {
+          } else if (task.taskType === "cctpV2MINT") {
             let topics = [eventHash, undefined, task.depositNonce];
             event = await this.scanCctpV2Event(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
-          }
-          else if (task.taskType === "algoBURN") {
+          } else if (task.taskType === "algoBURN") {
             event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, task.uniqueID);
-          }
-          else if (this.chainInfo.chainType === "TRX") {
+          } else if (this.chainInfo.chainType === "TRX") {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
-          }
-          else if (task.taskType === "dustCLAIM") {
+          } else if (task.taskType === "dustCLAIM") {
             event = await this.scanDustClaim(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID, task.taskType === "BURN");
-          }
-          else {
+          } else {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             let topics = [eventHash, eventUnique.toLowerCase()];
             event = await this.scanScEvent(fromBlockNumber, toBlockNumber, topics);
@@ -238,28 +245,27 @@ export default (class CheckScEvent {
             await this.updateUIAndStorage(task, event.txHash, event.toAccount, event.value);
             tasks.splice(cur, 1);
             continue; // task would be deleted, do not need to save, process next job
-          }
-          else { // wait next scan
+          } else { // wait next scan
             task.fromBlockNumber = toBlockNumber + 1;
           }
-          console.debug("%s CheckScEvent block %d-%d/%d %s: taskId=%s, uniqueId=%s, ota=%s", this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
-        }
-        else { // rollback
+          console.debug("%s CheckScEvent block %d-%d/%d %s: taskId=%s, uniqueId=%s, ota=%s",
+            this.chainInfo.chainType, fromBlockNumber, toBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
+        } else { // rollback
           task.fromBlockNumber = latestBlockNumber;
-          console.debug("%s CheckScEvent no new block %d/%d %s: taskId=%s, uniqueId=%s, ota=%s", this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
+          console.debug("%s CheckScEvent no new block %d/%d %s: taskId=%s, uniqueId=%s, ota=%s",
+            this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
         }
-      }
-      catch (err) {
+      } catch (err) {
         if (err.message === "log is not ready") {
           console.debug("%s CheckScEvent fromBlock %d %s %O error: %s", this.chainInfo.chainType, task.fromBlockNumber, type, task, err.message);
-        }
-        else {
+        } else {
           console.error("%s CheckScEvent fromBlock %d %s %O error: %O", this.chainInfo.chainType, task.fromBlockNumber, type, task, err);
         }
       }
       await storageService.save("ScEventScanService", task.uniqueID, task); // always save regardless of exception
     }
   }
+
   async getCctpMessageTransmitterAddr(isV2) {
     let proxyScAddr = isV2 ? this.chainInfo.CircleBridge.crossScAddrV2 : this.chainInfo.CircleBridge.crossScAddr;
     let abi = [{
@@ -269,8 +275,7 @@ export default (class CheckScEvent {
         "internalType": "address",
         "name": "",
         "type": "address"
-      }
-      ],
+      }],
       "stateMutability": "view",
       "type": "function"
     }];
@@ -278,12 +283,17 @@ export default (class CheckScEvent {
     console.debug("%s circleMessageTransmitterSC addr: %s", this.chainInfo.chainType, addr);
     return addr;
   }
+
   async scanCircleEvent(fromBlockNumber, toBlockNumber, sc, topics, depositDomain) {
-    let events = await this.iwan.getScEvent(this.chainInfo.chainType, sc, // cctp transmitter
-      topics, {
-      "fromBlock": fromBlockNumber,
-      "toBlock": toBlockNumber
-    });
+    let events = await this.iwan.getScEvent(
+      this.chainInfo.chainType,
+      sc, // cctp transmitter
+      topics,
+      {
+        "fromBlock": fromBlockNumber,
+        "toBlock": toBlockNumber
+      }
+    );
     for (let event of events) {
       let decoded = tool.parseEvmLog(event, this.cctpMessageTransmitterAbi);
       if (Number(decoded.args.sourceDomain) === Number(depositDomain)) {
@@ -300,12 +310,17 @@ export default (class CheckScEvent {
     }
     return null;
   }
+
   async scanCctpV2Event(fromBlockNumber, toBlockNumber, sc, topics, depositDomain) {
-    let events = await this.iwan.getScEvent(this.chainInfo.chainType, sc, // cctpV2 transmitter
-      topics, {
-      "fromBlock": fromBlockNumber,
-      "toBlock": toBlockNumber
-    });
+    let events = await this.iwan.getScEvent(
+      this.chainInfo.chainType,
+      sc, // cctpV2 transmitter
+      topics,
+      {
+        "fromBlock": fromBlockNumber,
+        "toBlock": toBlockNumber
+      }
+    );
     for (let event of events) {
       let decoded = tool.parseEvmLog(event, this.cctpV2MessageTransmitterAbi);
       if (Number(decoded.args.sourceDomain) === Number(depositDomain)) {
@@ -322,22 +337,33 @@ export default (class CheckScEvent {
     }
     return null;
   }
+
   async scanScEvent(fromBlockNumber, toBlockNumber, topics) {
-    let events = await this.iwan.getScEvent(this.chainInfo.chainType, this.chainInfo.crossScAddr, topics, {
-      "fromBlock": fromBlockNumber,
-      "toBlock": toBlockNumber
-    });
+    let events = await this.iwan.getScEvent(
+      this.chainInfo.chainType,
+      this.chainInfo.crossScAddr,
+      topics,
+      {
+        "fromBlock": fromBlockNumber,
+        "toBlock": toBlockNumber
+      }
+    );
     if (events.length) {
       let log = tool.parseEvmLog(events[0], this.crossScAbi);
       this.extractFields(log);
       return { txHash: log.transactionHash, toAccount: log.args.userAccount, value: log.args.value };
-    }
-    else {
+    } else {
       return null;
     }
   }
+
   async scanTrxScEvent(fromBlock, toBlock, eventName, eventHash, uniqueID) {
-    let events = await this.iwan.getScEvent(this.chainInfo.chainType, this.chainInfo.crossScAddr, [], { fromBlock, toBlock, eventName });
+    let events = await this.iwan.getScEvent(
+      this.chainInfo.chainType,
+      this.chainInfo.crossScAddr,
+      [],
+      { fromBlock, toBlock, eventName }
+    );
     for (let i = 0; i < events.length; i++) { // format to standard evm log
       let event = events[i];
       let txInfo = await this.iwan.getTxInfo(this.chainInfo.chainType, event.transaction, { withTopics: true });
@@ -361,13 +387,13 @@ export default (class CheckScEvent {
           this.extractFields(log);
           return { txHash: log.transactionHash, toAccount: args.userAccount, value: args.value };
         }
-      }
-      else {
+      } else {
         console.error("CheckScEvent can't get %s log data: %O", this.chainInfo.chainType, event);
       }
     }
     return null;
   }
+
   extractFields(log) {
     // extract required field from array
     let args = log.args;
@@ -375,6 +401,7 @@ export default (class CheckScEvent {
       args.userAccount = args.values[args.keys.indexOf("userAccount:address")];
     }
   }
+
   async scanAlgoScEvent(fromBlock, toBlock, uniqueID) {
     let events = [], nextToken = "";
     for (; nextToken !== undefined;) {
@@ -399,6 +426,7 @@ export default (class CheckScEvent {
     }
     return null;
   }
+
   algoDecodeSmgReleaseLogger(u8Array, uniqueID) {
     // class SmgReleaseLogger(abi.NamedTuple):
     //     name:           abi.Field[abi.String]
@@ -419,19 +447,17 @@ export default (class CheckScEvent {
           let value = bigIntValue.toString(10);
           // let tokenAccount = bigIntTokenAccount.toString(10);
           return { to: userAccount, value };
-        }
-        else {
+        } else {
           return null;
         }
-      }
-      else {
+      } else {
         return null;
       }
-    }
-    catch (err) {
+    } catch (err) {
       return null;
     }
   }
+
   async scanDustClaim(fromBlock, toBlock, txHash, uniqueID, isNative) {
     let claimable = await this.tool.checkClaimable(uniqueID, isNative);
     if (claimable) { // there are no smg txHash, use user txHash instead
@@ -439,9 +465,12 @@ export default (class CheckScEvent {
     }
     return null;
   }
+
   async updateUIAndStorage(task, txHash, toAccount, value) {
     this.eventService.emitEvent("RedeemTxHash", { ccTaskId: task.ccTaskId, txHash, toAccount, value: value || task.value });
     let storageService = this.frameworkService.getService("StorageService");
     await storageService.delete("ScEventScanService", task.uniqueID);
   }
-});
+}
+
+export default CheckScEvent;

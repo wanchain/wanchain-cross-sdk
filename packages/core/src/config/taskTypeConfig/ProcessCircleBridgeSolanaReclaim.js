@@ -3,7 +3,7 @@ import tool from "../../utils/tool.js";
 
 const DepositMsg = "Program log:  relay_circle_cctp() circle message_sent_event_data: ";
 
-export default (class ProcessCircleBridgeSolanaReclaim {
+class ProcessCircleBridgeSolanaReclaim {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
@@ -56,4 +56,6 @@ export default (class ProcessCircleBridgeSolanaReclaim {
       throw new Error("Not ready");
     }
   }
-});
+}
+
+export default ProcessCircleBridgeSolanaReclaim;

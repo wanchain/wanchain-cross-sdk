@@ -3,7 +3,7 @@ import tool from "../../utils/tool.js";
 
 const DefaultGas = 10_000_000;
 
-export default (class ProcessMintFromSui {
+class ProcessMintFromSui {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
@@ -101,4 +101,6 @@ export default (class ProcessMintFromSui {
       }
     }
   }
-});
+}
+
+export default ProcessMintFromSui;

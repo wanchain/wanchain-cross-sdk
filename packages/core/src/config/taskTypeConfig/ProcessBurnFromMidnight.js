@@ -1,6 +1,6 @@
 import tool from "../../utils/tool.js";
 
-export default (class ProcessBurnFromMidnight {
+class ProcessBurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -43,7 +43,7 @@ export default (class ProcessBurnFromMidnight {
       await checkTxReceiptService.add(checker);
     } catch (err) {
       console.error("ProcessBurnFromMidnight error: %O", err);
-      if (["User declined to sign the transaction.", "User rejected", "user declined to sign tx"].includes(err.reason)) {
+      if (["User declined to sign the transaction.", "User rejected", "user declined signing tx"].includes(err.reason)) {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else if (["Transaction has errors: Insufficient balance for token"].includes(err.reason)) {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance for token");
@@ -52,4 +52,6 @@ export default (class ProcessBurnFromMidnight {
       }
     }
   }
-});
+}
+
+export default ProcessBurnFromMidnight;

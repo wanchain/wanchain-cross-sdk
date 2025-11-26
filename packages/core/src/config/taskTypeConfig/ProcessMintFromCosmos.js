@@ -27,7 +27,7 @@ const TX_TYPE = {
   invalid: -1
 };
 
-export default (class ProcessMintFromCosmos {
+class ProcessMintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -119,4 +119,6 @@ export default (class ProcessMintFromCosmos {
     console.debug("%s ProcessMint buildUserLockData: %O", fromChainType, data);
     return JSON.stringify(data);
   }
-});
+}
+
+export default ProcessMintFromCosmos;

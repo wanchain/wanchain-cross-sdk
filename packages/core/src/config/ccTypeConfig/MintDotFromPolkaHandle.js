@@ -6,7 +6,7 @@ const TaskTypes = {
   PHA: "ProcessPhaMintFromPhala"
 };
 
-export default (class MintDotFromPolkaHandle {
+class MintDotFromPolkaHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -42,4 +42,6 @@ export default (class MintDotFromPolkaHandle {
       throw err;
     }
   }
-});
+}
+
+export default MintDotFromPolkaHandle;

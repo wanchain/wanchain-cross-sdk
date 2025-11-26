@@ -1,10 +1,11 @@
 import tool from "../../utils/tool.js";
 import taskTypeConfig from "../../config/taskTypeConfig/taskTypeConfig.js";
 
-export default (class TxTaskHandleService {
+class TxTaskHandleService {
   constructor() {
     this.m_mapTaskTypeToHandler = new Map(); // taskType => Handler
   }
+
   async init(frameworkService) {
     try {
       this.m_frameworkService = frameworkService;
@@ -12,11 +13,11 @@ export default (class TxTaskHandleService {
         let obj = taskTypeConfig[idx];
         this.m_mapTaskTypeToHandler.set(obj.name, obj.handle);
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.log("TxTaskHandleService init err:", err);
     }
   }
+
   async processTxTask(taskParas, wallet) {
     let taskType = taskParas.params.taskType;
     try {
@@ -24,11 +25,12 @@ export default (class TxTaskHandleService {
       let txHandler = new TxTaskHandler(this.m_frameworkService);
       let result = await txHandler.process(taskParas, wallet);
       return result;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("TxTaskHandleService processTxTask %s error: %O", taskType, err);
       let errMsg = tool.getErrMsg(err, "processTxTask failed");
       return errMsg;
     }
   }
-});
+}
+
+export default TxTaskHandleService;

@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class MintFromSui {
+class MintFromSui {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -37,4 +37,6 @@ export default (class MintFromSui {
       throw err;
     }
   }
-});
+}
+
+export default MintFromSui;

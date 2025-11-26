@@ -6,7 +6,7 @@ const WalletRejects = [
   "Confirmation declined by user", // TronLink
 ];
 
-export default (class ProcessBase {
+class ProcessBase {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
     this.m_WebStores = frameworkService.getService("WebStores");
@@ -99,4 +99,6 @@ export default (class ProcessBase {
       return false;
     }
   }
-});
+}
+
+export default ProcessBase;

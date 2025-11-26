@@ -2,12 +2,15 @@
 function idleSleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
+
 class CheckiWanSpeed {
   constructor() {
   }
+
   async init(frameworkService) {
     this.m_frameworkService = frameworkService;
   }
+
   async checkiwanSpeed(iwanInstAry, success_callback, fail_callback) {
     //*****************************************************
     async function fun_test_speed(_inner_apiInst) {
@@ -27,8 +30,7 @@ class CheckiWanSpeed {
               };
               return ret;
             }
-          }
-          catch (e) {
+          } catch (e) {
             console.debug("checkiwanSpeed error: %O", e);
           }
         }
@@ -40,8 +42,7 @@ class CheckiWanSpeed {
             dura: curTime - startTime
           };
           return ret;
-        }
-        else {
+        } else {
           await idleSleep(500);
         }
       } while (true);
@@ -60,4 +61,5 @@ class CheckiWanSpeed {
     await fail_callback(iwanInstAry);
   }
 }
+
 export default CheckiWanSpeed;

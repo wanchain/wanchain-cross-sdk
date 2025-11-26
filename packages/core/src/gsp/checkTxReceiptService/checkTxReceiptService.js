@@ -1,6 +1,7 @@
 import tool from "../../utils/tool.js";
 
 const DefaultScanBatchSize = 1000;
+
 const CustomizedScanBatchSize = {
   SGB: 30,
   OKT: 300,
@@ -9,10 +10,12 @@ const CustomizedScanBatchSize = {
   SEI: 500,
   FTM: 500
 };
-export default (class CheckTxReceiptService {
+
+class CheckTxReceiptService {
   constructor() {
     this.taskArray = [];
   }
+
   async init(frameworkService) {
     this.frameworkService = frameworkService;
     this.iwan = frameworkService.getService("iWanConnectorService");
@@ -26,12 +29,15 @@ export default (class CheckTxReceiptService {
       this.tonTool = tonExtension.tool;
     }
   }
+
   async loadTradeTask(taskArray) {
     this.taskArray = taskArray;
   }
+
   async start() {
     this.taskService.addTask(this, 5000);
   }
+
   async runTask(taskPara) {
     let connected = await this.iwan.isConnected();
     if (connected === false) {
@@ -47,8 +53,7 @@ export default (class CheckTxReceiptService {
         let now = parseInt(Date.now() / 1000);
         if ((now - obj.checkTime) >= obj.interval) {
           obj.checkTime = now;
-        }
-        else {
+        } else {
           continue; // wait next schedule and do not need to save
         }
       }
@@ -72,13 +77,13 @@ export default (class CheckTxReceiptService {
           await this.finishTask(index, obj, result.result, result.errInfo);
           continue; // task would be deleted, do not need to save, process next job
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.error("%s %s CheckTxReceiptService error: %O", obj.chain, obj.txHash, err);
       }
       await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     }
   }
+
   async checkReceipt(obj) {
     try {
       let txReceipt;
@@ -87,11 +92,9 @@ export default (class CheckTxReceiptService {
         if (!(txReceipt && txReceipt.blockhash)) {
           txReceipt = null;
         }
-      }
-      else if (obj.chain === "TON") {
+      } else if (obj.chain === "TON") {
         txReceipt = await this.getTonTxReceipt(obj); // get user txHash by msgHash, and cross txHash by user txHash
-      }
-      else if (obj.chain === "DUST") {
+      } else if (obj.chain === "DUST") {
         txReceipt = { status: 1 };
       } else {
         txReceipt = await this.iwan.getTransactionReceipt(obj.chain, obj.txHash);
@@ -102,27 +105,20 @@ export default (class CheckTxReceiptService {
         let isSuccess = false, txHash = ""; // ton need update txHash
         if (["ATOM", "NOBLE", "KAVA"].includes(obj.chain)) {
           isSuccess = (txReceipt.code === 0);
-        }
-        else if (obj.chain === "SOL") {
+        } else if (obj.chain === "SOL") {
           isSuccess = (txReceipt.meta.err === null);
-        }
-        else if (obj.chain === "TRX") {
+        } else if (obj.chain === "TRX") {
           isSuccess = txReceipt.ret && txReceipt.ret[0] && (txReceipt.ret[0].contractRet === "SUCCESS");
-        }
-        else if (obj.chain === "ALGO") {
+        } else if (obj.chain === "ALGO") {
           isSuccess = (txReceipt['confirmed-round'] > 0);
-        }
-        else if (obj.chain === "SUI") {
+        } else if (obj.chain === "SUI") {
           isSuccess = (txReceipt.effects && txReceipt.effects.status && (txReceipt.effects.status.status === "success"));
-        }
-        else if (obj.chain === "BTC") {
+        } else if (obj.chain === "BTC") {
           isSuccess = true; // in the block means success, ignore confirmations
-        }
-        else if (obj.chain === "TON") {
+        } else if (obj.chain === "TON") {
           isSuccess = txReceipt.success;
           txHash = txReceipt.txHash;
-        }
-        else {
+        } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }
         if (isSuccess) {
@@ -130,8 +126,7 @@ export default (class CheckTxReceiptService {
           errInfo = "";
         }
         return { result, errInfo, txHash };
-      }
-      else {
+      } else {
         if (obj.chain === "BTC") {
           let delay = parseInt(Date.now() - obj.ccTaskId); // ms
           if (delay > 86_400_000) { // 1 day, has been removed from mempool
@@ -140,12 +135,12 @@ export default (class CheckTxReceiptService {
         }
         return null;
       }
-    }
-    catch (err) { // not finish
+    } catch (err) { // not finish
       // console.error("%s %s checkReceipt error: %O", obj.chain, obj.txHash, err);
       return null;
     }
   }
+
   async checkEvent(obj) {
     let txCheckInfo = obj.txCheckInfo;
     if (txCheckInfo.nonce === undefined) { // save nonce at first run
@@ -154,8 +149,7 @@ export default (class CheckTxReceiptService {
       if (txInfo) {
         txCheckInfo.input = txInfo.input;
         txCheckInfo.nonce = txInfo.nonce;
-      }
-      else { // not broadcast yet, or has been replaced before task run
+      } else { // not broadcast yet, or has been replaced before task run
         return null;
       }
     }
@@ -203,22 +197,21 @@ export default (class CheckTxReceiptService {
           console.debug("task %s %s tx %s is replaced or canceled", obj.ccTaskId, obj.chain, obj.txHash);
           return { result: "Failed", errInfo: "Transaction failed" };
         }
-      }
-      else {
+      } else {
         let curNonce = await this.iwan.getNonce(obj.chain, txCheckInfo.from);
         if (curNonce > txCheckInfo.nonce) {
           txCheckInfo.nonceBlock = latestBlock;
         }
       }
       txCheckInfo.fromBlock = toBlock + 1;
-    }
-    else { // rollback
+    } else { // rollback
       txCheckInfo.fromBlock = latestBlock;
       txCheckInfo.nonceBlock = 0;
       console.debug("task %s %s check tx %s minted no new block %d/%d", obj.ccTaskId, obj.chain, obj.txHash, fromBlock, latestBlock);
     }
     return null;
   }
+
   async addToScEventScan(obj) {
     if (obj.convertCheckInfo) {
       if (!obj.convertCheckInfo.fromChain) {
@@ -228,6 +221,7 @@ export default (class CheckTxReceiptService {
       await scEventScanService.add(obj.convertCheckInfo);
     }
   }
+
   async add(obj) {
     let storageService = this.frameworkService.getService("StorageService");
     if (obj.interval) { // check interval in second, some chains such as Bitcoin do not need check frequently
@@ -236,6 +230,7 @@ export default (class CheckTxReceiptService {
     await storageService.save("CheckTxReceiptService", obj.ccTaskId, obj);
     this.taskArray.push(obj);
   }
+
   async finishTask(taskIndex, task, result, errInfo) {
     await this.eventService.emitEvent(task.event || "TaskStepResult", {
       ccTaskId: task.ccTaskId,
@@ -248,6 +243,7 @@ export default (class CheckTxReceiptService {
     await storageService.delete("CheckTxReceiptService", task.ccTaskId);
     this.taskArray.splice(taskIndex, 1);
   }
+
   async getTonTxReceipt(task) {
     if (!task.userTxHash) {
       let txs = await this.iwan.call("getTransByMsgHash", { chainType: "TON", msgHash: task.msgHash });
@@ -277,4 +273,6 @@ export default (class CheckTxReceiptService {
     }
     return null;
   }
-});
+}
+
+export default CheckTxReceiptService;

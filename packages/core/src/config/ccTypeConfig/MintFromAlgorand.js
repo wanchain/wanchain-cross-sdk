@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class MintFromAlgorand {
+class MintFromAlgorand {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -39,4 +39,6 @@ export default (class MintFromAlgorand {
       throw err;
     }
   }
-});
+}
+
+export default MintFromAlgorand;

@@ -1,13 +1,15 @@
 
-export default (class TaskService {
+class TaskService {
   constructor() {
     this.tasks = [];
   }
+
   async init(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.taskInterval = configService.getConfig("TaskService", "taskInterval");
     setTimeout(() => this.taskLoop(), this.taskInterval);
   }
+
   async addTask(inst, interval, para = "") {
     for (let i = 0; i < this.tasks.length; ++i) {
       if (inst === this.tasks[i].inst) {
@@ -22,9 +24,11 @@ export default (class TaskService {
     };
     this.tasks.push(task);
   }
+
   async removeTask(inst) {
     this.tasks = this.tasks.filter(v => (v.inst !== inst));
   }
+
   async taskLoop() {
     for (let i = 0; i < this.tasks.length; i++) {
       let now = Date.now();
@@ -34,11 +38,12 @@ export default (class TaskService {
           await task.inst.runTask(task.para);
           task.timestamp = now;
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.log("taskLoop err:", err);
       }
     }
     setTimeout(() => this.taskLoop(), this.taskInterval);
   }
-});
+}
+
+export default TaskService;

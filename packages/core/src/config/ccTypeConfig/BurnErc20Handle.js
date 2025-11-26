@@ -1,6 +1,6 @@
 import TokenHandler from "./tokenHandler.js";
 
-export default (class BurnErc20Handle extends TokenHandler {
+class BurnErc20Handle extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -13,4 +13,6 @@ export default (class BurnErc20Handle extends TokenHandler {
     //console.log("BurnErc20Handle steps: %O", steps);
     return steps;
   }
-});
+}
+
+export default BurnErc20Handle;

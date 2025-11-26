@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class MintAdaFromCardano {
+class MintAdaFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -46,4 +46,6 @@ export default (class MintAdaFromCardano {
       throw err;
     }
   }
-});
+}
+
+export default MintAdaFromCardano;

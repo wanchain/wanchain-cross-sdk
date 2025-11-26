@@ -17,7 +17,7 @@ const TX_TYPE = {
 const MemoTypeLen = 2;
 const TokenPairIDLen = 4;
 
-export default (class ProcessDotMintFromPolka {
+class ProcessDotMintFromPolka {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -104,4 +104,6 @@ export default (class ProcessDotMintFromPolka {
     }
     return memo;
   }
-});
+}
+
+export default ProcessDotMintFromPolka;

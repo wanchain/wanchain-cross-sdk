@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import TokenHandler from "./tokenHandler.js";
 
-export default (class CircleBridgeDeposit extends TokenHandler {
+class CircleBridgeDeposit extends TokenHandler {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -55,4 +55,6 @@ export default (class CircleBridgeDeposit extends TokenHandler {
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     steps.push({ name: "depositForBurn", stepIndex: steps.length + 1, params });
   }
-});
+}
+
+export default CircleBridgeDeposit;

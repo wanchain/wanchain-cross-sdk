@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-export default (class crossChainFees {
+class crossChainFees {
   async init(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.subsidyAbi = configService.getAbi("subsidyCrossSc");
@@ -8,8 +8,8 @@ export default (class crossChainFees {
     this.tokenPairService = frameworkService.getService("TokenPairService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
-  // agent fee
-  async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) {
+
+  async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) { // agent fee
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let decimals = (fromChainType === tokenPair.fromScInfo.chainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
     let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address: options.address });
@@ -28,8 +28,8 @@ export default (class crossChainFees {
       discount: fee.discountPercent || "1"
     };
   }
-  // contract fee
-  async estimateNetworkFee(tokenPairId, fromChainType, toChainType, options) {
+
+  async estimateNetworkFee(tokenPairId, fromChainType, toChainType, options) { // contract fee
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let direction = (fromChainType === tokenPair.fromScInfo.chainType);
     let srcChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
@@ -56,4 +56,6 @@ export default (class crossChainFees {
       isSubsidy,
     };
   }
-});
+}
+
+export default crossChainFees;

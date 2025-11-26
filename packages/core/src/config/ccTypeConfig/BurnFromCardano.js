@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class BurnFromCardano {
+class BurnFromCardano {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -45,4 +45,6 @@ export default (class BurnFromCardano {
       throw err;
     }
   }
-});
+}
+
+export default BurnFromCardano;

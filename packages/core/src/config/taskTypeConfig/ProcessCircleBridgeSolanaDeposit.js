@@ -1,6 +1,6 @@
 import tool from "../../utils/tool.js";
 
-export default (class ProcessCircleBridgeSolanaDeposit {
+class ProcessCircleBridgeSolanaDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
@@ -129,4 +129,6 @@ export default (class ProcessCircleBridgeSolanaDeposit {
       return 0;
     }
   }
-});
+}
+
+export default ProcessCircleBridgeSolanaDeposit;

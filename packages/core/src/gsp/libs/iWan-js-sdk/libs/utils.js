@@ -1,4 +1,5 @@
 import PromiseProvider from "./promiseProvider.js";
+
 const wrapCallback = function (callback) {
   if (callback == null) {
     return callback;
@@ -9,22 +10,21 @@ const wrapCallback = function (callback) {
   return function () {
     try {
       callback.apply(null, arguments);
-    }
-    catch (error) {
+    } catch (error) {
       process.nextTick(() => {
         throw error;
       });
     }
   };
 };
+
 function promiseOrCallback(callback, fn) {
   if (typeof callback === 'function') {
     return fn(function (error) {
       if (error != null) {
         try {
           callback(error);
-        }
-        catch (error) {
+        } catch (error) {
           return process.nextTick(() => {
             throw error;
           });
@@ -34,7 +34,9 @@ function promiseOrCallback(callback, fn) {
       callback.apply(this, arguments);
     });
   }
+
   const Promise = PromiseProvider.get();
+
   return new Promise((resolve, reject) => {
     fn(function (error, res) {
       if (error != null) {
@@ -46,7 +48,7 @@ function promiseOrCallback(callback, fn) {
       resolve(res);
     });
   });
-}
+};
 
 function newJson(srcObj) {
   let mobj = {};
@@ -55,14 +57,15 @@ function newJson(srcObj) {
     for (let index in srcObj) {
       if (typeof (srcObj[index]) === "object") {
         mobj[index] = newJson(srcObj[index]);
-      }
-      else {
+      } else {
         mobj[index] = srcObj[index];
       }
     }
   }
+
   return mobj;
 }
+
 export { wrapCallback };
 export { promiseOrCallback };
 export { newJson };

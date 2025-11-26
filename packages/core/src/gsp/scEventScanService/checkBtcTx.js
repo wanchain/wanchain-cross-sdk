@@ -1,12 +1,13 @@
 import axios from "axios";
 
-export default (class CheckBtcTx {
+class CheckBtcTx {
   constructor(frameworkService, chainType) {
     this.m_frameworkService = frameworkService;
     this.chainType = chainType;
     this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "Tx";
     this.m_CheckAry = [];
   }
+
   async init() {
     this.m_taskService = this.m_frameworkService.getService("TaskService");
     this.m_configService = this.m_frameworkService.getService("ConfigService");
@@ -16,6 +17,7 @@ export default (class CheckBtcTx {
     this.m_taskService.addTask(this, chainInfo.txScanInterval);
     this.m_eventService = this.m_frameworkService.getService("EventService");
   }
+
   async add(obj) {
     try {
       console.log("%s add obj: %O", this.serviceName, obj);
@@ -31,18 +33,18 @@ export default (class CheckBtcTx {
       if (ret.data.success === true) {
         console.log("%s save to apiServer success", this.serviceName);
         this.m_CheckAry.unshift(obj);
-      }
-      else {
+      } else {
         console.error("%s save to apiServer fail: %O", this.serviceName, postJson);
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s add error: %O", this.serviceName, err);
     }
   }
+
   async load(obj) {
     this.m_CheckAry.unshift(obj);
   }
+
   async runTask(taskPara) {
     try {
       if (this.m_CheckAry.length <= 0) {
@@ -67,9 +69,10 @@ export default (class CheckBtcTx {
           this.m_CheckAry.splice(index, 1);
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s runTask err: %O", this.serviceName, err);
     }
   }
-});
+}
+
+export default CheckBtcTx;

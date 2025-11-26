@@ -6,11 +6,14 @@ import util from "util";
 const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC", "DUST"]; // default obtaine from iwan, but some chains are not supported
 const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"]; // default obtaine from wallet to optimize batch performance, but some wallets do not support
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
+
 // DepositForBurn
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0"; // v1
+
 class StoremanService {
   constructor() {
   }
+
   async init(frameworkService, options) {
     this.isTestMode = options.isTestMode || false;
     this.frameworkService = frameworkService;
@@ -19,6 +22,7 @@ class StoremanService {
     this.configService = frameworkService.getService("ConfigService");
     this.crossTaskCfg = this.configService.getGlobalConfig("crossTask");
   }
+
   async getStroremanGroupQuotaInfo(fromChainType, tokenPairId, storemanGroupId) {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -33,8 +37,7 @@ class StoremanService {
         let minAmountChain = toChainType;
         if (tokenPair.fromAccount == 0) {
           minAmountChain = tokenPair.fromChainType;
-        }
-        else if (tokenPair.toAccount == 0) {
+        } else if (tokenPair.toAccount == 0) {
           minAmountChain = tokenPair.toChainType;
         }
         let minAmountDecimals = (minAmountChain === tokenPair.fromChainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
@@ -49,38 +52,31 @@ class StoremanService {
         let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
         return { maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed() };
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("getStroremanGroupQuotaInfo error: %O", err);
     }
     return { maxQuota: "0", minQuota: "0" };
   }
+
   validateAddress(chainType, address) {
     let result = false;
     let network = this.configService.getNetwork();
     let extension = this.configService.getExtension(chainType);
     if (extension && extension.tool && extension.tool.validateAddress) {
       result = extension.tool.validateAddress(address, { network, chain: chainType });
-    }
-    else if ("WAN" === chainType) {
+    } else if ("WAN" === chainType) {
       result = tool.isValidWanAddress(address);
-    }
-    else if ("BTC" === chainType) {
+    } else if ("BTC" === chainType) {
       result = tool.isValidBtcAddress(address, network);
-    }
-    else if ("LTC" === chainType) {
+    } else if ("LTC" === chainType) {
       result = tool.isValidLtcAddress(address, network);
-    }
-    else if ("DOGE" === chainType) {
+    } else if ("DOGE" === chainType) {
       result = tool.isValidDogeAddress(address, network);
-    }
-    else if ("XRP" === chainType) {
+    } else if ("XRP" === chainType) {
       result = tool.isValidXrpAddress(address);
-    }
-    else if ("XDC" === chainType) {
+    } else if ("XDC" === chainType) {
       result = tool.isValidXdcAddress(address);
-    }
-    else { // default check EVM
+    } else { // default check EVM
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
       if (chainInfo._isEVM) {
         result = tool.isValidEthAddress(address);
@@ -88,6 +84,7 @@ class StoremanService {
     }
     return result;
   }
+
   async checkAdaRecipient(address) {
     try {
       let network = this.configService.getNetwork();
@@ -101,12 +98,12 @@ class StoremanService {
       let key = "2147485463:ScriptReceiver:" + sriptHash;
       let result = await this.iwan.callScFunc("WAN", configScAddr, "getValue", [key], crossConfigAbi);
       return (result == 1); // bytes
-    }
-    catch (err) {
+    } catch (err) {
       console.error("checkSolRecipient %s error: %O", err);
       return false;
     }
   }
+
   async checkSolRecipient(address) {
     try {
       let accountInfo = await this.iwan.getAccountInfo("SOL", address);
@@ -116,12 +113,12 @@ class StoremanService {
       let tool = this.configService.getExtension("SOL").tool;
       let sysProgId = tool.getSystemProgramId();
       return (sysProgId.equals(tool.getPublicKey(accountInfo.owner)) && (!accountInfo.executable));
-    }
-    catch (err) {
+    } catch (err) {
       console.error("checkSolRecipient %s error: %O", err);
       return false;
     }
   }
+
   async getAccountBalance(assetPairId, chainType, addr, options = {}) {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -141,32 +138,26 @@ class StoremanService {
             // ogmius only provide pure ADA utxo balance
             balance = await options.wallet.getBalance(addr);
           }
-        }
-        else {
+        } else {
           balance = await this.iwan.getBalance(chainType, addr);
         }
-      }
-      else {
+      } else {
         decimals = direction ? tokenPair.fromDecimals : tokenPair.toDecimals;
         if (tokenPair.protocol === "Erc1155") {
           if (chainInfo._isEVM) {
             balance = await this.getErc1155Balance(chainType, addr, tokenAccount);
-          }
-          else if (options.wallet) {
+          } else if (options.wallet) {
             balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
           }
-        }
-        else { // Erc20, Erc721
+        } else { // Erc20, Erc721
           if (chainInfo._isEVM) {
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          }
-          else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
+          } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
             if (chainType !== "ALGO") { // defalut convert except ALGO
               tokenAccount = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
             }
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          }
-          else if (options.wallet) {
+          } else if (options.wallet) {
             balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
           }
         }
@@ -174,12 +165,12 @@ class StoremanService {
       balance = new BigNumber(balance).div(Math.pow(10, decimals));
       console.debug("get %s %s address %s balance: %s", chainType, isCoin ? "coin" : ("token " + tokenAccount), addr, balance.toFixed());
       return balance;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("get %s address %s balance error: %O", chainType, addr, err);
       return new BigNumber(0);
     }
   }
+
   async getAccountBalances(chainType, addr, assets, options) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     let result = {};
@@ -191,15 +182,13 @@ class StoremanService {
           let tokenInfo = assets[asset];
           if (tokenInfo.protocol === "Erc1155") {
             subgraphs.push({ asset, call: this.getErc1155Balance(chainType, addr, tokenInfo.address) });
-          }
-          else { // Erc20 and Erc721
+          } else { // Erc20 and Erc721
             if (tokenInfo.address == 0) { // coin
               mcs.push({
                 call: ['getEthBalance(address)(uint256)', evmAddress],
                 returns: [[asset]]
               });
-            }
-            else { // token
+            } else { // token
               mcs.push({
                 target: tokenInfo.address,
                 call: ['balanceOf(address)(uint256)', evmAddress],
@@ -208,7 +197,6 @@ class StoremanService {
             }
           }
         }
-        ;
         // multicall
         let res;
         if (mcs.length) {
@@ -220,11 +208,9 @@ class StoremanService {
             let balance = balances[asset];
             if (typeof (balance) === "string") { // Tron
               // do nothing
-            }
-            else if (typeof (balance._hex) === "string") { // other EVMs
+            } else if (typeof (balance._hex) === "string") { // other EVMs
               balance = balance._hex;
-            }
-            else {
+            } else {
               console.error("unrecognized %s %s balance: %O", chainType, asset, balance);
               balance = "";
               return;
@@ -238,8 +224,7 @@ class StoremanService {
           res.forEach((v, i) => result[subgraphs[i].asset] = v);
         }
       }
-    }
-    else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) { // format of non-evm chains is different and needs to parse separately
+    } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) { // format of non-evm chains is different and needs to parse separately
       if (this.validateAddress(chainType, addr)) {
         if (chainType === "ALGO") {
           let balances = await this.iwan.getAllBalances(chainType, addr);
@@ -249,8 +234,7 @@ class StoremanService {
             let tokenInfo = assets[asset]; // include coin
             result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
           }
-        }
-        else if (chainType === "SUI") {
+        } else if (chainType === "SUI") {
           let balances = await this.iwan.getAllBalances(chainType, addr);
           let bMap = new Map();
           balances.forEach(v => bMap.set(v.coinType, v.totalBalance));
@@ -260,8 +244,7 @@ class StoremanService {
           }
         }
       }
-    }
-    else if (options.wallet) {
+    } else if (options.wallet) {
       let walletId = 0;
       if (options.wallet.getChainId) {
         walletId = await options.wallet.getChainId();
@@ -276,8 +259,7 @@ class StoremanService {
               tokens.push(tool.ascii2letter(tool.hexStrip0x(assets[asset].address)));
             }
             balances = await options.wallet.getBalances(addr, tokens);
-          }
-          else {
+          } else {
             let ps = [];
             for (let asset in assets) {
               assetArray.push(asset);
@@ -289,14 +271,14 @@ class StoremanService {
             let asset = assetArray[i];
             result[asset] = new BigNumber(balances[i]).div(Math.pow(10, assets[asset].decimals)).toFixed();
           }
-        }
-        catch (err) {
+        } catch (err) {
           console.error("get %s %s balances error: %O", chainType, addr, err);
         }
       }
     }
     return result;
   }
+
   async getXrpTokenTrustLine(tokenAccount, userAccount) {
     let [currency, issuer] = tool.parseXrpTokenPairAccount(tokenAccount, false);
     let lines = await this.iwan.getTrustLines(userAccount);
@@ -309,6 +291,7 @@ class StoremanService {
     }
     return null;
   }
+
   async getNftInfo(type, chain, tokenAddr, owner, options) {
     tokenAddr = tokenAddr.toLowerCase();
     owner = owner.toLowerCase();
@@ -316,18 +299,17 @@ class StoremanService {
     if (chainInfo._isEVM) {
       if (options.tokenIds) {
         result = await this._getNftInfoFromEvmChain(type, chain, tokenAddr, owner, options.tokenIds);
-      }
-      else {
+      } else {
         result = await this._getNftInfoFromSubgraph(type, chain, tokenAddr, owner, options.limit, options.skip, options.includeUri);
       }
-    }
-    else if (options.wallet && options.wallet.getNftInfo) { // now only ADA
+    } else if (options.wallet && options.wallet.getNftInfo) { // now only ADA
       if (chain === "ADA") {
         result = await this._getNftInfoFromCardano(type, chain, tokenAddr, owner, options);
       }
     }
     return result;
   }
+
   async _getNftInfoFromCardano(type, chain, tokenAddr, owner, options) {
     let extension = this.configService.getExtension(chain);
     let policy = tool.ascii2letter(tool.hexStrip0x(tokenAddr));
@@ -351,8 +333,7 @@ class StoremanService {
           v.uri = infos[v.id];
           v.id = new BigNumber('0x' + v.id).toFixed();
         });
-      }
-      else {
+      } else {
         let mappingIds = nfts.map(v => tool.decodeCardanoNftAssetName(v.id).id).filter(v => (v != 0)); // ignore invalid crossId
         let ancestorIds = await this.getNftAncestorId(options.ancestorChainType, options.ancestorAccount, mappingIds);
         let ancestorChainInfo = this.chainInfoService.getChainInfoByType(options.ancestorChainType);
@@ -365,6 +346,7 @@ class StoremanService {
     }
     return nfts;
   }
+
   async _getNftInfoFromEvmChain(type, chain, tokenAddr, owner, tokenIds, checkAvailable = true) {
     let result = [], mcs = [];
     tokenIds.forEach(v => {
@@ -375,8 +357,7 @@ class StoremanService {
           call: ["ownerOf(uint256)(address)", id],
           returns: [[id + "-owner"]]
         });
-      }
-      else { // get erc1155 balance
+      } else { // get erc1155 balance
         mcs.push({
           target: tokenAddr,
           call: ["balanceOf(address,uint256)(uint256)", owner, id],
@@ -402,8 +383,7 @@ class StoremanService {
           if (tool.cmpAddress(getOwner, owner)) {
             balance = 1;
           }
-        }
-        else {
+        } else {
           balance = data[id + "-balance"]._hex;
         }
         balance = new BigNumber(balance);
@@ -414,17 +394,16 @@ class StoremanService {
             balance: balance.toFixed(),
             uri: data[id + "-uri"].replace(/\{id\}/g, fullId)
           });
-        }
-        else {
+        } else {
           console.debug("%s does not own %s %s token %s id %s", owner, chain, type, tokenAddr, v);
         }
       });
-    }
-    catch (err) { // erc721 would throw error if query nonexistent token
+    } catch (err) { // erc721 would throw error if query nonexistent token
       console.error("getNftInfoFromChain error: %O", err);
     }
     return result;
   }
+
   async _getNftInfoFromSubgraph(type, chain, tokenAddr, owner, limit, skip, includeUri) {
     limit = parseInt(limit || 10);
     skip = parseInt(skip || 0);
@@ -470,6 +449,7 @@ class StoremanService {
     }
     return result;
   }
+
   async getErc1155Balance(chain, owner, token) {
     let balance = 0, skip = 0;
     for (; ;) {
@@ -478,13 +458,13 @@ class StoremanService {
       balance += bal;
       if (bal < 1000) {
         break;
-      }
-      else {
+      } else {
         skip += bal;
       }
     }
     return balance;
   }
+
   async getNftAncestorId(chain, tokenAddr, mappingIds) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chain);
     let mcs = mappingIds.map(id => {
@@ -499,6 +479,7 @@ class StoremanService {
     let ancestorIds = mappingIds.map(id => new BigNumber(data[id]._hex).toFixed());
     return ancestorIds;
   }
+
   async getNftMappingId(ancestorChain, ancestorTokenAddr, tokenIds) {
     let chainInfo = this.chainInfoService.getChainInfoByType(ancestorChain);
     let mcs = tokenIds.map(id => {
@@ -513,6 +494,7 @@ class StoremanService {
     let mappingIds = tokenIds.map(id => new BigNumber(data[id]._hex).toFixed());
     return mappingIds;
   }
+
   async getCardanoNftInfo(toChainID, policyId, assetNames) {
     let chainInfo = this.chainInfoService.getChainInfoByType("ADA");
     let url = chainInfo.nft.ogmios + "/getNftMetaData";
@@ -526,6 +508,7 @@ class StoremanService {
     let result = res.data || {};
     return result;
   }
+
   async getCardanoEpochParameters() {
     try {
       let t = await this.iwan.call("getChainTip", { chainType: 'ADA' });
@@ -549,23 +532,23 @@ class StoremanService {
       };
       console.debug("getCardanoEpochParameters: %O", epochParameters);
       return epochParameters;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("getCardanoEpochParameters error: %O", err);
       throw new Error("Network Instability Detected");
     }
   }
+
   async getCardanoCostModelParameters() {
     try {
       let p = await this.iwan.getCostModelParameters("ADA", { epochID: "latest" });
       console.debug("getCardanoCostModelParameters: %O", p);
       return p;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("getCardanoCostModelParameters error: %O", err);
       throw new Error("Network Instability Detected");
     }
   }
+
   async getChainBlockNumber(chainType, options = {}) {
     if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
       return 0;
@@ -577,20 +560,18 @@ class StoremanService {
         let moduleName = options.bridge ? "fee_collector" : "cross";
         let events = await this.iwan.getScEvent("SUI", scAddr, [], { moduleName, order: 'descending', limit: options.rewind || 1 });
         return events.nextCursor;
-      }
-      else if (chainType === "TON") { // timestamp in second
+      } else if (chainType === "TON") { // timestamp in second
         return parseInt(Date.now() / 1000);
-      }
-      else { // EVM chains return blockNumber 
+      } else { // EVM chains return blockNumber 
         let blockNumber = await this.iwan.getBlockNumber(chainType);
         return blockNumber;
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.log("%s getChainBlockNumber error: %O", chainType, err);
       return 0; // should retry later
     }
   }
+
   async getBtcTxSender(chainType, txid) {
     let txInfo = await this.iwan.getTxInfo(chainType, txid, { format: true });
     let inputLen = txInfo.vin.length;
@@ -607,6 +588,7 @@ class StoremanService {
     }
     return sender;
   }
+
   async registerSolWalletAddress(ataAddr, walletAddr) {
     let apiServer = this.configService.getGlobalConfig("apiServer");
     let url = apiServer.url + "/api/sol/addCctpWalletAddr";
@@ -616,16 +598,15 @@ class StoremanService {
       if (ret.data.success) {
         console.debug("registerSolWalletAddress: %O", data);
         return;
-      }
-      else {
+      } else {
         console.error("registerSolWalletAddress %O error: %O", data, ret);
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("registerSolWalletAddress %O error: %O", data, err);
     }
     throw new Error("Failed to register Solnala wallet address");
   }
+
   async getSuiCoins(address, coinType = "") {
     let data = [], cursor = "";
     for (; ;) {
@@ -635,13 +616,13 @@ class StoremanService {
       }
       if (result.hasNextPage && result.nextCursor) {
         cursor = result.nextCursor;
-      }
-      else {
+      } else {
         break;
       }
     }
     return data;
   }
+
   async parseCctpDeposit(fromChain, txHash, options) {
     let result = {};
     if (fromChain === "NOBLE") {
@@ -653,8 +634,7 @@ class StoremanService {
         for (let attr of event.attributes) {
           if (attr.key === "nonce") {
             nonce = attr.value; // string
-          }
-          else if (attr.key === "amount") {
+          } else if (attr.key === "amount") {
             amount = attr.value; // string
           }
           if (nonce && amount) {
@@ -664,8 +644,7 @@ class StoremanService {
           }
         }
       }
-    }
-    else if (fromChain === "SOL") {
+    } else if (fromChain === "SOL") {
       let depositMsg = await this.iwan.parseCctpMessageSent("SOL", options.ota);
       let sol = this.configService.getExtension("SOL");
       let cctpMsg = sol.tool.parseCctpDepositMessage(depositMsg);
@@ -674,8 +653,7 @@ class StoremanService {
         result.depositNonce = parseInt("0x" + cctpMsg.nonce.toString("hex"));
         result.depositAmount = parseInt("0x" + cctpMsg.amount.toString("hex"));
       }
-    }
-    else if (fromChain === "SUI") {
+    } else if (fromChain === "SUI") {
       let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
       let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
       let depositMsg = chainInfo.CircleBridge.messageTransmitter + "::send_message::MessageSent";
@@ -690,8 +668,7 @@ class StoremanService {
           result.depositAmount = cctpMsg.amount;
         }
       }
-    }
-    else if (options.isV2) { // evm v2
+    } else if (options.isV2) { // evm v2
       let chainInfo = this.chainInfoService.getChainInfoByType(fromChain);
       let cctpApiUrl = this.configService.getGlobalConfig("cctpApiUrl");
       let url = util.format("%s/v2/messages/%d?transactionHash=%s", cctpApiUrl, chainInfo.CircleBridge.domain, txHash);
@@ -702,13 +679,11 @@ class StoremanService {
         if (msg.eventNonce && msg.decodedMessage) {
           result.depositNonce = msg.eventNonce;
           result.depositAmount = msg.decodedMessage.decodedMessageBody.amount;
-        }
-        else if (msg.attestation === "PENDING") {
+        } else if (msg.attestation === "PENDING") {
           console.debug("parseCctpDeposit for chain %s tx %s pending: %s", fromChain, txHash, msg.delayReason);
         }
       }
-    }
-    else { // evm v1
+    } else { // evm v1
       let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
       for (let log of receipt.logs) {
         if (log.topics[0] === CctpEvmDepositEventHash) {
@@ -723,14 +698,14 @@ class StoremanService {
     }
     return result;
   }
+
   async getRewardTasks(page, pageSize, options) {
     let args, tasks;
     let abi = this.configService.getAbi("rewardTask");
     if (options.claimer) {
       args = [options.claimer, page, pageSize];
       tasks = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getReversePageUserTasks", args, abi);
-    }
-    else {
+    } else {
       args = [page, pageSize];
       tasks = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getReversePageTasks", args, abi);
     }
@@ -741,11 +716,11 @@ class StoremanService {
     let task = await this.iwan.callScFunc("WAN", this.crossTaskCfg.scAddr, "getTaskById", [taskId], abi);
     if (task[17] != 0) { // status
       return this.formatRewardTask(task);
-    }
-    else {
+    } else {
       return null;
     }
   }
+
   formatRewardTask(task) {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -758,8 +733,7 @@ class StoremanService {
         toChain = tp.toChainName;
         decimals = tp.fromDecimals;
         tpDestChainId = tp.toChainID;
-      }
-      else {
+      } else {
         fromChain = tp.toChainName;
         toChain = tp.fromChainName;
         decimals = tp.toDecimals;
@@ -810,12 +784,12 @@ class StoremanService {
         finishTxHash: task[16] !== "0x" ? task[16] : "",
         status
       };
-    }
-    catch (err) { // reward and collateral tokens maybe not defined in sdk
+    } catch (err) { // reward and collateral tokens maybe not defined in sdk
       console.error("formatRewardTask error: %s, %O", err, task);
       return null;
     }
   }
+
   getRewardTaskTokenInfo(chainType, tokenAddr) {
     tokenAddr = tokenAddr.toLowerCase();
     let info = this.crossTaskCfg.tokens[tokenAddr];
@@ -825,6 +799,7 @@ class StoremanService {
     }
     return info;
   }
+
   async waitTxReceipt(chainType, txHash, timeout = 0, interval = 3000) {
     let t0 = Date.now();
     for (; ;) {
@@ -833,18 +808,17 @@ class StoremanService {
         if (receipt) {
           return receipt;
         }
-      }
-      catch (err) {
+      } catch (err) {
         // console.error("waitTxReceipt error: %O", err);
       }
       if ((Date.now() - t0) < timeout) {
         await tool.sleep(interval);
-      }
-      else {
+      } else {
         console.debug("waitTxReceipt %d ms unavailable", timeout);
         return null;
       }
     }
   }
 }
+
 export default StoremanService;

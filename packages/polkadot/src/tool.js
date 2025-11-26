@@ -1,8 +1,6 @@
-import keyring from "@polkadot/keyring";
+import { encodeAddress } from "@polkadot/keyring";
 import * as util from "@polkadot/util";
 import * as utilCrypto from "@polkadot/util-crypto";
-
-const { encodeAddress } = keyring;
 
 const SS58Format = { // self define to reduce imported package size
   polkadot: 0,

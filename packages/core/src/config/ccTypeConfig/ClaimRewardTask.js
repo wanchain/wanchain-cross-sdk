@@ -1,6 +1,6 @@
 import BigNumber from "bignumber.js";
 
-export default (class ClaimRewardTask {
+class ClaimRewardTask {
   constructor(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.crossTaskCfg = configService.getGlobalConfig("crossTask");
@@ -51,4 +51,6 @@ export default (class ClaimRewardTask {
     steps.push({ name: "claimRewardTask", stepIndex: steps.length + 1, params });
     return steps;
   }
-});
+}
+
+export default ClaimRewardTask;

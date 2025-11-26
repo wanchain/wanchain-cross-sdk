@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import base32 from "hi-base32";
 
-export default (class ProcessMintFromAlgorand {
+class ProcessMintFromAlgorand {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -110,4 +110,6 @@ export default (class ProcessMintFromAlgorand {
       }
     }
   }
-});
+}
+
+export default ProcessMintFromAlgorand;

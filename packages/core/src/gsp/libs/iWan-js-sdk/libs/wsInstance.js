@@ -1,23 +1,24 @@
-import events from "events";
+import { EventEmitter } from "events";
 import config from "../conf/config.js";
-const EventEmitter = events.EventEmitter;
+
 let WebSocketClass = undefined;
 if (typeof (WebSocket) !== "undefined") {
   WebSocketClass = WebSocket;
-}
-else {
+} else {
   WebSocketClass = require('ws');
 }
+
 const CONN_OPTIONS = {
   'handshakeTimeout': 12000,
   rejectUnauthorized: false
 };
-class WsEvent extends EventEmitter {
-}
+
+class WsEvent extends EventEmitter { }
+
 class WsInstance {
   constructor(apiKey, secretKey, option) {
     this.needReconnect = true;
-    this.activeClose = false; // marked if client take the initiative to close connect
+    this.activeClose = false;  // marked if client take the initiative to close connect
     this.apiKey = apiKey;
     this.secretKey = secretKey;
     this.open = false;
@@ -27,26 +28,28 @@ class WsInstance {
     if (this.option.flag) {
       this.ws_url += '/' + this.option.flag;
     }
+
     if (this.apiKey) {
       this.ws_url += '/' + this.option.version + '/' + this.apiKey;
+
       this.lockReconnect = false;
       this.functionDict = {};
       this.createWebSocket();
-    }
-    else {
+    } else {
       throw new Error('Should config \'APIKEY\' and \'SECRETKEY\'');
       process.exit();
     }
   }
+
   createWebSocket() {
     try {
       this.wss = new WebSocketClass(this.ws_url);
       this.initEventHandle();
-    }
-    catch (e) {
+    } catch (e) {
       this.reconnect();
     }
   }
+
   initEventHandle() {
     this.wss.onopen = () => {
       console.log("wss onopen");
@@ -75,6 +78,7 @@ class WsInstance {
       }
     };
   }
+
   clearRequests() {
     for (let key of Object.keys(this.functionDict)) {
       let fn = this.functionDict[key];
@@ -82,6 +86,7 @@ class WsInstance {
       fn({ error: "websocket error" });
     }
   }
+
   reconnect() {
     console.log("[WYH_DEBUG] reconnect() ... ");
     if (this.needReconnect === false) {
@@ -97,6 +102,7 @@ class WsInstance {
       this.lockReconnect = false;
     }, 500);
   }
+
   close() {
     //this.heartCheck.reset();
     console.log("Active closing ...");
@@ -107,24 +113,28 @@ class WsInstance {
     this.activeClose = true;
     this.wss.close();
   }
+
   sendMessage(message, callback) {
-    let idx = message.id.toString();
+    let idx = message.id.toString()
+
     this.wss.send(JSON.stringify(message));
     this.functionDict[idx] = callback;
   }
+
   getMessage(message) {
     let idx = message.id.toString();
     let fn = this.functionDict[idx];
     if (fn) {
       delete this.functionDict[idx];
       fn(message);
-    }
-    else {
+    } else {
       console.log("req %s has been cleared", idx);
     }
   }
+
   async addConnectNotify(callback) {
     this.events.on("open", callback);
   }
 }
+
 export default WsInstance;

@@ -22,6 +22,7 @@ class TokenPairService {
     this.fromChainAssets = new Map(); // protocol => chainType => assetName => tokenAccount
     this.tokenInfos = new Map(); // only for reward tasks, add tokens as needed
   }
+
   async init(frameworkService, options) {
     try {
       this.isTestMode = options.isTestMode || false;
@@ -42,17 +43,18 @@ class TokenPairService {
         this.m_mapTokenPairCfg.set(tp.id, tp);
       });
       // console.debug("tokenPairCfg: %O", this.m_mapTokenPairCfg);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("TokenPairService init error: %O", err);
     }
   }
+
   async onIwanConnected() {
     if (this.m_iwanConnected === false) {
       this.m_iwanConnected = true;
       await this.readAssetPair();
     }
   }
+
   async getSmgs(startTime) {
     let smgList = await this.iwan.getStoremanGroupList();
     let ts = Date.now();
@@ -70,11 +72,11 @@ class TokenPairService {
     if (workingList.length > 0) {
       workingList.sort((a, b) => (b.endTime - b.startTime) - (a.endTime - a.startTime));
       return workingList;
-    }
-    else {
+    } else {
       throw new Error("Storeman unavailable");
     }
   }
+
   async readAssetPair() {
     this.storageService = this.frameworkService.getService("StorageService");
     this.indexedDbService = this.frameworkService.getService("IndexedDbService");
@@ -154,12 +156,12 @@ class TokenPairService {
       this.m_mapTokenPair = tokenPairMap;
       this.eventService.emitEvent("StoremanServiceInitComplete", true);
       this.storageService.setCacheData("Version", { tokenPair: tokenPairVer, chainLogo: chainLogoVer, tokenLogo: tokenLogoVer });
-    }
-    catch (err) {
+    } catch (err) {
       console.error("readAssetPair error: %O", err);
       this.eventService.emitEvent("StoremanServiceInitComplete", false);
     }
   }
+
   checkCustomization(tp) {
     if (this.crossProtocols.length && !this.crossProtocols.includes(tp.protocol.toLowerCase())) {
       return false;
@@ -177,6 +179,7 @@ class TokenPairService {
     }
     return true;
   }
+
   setCrossTypes(crossTypes) {
     if (this.m_mapTokenPair.size === 0) {
       return false; // not initialized
@@ -188,16 +191,17 @@ class TokenPairService {
     this.eventService.emitEvent("StoremanServiceInitComplete", true);
     return true;
   }
+
   getCrossTypes() {
     return this.crossTypes;
   }
+
   checkActive(assetName, tp) {
     if (this.crossTypes.length && (tp.protocol === "Erc20")) {
       let crossType = "other";
       if (tp.bridge === "Circle") {
         crossType = "cctp";
-      }
-      else if (tp.fromIsNative && tp.toIsNative) {
+      } else if (tp.fromIsNative && tp.toIsNative) {
         crossType = "xflows";
       }
       if (!this.crossTypes.includes(crossType)) {
@@ -211,6 +215,7 @@ class TokenPairService {
     }
     return true;
   }
+
   async readTokenpairs(startTime, tokenPairVer) {
     let tokenPairs = [];
     if ((!this.refresh.tokenPair) && this.indexedDbService) {
@@ -218,39 +223,15 @@ class TokenPairService {
     }
     if (tokenPairs.length) { // maybe indexedDb TokenPair is cleared
       console.debug("all tokenpair hit cache");
-    }
-    else {
+    } else {
       let network = this.configService.getNetwork();
       let options;
       if (network === "mainnet") {
         options = this.isTestMode ? { tags: ["bridgeBeta"] } : { tags: ["bridge"] };
-      }
-      else {
+      } else {
         options = { isAllTokenPairs: true };
       }
       tokenPairs = await this.iwan.getTokenPairs(options);
-      // tokenPairs.push({
-      //   "id": "1236",
-      //   "ancestorChainID": "2153201998",
-      //   "fromChainID": "2153201998",
-      //   "toChainID": "1073741862",
-      //   "ancestorAccount": "0x0000000000000000000000000000000000000000",
-      //   "fromAccount": "0x0000000000000000000000000000000000000000",
-      //   "toAccount": "0x0200d96d148460ac071eb01a5bc84196908b107c8c44a3f0685ddd1d6b69762bd3cd",
-      //   "ancestorName": "wanchain",
-      //   "ancestorSymbol": "WAN",
-      //   "ancestorDecimals": "18",
-      //   "fromName": "wanchain",
-      //   "fromSymbol": "WAN",
-      //   "fromDecimals": "18",
-      //   "name": "wanchain",
-      //   "symbol": "WAN",
-      //   "decimals": "6",
-      //   "fromAccountType": "Erc20",
-      //   "toAccountType": "Erc20",
-      //   "fromAccountIsLayer2": false,
-      //   "toAccountIsLayer2": false
-      // });
       if (this.indexedDbService) {
         tokenPairs.forEach(v => v._ver = tokenPairVer);
         await this.indexedDbService.setCacheData("TokenPair", tokenPairs);
@@ -261,6 +242,7 @@ class TokenPairService {
     console.debug("readTokenpairs %d consume %s ms", tokenPairs.length, ts - startTime);
     return tokenPairs;
   }
+
   async readMultiChainOrigToken(startTime) {
     let origTokens = await this.iwan.getRegisteredMultiChainOrigToken();
     let map = new Map();
@@ -272,6 +254,7 @@ class TokenPairService {
     let ts = Date.now();
     console.debug("readMultiChainOrigToken %d consume %s ms", origTokens.length, ts - startTime);
   }
+
   async readTokenIssuer(startTime) {
     let tokenIssuers = await this.iwan.getRegisteredTokenIssuer();
     let map = new Map();
@@ -283,6 +266,7 @@ class TokenPairService {
     let ts = Date.now();
     console.debug("readTokenIssuer %d consume %s ms", tokenIssuers.length, ts - startTime);
   }
+
   async readAssetLogos(tokenPairs, startTime) {
     let assetMap = new Map();
     let tokenMap = new Map();
@@ -313,8 +297,7 @@ class TokenPairService {
       let logo = logoMapCacheOld.get(k);
       if (logo) {
         logoMapCacheNew.set(k, logo);
-      }
-      else {
+      } else {
         tokenMap.set(v.chain + "-" + v.address, k);
         accountSet.add(v.address);
         // console.debug("%s %s(%s) logo miss cache", v.chain, k, v.address);
@@ -340,14 +323,14 @@ class TokenPairService {
         });
         await this.indexedDbService.setCacheData("AssetLogo", newLogos);
       }
-    }
-    else {
+    } else {
       console.debug("all asset logo hit cache");
     }
     let ts = Date.now();
     console.debug("readAssetLogos %d consume %s ms", tokenScAddr.length, ts - startTime);
     this.assetLogo = logoMapCacheNew;
   }
+
   async readChainLogos(tokenPairs, startTime) {
     let chainSet = new Set();
     let newChains = [];
@@ -368,8 +351,7 @@ class TokenPairService {
       let logo = logoMapCacheOld.get(k);
       if (logo) {
         logoMapCacheNew.set(k, logo);
-      }
-      else {
+      } else {
         newChains.push(k);
         // console.debug("%s chain logo miss cache", k);
       }
@@ -378,8 +360,7 @@ class TokenPairService {
       let logos = [];
       if ((newChains.length * 3) > chainSet.size) {
         logos = await this.iwan.getRegisteredChainLogo();
-      }
-      else {
+      } else {
         await Promise.all(newChains.map(async (chainType) => {
           let result = await this.iwan.getRegisteredChainLogo({ chainType });
           logos = logos.concat(result);
@@ -400,14 +381,14 @@ class TokenPairService {
         });
         await this.indexedDbService.setCacheData("ChainLogo", newLogos);
       }
-    }
-    else {
+    } else {
       console.debug("all chain logo hit cache");
     }
     let ts = Date.now();
     console.debug("readChainLogos %d consume %s ms", newChains.length, ts - startTime);
     this.chainLogo = logoMapCacheNew;
   }
+
   async readChainHighlightEndTime(startTime) {
     try {
       let times = await this.iwan.call("getChainTagNewDeadline", {});
@@ -415,13 +396,13 @@ class TokenPairService {
       let map = new Map();
       times.forEach(t => map.set(t.chainID, parseInt(t.deadline)));
       this.chainHighlightEndTime = map;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("readChainHighlightEndTime error: %O", err);
     }
     let ts = Date.now();
     console.debug("readChainHighlightEndTime %d consume %s ms", this.chainHighlightEndTime.size, ts - startTime);
   }
+
   async readAssetHighlightEndTime(startTime) {
     try {
       let times = await this.iwan.call("getTokenTagNewDeadline", {});
@@ -429,16 +410,17 @@ class TokenPairService {
       let map = new Map();
       times.forEach(t => map.set(t.symbol, parseInt(t.deadline)));
       this.assetHighlightEndTime = map;
-    }
-    catch (err) {
+    } catch (err) {
       console.error("readAssetHighlightEndTime error: %O", err);
     }
     let ts = Date.now();
     console.debug("readAssetHighlightEndTime %d consume %s ms", this.assetHighlightEndTime.size, ts - startTime);
   }
+
   getTokenPair(id) {
     return this.m_mapTokenPair.get(id);
   }
+
   getAssetLogo(name, protocol) {
     let assetName = this.assetAlias2Type.get(name) || name;
     protocol = protocol ? protocol.toLowerCase() : "erc20";
@@ -456,72 +438,60 @@ class TokenPairService {
     }
     return logo;
   }
+
   customizeUI(tokenPair) {
     let direction = "both";
     if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
       tokenPair.assetAlias = "BTC.a";
       this.assetAlias2Type.set("BTC.a", "BTC");
       direction = "t2f";
-    }
-    else if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
+    } else if (tokenPair.id === "14") { // migrating ethereum wrapped wanBTC to WBTC, internal assetType is BTC but represent as wanBTC
       tokenPair.assetAlias = "wanBTC";
       this.assetAlias2Type.set("wanBTC", "BTC");
       direction = "t2f";
-    }
-    else if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
+    } else if (tokenPair.id === "454") { // migrating arbitrum wrapped USDC.e to USDC, internal assetType is USDC but represent as USDC.e
       tokenPair.assetAlias = "USDC.e";
       tokenPair.fromSymbol = "USDC.e";
       this.assetAlias2Type.set("USDC.e", "USDC");
       direction = "f2t"; // fromChain and toChain are the same, only support f2t
-    }
-    else if (tokenPair.id === "660") { // cardano token symbol is unreasonable, but tokenPair ancestorSymbol must be consistent with the chain
+    } else if (tokenPair.id === "660") { // cardano token symbol is unreasonable, but tokenPair ancestorSymbol must be consistent with the chain
       direction = "t2f";
-    }
-    else if (tokenPair.id === "610") { // TADA ethereum -> cardano
+    } else if (tokenPair.id === "610") { // TADA ethereum -> cardano
       direction = "t2f";
-    }
-    else if (tokenPair.id === "612") { // TADA ethereum -> wanchain
+    } else if (tokenPair.id === "612") { // TADA ethereum -> wanchain
       direction = "f2t";
-    }
-    else if (tokenPair.id === "721") { // CARDS ethereum -> cardano
+    } else if (tokenPair.id === "721") { // CARDS ethereum -> cardano
       direction = "t2f";
-    }
-    else if (tokenPair.id === "722") { // CARDS ethereum -> wanchain
+    } else if (tokenPair.id === "722") { // CARDS ethereum -> wanchain
       direction = "f2t";
-    }
-    else if ((tokenPair.id === "136") || (tokenPair.id === "138")) { // // migrating xdc wrapped wanUSDC to circle USDC, internal assetType is USDC but represent as wanUSDC
+    } else if ((tokenPair.id === "136") || (tokenPair.id === "138")) { // // migrating xdc wrapped wanUSDC to circle USDC, internal assetType is USDC but represent as wanUSDC
       tokenPair.assetAlias = "wanUSDC";
       this.assetAlias2Type.set("wanUSDC", "USDC");
       direction = "t2f";
     }
     tokenPair.direction = direction;
   }
+
   customizeSymbol(symbol) {
     if (symbol === "Djed_testMicroUSD") {
       return "Djed Test USD";
-    }
-    else if (symbol === "GEROV2") {
+    } else if (symbol === "GEROV2") {
       return "GERO";
-    }
-    else if (symbol === "worldmobiletoken") {
+    } else if (symbol === "worldmobiletoken") {
       return "WMT";
-    }
-    else if (symbol === "MynthToken") {
+    } else if (symbol === "MynthToken") {
       return "MNT";
-    }
-    else if (symbol === "MATIC") {
+    } else if (symbol === "MATIC") {
       return "POL";
-    }
-    else if (symbol === "ELisforLiar") {
+    } else if (symbol === "ELisforLiar") {
       return "LIAR";
-    }
-    else if (symbol === "Talos") {
+    } else if (symbol === "Talos") {
       return "AGENT";
-    }
-    else {
+    } else {
       return symbol;
     }
   }
+
   getBridgeInfo(bridges) {
     let bridge = '', routes = []; // default WanBridge, bridge keep empty for compatible
     if (bridges && bridges[0]) { // only cctp now, bridges is ['CCTPV1'] or ['CCTPV2'], iwan only fill the prefer one, not both
@@ -532,6 +502,7 @@ class TokenPairService {
     }
     return { bridge, routes };
   }
+
   updateTokenPairInfo(tokenPair) {
     let ancestorChainInfo = this.chainInfoService.getChainInfoById(tokenPair.ancestorChainID);
     tokenPair.fromScInfo = this.chainInfoService.getChainInfoById(tokenPair.fromChainID);
@@ -554,17 +525,16 @@ class TokenPairService {
         this.customizeUI(tokenPair); // put here to update symbol
         this.updateTokenPairCcHandle(tokenPair);
         return true;
-      }
-      catch (err) {
+      } catch (err) {
         console.error("ignore unavailable token pair %s(%s, %s<->%s): %O", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainName, tokenPair.toChainName, err);
         return false; // can not get token info from chain
       }
-    }
-    else {
+    } else {
       console.log("ignore unsupported token pair %s(%s, %s<->%s)", tokenPair.id, tokenPair.ancestorSymbol, tokenPair.fromChainID, tokenPair.toChainID);
       return false; // lack of chain config, need to upgrade sdk
     }
   }
+
   updateTokenPairFromChainInfo(tokenPair) {
     tokenPair.fromChainType = tokenPair.fromScInfo.chainType;
     tokenPair.fromChainName = tokenPair.fromScInfo.chainName;
@@ -579,6 +549,7 @@ class TokenPairService {
       };
     }
   }
+
   updateTokenPairToChainInfo(tokenPair) {
     tokenPair.toChainType = tokenPair.toScInfo.chainType;
     tokenPair.toChainName = tokenPair.toScInfo.chainName;
@@ -593,6 +564,7 @@ class TokenPairService {
       };
     }
   }
+
   checkNativeToken(bridge, ancestorChainType, chainType, tokenAccount) {
     if (bridge) { // all other bridge token is native
       return true;
@@ -607,6 +579,7 @@ class TokenPairService {
     }
     return false;
   }
+
   updateTokenPairCcHandle(tokenPair) {
     let fromChainInfo = tokenPair.fromScInfo;
     let toChainInfo = tokenPair.toScInfo;
@@ -617,8 +590,7 @@ class TokenPairService {
       if (fromChainInfo[bridgeKey] && toChainInfo[bridgeKey]) {
         tokenPair.ccType["MINT"] = fromChainInfo._isEVM ? (bridgeKey + "Deposit") : (bridgeKey + fromChainInfo.chainName + "Deposit");
         tokenPair.ccType["BURN"] = toChainInfo._isEVM ? (bridgeKey + "Deposit") : (bridgeKey + toChainInfo.chainName + "Deposit");
-      }
-      else {
+      } else {
         throw new Error(bridgeKey + " unavailable");
       }
       return;
@@ -640,6 +612,7 @@ class TokenPairService {
     this.setTokenCrossHandler(tokenPair, "MINT");
     this.setTokenCrossHandler(tokenPair, "BURN");
   }
+
   updateChainAssets(tokenPair) {
     let assetName = tokenPair.assetAlias || tokenPair.readableSymbol;
     if (!this.checkActive(assetName, tokenPair)) {
@@ -674,41 +647,38 @@ class TokenPairService {
     }
     return true;
   }
+
   // for internal call
   setTokenCrossHandler(tokenPair, direction) {
     let chainInfo = (direction === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let tokenAccount = (direction === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
     if (tokenAccount === "0x0000000000000000000000000000000000000000") {
       tokenPair.ccType[direction] = chainInfo.mintFromChainHandle || "MintCoin";
-    }
-    else if (chainInfo.chainId === tokenPair.ancestorChainID) {
+    } else if (chainInfo.chainId === tokenPair.ancestorChainID) {
       tokenPair.ccType[direction] = chainInfo.mintFromChainHandle || "MintErc20";
-    }
-    else {
+    } else {
       let key = chainInfo.chainType + "-" + tokenAccount;
       let origToken = this.multiChainOrigToken.get(key);
       if (origToken) {
         tokenPair.ccType[direction] = chainInfo.mintFromChainHandle || "MintErc20";
-      }
-      else {
+      } else {
         tokenPair.ccType[direction] = chainInfo.burnFromChainHandle || "BurnErc20";
       }
     }
   }
+
   // for external call
   getTokenEventType(tokenPairId, direction) {
     let tokenPair = this.getTokenPair(tokenPairId);
     if (direction === true) { // unify direction value
       direction = "MINT";
-    }
-    else if (direction === false) {
+    } else if (direction === false) {
       direction = "BURN";
     }
     let chainType = (direction === "MINT") ? tokenPair.toChainType : tokenPair.fromChainType;
     if (chainType === "ALGO") {
       return "algoBURN";
-    }
-    else if (chainType === "TON") {
+    } else if (chainType === "TON") {
       return "BURN";
     }
     let tokenAccount = (direction === "MINT") ? tokenPair.toAccount : tokenPair.fromAccount;
@@ -716,18 +686,20 @@ class TokenPairService {
     let origToken = this.multiChainOrigToken.get(key);
     if (origToken || (tokenAccount === tokenPair.ancestorAccount)) { // original token or coin
       return (tokenPair.protocol === "Erc20") ? "BURN" : "BURNNFT"; // release
-    }
-    else {
+    } else {
       return (tokenPair.protocol === "Erc20") ? "MINT" : "MINTNFT";
     }
   }
+
   async updateSmgs() {
     let smgList = await this.getSmgs(Date.now());
     this.webStores.assetPairs.setAssetPairs(undefined, smgList);
   }
+
   getChainType(chainName) {
     return this.chainName2Type.get(chainName);
   }
+
   getChainAssets(chainType, options) {
     let assets = {};
     options.protocols.forEach(p => {
@@ -741,6 +713,7 @@ class TokenPairService {
     });
     return assets;
   }
+
   async getAssetPrice(symbols) {
     let prices = {};
     try {
@@ -749,8 +722,7 @@ class TokenPairService {
         let aliasType = this.assetAlias2Type.get(v);
         if (aliasType) {
           alias[v] = aliasType;
-        }
-        else {
+        } else {
           origSymbols.add(v);
         }
       });
@@ -769,22 +741,22 @@ class TokenPairService {
           let id = symbol2id[symbol];
           if (res.data[id] && res.data[id]['usd']) {
             prices[symbol] = res.data[id]['usd'].toString();
-          }
-          else {
+          } else {
             prices[symbol] = "0";
           }
         }
       }
       // console.log("get %s price: %O", symbols, prices);
-    }
-    catch (e) {
+    } catch (e) {
       console.log("get %s price error: %O", symbols, e);
     }
     return prices;
   }
+
   getChainHighlightEndTime(chainId) {
     return this.chainHighlightEndTime.get(chainId) || 0;
   }
+
   getTokenInfo(chainType, tokenAddr) {
     let tokenAccount = tokenAddr.toLowerCase();
     let key = chainType + "-" + tokenAccount;
@@ -794,8 +766,7 @@ class TokenPairService {
         if ((tp.fromChainType === chainType) && (tp.fromAccount === tokenAccount)) {
           cache = { symbol: tp.readableSymbol, decimals: tp.fromDecimals };
           break;
-        }
-        else if ((tp.toChainType === chainType) && (tp.toAccount === tokenAccount)) {
+        } else if ((tp.toChainType === chainType) && (tp.toAccount === tokenAccount)) {
           cache = { symbol: tp.readableSymbol, decimals: tp.toDecimals };
           break;
         }

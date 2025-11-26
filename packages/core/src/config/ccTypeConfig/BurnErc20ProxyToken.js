@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class BurnErc20ProxyToken {
+class BurnErc20ProxyToken {
   constructor(frameworkService) {
     this.m_iwanBCConnector = frameworkService.getService("iWanConnectorService");
     this.m_chainInfoService = frameworkService.getService("ChainInfoService");
@@ -81,4 +81,6 @@ export default (class BurnErc20ProxyToken {
     //console.debug("BurnErc20ProxyToken steps:", steps);
     return steps;
   }
-});
+}
+
+export default BurnErc20ProxyToken;

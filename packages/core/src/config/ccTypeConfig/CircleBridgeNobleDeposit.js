@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class CircleBridgeNobleDeposit {
+class CircleBridgeNobleDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -44,4 +44,6 @@ export default (class CircleBridgeNobleDeposit {
       throw err;
     }
   }
-});
+}
+
+export default CircleBridgeNobleDeposit;

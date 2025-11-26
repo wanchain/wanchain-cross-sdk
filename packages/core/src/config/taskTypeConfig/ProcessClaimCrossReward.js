@@ -3,7 +3,7 @@ import ProcessBaseSync from "./processBaseSync.js";
 
 const web3 = new Web3();
 
-export default (class ProcessClaimCrossReward extends ProcessBaseSync {
+class ProcessClaimCrossReward extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
     this.configService = frameworkService.getService("ConfigService");
@@ -39,4 +39,6 @@ export default (class ProcessClaimCrossReward extends ProcessBaseSync {
       return web3.utils.asciiToHex(txHash);
     }
   }
-});
+}
+
+export default ProcessClaimCrossReward;

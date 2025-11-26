@@ -1,20 +1,23 @@
 import axios from "axios";
 
-export default (class CheckApiServerTxService {
+class CheckApiServerTxService {
   constructor(chainType) {
     this.chainType = chainType;
     this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "TxService";
     this.checkArray = [];
   }
+
   async init(frameworkService) {
     this.frameworkService = frameworkService;
     this.taskService = frameworkService.getService("TaskService");
     this.webStores = frameworkService.getService("WebStores");
     this.eventService = frameworkService.getService("EventService");
   }
+
   async loadTradeTask(tasks) {
     tasks.forEach(task => this.checkArray.push(task));
   }
+
   async start() {
     let configService = this.frameworkService.getService("ConfigService");
     let apiServerConfig = configService.getGlobalConfig("apiServer");
@@ -25,6 +28,7 @@ export default (class CheckApiServerTxService {
       this.taskService.addTask(this, chainInfo.txScanInterval);
     }
   }
+
   async addTask(task) {
     let storageService = this.frameworkService.getService("StorageService");
     await storageService.save(this.serviceName, task.ccTaskId, task);
@@ -58,14 +62,14 @@ export default (class CheckApiServerTxService {
             await storageService.delete(this.serviceName, task.ccTaskId);
             this.checkArray.splice(index, 1);
           }
-        }
-        catch (err) {
+        } catch (err) {
           console.error("%s runTask error: %O", this.serviceName, err);
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s error: %O", this.serviceName, err);
     }
   }
-});
+}
+
+export default CheckApiServerTxService;

@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class MintCoinHandle {
+class MintCoinHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -37,4 +37,6 @@ export default (class MintCoinHandle {
     ];
     return steps;
   }
-});
+}
+
+export default MintCoinHandle;

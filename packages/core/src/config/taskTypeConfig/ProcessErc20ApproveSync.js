@@ -1,6 +1,6 @@
 import ProcessBaseSync from "./processBaseSync.js";
 
-export default (class ProcessErc20ApproveSync extends ProcessBaseSync {
+class ProcessErc20ApproveSync extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -12,4 +12,6 @@ export default (class ProcessErc20ApproveSync extends ProcessBaseSync {
     let txData = await this.txGeneratorService.generateTx(params.chainType, scData.gasLimit, params.erc20Addr, 0, scData.data, params.fromAddr);
     await this.sendTx(stepData, txData, wallet);
   }
-});
+}
+
+export default ProcessErc20ApproveSync;

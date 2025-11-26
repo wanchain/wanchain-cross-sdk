@@ -3,7 +3,7 @@ import tool from "../../utils/tool.js";
 
 const DefaultGas = 10_000_000;
 
-export default (class ProcessCircleBridgeSuiDeposit {
+class ProcessCircleBridgeSuiDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
@@ -122,4 +122,6 @@ export default (class ProcessCircleBridgeSuiDeposit {
       return 0;
     }
   }
-});
+}
+
+export default ProcessCircleBridgeSuiDeposit;

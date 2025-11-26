@@ -23,13 +23,16 @@ class StartService {
   constructor() {
     this.frameworkService = new FrameworkService();
   }
+
   async onIwanConnected() {
     console.log("StartService onIwanConnected");
   }
+
   async onStoremanServiceInitComplete(args) {
     this.m_eventService.emitEvent("ReadStoremanInfoComplete", args);
     //console.log("StartService onStoremanServiceInitComplete args: ", args);
   }
+
   async init(network, stores, iwanAuth, options) {
     try {
       let frameworkService = this.frameworkService;
@@ -110,11 +113,11 @@ class StartService {
       let crossChainFeesService = new CrossChainFeesService();
       await crossChainFeesService.init(frameworkService);
       frameworkService.registerService("CrossChainFeesService", crossChainFeesService);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("StartService init err:", err);
     }
   }
+
   async start() {
     try {
       let frameworkService = this.frameworkService;
@@ -136,11 +139,11 @@ class StartService {
       await checkPhaTxService.start();
       let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
       await checkAdaTxService.start();
-    }
-    catch (err) {
+    } catch (err) {
       console.error("startService start err:", err);
     }
   }
+
   getService(serviceName) {
     return this.frameworkService.getService(serviceName);
   }

@@ -1,6 +1,6 @@
 import TokenHandler from "./tokenHandler.js";
 
-export default (class MintErc20Handle extends TokenHandler {
+class MintErc20Handle extends TokenHandler { // includes ERC20 & ERC721
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -13,4 +13,6 @@ export default (class MintErc20Handle extends TokenHandler {
     //console.debug("MintErc20Handle steps: %O", steps);
     return steps;
   }
-});
+}
+
+export default MintErc20Handle;

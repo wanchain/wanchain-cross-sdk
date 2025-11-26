@@ -1,11 +1,13 @@
 import * as utils from "../libs/utils.js";
 import WsInstance from "../libs/wsInstance.js";
 import * as auth from "../authorization/auth.js";
+
 class ApiInstance extends WsInstance {
   constructor(apiKey, secretKey, option = {}) {
     super(apiKey, secretKey, option);
     this.index = 0;
   }
+
   _request(method, parameters, callback) {
     let message = {
       jsonrpc: "2.0",
@@ -14,40 +16,41 @@ class ApiInstance extends WsInstance {
       id: this.index
     };
     ++this.index;
+
     let jsonResult = auth.integrateJSON(message, this.secretKey);
     if (jsonResult.hasOwnProperty("error")) {
       callback(jsonResult["error"]);
-    }
-    else {
+    } else {
       if (this.open) {
         this._send(jsonResult["result"], callback);
-      }
-      else {
+      } else {
         this.events.once("open", () => {
           this._send(jsonResult["result"], callback);
         });
       }
+
     }
   }
+
   _send(message, callback) {
     try {
       this.sendMessage(message, (resMsg) => {
         if (resMsg.hasOwnProperty("error")) {
           callback(resMsg["error"]);
-        }
-        else {
+        } else {
           callback(null, resMsg["result"]);
         }
       });
-    }
-    catch (err) {
+    } catch (err) {
       callback(err);
     }
   }
+
   checkHash(hash) {
     // check if it has the basic requirements of a hash
-    return /^(0x)?[0-9a-fA-F]{64}$/i.test(hash);
+    return /^(0x)?[0-9a-fA-F]{64}$/i.test(hash)
   }
+
   /**
    *
    * @apiName monitorEvent
@@ -103,6 +106,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'monitorEvent';
     let params = { chainType: chainType, address: address, topics: topics };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -112,6 +116,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getScEvent
@@ -167,19 +172,21 @@ class ApiInstance extends WsInstance {
   getScEvent(chainType, address, topics, option, callback) {
     let method = 'getScEvent';
     let params = { chainType: chainType, address: address, topics: topics };
+
     if (option) {
       if (typeof (option) === "function") {
         callback = option;
-      }
-      else {
+      } else {
         params.fromBlock = option.fromBlock ? option.fromBlock : 0;
         params.toBlock = option.toBlock ? option.toBlock : 'latest';
         params = { ...option, ...params };
       }
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -189,6 +196,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getScOwner
@@ -233,6 +241,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getScOwner';
     let params = { chainType: chainType, scAddr: scAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -242,6 +251,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getCoin2WanRatio
@@ -285,6 +295,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getCoin2WanRatio';
     let params = { crossChain: crossChain };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -294,6 +305,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getUTXO
@@ -359,6 +371,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getUTXO';
     let params = { chainType: chainType, minconf: minconf, maxconf: maxconf, address: address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -368,6 +381,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getStoremanGroups
@@ -422,6 +436,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroups';
     let params = { crossChain: crossChain };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -431,6 +446,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTokenStoremanGroups
@@ -487,6 +503,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenStoremanGroups';
     let params = { crossChain: crossChain, tokenScAddr: tokenScAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -496,6 +513,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getGasPrice
@@ -539,6 +557,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getGasPrice';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -548,6 +567,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getBalance
@@ -592,6 +612,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getBalance';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -601,6 +622,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getMultiBalances
@@ -648,6 +670,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMultiBalances';
     let params = { chainType: chainType, address: addrArray };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -657,6 +680,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTokenBalance
@@ -704,11 +728,13 @@ class ApiInstance extends WsInstance {
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
+
     let method = 'getTokenBalance';
     let params = { chainType: chainType, address: address, tokenScAddr: tokenScAddr };
     if (symbol) {
       params.symbol = symbol;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -718,6 +744,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getMultiTokenBalance
@@ -773,6 +800,7 @@ class ApiInstance extends WsInstance {
     if (symbol) {
       params.symbol = symbol;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -782,6 +810,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTokenSupply
@@ -828,6 +857,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenSupply';
     let params = { chainType: chainType, tokenScAddr: tokenScAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -837,6 +867,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getNonce
@@ -881,6 +912,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getNonce';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -890,6 +922,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getNonceIncludePending
@@ -934,6 +967,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getNonceIncludePending';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -943,6 +977,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getBlockNumber
@@ -986,6 +1021,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getBlockNumber';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -995,6 +1031,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName sendRawTransaction
@@ -1039,6 +1076,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'sendRawTransaction';
     let params = { chainType: chainType, signedTx: signedTx };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1048,6 +1086,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTxInfo
@@ -1110,6 +1149,7 @@ class ApiInstance extends WsInstance {
   */
   getTxInfo(chainType, txHash, options, callback) {
     let method = 'getTxInfo';
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -1120,7 +1160,9 @@ class ApiInstance extends WsInstance {
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
+
     let params = { chainType: chainType, txHash: txHash, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1130,6 +1172,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getBlockByNumber
@@ -1195,6 +1238,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getBlockByNumber';
     let params = { chainType: chainType, blockNumber: blockNumber };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1204,6 +1248,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getBlockByHash
@@ -1269,6 +1314,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getBlockByHash';
     let params = { chainType: chainType, blockHash: blockHash };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1278,6 +1324,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getBlockTransactionCount
@@ -1328,10 +1375,10 @@ class ApiInstance extends WsInstance {
     let params = {};
     if (this.checkHash(blockHashOrBlockNumber)) {
       params = { chainType: chainType, blockHash: blockHashOrBlockNumber };
-    }
-    else {
+    } else {
       params = { chainType: chainType, blockNumber: blockHashOrBlockNumber };
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1341,6 +1388,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTransactionConfirm
@@ -1418,6 +1466,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTransactionConfirm';
     let params = { chainType: chainType, waitBlocks: waitBlocks, txHash: txHash, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1427,6 +1476,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTransactionReceipt
@@ -1491,6 +1541,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTransactionReceipt';
     let params = { chainType: chainType, txHash: txHash, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1500,6 +1551,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTransByBlock
@@ -1566,10 +1618,10 @@ class ApiInstance extends WsInstance {
     let params = {};
     if (this.checkHash(blockHashOrBlockNumber)) {
       params = { chainType: chainType, blockHash: blockHashOrBlockNumber };
-    }
-    else {
+    } else {
       params = { chainType: chainType, blockNumber: blockHashOrBlockNumber };
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1579,6 +1631,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTransByAddress
@@ -1662,6 +1715,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTransByAddress';
     let params = { chainType: chainType, address: address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1671,6 +1725,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTransByAddressBetweenBlocks
@@ -1746,6 +1801,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTransByAddressBetweenBlocks';
     let params = { chainType: chainType, address: address, startBlockNo: startBlockNo, endBlockNo: endBlockNo, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1755,6 +1811,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTransCount
@@ -1809,6 +1866,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTransCount';
     let params = { chainType: chainType };
+
     if (option && typeof (option.address) !== "undefined") {
       params["address"] = option.address;
     }
@@ -1818,6 +1876,7 @@ class ApiInstance extends WsInstance {
     if (option && typeof (option.endBlockNo) !== "undefined") {
       params["endBlockNo"] = option.endBlockNo;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1827,6 +1886,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getScVar
@@ -1882,6 +1942,7 @@ class ApiInstance extends WsInstance {
     if (typeof (version) === "function") {
       params.version = version;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1891,6 +1952,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getScMap
@@ -1944,6 +2006,7 @@ class ApiInstance extends WsInstance {
     if (typeof (version) === "function") {
       params.version = version;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -1953,6 +2016,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName callScFunc
@@ -2006,6 +2070,7 @@ class ApiInstance extends WsInstance {
     if (typeof (version) !== "function") {
       params.version = version;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2015,6 +2080,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getP2shxByHashx
@@ -2061,6 +2127,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getP2shxByHashx';
     let params = { chainType: chainType, hashX: hashX };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2070,6 +2137,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName importAddress
@@ -2114,6 +2182,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'importAddress';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2123,6 +2192,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getRegTokens
@@ -2198,6 +2268,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getRegTokens';
     let params = { crossChain: crossChain };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2207,6 +2278,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTokenAllowance
@@ -2253,6 +2325,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenAllowance';
     let params = { chainType: chainType, tokenScAddr: tokenScAddr, ownerAddr: ownerAddr, spenderAddr: spenderAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2262,6 +2335,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTokenInfo
@@ -2315,6 +2389,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenInfo';
     let params = { chainType: chainType, tokenScAddr: tokenScAddr, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2324,6 +2399,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getMultiTokenInfo
@@ -2384,6 +2460,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMultiTokenInfo';
     let params = { chainType: chainType, tokenScAddrArray: tokenScAddrArray, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2393,6 +2470,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getToken2WanRatio
@@ -2437,6 +2515,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getToken2WanRatio';
     let params = { crossChain: crossChain, tokenScAddr: tokenScAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2446,6 +2525,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getOTAMixSet
@@ -2501,11 +2581,11 @@ class ApiInstance extends WsInstance {
     if (chainType) {
       if (typeof (chainType) === "function") {
         callback = chainType;
-      }
-      else {
+      } else {
         params.chainType = chainType;
       }
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2515,6 +2595,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName estimateGas
@@ -2562,7 +2643,9 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'estimateGas';
+
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       Object.assign(params, txObject);
       this._request(method, params, (err, result) => {
@@ -2573,6 +2656,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getChainInfo
@@ -2633,6 +2717,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getChainInfo';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2642,6 +2727,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getStats
@@ -2691,6 +2777,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getCurrencyStats';
     let params = { chainType: chainType, tokenScAddr: tokenScAddr, symbol: symbol };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2700,6 +2787,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getAccountInfo
@@ -2794,6 +2882,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getAccountInfo';
     let params = { chainType: chainType, address: address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2803,6 +2892,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getAccounts
@@ -2853,13 +2943,14 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getAccounts';
+
     let params = { chainType: chainType };
     if (addressOrPublicKey.indexOf("EOS") === 0) {
       params.publicKey = addressOrPublicKey;
-    }
-    else {
+    } else {
       params.address = addressOrPublicKey;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2869,6 +2960,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getRequiredKeys
@@ -2922,7 +3014,9 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getRequiredKeys';
+
     let params = { chainType: chainType, txArgs: txArgs };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2932,6 +3026,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getRawCodeAndAbi
@@ -2979,7 +3074,9 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getRawCodeAndAbi';
+
     let params = { chainType: chainType, scAddr: scAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -2989,6 +3086,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getAbi
@@ -3025,88 +3123,88 @@ class ApiInstance extends WsInstance {
   *
   * @apiSuccessExample {json} Successful Response
   *   { "version": "eosio::abi/1.1",
-              "types": [ { "new_type_name": "time_t", "type": "uint32" } ],
-              "structs":
-               [ { "name": "asset_t", "base": "", "fields": ["Array"] },
-                 { "name": "debt_t", "base": "", "fields": ["Array"] },
-                 { "name": "fee_t", "base": "", "fields": ["Array"] },
-                 { "name": "inlock", "base": "", "fields": ["Array"] },
-                 { "name": "inredeem", "base": "", "fields": ["Array"] },
-                 { "name": "inrevoke", "base": "", "fields": ["Array"] },
-                 { "name": "lockdebt", "base": "", "fields": ["Array"] },
-                 { "name": "num64_t", "base": "", "fields": ["Array"] },
-                 { "name": "outlock", "base": "", "fields": ["Array"] },
-                 { "name": "outredeem", "base": "", "fields": ["Array"] },
-                 { "name": "outrevoke", "base": "", "fields": ["Array"] },
-                 { "name": "pk_t", "base": "", "fields": ["Array"] },
-                 { "name": "redeemdebt", "base": "", "fields": ["Array"] },
-                 { "name": "regsig", "base": "", "fields": ["Array"] },
-                 { "name": "revokedebt", "base": "", "fields": ["Array"] },
-                 { "name": "setratio", "base": "", "fields": ["Array"] },
-                 { "name": "signature_t", "base": "", "fields": ["Array"] },
-                 { "name": "transfer_t", "base": "", "fields": ["Array"] },
-                 { "name": "unregsig", "base": "", "fields": ["Array"] },
-                 { "name": "updatesig", "base": "", "fields": ["Array"] },
-                 { "name": "withdraw", "base": "", "fields": ["Array"] } ],
-              "actions":
-               [ { "name": "inlock", "type": "inlock", "ricardian_contract": "" },
-                 { "name": "inredeem", "type": "inredeem", "ricardian_contract": "" },
-                 { "name": "inrevoke", "type": "inrevoke", "ricardian_contract": "" },
-                 { "name": "lockdebt", "type": "lockdebt", "ricardian_contract": "" },
-                 { "name": "outlock", "type": "outlock", "ricardian_contract": "" },
-                 { "name": "outredeem", "type": "outredeem", "ricardian_contract": "" },
-                 { "name": "outrevoke", "type": "outrevoke", "ricardian_contract": "" },
-                 { "name": "redeemdebt",
-                   "type": "redeemdebt",
-                   "ricardian_contract": "" },
-                 { "name": "regsig", "type": "regsig", "ricardian_contract": "" },
-                 { "name": "revokedebt",
-                   "type": "revokedebt",
-                   "ricardian_contract": "" },
-                 { "name": "setratio", "type": "setratio", "ricardian_contract": "" },
-                 { "name": "unregsig", "type": "unregsig", "ricardian_contract": "" },
-                 { "name": "updatesig", "type": "updatesig", "ricardian_contract": "" },
-                 { "name": "withdraw", "type": "withdraw", "ricardian_contract": "" } ],
-              "tables":
-               [ { "name": "assets",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "asset_t" },
-                 { "name": "debts",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "debt_t" },
-                 { "name": "fees",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "fee_t" },
-                 { "name": "longlongs",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "num64_t" },
-                 { "name": "pks",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "pk_t" },
-                 { "name": "signer",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "signature_t" },
-                 { "name": "transfers",
-                   "index_type": "i64",
-                   "key_names": [],
-                   "key_types": [],
-                   "type": "transfer_t" } ],
-              "ricardian_clauses": [],
-              "error_messages": [],
-              "abi_extensions": [],
-              "variants": [] }
+        "types": [ { "new_type_name": "time_t", "type": "uint32" } ],
+        "structs":
+         [ { "name": "asset_t", "base": "", "fields": ["Array"] },
+           { "name": "debt_t", "base": "", "fields": ["Array"] },
+           { "name": "fee_t", "base": "", "fields": ["Array"] },
+           { "name": "inlock", "base": "", "fields": ["Array"] },
+           { "name": "inredeem", "base": "", "fields": ["Array"] },
+           { "name": "inrevoke", "base": "", "fields": ["Array"] },
+           { "name": "lockdebt", "base": "", "fields": ["Array"] },
+           { "name": "num64_t", "base": "", "fields": ["Array"] },
+           { "name": "outlock", "base": "", "fields": ["Array"] },
+           { "name": "outredeem", "base": "", "fields": ["Array"] },
+           { "name": "outrevoke", "base": "", "fields": ["Array"] },
+           { "name": "pk_t", "base": "", "fields": ["Array"] },
+           { "name": "redeemdebt", "base": "", "fields": ["Array"] },
+           { "name": "regsig", "base": "", "fields": ["Array"] },
+           { "name": "revokedebt", "base": "", "fields": ["Array"] },
+           { "name": "setratio", "base": "", "fields": ["Array"] },
+           { "name": "signature_t", "base": "", "fields": ["Array"] },
+           { "name": "transfer_t", "base": "", "fields": ["Array"] },
+           { "name": "unregsig", "base": "", "fields": ["Array"] },
+           { "name": "updatesig", "base": "", "fields": ["Array"] },
+           { "name": "withdraw", "base": "", "fields": ["Array"] } ],
+        "actions":
+         [ { "name": "inlock", "type": "inlock", "ricardian_contract": "" },
+           { "name": "inredeem", "type": "inredeem", "ricardian_contract": "" },
+           { "name": "inrevoke", "type": "inrevoke", "ricardian_contract": "" },
+           { "name": "lockdebt", "type": "lockdebt", "ricardian_contract": "" },
+           { "name": "outlock", "type": "outlock", "ricardian_contract": "" },
+           { "name": "outredeem", "type": "outredeem", "ricardian_contract": "" },
+           { "name": "outrevoke", "type": "outrevoke", "ricardian_contract": "" },
+           { "name": "redeemdebt",
+             "type": "redeemdebt",
+             "ricardian_contract": "" },
+           { "name": "regsig", "type": "regsig", "ricardian_contract": "" },
+           { "name": "revokedebt",
+             "type": "revokedebt",
+             "ricardian_contract": "" },
+           { "name": "setratio", "type": "setratio", "ricardian_contract": "" },
+           { "name": "unregsig", "type": "unregsig", "ricardian_contract": "" },
+           { "name": "updatesig", "type": "updatesig", "ricardian_contract": "" },
+           { "name": "withdraw", "type": "withdraw", "ricardian_contract": "" } ],
+        "tables":
+         [ { "name": "assets",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "asset_t" },
+           { "name": "debts",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "debt_t" },
+           { "name": "fees",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "fee_t" },
+           { "name": "longlongs",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "num64_t" },
+           { "name": "pks",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "pk_t" },
+           { "name": "signer",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "signature_t" },
+           { "name": "transfers",
+             "index_type": "i64",
+             "key_names": [],
+             "key_types": [],
+             "type": "transfer_t" } ],
+        "ricardian_clauses": [],
+        "error_messages": [],
+        "abi_extensions": [],
+        "variants": [] }
   *
   */
   getAbi(chainType, scAddr, callback) {
@@ -3114,7 +3212,9 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getAbi';
+
     let params = { chainType: chainType, scAddr: scAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3124,6 +3224,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getRawAbi
@@ -3167,7 +3268,7 @@ class ApiInstance extends WsInstance {
         "…": "...",
         "1557": 0
     }
- 
+
   *
   */
   getRawAbi(chainType, scAddr, callback) {
@@ -3175,7 +3276,9 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getRawAbi';
+
     let params = { chainType: chainType, scAddr: scAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3185,12 +3288,15 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   // getJson2Bin(chainType, scAddr, action, args, callback) {
   //   if (callback) {
   //     callback = utils.wrapCallback(callback);
   //   }
   //   let method = 'getJson2Bin';
+
   //   let params = { chainType: chainType, scAddr:scAddr, action:action, args:args };
+
   //   return utils.promiseOrCallback(callback, cb => {
   //     this._request(method, params, (err, result) => {
   //       if (err) {
@@ -3200,6 +3306,7 @@ class ApiInstance extends WsInstance {
   //     });
   //   });
   // }
+
   /**
   *
   * @apiName getActions
@@ -3216,7 +3323,7 @@ class ApiInstance extends WsInstance {
   * <br>&nbsp;&nbsp;<strong>For eosjs 16.0.0</strong>:
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>pos</code> - An int32 that is absolute sequence positon, -1 is the end/last action.
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>offset</code> - The number of actions relative to pos, negative numbers return [pos-offset,pos), positive numbers return [pos,pos+offset).
- 
+
   * <br>&nbsp;&nbsp;<strong>For eosjs 20</strong>:
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>filter</code> - The string for code::name filter.
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>skip</code> - The number to skip [n] actions (pagination).
@@ -3225,10 +3332,10 @@ class ApiInstance extends WsInstance {
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>after</code> - The string to filter after specified date (ISO8601).
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>before</code> - The string to filter before specified date (ISO8601).
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>transfer_to</code> - The string to transfer filter to.
-  * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>transfer_from</code> - The string to transfer filter from.
+  * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>transfer_from</code> - The string to transfer filter from. 
   * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>transfer_symbol</code> - The string to transfer filter symbol.
-  * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>act_name</code> - The string for act name.
-  * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>act_account</code> - The string for act account.
+  * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>act_name</code> - The string for act name. 
+  * <br>&nbsp;&nbsp;&nbsp;&nbsp;<code>act_account</code> - The string for act account. 
   * @apiParam {function} [callback] Optional, the callback will receive two parameters:
   * <br>&nbsp;&nbsp;<code>err</code> - If an error occurred.
   * <br>&nbsp;&nbsp;<code>result</code> - The saved result.
@@ -3288,10 +3395,13 @@ class ApiInstance extends WsInstance {
       options = {};
     }
     let method = 'getActions';
+
     let params = { chainType: chainType, address: address };
+
     // for (let key in options) {
     //   params[key] = options[key];
     // }
+
     params.options = options;
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
@@ -3302,6 +3412,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getResource
@@ -3368,7 +3479,7 @@ class ApiInstance extends WsInstance {
         "total_producer_vote_weight": "460825067195145191424.00000000000000000",
         "last_name_close": "2020-04-04T13:37:20.500"
     }
- 
+
   *
   */
   getResource(chainType, callback) {
@@ -3377,6 +3488,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getResource';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3386,6 +3498,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getResourcePrice
@@ -3426,7 +3539,7 @@ class ApiInstance extends WsInstance {
         "cpu": "0.005637367015436455",
         "ram": "0.050223917691993435"
     }
- 
+
   *
   */
   getResourcePrice(chainType, address, callback) {
@@ -3435,6 +3548,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getResourcePrice';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3444,6 +3558,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getBandwidthPrice
@@ -3483,7 +3598,7 @@ class ApiInstance extends WsInstance {
        "net": "0.005301073461471487",
        "cpu": "0.005637367015436455"
    }
- 
+
  *
  */
   getBandwidthPrice(chainType, address, callback) {
@@ -3492,6 +3607,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getBandwidthPrice';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3501,6 +3617,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
 *
 * @apiName getRamPrice
@@ -3545,6 +3662,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getRamPrice';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3554,6 +3672,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getTotalSupply
@@ -3593,7 +3712,7 @@ class ApiInstance extends WsInstance {
        "max_supply": "100000000000.0000 EOS",
        "issuer": "eosio"
    }
- 
+
  *
  */
   getTotalSupply(chainType, callback) {
@@ -3602,6 +3721,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTotalSupply';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3611,6 +3731,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTotalStaked
@@ -3646,7 +3767,7 @@ class ApiInstance extends WsInstance {
   *
   * @apiSuccessExample {json} Successful Response
   *  "2868049208.8674 EOS"
- 
+
   *
   */
   getTotalStaked(chainType, callback) {
@@ -3655,6 +3776,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTotalStaked';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3664,6 +3786,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getTotalStakedPercent
@@ -3711,6 +3834,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTotalStakedPercent';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3720,6 +3844,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName getTableRows
@@ -3802,6 +3927,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTableRows';
     let params = { chainType: chainType, scAddr: scAddr, scope: scope, table: table, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3811,6 +3937,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
   *
   * @apiName packTransaction
@@ -3918,6 +4045,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'packTransaction';
     let params = { chainType: chainType, tx: trans, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3927,7 +4055,9 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   //POS
+
   /**
    *
    * @apiName getEpochID
@@ -3971,6 +4101,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochID';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -3980,6 +4111,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getSlotID
@@ -4023,6 +4155,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getSlotID';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4032,6 +4165,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getEpochLeadersByEpochID
@@ -4084,6 +4218,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochLeadersByEpochID';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4093,6 +4228,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRandomProposersByEpochID
@@ -4145,6 +4281,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getRandomProposersByEpochID';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4154,6 +4291,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getStakerInfo
@@ -4224,6 +4362,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStakerInfo';
     let params = { chainType: chainType, blockNumber: blockNumber };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4233,6 +4372,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getEpochIncentivePayDetail
@@ -4308,6 +4448,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochIncentivePayDetail';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4317,6 +4458,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getActivity
@@ -4423,6 +4565,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getActivity';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4432,6 +4575,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getSlotActivity
@@ -4498,6 +4642,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getSlotActivity';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4507,6 +4652,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getValidatorActivity
@@ -4609,6 +4755,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getValidatorActivity';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4618,6 +4765,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getMaxStableBlkNumber
@@ -4661,6 +4809,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMaxStableBlkNumber';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4670,6 +4819,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRandom
@@ -4715,6 +4865,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getRandom';
     let params = { chainType: chainType, epochID: epochID, blockNumber: blockNumber };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4724,6 +4875,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getValidatorInfo
@@ -4772,6 +4924,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getValidatorInfo';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4781,6 +4934,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getValidatorStakeInfo
@@ -4869,6 +5023,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getValidatorStakeInfo';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4878,6 +5033,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getValidatorTotalIncentive
@@ -4943,6 +5099,7 @@ class ApiInstance extends WsInstance {
       typeof (options.from) !== "undefined" && (params.from = options.from);
       typeof (options.to) !== "undefined" && (params.to = options.to);
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -4952,6 +5109,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getDelegatorStakeInfo
@@ -5017,6 +5175,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getDelegatorStakeInfo';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5026,6 +5185,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getDelegatorIncentive
@@ -5119,6 +5279,7 @@ class ApiInstance extends WsInstance {
       typeof (options.from) !== "undefined" && (params.from = options.from);
       typeof (options.to) !== "undefined" && (params.to = options.to);
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5128,6 +5289,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getDelegatorTotalIncentive
@@ -5222,6 +5384,7 @@ class ApiInstance extends WsInstance {
       typeof (options.from) !== "undefined" && (params.from = options.from);
       typeof (options.to) !== "undefined" && (params.to = options.to);
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5231,6 +5394,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getLeaderGroupByEpochID
@@ -5301,6 +5465,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getLeaderGroupByEpochID';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5310,6 +5475,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getCurrentEpochInfo
@@ -5357,6 +5523,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getCurrentEpochInfo';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5366,6 +5533,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getCurrentStakerInfo
@@ -5435,6 +5603,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getCurrentStakerInfo';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5444,6 +5613,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getSlotCount
@@ -5487,6 +5657,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getSlotCount';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5496,6 +5667,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getSlotTime
@@ -5539,6 +5711,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getSlotTime';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5548,6 +5721,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getTimeByEpochID
@@ -5592,6 +5766,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTimeByEpochID';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5601,6 +5776,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getEpochIDByTime
@@ -5645,6 +5821,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochIDByTime';
     let params = { chainType: chainType, time: time };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5654,6 +5831,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRegisteredValidator
@@ -5705,6 +5883,7 @@ class ApiInstance extends WsInstance {
   getRegisteredValidator(address, after, callback) {
     let method = 'getRegisteredValidator';
     let params = {};
+
     if (typeof (address) === "function") {
       callback = address;
       address = undefined;
@@ -5720,13 +5899,12 @@ class ApiInstance extends WsInstance {
     if (typeof (address) !== "undefined" && typeof (after) !== "undefined") {
       params.address = address;
       params.after = after;
-    }
-    else if (typeof (address) !== "undefined") {
+    } else if (typeof (address) !== "undefined") {
       (typeof (address) === "string" || Array.isArray(address)) ? (params.address = address) : (params.after = address);
-    }
-    else if (typeof (after) !== "undefined") {
+    } else if (typeof (after) !== "undefined") {
       params.after = after;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5736,6 +5914,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRegisteredToken
@@ -5792,6 +5971,7 @@ class ApiInstance extends WsInstance {
   getRegisteredToken(tokenOrigAccount, after, callback) {
     let method = 'getRegisteredToken';
     let params = {};
+
     if (typeof (tokenOrigAccount) === "function") {
       callback = tokenOrigAccount;
       tokenOrigAccount = undefined;
@@ -5807,13 +5987,12 @@ class ApiInstance extends WsInstance {
     if (typeof (tokenOrigAccount) !== "undefined" && typeof (after) !== "undefined") {
       params.tokenOrigAccount = tokenOrigAccount;
       params.after = after;
-    }
-    else if (typeof (tokenOrigAccount) !== "undefined") {
+    } else if (typeof (tokenOrigAccount) !== "undefined") {
       (typeof (tokenOrigAccount) === "string" || Array.isArray(tokenOrigAccount)) ? (params.tokenOrigAccount = tokenOrigAccount) : (params.after = tokenOrigAccount);
-    }
-    else if (typeof (after) !== "undefined") {
+    } else if (typeof (after) !== "undefined") {
       params.after = after;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5823,6 +6002,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRegisteredDapp
@@ -5901,6 +6081,7 @@ class ApiInstance extends WsInstance {
   getRegisteredDapp(options, callback) {
     let method = 'getRegisteredDapp';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -5912,6 +6093,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5921,6 +6103,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRegisteredAds
@@ -5972,6 +6155,7 @@ class ApiInstance extends WsInstance {
   getRegisteredAds(options, callback) {
     let method = 'getRegisteredAds';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -5983,6 +6167,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -5992,6 +6177,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getRegisteredCoinGecko
@@ -6043,6 +6229,7 @@ class ApiInstance extends WsInstance {
   getRegisteredCoinGecko(options, callback) {
     let method = 'getRegisteredCoinGecko';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -6054,6 +6241,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6063,6 +6251,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getPosInfo
@@ -6109,6 +6298,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getPosInfo';
     let params = { chainType: chainType };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6118,6 +6308,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getMaxBlockNumber
@@ -6171,6 +6362,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMaxBlockNumber';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6180,6 +6372,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getValidatorSupStakeInfo
@@ -6235,6 +6428,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getValidatorSupStakeInfo';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6244,6 +6438,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getDelegatorSupStakeInfo
@@ -6302,6 +6497,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getDelegatorSupStakeInfo';
     let params = { chainType: chainType, address: address };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6311,6 +6507,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getEpochIncentiveBlockNumber
@@ -6355,6 +6552,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochIncentiveBlockNumber';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6364,6 +6562,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getEpochStakeOut
@@ -6414,6 +6613,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochStakeOut';
     let params = { chainType: chainType, epochID: epochID };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6423,6 +6623,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName checkOTAUsed
@@ -6467,6 +6668,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'checkOTAUsed';
     let params = { chainType: chainType, image: image };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6476,6 +6678,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   // iwan
   addDoc(tableName, content, callback) {
     if (callback) {
@@ -6483,6 +6686,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'addDoc';
     let params = { table: tableName, content: content };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6492,6 +6696,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getDocOne(tableName, filter, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -6500,11 +6705,13 @@ class ApiInstance extends WsInstance {
     if (!options || typeof (options) !== "object") {
       options = {};
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getDocOne';
     let params = { table: tableName, filter: filter, options: options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6514,6 +6721,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getDocMany(tableName, filter, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -6522,11 +6730,13 @@ class ApiInstance extends WsInstance {
     if (!options || typeof (options) !== "object") {
       options = {};
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getDocMany';
     let params = { table: tableName, filter: filter, options: options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6536,6 +6746,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   updateDocOne(tableName, filter, content, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -6544,11 +6755,13 @@ class ApiInstance extends WsInstance {
     if (!options || typeof (options) !== "object") {
       options = {};
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'updateDocOne';
     let params = { table: tableName, filter: filter, content: content, options: options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6558,6 +6771,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   updateDocMany(tableName, filter, content, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -6566,11 +6780,13 @@ class ApiInstance extends WsInstance {
     if (!options || typeof (options) !== "object") {
       options = {};
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'updateDocMany';
     let params = { table: tableName, filter: filter, content: content, options: options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6580,12 +6796,14 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   deleteDoc(tableName, filter, callback) {
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'deleteDoc';
     let params = { table: tableName, filter: filter };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6595,6 +6813,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   aggregateDoc(tableName, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -6608,6 +6827,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'aggregateDoc';
     let params = { table: tableName, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6617,12 +6837,14 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   countDoc(tableName, filter, callback) {
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'countDoc';
     let params = { table: tableName, filter: filter };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6632,6 +6854,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName fetchService
@@ -6683,11 +6906,13 @@ class ApiInstance extends WsInstance {
     if (!options || typeof (options) !== "object") {
       options = {};
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'fetchService';
     let params = { srvType: srvType, funcName: funcName, type: type, options: options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6697,6 +6922,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName fetchSpecialService
@@ -6747,11 +6973,13 @@ class ApiInstance extends WsInstance {
     if (!options || typeof (options) !== "object") {
       options = {};
     }
+
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'fetchSpecialService';
     let params = { url: url, type: type, options: options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6761,9 +6989,11 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getRegisteredTokenLogo(chainType, options, callback) {
     let method = 'getRegisteredTokenLogo';
     let params = {};
+
     if (typeof (chainType) === "function") {
       options = {};
       chainType = undefined;
@@ -6783,9 +7013,11 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     if (chainType) {
       params.chainType = chainType;
     }
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6795,9 +7027,11 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getRegisteredChainLogo(options, callback) {
     let method = 'getRegisteredChainLogo';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -6806,6 +7040,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6815,9 +7050,11 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getRegisteredMultiChainOrigToken(options, callback) {
     let method = 'getRegisteredMultiChainOrigToken';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -6826,6 +7063,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6835,7 +7073,9 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   // ################### open storeman api ###################
+
   /**
  *
  * @apiName getStoremanGroupList
@@ -6917,6 +7157,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroupList';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6926,6 +7167,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanGroupActivity
@@ -6985,6 +7227,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroupActivity';
     let params = { groupId: groupId, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -6994,6 +7237,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getStoremanGroupQuota(chainType, groupId, symbol, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7007,6 +7251,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroupQuota';
     let params = { chainType: chainType, groupId: groupId, symbol: symbol, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7016,6 +7261,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getStoremanGroupInfo
@@ -7067,6 +7313,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroupInfo';
     let params = { "groupId": groupId };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7076,6 +7323,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getStoremanGroupConfig
@@ -7131,6 +7379,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroupConfig';
     let params = { "groupId": groupId };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7140,6 +7389,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanInfo
@@ -7196,6 +7446,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanInfo';
     let params = { wkAddr: wkAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7205,6 +7456,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getMultiStoremanInfo
@@ -7263,6 +7515,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMultiStoremanInfo';
     let params = { wkAddr: wkAddr };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7272,6 +7525,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanCandidates
@@ -7349,6 +7603,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanCandidates';
     let params = { "groupId": groupId };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7358,6 +7613,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanGroupMember
@@ -7437,6 +7693,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGroupMember';
     let params = { "groupId": groupId };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7446,6 +7703,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanStakeInfo
@@ -7504,6 +7762,7 @@ class ApiInstance extends WsInstance {
   }]
  *
  */
+
   getStoremanStakeInfo(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7517,6 +7776,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanStakeInfo';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7526,6 +7786,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanStakeTotalIncentive
@@ -7572,6 +7833,7 @@ class ApiInstance extends WsInstance {
   }]
  *
  */
+
   getStoremanStakeTotalIncentive(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7585,6 +7847,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanStakeTotalIncentive';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7594,6 +7857,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanDelegatorInfo
@@ -7653,6 +7917,7 @@ class ApiInstance extends WsInstance {
   ]
  *
  */
+
   getStoremanDelegatorInfo(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7666,6 +7931,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanDelegatorInfo';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7675,6 +7941,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanDelegatorTotalIncentive
@@ -7721,6 +7988,7 @@ class ApiInstance extends WsInstance {
     }]
  *
  */
+
   getStoremanDelegatorTotalIncentive(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7734,6 +8002,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanDelegatorTotalIncentive';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7743,6 +8012,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanGpkSlashInfo
@@ -7810,6 +8080,7 @@ class ApiInstance extends WsInstance {
     }]
  *
  */
+
   getStoremanGpkSlashInfo(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7823,6 +8094,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanGpkSlashInfo';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7832,6 +8104,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
  *
  * @apiName getStoremanSignSlashInfo
@@ -7878,6 +8151,7 @@ class ApiInstance extends WsInstance {
     }]
  *
  */
+
   getStoremanSignSlashInfo(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -7891,6 +8165,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getStoremanSignSlashInfo';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -7900,6 +8175,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getTokenPairs
@@ -8024,6 +8300,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenPairs';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8033,6 +8310,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getTokenPairInfo
@@ -8082,6 +8360,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenPairInfo';
     let params = { "id": id };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8091,6 +8370,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getTokenPairAncestorInfo
@@ -8140,6 +8420,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenPairAncestorInfo';
     let params = { "id": id };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8149,6 +8430,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getTokenPairIDs
@@ -8200,6 +8482,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenPairIDs';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8209,6 +8492,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   /**
    *
    * @apiName getChainConstantInfo
@@ -8260,13 +8544,14 @@ class ApiInstance extends WsInstance {
       options = {};
     }
     if (!options || typeof (options) !== "object") {
-      options = {};
+      options = {}
     }
     if (callback) {
       callback = utils.wrapCallback(callback);
     }
     let method = 'getChainConstantInfo';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8276,9 +8561,11 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   isConnetionOpen() {
     return this.open;
   }
+
   multiCall(chainType, calls, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8292,6 +8579,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'multiCall';
     let params = { chainType: chainType, calls: calls, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8301,6 +8589,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getMinCrossChainAmount(crossChain, symbol, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8311,6 +8600,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getMinCrossChainAmount';
     let params = { crossChain: crossChain, symbol: symbol, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8320,6 +8610,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   estimateCrossChainOperationFee(chainType, targetChainType, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8330,6 +8621,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'estimateCrossChainOperationFee';
     let params = { chainType: chainType, targetChainType: targetChainType, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8339,6 +8631,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   estimateCrossChainNetworkFee(chainType, targetChainType, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8349,6 +8642,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'estimateCrossChainNetworkFee';
     let params = { chainType: chainType, targetChainType: targetChainType, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8358,6 +8652,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getLatestBlock(chainType, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8368,6 +8663,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getLatestBlock';
     let params = { chainType: chainType, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8377,6 +8673,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getEpochParameters(chainType, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8387,6 +8684,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getEpochParameters';
     let params = { chainType: chainType, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8396,6 +8694,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getCostModelParameters(chainType, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8406,6 +8705,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getCostModelParameters';
     let params = { chainType: chainType, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8415,6 +8715,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getTokenPairsHash(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8425,6 +8726,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTokenPairsHash';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8434,6 +8736,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getTrustLines(chainType, address, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8444,6 +8747,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getTrustLines';
     let params = { chainType: chainType, address: address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8453,9 +8757,11 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getRegisteredSubgraph(options, callback) {
     let method = 'getRegisteredSubgraph';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -8464,6 +8770,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8473,9 +8780,11 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getRegisteredTokenIssuer(options, callback) {
     let method = 'getRegisteredTokenIssuer';
     let params = {};
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -8484,6 +8793,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     params = utils.newJson(options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8493,8 +8803,10 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   hasHackerAccount(address, options, callback) {
     let method = 'hasHackerAccount';
+
     if (typeof (options) === "function") {
       callback = options;
       options = {};
@@ -8503,6 +8815,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let params = { address: address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8512,6 +8825,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   parseCctpMessageSent(chainType, address, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8522,6 +8836,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'parseCctpMessageSent';
     let params = { chainType, address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8531,6 +8846,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getAssociatedTokenAddress(chainType, address, tokenScAddr, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8541,6 +8857,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getAssociatedTokenAddress';
     let params = { chainType, address, tokenScAddr, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8550,6 +8867,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getWanBridgeDiscounts(options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8563,6 +8881,7 @@ class ApiInstance extends WsInstance {
     }
     let method = 'getWanBridgeDiscounts';
     let params = { ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8572,6 +8891,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   getAllBalances(chainType, address, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8583,6 +8903,7 @@ class ApiInstance extends WsInstance {
     options = Object.assign({}, {}, options);
     let method = 'getAllBalances';
     let params = { chainType: chainType, address: address, ...options };
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8592,6 +8913,7 @@ class ApiInstance extends WsInstance {
       });
     });
   }
+
   call(method, options, callback) {
     if (typeof (options) === "function") {
       callback = options;
@@ -8601,6 +8923,7 @@ class ApiInstance extends WsInstance {
       callback = utils.wrapCallback(callback);
     }
     let params = Object.assign({}, {}, options);
+
     return utils.promiseOrCallback(callback, cb => {
       this._request(method, params, (err, result) => {
         if (err) {
@@ -8611,4 +8934,5 @@ class ApiInstance extends WsInstance {
     });
   }
 }
+
 export default ApiInstance;

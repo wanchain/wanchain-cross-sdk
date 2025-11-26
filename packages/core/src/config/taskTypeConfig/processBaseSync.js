@@ -4,7 +4,7 @@ const WalletRejects = [
   "Confirmation declined by user", // TronLink
 ];
 
-export default (class ProcessBaseSync {
+class ProcessBaseSync {
   constructor(frameworkService) {
     this.chainInfoService = frameworkService.getService("ChainInfoService");
     this.storemanService = frameworkService.getService("StoremanService");
@@ -48,4 +48,6 @@ export default (class ProcessBaseSync {
       throw new Error("Wallet account mismatch");
     }
   }
-});
+}
+
+export default ProcessBaseSync;

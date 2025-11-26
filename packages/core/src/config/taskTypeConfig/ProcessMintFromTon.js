@@ -10,7 +10,7 @@ const CrossOpCode = {
 
 const DefaultGas = 1_000_000_000;
 
-export default (class ProcessMintFromTon {
+class ProcessMintFromTon {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
@@ -119,4 +119,6 @@ export default (class ProcessMintFromTon {
       }
     }
   }
-});
+}
+
+export default ProcessMintFromTon;

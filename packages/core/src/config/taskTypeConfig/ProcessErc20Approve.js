@@ -1,7 +1,7 @@
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
 
-export default (class ProcessErc20Approve extends ProcessBase {
+class ProcessErc20Approve extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -34,4 +34,6 @@ export default (class ProcessErc20Approve extends ProcessBase {
     ];
     return { txEventTopics, convertCheckInfo: null };
   }
-});
+}
+
+export default ProcessErc20Approve;

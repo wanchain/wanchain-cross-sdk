@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
 
-export default (class ProcessErc20UserFastMint extends ProcessBase {
+class ProcessErc20UserFastMint extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
   }
@@ -70,4 +70,6 @@ export default (class ProcessErc20UserFastMint extends ProcessBase {
     };
     return { txEventTopics, convertCheckInfo };
   }
-});
+}
+
+export default ProcessErc20UserFastMint;

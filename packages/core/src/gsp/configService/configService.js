@@ -19,6 +19,7 @@ const config = {
   "mainnet": configMainnet,
   "testnet": configTestnet
 };
+
 const abis = {
   "crossSc": crossDelegate,
   "erc20": erc20,
@@ -34,35 +35,44 @@ const abis = {
   "rewardTask": rewardTask,
   "crossConfig": crossConfig,
 };
-export default (class ConfigService {
+
+class ConfigService {
   constructor() {
     this.extensions = new Map();
   }
+
   async init(network, options) {
     this.network = network;
     this.curConfig = config[network];
     // console.debug(this.curConfig);
     await this._initExtensions(options.extensions || []);
   }
+
   getNetwork() {
     return this.network;
   }
+
   getAbi(contractName) {
     return abis[contractName];
   }
+
   getExtension(chainType) {
     return this.extensions.get(chainType);
   }
+
   getConfig(serviceName, propertyPath) {
     let fullPropertyPath = serviceName;
-    if (propertyPath && propertyPath !== '.')
+    if (propertyPath && propertyPath !== '.') {
       fullPropertyPath = fullPropertyPath + '.' + propertyPath;
+    }
     let ret = _.get(this.curConfig, fullPropertyPath);
     return ret;
   }
+
   getGlobalConfig(name) {
     return _.get(this.curConfig, name);
   }
+
   async _initExtensions(extensions) {
     if (!Array.isArray(extensions)) {
       extensions = [extensions];
@@ -84,4 +94,6 @@ export default (class ConfigService {
       }
     }));
   }
-});
+}
+
+export default ConfigService;

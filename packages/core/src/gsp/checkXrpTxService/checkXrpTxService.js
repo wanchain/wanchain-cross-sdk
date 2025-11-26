@@ -1,10 +1,11 @@
 import axios from "axios";
 import tool from "../../utils/tool.js";
 
-export default (class CheckXrpTxService {
+class CheckXrpTxService {
   constructor() {
     this.m_xrpCheckTagAry = [];
   }
+
   async init(frameworkService) {
     this.m_frameworkService = frameworkService;
     this.m_taskService = frameworkService.getService("TaskService");
@@ -13,17 +14,20 @@ export default (class CheckXrpTxService {
     this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
     this.lockTxTimeout = this.m_configService.getGlobalConfig("LockTxTimeout");
   }
+
   async loadTradeTask(xrpAry) {
     for (let idx = 0; idx < xrpAry.length; ++idx) {
       let obj = xrpAry[idx];
       this.m_xrpCheckTagAry.push(obj);
     }
   }
+
   async start() {
     let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
     let chainInfo = chainInfoService.getChainInfoByType("XRP");
     this.m_taskService.addTask(this, chainInfo.txScanInterval);
   }
+
   async addTagInfo(info) {
     let tmpObj = {
       ccTaskId: info.ccTaskId,
@@ -36,6 +40,7 @@ export default (class CheckXrpTxService {
     await storageService.save("CheckXrpTxService", tmpObj.ccTaskId, tmpObj);
     this.m_xrpCheckTagAry.push(tmpObj);
   }
+
   async runTask(taskPara) {
     let storageService = this.m_frameworkService.getService("StorageService");
     let url = this.m_apiServerConfig.url + "/api/xrp/queryActionInfo/";
@@ -60,8 +65,7 @@ export default (class CheckXrpTxService {
           await scEventScanService.add(obj);
           await storageService.delete("CheckXrpTxService", obj.ccTaskId);
           this.m_xrpCheckTagAry.splice(index, 1);
-        }
-        else if (tool.checkTimeout(obj.ccTaskId, this.lockTxTimeout)) {
+        } else if (tool.checkTimeout(obj.ccTaskId, this.lockTxTimeout)) {
           console.debug("task %s wait lock tx timeout", obj.ccTaskId);
           await this.m_eventService.emitEvent("LockTxTimeout", {
             ccTaskId: obj.ccTaskId
@@ -69,10 +73,11 @@ export default (class CheckXrpTxService {
           // DO NOT delete from storage, can be resumed by refreshing page
           this.m_xrpCheckTagAry.splice(index, 1);
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.error("CheckXrpTxService runTask err:", err);
       }
     }
   }
-});
+}
+
+export default CheckXrpTxService;

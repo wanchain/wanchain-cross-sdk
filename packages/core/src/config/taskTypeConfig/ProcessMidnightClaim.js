@@ -2,7 +2,7 @@
 
 import tool from "../../utils/tool.js";
 
-export default (class ProcessMidnightClaim {
+class ProcessMidnightClaim {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
@@ -35,4 +35,6 @@ export default (class ProcessMidnightClaim {
     let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
     await checkTxReceiptService.add(checker);
   }
-});
+}
+
+export default ProcessMidnightClaim;

@@ -1,10 +1,11 @@
 import axios from "axios";
 
-export default (class CheckXrpTx {
+class CheckXrpTx {
   constructor(frameworkService) {
     this.m_frameworkService = frameworkService;
     this.m_CheckAry = [];
   }
+
   async init(chainType) {
     this.m_taskService = this.m_frameworkService.getService("TaskService");
     this.m_configService = this.m_frameworkService.getService("ConfigService");
@@ -14,6 +15,7 @@ export default (class CheckXrpTx {
     this.m_taskService.addTask(this, chainInfo.txScanInterval);
     this.m_eventService = this.m_frameworkService.getService("EventService");
   }
+
   async add(obj) {
     try {
       let url = this.m_apiServerConfig.url + "/api/xrp/addTxInfo";
@@ -27,18 +29,18 @@ export default (class CheckXrpTx {
       if (ret.data.success === true) {
         console.log("CheckXrpTx save to apiServer success");
         this.m_CheckAry.unshift(obj);
-      }
-      else {
+      } else {
         console.error("CheckXrpTx save to apiServer fail: %O", postJson);
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.log("CheckXrpTx err:", err);
     }
   }
+
   async load(obj) {
     this.m_CheckAry.unshift(obj);
   }
+
   async runTask(taskPara) {
     try {
       if (this.m_CheckAry.length <= 0) {
@@ -61,9 +63,10 @@ export default (class CheckXrpTx {
           this.m_CheckAry.splice(index, 1);
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("CheckXrpTx error: %O", err);
     }
   }
-});
+}
+
+export default CheckXrpTx;

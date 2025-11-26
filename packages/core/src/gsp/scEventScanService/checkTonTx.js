@@ -3,11 +3,12 @@ import util from "util";
 import axios from "axios";
 import tool from "../../utils/tool.js";
 
-export default (class CheckTonTx {
+class CheckTonTx {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.eventTasks = new Map();
   }
+
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.taskService = this.frameworkService.getService("TaskService");
@@ -18,28 +19,30 @@ export default (class CheckTonTx {
     let configService = this.frameworkService.getService("ConfigService");
     this.tonTool = configService.getExtension("TON").tool;
   }
+
   async add(task) {
     let tasks = this.eventTasks.get(task.taskType);
     if (tasks) {
       tasks.unshift(task);
-    }
-    else {
+    } else {
       console.error("CheckTonTx do not support %s task: %O", task.taskType, task);
     }
   }
+
   async load(task) {
     await this.add(task);
   }
+
   async runTask(taskPara) {
     try {
       for (let v of this.eventTypes) {
         await this.processScLogger(v);
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("CheckTonTx error: %O", err);
     }
   }
+
   async processScLogger(taskType) {
     let tasks = this.eventTasks.get(taskType);
     let count = tasks.length;
@@ -58,13 +61,13 @@ export default (class CheckTonTx {
           tasks.splice(cur, 1);
           continue; // skip save task and process next job
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.error("CheckTonTx %s task %O error: %O", taskType, task, err);
       }
       await storageService.save("ScEventScanService", task.uniqueID, task); // always save regardless of exception
     }
   }
+
   async scanWanBridgeEvent(task) {
     let now = parseInt(Date.now() / 1000);
     // default scan range
@@ -109,8 +112,7 @@ export default (class CheckTonTx {
             let txHash = Buffer.from(tx.hash, 'base64').toString('hex').padStart(64, '0'); // use hex format
             console.debug("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, tx);
             return { txHash, toAccount, value };
-          }
-          else {
+          } else {
             console.log("tx %s slice: %O", tx.hash, slice);
             // slice.endParse();
           }
@@ -120,14 +122,19 @@ export default (class CheckTonTx {
     task.fromBlockNumber = endTime;
     return null;
   }
+
   async updateUIAndStorage(task, txHash, toAccount, value) {
     this.eventService.emitEvent("RedeemTxHash", { ccTaskId: task.ccTaskId, txHash, toAccount: toAccount || "", value: value || task.value });
     let storageService = this.frameworkService.getService("StorageService");
     await storageService.delete("ScEventScanService", task.uniqueID);
   }
+
   async getTransactions(account, options) {
-    let url = util.format("%s/api/v3/transactions?account=%s&start_utime=%d&end_utime=%d&limit=%d&offset=%d&sort=asc", this.chainInfo.rpc, account, options.startTime, options.endTime, options.limit || 10, options.offset || 0);
+    let url = util.format("%s/api/v3/transactions?account=%s&start_utime=%d&end_utime=%d&limit=%d&offset=%d&sort=asc",
+      this.chainInfo.rpc, account, options.startTime, options.endTime, options.limit || 10, options.offset || 0);
     let res = await tool.timedPromise(axios.get(url));
     return res.data.transactions;
   }
-});
+}
+
+export default CheckTonTx;

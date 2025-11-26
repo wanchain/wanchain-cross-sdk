@@ -1,9 +1,10 @@
 
-export default (class CheckSuiTx {
+class CheckSuiTx {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.eventTasks = new Map();
   }
+
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.iwan = this.frameworkService.getService("iWanConnectorService");
@@ -18,15 +19,18 @@ export default (class CheckSuiTx {
     this.SmgReleaseMsg = crossEventId + "::cross::SmgReleaseLogger";
     this.cctpReceiveMsg = chainInfo.CircleBridge.messageTransmitter + "::receive_message::MessageReceived";
   }
+
   async add(task) {
     let tasks = this.eventTasks.get(task.taskType);
     if (tasks) {
       tasks.unshift(task);
     }
   }
+
   async load(task) {
     await this.add(task);
   }
+
   async runTask(taskPara) {
     try {
       let connected = await this.iwan.isConnected();
@@ -35,11 +39,11 @@ export default (class CheckSuiTx {
           await this.processScLogger(v);
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("CheckSuiTx error: %O", err);
     }
   }
+
   async processScLogger(taskType) {
     let tasks = this.eventTasks.get(taskType);
     let count = tasks.length;
@@ -60,8 +64,7 @@ export default (class CheckSuiTx {
         console.debug("CheckSuiTx block %d %s: taskId=%s, uniqueId=%s, cursor=%O", latestBlockNumber, taskType, task.ccTaskId, task.uniqueID, task.fromBlockNumber);
         if (task.taskType === "circleMINT") {
           event = await this.scanCircleEvent(task);
-        }
-        else {
+        } else {
           event = await this.scanWanBridgeEvent(task);
         }
         if (event) {
@@ -69,13 +72,13 @@ export default (class CheckSuiTx {
           tasks.splice(cur, 1);
           continue; // skip save task and process next job
         }
-      }
-      catch (err) {
+      } catch (err) {
         console.error("CheckSuiTx block %d %s task %O error: %O", latestBlockNumber, taskType, task, err);
       }
       await storageService.save("ScEventScanService", task.uniqueID, task); // always save regardless of exception
     }
   }
+
   async scanWanBridgeEvent(task) {
     if (task.fromBlockNumber == 0) { // retry get cursor firstly
       let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
@@ -83,8 +86,7 @@ export default (class CheckSuiTx {
       if (cursor) {
         task.fromBlockNumber = cursor;
         console.debug("scanWanBridgeEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
-      }
-      else {
+      } else {
         console.error("scanWanBridgeEvent task %d retry cursor error", task.ccTaskId);
         return null;
       }
@@ -107,6 +109,7 @@ export default (class CheckSuiTx {
     task.fromBlockNumber = result.nextCursor;
     return null;
   }
+
   async scanCircleEvent(task) {
     if (task.fromBlockNumber == 0) { // retry get cursor firstly
       let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
@@ -114,8 +117,7 @@ export default (class CheckSuiTx {
       if (cursor) {
         task.fromBlockNumber = cursor;
         console.debug("scanCircleEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
-      }
-      else {
+      } else {
         console.error("scanCircleEvent task %d retry cursor error", task.ccTaskId);
         return null;
       }
@@ -125,8 +127,7 @@ export default (class CheckSuiTx {
       if (deposit.depositNonce !== undefined) {
         task.depositNonce = deposit.depositNonce;
         task.depositAmount = deposit.depositAmount;
-      }
-      else {
+      } else {
         console.error("scanCircleEvent task %d failed to parseCctpDeposit for chain %s tx %s", task.ccTaskId, task.fromChain, task.txHash);
         return null;
       }
@@ -149,9 +150,12 @@ export default (class CheckSuiTx {
     task.fromBlockNumber = result.nextCursor;
     return null;
   }
+
   async updateUIAndStorage(task, txHash, toAccount, value) {
     this.eventService.emitEvent("RedeemTxHash", { ccTaskId: task.ccTaskId, txHash, toAccount: toAccount || "", value: value || task.value });
     let storageService = this.frameworkService.getService("StorageService");
     await storageService.delete("ScEventScanService", task.uniqueID);
   }
-});
+}
+
+export default CheckSuiTx;

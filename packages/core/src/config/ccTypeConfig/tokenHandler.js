@@ -2,7 +2,7 @@ import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 import CCTypeHandleInterface from "./CCTypeHandleInterface.js";
 
-export default (class TokenHandler extends CCTypeHandleInterface {
+class TokenHandler extends CCTypeHandleInterface {
   constructor(frameworkService) {
     super();
     this.frameworkService = frameworkService;
@@ -161,4 +161,6 @@ export default (class TokenHandler extends CCTypeHandleInterface {
       steps[i].params.chainId = chainId;
     }
   }
-});
+}
+
+export default TokenHandler;

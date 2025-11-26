@@ -63,7 +63,7 @@ const networks = {
   }
 };
 
-export default (class ProcessMintBtcFromBitcoin {
+class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
   }
@@ -197,4 +197,6 @@ export default (class ProcessMintBtcFromBitcoin {
       `.trim()
       .replace(/\s+/g, ' '));
   }
-});
+}
+
+export default ProcessMintBtcFromBitcoin;

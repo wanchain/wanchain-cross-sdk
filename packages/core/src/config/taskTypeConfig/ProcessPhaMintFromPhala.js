@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class ProcessPhaMintFromPhala {
+class ProcessPhaMintFromPhala {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
   }
@@ -97,4 +97,6 @@ export default (class ProcessPhaMintFromPhala {
       })
     });
   }
-});
+}
+
+export default ProcessPhaMintFromPhala;

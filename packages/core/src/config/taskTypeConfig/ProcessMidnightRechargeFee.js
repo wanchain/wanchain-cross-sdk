@@ -1,6 +1,6 @@
 import tool from "../../utils/tool.js";
 
-export default (class ProcessMidnightRechargeFee {
+class ProcessMidnightRechargeFee {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -39,4 +39,6 @@ export default (class ProcessMidnightRechargeFee {
       }
     }
   }
-});
+}
+
+export default ProcessMidnightRechargeFee;

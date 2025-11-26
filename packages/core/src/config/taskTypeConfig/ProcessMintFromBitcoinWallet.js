@@ -8,7 +8,7 @@ const networks = {
   BTC: bitcoin.networks
 };
 
-export default (class ProcessMintFromBitcoinWallet {
+class ProcessMintFromBitcoinWallet {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = frameworkService.getService("WebStores");
@@ -98,4 +98,6 @@ export default (class ProcessMintFromBitcoinWallet {
       `.trim().replace(/\s+/g, ' '));
     return redeemScript;
   }
-});
+}
+
+export default ProcessMintFromBitcoinWallet;

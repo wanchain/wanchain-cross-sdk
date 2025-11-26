@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-export default (class MintFromCosmos {
+class MintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -41,4 +41,6 @@ export default (class MintFromCosmos {
       throw err;
     }
   }
-});
+}
+
+export default MintFromCosmos;

@@ -1,7 +1,7 @@
 import tool from "../../utils/tool.js";
 import ProcessBase from "./processBase.js";
 
-export default (class ProcessCircleBridgeDeposit extends ProcessBase {
+class ProcessCircleBridgeDeposit extends ProcessBase {
   constructor(frameworkService) {
     super(frameworkService);
     this.storemanService = frameworkService.getService("StoremanService");
@@ -54,4 +54,6 @@ export default (class ProcessCircleBridgeDeposit extends ProcessBase {
     };
     return { txEventTopics, convertCheckInfo };
   }
-});
+}
+
+export default ProcessCircleBridgeDeposit;

@@ -1,12 +1,13 @@
 import axios from "axios";
 
-export default (class CheckApiServerTx {
+class CheckApiServerTx {
   constructor(frameworkService, chainType) {
     this.m_frameworkService = frameworkService;
     this.chainType = chainType;
     this.serviceName = "Check" + chainType.charAt(0).toUpperCase() + chainType.substr(1).toLowerCase() + "Tx";
     this.m_CheckAry = [];
   }
+
   async init() {
     this.m_taskService = this.m_frameworkService.getService("TaskService");
     this.m_configService = this.m_frameworkService.getService("ConfigService");
@@ -18,18 +19,20 @@ export default (class CheckApiServerTx {
     }
     this.m_eventService = this.m_frameworkService.getService("EventService");
   }
+
   async add(obj) {
     try {
       console.debug("%s add obj:", this.serviceName, obj);
       this.m_CheckAry.unshift(obj);
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s add error: %O", this.serviceName, err);
     }
   }
+
   async load(obj) {
     this.m_CheckAry.unshift(obj);
   }
+
   async runTask(taskPara) {
     try {
       if (this.m_CheckAry.length <= 0) {
@@ -54,9 +57,10 @@ export default (class CheckApiServerTx {
           this.m_CheckAry.splice(index, 1);
         }
       }
-    }
-    catch (err) {
+    } catch (err) {
       console.error("%s runTask err: %O", this.serviceName, err);
     }
   }
-});
+}
+
+export default CheckApiServerTx;
