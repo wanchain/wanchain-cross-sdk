@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import fs from "fs";
+import { access, constants } from 'fs/promises';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,8 +27,13 @@ async function check() {
     let file = files[i];
     let pkgDir = path.join(pkgsDir, file);
     if (fs.statSync(pkgDir).isDirectory()) {
-      let { default: sub } = await import(new URL('./package.json', import.meta.url), { with: { type: 'json' } });
-      dependencies[file] = sub.dependencies;
+      let pkgJsonUrl = new URL(`${file}/package.json`, new URL('packages/', import.meta.url));
+      if (await exists(pkgJsonUrl)) {
+        let { default: sub } = await import(pkgJsonUrl, { with: { type: 'json' } });
+        dependencies[file] = sub.dependencies;
+      } else {
+        console.log("package %s has no package.json", file);
+      }
     }
   }
 
@@ -64,4 +70,13 @@ async function check() {
   }
 
   console.log("\r\ncheck dependencies %s", isConsistent ? "PASS" : "FAILED");
+}
+
+async function exists(pathOrUrl) {
+  try {
+    await access(pathOrUrl, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
 }
