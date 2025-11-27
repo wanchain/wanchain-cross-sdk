@@ -4,6 +4,7 @@ class ProcessBurnFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
+    this.tokenPairService = frameworkService.getService("TokenPairService");
     this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("DUST");
     this.tool = extension.tool;
@@ -18,10 +19,13 @@ class ProcessBurnFromMidnight {
       this.tool.setApiProviders(this.configService.getNetwork(), sdkWallet);
       let res = await this.tool.api.userBurn(tool.hexStrip0x(params.storemanGroupId), params.userAccount, params.tokenPairID, params.value);
       let txHash = res.public.txHash;
+      console.log(res.public)
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       if (res.public.status !== "SucceedEntirely") {
         throw new Error("Failed");
       }
+      let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
+      let direction = (tokenPair.fromChainType === "DUST");
       let checker = {
         chain: "DUST",
         ccTaskId: params.ccTaskId,
@@ -30,7 +34,7 @@ class ProcessBurnFromMidnight {
         convertCheckInfo: {
           ccTaskId: params.ccTaskId,
           txHash,
-          uniqueID: txHash,
+          uniqueID: '0x' + tool.hexStrip0x(txHash),
           chain: params.toChainType,
           fromBlockNumber: await this.storemanService.getChainBlockNumber(params.toChainType),
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, direction),

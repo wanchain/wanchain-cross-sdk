@@ -24,7 +24,7 @@ class ProcessMidnightRechargeFee {
       let checker = {
         chain: "DUST",
         ccTaskId: params.ccTaskId,
-        stepIndex: 0,
+        stepIndex: stepData.stepIndex,
         txHash
       };
       console.log("ProcessMidnightRechargeFee checker: %O", checker);

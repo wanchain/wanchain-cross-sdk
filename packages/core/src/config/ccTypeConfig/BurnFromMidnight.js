@@ -15,8 +15,7 @@ class BurnFromMidnight {
       let chainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
       let decimals = direction ? tokenPair.fromDecimals : tokenPair.toDecimals;
       let toChainType = direction ? tokenPair.toChainType : tokenPair.fromChainType;
-      let tokenType = tokenPair.protocol;
-      let value = (tokenType === "Erc20") ? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
       let networkFee = tool.parseFee(convert.fee, convert.value, "DUST", { formatWithDecimals: false, feeType: "networkFee" });
       let steps = [];
       if (networkFee > 0) {
@@ -44,8 +43,7 @@ class BurnFromMidnight {
         value,
         taskType: "ProcessBurnFromMidnight",
         networkFee,
-        fromAddr: convert.fromAddr,
-        tokenType
+        fromAddr: convert.fromAddr
       };
       console.debug("Midnight Burn %s params: %O", tokenPair.readableSymbol, burnParams);
       steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params: burnParams });
