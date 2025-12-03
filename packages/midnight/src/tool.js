@@ -88,6 +88,7 @@ async function getUserFeeBalance(address) {
   console.debug("getUserFeeBalance %s: %O", address, balance);
   return balance;
 }
+
 async function checkClaimable(uniqueId, isNative) {
   let ledgerState = await api.getLedgerState();
   let data = isNative ? ledgerState.coinToBeClaimed : ledgerState.mappingTokenToBeClaim;
