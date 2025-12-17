@@ -43,16 +43,27 @@ class StoremanService {
             minAmountChain = tokenPair.toChainType;
           }
           let minAmountDecimals = (minAmountChain === tokenPair.fromChainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
-          let network = this.configService.getNetwork();
-          let ignoreReservation = (this.isTestMode && (network === "mainnet"));
-          let [quota, min] = await Promise.all([
-            this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation),
-            this.iwan.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
-          ]);
-          // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
-          let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
-          let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
-          return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
+          if (tokenPair.ancestorName === "NIGHT") {
+            let minQuota;
+            if ((toChainType === "ADA") && !this.isTestMode) {
+              minQuota = "10000";
+            } else {
+              let min = await this.iwan.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol);
+              minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals))).toFixed();
+            }
+            return {maxQuota: Infinity.toString(), minQuota};
+          } else {
+            let network = this.configService.getNetwork();
+            let ignoreReservation = (this.isTestMode && (network === "mainnet"));
+            let [quota, min] = await Promise.all([
+              this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation),
+              this.iwan.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
+            ]);
+            // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
+            let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
+            let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
+            return {maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed()};
+          }
         }
       } catch (err) {
         console.error("getStroremanGroupQuotaInfo error: %O", err);
