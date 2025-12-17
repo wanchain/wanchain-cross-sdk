@@ -44,10 +44,6 @@ class SuiWallet {
     return accounts;
   }
 
-  async getBalance(address, tokenAccount = "") {
-    throw new Error("Not support getBalance");
-  }
-
   async sendTransaction(tx, sender) {
     let { digest } = await this.wallet.features['sui:signAndExecuteTransaction'].signAndExecuteTransaction({
       transaction: tx,

@@ -30,11 +30,6 @@ class TronLink {
     }
   }
 
-  async getBalance(addr) {
-    let balance = await this.tronWeb.trx.getBalance(addr);
-    return balance;
-  }
-
   async sendTransaction(tx) {
     let signedTx = await this.tronWeb.trx.sign(tx);
     let result = await this.tronWeb.trx.sendRawTransaction(signedTx);

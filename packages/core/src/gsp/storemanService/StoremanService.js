@@ -3,7 +3,6 @@ import tool from "../../utils/tool.js";
 import axios from "axios";
 import util from "util";
 
-const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC", "DUST"]; // default obtaine from iwan, but some chains are not supported
 const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"]; // default obtaine from wallet to optimize batch performance, but some wallets do not support
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
 
@@ -133,11 +132,8 @@ class StoremanService {
       let isCoin = options.isCoin || (tokenAccount === "0x0000000000000000000000000000000000000000");
       if (isCoin) {
         decimals = direction ? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
-        if (SELF_WALLET_COIN_BALANCE_CHAINS.includes(chainType)) {
-          if (options.wallet) {
-            // ogmius only provide pure ADA utxo balance
-            balance = await options.wallet.getBalance(addr);
-          }
+        if (options.wallet && options.wallet.getBalance) { // prefer to get balance from wallet
+          balance = await options.wallet.getBalance(addr);
         } else {
           balance = await this.iwan.getBalance(chainType, addr);
         }

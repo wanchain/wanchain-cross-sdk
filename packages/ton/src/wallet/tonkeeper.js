@@ -30,10 +30,6 @@ class Tonkeeper {
     return [address.toString(true, true, false, this.network === "testnet")];
   }
 
-  async getBalance(address, tokenAccount = "") {
-    throw new Error("Not support getBalance");
-  }
-
   async sendTransaction(msg, options = {}) {
     let now = Date.now();
     let transaction = {
