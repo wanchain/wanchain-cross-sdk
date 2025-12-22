@@ -22,10 +22,6 @@ class VeWorld {
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts() {
     let { account } = await this.kit.wallet.connect();
     return [account];

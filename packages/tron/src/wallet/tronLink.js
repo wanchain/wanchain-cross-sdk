@@ -13,10 +13,6 @@ class TronLink {
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts() {
     if (this.tronLink) {
       // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject

@@ -24,10 +24,6 @@ class PolkadotJs {
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts(network) {
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
