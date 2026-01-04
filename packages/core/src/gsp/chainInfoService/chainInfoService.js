@@ -1,51 +1,43 @@
 
 class ChainInfoService {
   constructor() {
-    this.m_mapChainIdObj = new Map(); // chainId - > chainInfo
-    this.m_mapChainNameObj = new Map(); // chainName - > chainInfo
-    this.m_mapChainTypeObj = new Map(); // chainType - > chainInfo
+    this.chainId2Info = new Map();
+    this.chainName2Info = new Map();
+    this.chainType2Info = new Map();
   }
 
   async init(frameworkService) {
     this.m_frameworkService = frameworkService;
     let configService = frameworkService.getService("ConfigService");
-    let chainsInfo = configService.getGlobalConfig("StoremanService");
-    // console.log("chainInfoService chainsInfo:", chainsInfo);
-    for (let idx = 0; idx < chainsInfo.length; ++idx) {
-      let obj = chainsInfo[idx];
-      obj._isEVM = true;
-      this.m_mapChainIdObj.set(obj.chainId, obj);
-      this.m_mapChainNameObj.set(obj.chainName, obj);
-      this.m_mapChainTypeObj.set(obj.chainType, obj);
+    let evmChains = configService.getGlobalConfig("StoremanService");
+    for (let chain of evmChains) {
+      chain._isEVM = true;
+      this.chainId2Info.set(chain.chainId, chain);
+      this.chainName2Info.set(chain.chainName, chain);
+      this.chainType2Info.set(chain.chainType, chain);
     }
-    let noEthChainInfo = configService.getGlobalConfig("noEthChainInfo");
-    for (let idx = 0; idx < noEthChainInfo.length; ++idx) {
-      let obj = noEthChainInfo[idx];
-      this.m_mapChainIdObj.set(obj.chainId, obj);
-      this.m_mapChainNameObj.set(obj.chainName, obj);
-      this.m_mapChainTypeObj.set(obj.chainType, obj);
+    let noEvmChains = configService.getGlobalConfig("noEthChainInfo");
+    for (let chain of noEvmChains) {
+      this.chainId2Info.set(chain.chainId, chain);
+      this.chainName2Info.set(chain.chainName, chain);
+      this.chainType2Info.set(chain.chainType, chain);
     }
-    // console.log("ChainInfoService this.m_mapChainIdObj:", this.m_mapChainIdObj);
-    // console.log("ChainInfoService this.m_mapChainTypeObj:", this.m_mapChainTypeObj);
   }
 
   getChainInfoById(chainId) {
-    let obj = this.m_mapChainIdObj.get(chainId);
-    return obj;
+    return this.chainId2Info.get(chainId);
   }
 
   getChainInfoByName(chainName) {
-    let obj = this.m_mapChainNameObj.get(chainName);
-    return obj;
+    return this.chainName2Info.get(chainName);
   }
 
   getChainInfoByType(chainType) {
-    let obj = this.m_mapChainTypeObj.get(chainType);
-    return obj;
+    return this.chainType2Info.get(chainType);
   }
 
   getCoinSymbol(chainType) {
-    let chain = this.m_mapChainTypeObj.get(chainType);
+    let chain = this.chainType2Info.get(chainType);
     return chain.symbol || chainType;
   }
 }
