@@ -10,9 +10,10 @@ import axios from "axios";
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
+// consistant with crosschain contract
 const MAX_NFT_BATCH_SIZE = 10;
 
-const TaskInfoMapping = {
+const TaskInfoMapping = { // for QuiX to insert task info
   "taskId": "ccTaskId",
   "pairId": "assetPairId",
   "asset": "assetType",
@@ -34,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601051745", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601051828", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -265,7 +266,7 @@ class WanBridge extends EventEmitter {
     return quota;
   }
 
-  validateAddress(chainName, address, options = {}) {
+  validateAddress(chainName, address, options = {}) { // validate address format and basic static rule
     options = Object.assign({ debug: true, checkToken: true }, options);
     let chainType = this.tokenPairService.getChainType(chainName);
     let result = this.storemanService.validateAddress(chainType, address);
@@ -283,7 +284,7 @@ class WanBridge extends EventEmitter {
     return true;
   }
 
-  async validateRecipient(chainName, address) {
+  async validateRecipient(chainName, address) { // it asynchronous because it relies on remote services
     let valid = this.validateAddress(chainName, address);
     if (valid) {
       if (chainName === "Cardano") { // cross swap
@@ -468,7 +469,7 @@ class WanBridge extends EventEmitter {
       return tokenAccount;
     }
   }
-  getFromChains(options) {
+  getFromChains(options) { // options MUST contain protocols
     let fromChainSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let pair of assetPairList) {
@@ -486,7 +487,7 @@ class WanBridge extends EventEmitter {
     return Array.from(fromChainSet);
   }
 
-  async getChainAssets(options) {
+  async getChainAssets(options) { // options should contain wallet for most non-EVM chains
     console.debug("SDK: getChainAssets, options: %O", this._getDebugOptions(options));
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
@@ -514,7 +515,7 @@ class WanBridge extends EventEmitter {
     return result;
   }
 
-  getToChains(assetType, fromChainName, options) {
+  getToChains(assetType, fromChainName, options) { // options MUST contain protocols
     let toChainSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
     for (let pair of assetPairList) {
@@ -693,7 +694,7 @@ class WanBridge extends EventEmitter {
     return result;
   }
 
-  async getRewardTasks(page, pageSize, options = {}) {
+  async getRewardTasks(page, pageSize, options = {}) { // options: {claimer}
     console.debug("SDK: getRewardTasks, page: %d, pageSize: %d, options: %O", page, pageSize, options);
     try {
       let tasks = await this.storemanService.getRewardTasks(page, pageSize, options);
@@ -775,7 +776,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  async _onLockTxHash(taskLockHash) {
+  async _onLockTxHash(taskLockHash) { // only for third-party wallet lockTx to update txHash and result
     console.debug("_onLockTxHash: %O", taskLockHash);
     let records = this.stores.crossChainTaskRecords;
     let taskId = taskLockHash.ccTaskId;
@@ -927,7 +928,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  async _onTaskStepResult(taskStepResult) {
+  async _onTaskStepResult(taskStepResult) { // only for async tx receipt to update lockTx result
     console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;

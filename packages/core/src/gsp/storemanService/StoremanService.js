@@ -42,7 +42,7 @@ class StoremanService {
     return { maxQuota: "0", minQuota: "0" };
   }
 
-  validateAddress(chainType, address) {
+  validateAddress(chainType, address) { // validate address format and basic static rule
     let result = false;
     let network = this.configService.getNetwork();
     let extension = this.configService.getExtension(chainType);
@@ -69,7 +69,7 @@ class StoremanService {
     return result;
   }
 
-  async checkAdaRecipient(address) {
+  async checkAdaRecipient(address) { // address format should have been validated by validateAddress
     try {
       let network = this.configService.getNetwork();
       let tool = this.configService.getExtension("ADA").tool;
@@ -88,7 +88,7 @@ class StoremanService {
     }
   }
 
-  async checkSolRecipient(address) {
+  async checkSolRecipient(address) { // address format should have been validated by validateAddress
     try {
       let accountInfo = await this.iwan.getAccountInfo("SOL", address);
       if (!accountInfo) { // account not exist is valid for SystemAccount, uninitialized accounts are owned by System Program

@@ -37,7 +37,7 @@ class AssetPairs {
       this.smgList = smgList;
     }
     if (tokenPairs) { // maybe only update smgs
-      let pairList = tokenPairs.map(pair => {
+      let pairList = tokenPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
         this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService).toLowerCase());
         this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount, configService).toLowerCase());
         let assetPair = {

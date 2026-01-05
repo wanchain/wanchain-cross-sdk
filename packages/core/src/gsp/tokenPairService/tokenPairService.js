@@ -180,7 +180,7 @@ class TokenPairService {
     return true;
   }
 
-  setCrossTypes(crossTypes) {
+  setCrossTypes(crossTypes) { // dynamically change crossTypes, only for erc20
     if (this.m_mapTokenPair.size === 0) {
       return false; // not initialized
     }
@@ -196,7 +196,7 @@ class TokenPairService {
     return this.crossTypes;
   }
 
-  checkActive(assetName, tp) {
+  checkActive(assetName, tp) { // only for erc20
     if (this.crossTypes.length && (tp.protocol === "Erc20")) {
       let crossType = "other";
       if (tp.bridge === "Circle") {
@@ -439,7 +439,7 @@ class TokenPairService {
     return logo;
   }
 
-  customizeUI(tokenPair) {
+  customizeUI(tokenPair) { // assetAlias ONLY change ui asset name, do not affect sdk fee unit
     let direction = "both";
     if (tokenPair.id === "41") { // migrating avalanche wrapped BTC.a to original BTC.b, internal assetType is BTC but represent as BTC.a
       tokenPair.assetAlias = "BTC.a";
@@ -472,7 +472,7 @@ class TokenPairService {
     tokenPair.direction = direction;
   }
 
-  customizeSymbol(symbol) {
+  customizeSymbol(symbol) { // readableSymbol affect BOTH ui and sdk fee unit, DO NOT change ancestorSymbol, it used by iwan api
     if (symbol === "Djed_testMicroUSD") {
       return "Djed Test USD";
     } else if (symbol === "GEROV2") {
@@ -757,7 +757,7 @@ class TokenPairService {
     return this.chainHighlightEndTime.get(chainId) || 0;
   }
 
-  getTokenInfo(chainType, tokenAddr) {
+  getTokenInfo(chainType, tokenAddr) { // be care of performance as it is traversal to find the token, only support original format address like evm
     let tokenAccount = tokenAddr.toLowerCase();
     let key = chainType + "-" + tokenAccount;
     let cache = this.tokenInfos.get(key);

@@ -8,8 +8,7 @@ import util from "util";
 
 const Secp256k1 = elliptic.ec('secp256k1');
 
-// consistant with crosschain contract
-const MAX_NFT_BATCH_SIZE = 10;
+const MAX_NFT_BATCH_SIZE = 10; // consistant with crosschain contract
 
 const gpkAlgs = {
   ecdsa: 0,
@@ -474,7 +473,7 @@ class BridgeTask {
     console.debug("%s OTA: %O", chainType, ota);
   }
 
-  async _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") {
+  async _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // only for sync step result to update lockTx hash
     let records = this._bridge.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(this.id);
     if (ccTask) {

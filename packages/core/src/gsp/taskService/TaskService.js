@@ -25,7 +25,7 @@ class TaskService {
     this.tasks.push(task);
   }
 
-  async removeTask(inst) {
+  async removeTask(inst) { // should not be called
     this.tasks = this.tasks.filter(v => (v.inst !== inst));
   }
 

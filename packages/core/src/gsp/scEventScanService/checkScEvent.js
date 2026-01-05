@@ -268,7 +268,7 @@ class CheckScEvent {
 
   async getCctpMessageTransmitterAddr(isV2) {
     let proxyScAddr = isV2 ? this.chainInfo.CircleBridge.crossScAddrV2 : this.chainInfo.CircleBridge.crossScAddr;
-    let abi = [{
+    let abi = [{ // v1 and v2 have the same abi
       "inputs": [],
       "name": "circleMessageTransmitterSC",
       "outputs": [{
