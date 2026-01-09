@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601051828", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601091506", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -171,19 +171,6 @@ class WanBridge extends EventEmitter {
     await task.init(options);
     await task.start();
     return task;
-  }
-
-  cancelTask(taskId) {
-    console.debug("SDK: cancelTask, taskId: %s", taskId);
-    // only set the status, do not really stop the task
-    let records = this.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask) {
-      return;
-    }
-    records.modifyTradeTaskStatus(taskId, "Rejected");
-    this._distributeEvent("error", { taskId, reason: "Rejected" });
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
   async getAccountBalance(assetType, chainName, account, options = {}) {

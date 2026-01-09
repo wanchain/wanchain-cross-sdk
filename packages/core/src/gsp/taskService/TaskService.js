@@ -7,6 +7,9 @@ class TaskService {
   async init(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.taskInterval = configService.getConfig("TaskService", "taskInterval");
+  }
+
+  async start() {
     setTimeout(() => this.taskLoop(), this.taskInterval);
   }
 

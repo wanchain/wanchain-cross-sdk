@@ -7,6 +7,7 @@ class CheckSuiTx {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
+    this.webStores = this.frameworkService.getService("WebStores");
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, chainInfo.txScanInterval);
@@ -60,6 +61,12 @@ class CheckSuiTx {
       let cur = count - i - 1; // backwards
       let task = tasks[cur];
       try {
+        if (!this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+          console.log("CheckSuiTx remove deleted task %s", task.ccTaskId);
+          await storageService.delete("ScEventScanService", task.uniqueID);
+          tasks.splice(cur, 1);
+          continue;
+        }
         let event = null;
         console.debug("CheckSuiTx block %d %s: taskId=%s, uniqueId=%s, cursor=%O", latestBlockNumber, taskType, task.ccTaskId, task.uniqueID, task.fromBlockNumber);
         if (task.taskType === "circleMINT") {

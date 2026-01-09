@@ -115,7 +115,6 @@ class BridgeTask {
       toDecimals: this._toChainInfo.decimals,
       fromChainType: this._fromChainInfo.chainType,
       toChainType: this._toChainInfo.chainType,
-      isOtaTx: !this._wallet,
       fee: this._fee,
       smg: { name: this._smg ? this._smg.name : "", gpk: this._gpkInfo ? this._gpkInfo.gpk : "" }
     };

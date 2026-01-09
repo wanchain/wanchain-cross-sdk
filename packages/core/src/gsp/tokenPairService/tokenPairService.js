@@ -5,9 +5,9 @@ import axios from "axios";
 
 class TokenPairService {
   constructor() {
-    this.m_iwanConnected = false;
-    this.m_mapTokenPair = new Map(); // tokenPairId => tokenPair
-    this.m_mapTokenPairCfg = new Map(); // tokenPairId => tokenPairConfig
+    this.initialized = false;
+    this.mapTokenPair = new Map(); // tokenPairId => tokenPair
+    this.mapTokenPairCfg = new Map(); // tokenPairId => tokenPairConfig
     this.assetLogo = new Map(); // name => logo
     this.chainLogo = new Map(); // type => logo
     this.storageService = null; // init after token pair service
@@ -40,18 +40,18 @@ class TokenPairService {
       this.eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
       let tokenPairCfg = this.configService.getGlobalConfig("tokenPairCfg");
       tokenPairCfg.map(tp => {
-        this.m_mapTokenPairCfg.set(tp.id, tp);
+        this.mapTokenPairCfg.set(tp.id, tp);
       });
-      // console.debug("tokenPairCfg: %O", this.m_mapTokenPairCfg);
+      // console.debug("tokenPairCfg: %O", this.mapTokenPairCfg);
     } catch (err) {
       console.error("TokenPairService init error: %O", err);
     }
   }
 
   async onIwanConnected() {
-    if (this.m_iwanConnected === false) {
-      this.m_iwanConnected = true;
+    if (this.initialized === false) {
       await this.readAssetPair();
+      this.initialized = true;
     }
   }
 
@@ -138,7 +138,7 @@ class TokenPairService {
         return this.updateChainAssets(tp);
       });
       if (preferHides.length) {
-        console.debug("prefer %s hide token pairs: %s", this.prefer, preferHides.toString());
+        console.debug("prefer %s, hide token pairs: %s", this.prefer, preferHides.toString());
       }
       let ts1 = Date.now();
       let ps = [
@@ -153,7 +153,7 @@ class TokenPairService {
       console.debug("readAssetPair consume %s/%s ms", ts2 - ts1, ts2 - ts0);
       // console.debug("available tokenPairMap: %O", tokenPairMap.values());
       this.webStores.assetPairs.setAssetPairs(activeTokenPairs, smgList, this.configService);
-      this.m_mapTokenPair = tokenPairMap;
+      this.mapTokenPair = tokenPairMap;
       this.eventService.emitEvent("StoremanServiceInitComplete", true);
       this.storageService.setCacheData("Version", { tokenPair: tokenPairVer, chainLogo: chainLogoVer, tokenLogo: tokenLogoVer });
     } catch (err) {
@@ -181,12 +181,12 @@ class TokenPairService {
   }
 
   setCrossTypes(crossTypes) { // dynamically change crossTypes, only for erc20
-    if (this.m_mapTokenPair.size === 0) {
+    if (this.mapTokenPair.size === 0) {
       return false; // not initialized
     }
     this.crossTypes = (crossTypes || []).map(v => v.toLowerCase());
     this.fromChainAssets = new Map(); // clear old data
-    let activeTokenPairs = Array.from(this.m_mapTokenPair.values()).filter(tp => this.updateChainAssets(tp));
+    let activeTokenPairs = Array.from(this.mapTokenPair.values()).filter(tp => this.updateChainAssets(tp));
     this.webStores.assetPairs.setAssetPairs(activeTokenPairs, undefined, this.configService);
     this.eventService.emitEvent("StoremanServiceInitComplete", true);
     return true;
@@ -418,7 +418,7 @@ class TokenPairService {
   }
 
   getTokenPair(id) {
-    return this.m_mapTokenPair.get(id);
+    return this.mapTokenPair.get(id);
   }
 
   getAssetLogo(name, protocol) {
@@ -596,7 +596,7 @@ class TokenPairService {
       return;
     }
     // 1、config single tokenPair, only for wanEOS between wanchain and ethereum 
-    let tokenPairCfg = this.m_mapTokenPairCfg.get(tokenPair.id);
+    let tokenPairCfg = this.mapTokenPairCfg.get(tokenPair.id);
     if (tokenPairCfg) {
       tokenPair.ccType["MINT"] = tokenPairCfg.mintHandle;
       tokenPair.ccType["BURN"] = tokenPairCfg.burnHandle;
@@ -762,7 +762,7 @@ class TokenPairService {
     let key = chainType + "-" + tokenAccount;
     let cache = this.tokenInfos.get(key);
     if (cache === undefined) {
-      for (let [, tp] of this.m_mapTokenPair) {
+      for (let [, tp] of this.mapTokenPair) {
         if ((tp.fromChainType === chainType) && (tp.fromAccount === tokenAccount)) {
           cache = { symbol: tp.readableSymbol, decimals: tp.fromDecimals };
           break;

@@ -26,6 +26,7 @@ class CheckScEvent {
   async init(chainInfo) {
     this.chainInfo = chainInfo;
     this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
+    this.webStores = this.frameworkService.getService("WebStores");
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.txScanInterval);
@@ -173,6 +174,12 @@ class CheckScEvent {
       let cur = count - i - 1; // backwards
       let task = tasks[cur];
       try {
+        if (!this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+          console.log("%s CheckScEvent remove deleted task %s", this.chainInfo.chainType, task.ccTaskId);
+          await storageService.delete("ScEventScanService", task.uniqueID);
+          tasks.splice(cur, 1);
+          continue;
+        }
         if (task.fromBlockNumber == 0) { // retry get block number firstly
           let delay = parseInt((Date.now() - task.ccTaskId) / 1000);
           let blockNumber = latestBlockNumber - delay;

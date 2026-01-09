@@ -38,24 +38,24 @@ const ITEM_NUM_MAX = 200;
 
 class StorageService {
   constructor() {
-    this.m_mapStoreKeys = new Map(); // storeName => ["key1","key2","..."]
+    this.mapStoreKeys = new Map(); // storeName => ["key1","key2","..."]
   }
 
   async init(frameworkService) {
-    this.m_frameworkService = frameworkService;
-    this.m_WebStores = this.m_frameworkService.getService("WebStores");
+    this.frameworkService = frameworkService;
+    this.webStores = this.frameworkService.getService("WebStores");
     await db.read();
   }
 
-  async init_load() {
-    this.m_mapStoreKeys.clear();
+  async init_load(mainKey) {
+    this.mapStoreKeys.clear();
     try {
       let storeNames = JSON.parse(db.get("StorageService_storeNames").value() || "[]");
       for (let i = 0; i < storeNames.length; i++) {
         let storeName = storeNames[i];
         let storeKeys = JSON.parse(db.get(storeName + "_keys").value() || "[]");
         let truncateNum = 0;
-        if (storeKeys.length > ITEM_NUM_MAX) {
+        if ((storeName === mainKey) && (storeKeys.length > ITEM_NUM_MAX)) {
           truncateNum = storeKeys.length - ITEM_NUM_MAX;
           console.log("truncate %d/%d %s records", truncateNum, storeKeys.length, storeName);
         }
@@ -74,7 +74,7 @@ class StorageService {
         if (truncateNum) { // update storeKeys
           await db.set(storeName + "_keys", JSON.stringify(storeKeys.slice(truncateNum))).write();
         }
-        this.m_mapStoreKeys.set(storeName, keysMap);
+        this.mapStoreKeys.set(storeName, keysMap);
         let processInst = await this.getProcessInst(storeName);
         if (processInst) {
           processInst.loadTradeTask(tasks);
@@ -86,21 +86,21 @@ class StorageService {
   }
 
   async getProcessInst(storeName) {
-    let storeInst = this.m_WebStores[storeName];
+    let storeInst = this.webStores[storeName];
     if (storeInst) {
       return storeInst;
     }
-    let serviceInst = this.m_frameworkService.getService(storeName);
+    let serviceInst = this.frameworkService.getService(storeName);
     return serviceInst;
   }
 
   async save(storeName, key, val) {
     let dbOps = db;
-    let keysMap = this.m_mapStoreKeys.get(storeName);
+    let keysMap = this.mapStoreKeys.get(storeName);
     if (!keysMap) {
       keysMap = new Map();
-      this.m_mapStoreKeys.set(storeName, keysMap);
-      let storeNames = this.getKeyAryFromMap(this.m_mapStoreKeys);
+      this.mapStoreKeys.set(storeName, keysMap);
+      let storeNames = this.getKeyAryFromMap(this.mapStoreKeys);
       dbOps = dbOps.set("StorageService_storeNames", JSON.stringify(storeNames));
     }
     if (!keysMap.has(key)) {
@@ -112,7 +112,7 @@ class StorageService {
   }
 
   async delete(storeName, key) {
-    let keysMap = this.m_mapStoreKeys.get(storeName);
+    let keysMap = this.mapStoreKeys.get(storeName);
     if (keysMap && keysMap.has(key)) {
       keysMap.delete(key);
       let storeKeys = this.getKeyAryFromMap(keysMap);
@@ -120,8 +120,8 @@ class StorageService {
         await db.set(storeName + "_keys", JSON.stringify(storeKeys)).write();
       } else {
         await db.unset(storeName + "_keys").write();
-        this.m_mapStoreKeys.delete(storeName);
-        let storeNames = this.getKeyAryFromMap(this.m_mapStoreKeys);
+        this.mapStoreKeys.delete(storeName);
+        let storeNames = this.getKeyAryFromMap(this.mapStoreKeys);
         if (storeNames.length > 0) {
           await db.set("StorageService_storeNames", JSON.stringify(storeNames)).write();
         } else {
@@ -133,11 +133,11 @@ class StorageService {
   }
 
   getKeyAryFromMap(paraMap) {
-    let ary = [];
-    for (let [key, val] of paraMap) {
-      ary.push(key);
+    let keys = []; // the same order as the set operations
+    for (let [key,] of paraMap) {
+      keys.push(key);
     }
-    return ary;
+    return keys;
   }
 
   getCacheData(name, json2obj = true) {
