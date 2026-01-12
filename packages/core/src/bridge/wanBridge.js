@@ -114,7 +114,7 @@ class WanBridge extends EventEmitter {
     if (this._isThirdPartyWallet(chainType) && !wallet) { // BTC support both
       return true;
     } else {
-      return (await this.storemanService.checkWalletId(chainType, wallet));
+      return (await this.storemanService.checkWalletId(chainType, wallet, {debug: true}));
     }
   }
 

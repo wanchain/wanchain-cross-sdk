@@ -103,7 +103,7 @@ class StoremanService {
     }
   }
 
-  async checkWalletId(chainType, wallet) {
+  async checkWalletId(chainType, wallet, options = {}) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.walletChainId !== undefined) {
       if (wallet && wallet.getChainId) {
@@ -111,7 +111,9 @@ class StoremanService {
         if (chainInfo.walletChainId == walletChainId) {
           return true;
         } else {
-          console.debug("checkWalletId %s != %s", walletChainId, chainInfo.walletChainId);
+          if (options.debug) {
+            console.debug("checkWalletId %s != %s", walletChainId, chainInfo.walletChainId);
+          }
           return false;
         }
       } else {
