@@ -8,20 +8,17 @@ class ProcessErc20Approve extends ProcessBase {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      if (!(await this.checkChainId(stepData, wallet))) {
-        return;
-      }
       let txData, options = { chainType: params.scChainType, from: params.fromAddr };
       if (wallet.generatorErc20ApproveData) { // wallet custumized
         txData = await wallet.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
       } else {
-        let scData = await this.m_txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
-        txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.erc20Addr, 0, scData.data, params.fromAddr);
+        let scData = await this.txGeneratorService.generatorErc20ApproveData(params.erc20Addr, params.spenderAddr, params.value, options);
+        txData = await this.txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.erc20Addr, 0, scData.data, params.fromAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessErc20Approve error: %O", err);
-      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to approve token");
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to approve token");
     }
   }
 

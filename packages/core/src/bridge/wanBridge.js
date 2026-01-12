@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601091506", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601121120", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -114,22 +114,7 @@ class WanBridge extends EventEmitter {
     if (this._isThirdPartyWallet(chainType) && !wallet) { // BTC support both
       return true;
     } else {
-      let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
-      if (chainInfo.walletChainId !== undefined) {
-        if (wallet && wallet.getChainId) {
-          let walletChainId = await wallet.getChainId();
-          if (chainInfo.walletChainId == walletChainId) {
-            return true;
-          } else {
-            console.debug("SDK: checkWallet id %s != %s", walletChainId, chainInfo.walletChainId);
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
+      return (await this.storemanService.checkWalletId(chainType, wallet));
     }
   }
 

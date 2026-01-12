@@ -154,13 +154,6 @@ class TokenHandler extends CCTypeHandleInterface {
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params });
   }
-
-  async setChainId(steps, tokenPair, convert) {
-    let chainId = await convert.wallet.getChainId();
-    for (let i = 0; i < steps.length; i++) {
-      steps[i].params.chainId = chainId;
-    }
-  }
 }
 
 export default TokenHandler;

@@ -11,7 +11,6 @@ class CircleBridgeDeposit extends TokenHandler {
     let steps = [];
     await this.buildApproveSteps(steps, tokenPair, convert);
     await this.buildDeposit(steps, tokenPair, convert);
-    await this.setChainId(steps, tokenPair, convert);
     //console.log("CircleBridgeDeposit steps: %O", steps);
     return steps;
   }

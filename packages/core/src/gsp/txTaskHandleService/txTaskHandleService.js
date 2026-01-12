@@ -8,7 +8,7 @@ class TxTaskHandleService {
 
   async init(frameworkService) {
     try {
-      this.m_frameworkService = frameworkService;
+      this.frameworkService = frameworkService;
       for (let idx = 0; idx < taskTypeConfig.length; ++idx) {
         let obj = taskTypeConfig[idx];
         this.m_mapTaskTypeToHandler.set(obj.name, obj.handle);
@@ -22,7 +22,7 @@ class TxTaskHandleService {
     let taskType = taskParas.params.taskType;
     try {
       let TxTaskHandler = this.m_mapTaskTypeToHandler.get(taskType);
-      let txHandler = new TxTaskHandler(this.m_frameworkService);
+      let txHandler = new TxTaskHandler(this.frameworkService);
       let result = await txHandler.process(taskParas, wallet);
       return result;
     } catch (err) {

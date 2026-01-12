@@ -10,9 +10,6 @@ class ProcessCoinUserFastMint extends ProcessBase {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      if (!(await this.checkChainId(stepData, wallet))) {
-        return;
-      }
       let txData, crossValue = new BigNumber(params.value).minus(params.networkFee);
       if (wallet.generateUserLockData) { // wallet custumized
         txData = await wallet.generateUserLockData(params.crossScAddr,
@@ -22,28 +19,28 @@ class ProcessCoinUserFastMint extends ProcessBase {
           params.userAccount,
           { coinValue: params.value });
       } else { // common evm
-        let scData = await this.m_txGeneratorService.generateUserLockData(params.crossScAddr,
+        let scData = await this.txGeneratorService.generateUserLockData(params.crossScAddr,
           params.storemanGroupId,
           params.tokenPairID,
           crossValue,
           params.userAccount,
           { tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: params.value });
-        txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.value, scData.data, params.fromAddr);
+        txData = await this.txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.value, scData.data, params.fromAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessCoinUserFastMint error: %O", err);
-      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
-    let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
+    let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
     let direction = (params.scChainType === tokenPair.fromChainType) ? "MINT" : "BURN";
     let checkChainType = (direction === "MINT") ? tokenPair.toChainType : tokenPair.fromChainType;
-    let taskType = this.m_tokenPairService.getTokenEventType(params.tokenPairID, direction);
-    let blockNumber = await this.m_storemanService.getChainBlockNumber(checkChainType);
+    let taskType = this.tokenPairService.getTokenEventType(params.tokenPairID, direction);
+    let blockNumber = await this.storemanService.getChainBlockNumber(checkChainType);
     let srcToken = (direction === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
     let txEventTopics = [
       "0x43eb196c5950c738b34cd1760941e0876559e4fb835498fe19016bc039ad61a9", // UserLockLogger

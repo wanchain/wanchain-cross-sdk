@@ -8,7 +8,6 @@ class CheckiWanSpeed {
   }
 
   async init(frameworkService) {
-    this.m_frameworkService = frameworkService;
   }
 
   async checkiwanSpeed(iwanInstAry, success_callback, fail_callback) {

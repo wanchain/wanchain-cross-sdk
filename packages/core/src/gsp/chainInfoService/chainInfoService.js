@@ -7,7 +7,6 @@ class ChainInfoService {
   }
 
   async init(frameworkService) {
-    this.m_frameworkService = frameworkService;
     let configService = frameworkService.getService("ConfigService");
     let evmChains = configService.getGlobalConfig("StoremanService");
     for (let chain of evmChains) {

@@ -103,6 +103,25 @@ class StoremanService {
     }
   }
 
+  async checkWalletId(chainType, wallet) {
+    let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
+    if (chainInfo.walletChainId !== undefined) {
+      if (wallet && wallet.getChainId) {
+        let walletChainId = await wallet.getChainId();
+        if (chainInfo.walletChainId == walletChainId) {
+          return true;
+        } else {
+          console.debug("checkWalletId %s != %s", walletChainId, chainInfo.walletChainId);
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return true;
+    }
+  }
+
   async getAccountBalance(assetPairId, chainType, addr, options = {}) {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -206,11 +225,8 @@ class StoremanService {
         }
       }
     } else if (options.wallet && options.wallet.getBalance) {
-      let walletId = 0;
-      if (options.wallet.getChainId) {
-        walletId = await options.wallet.getChainId();
-      }
-      if (((walletId === chainInfo.walletChainId) || !walletId) && this.validateAddress(chainType, addr)) {
+      let checkWalletId = await this.checkWalletId(chainType, options.wallet);
+      if (checkWalletId && this.validateAddress(chainType, addr)) {
         let assetArray = [], balances;
         try { // input addr format maybe not match wallet
           if (options.wallet.getBalances) { // fix cardano Eternl too many requests error

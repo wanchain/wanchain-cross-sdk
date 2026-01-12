@@ -10,9 +10,6 @@ class ProcessErc20UserFastBurn extends ProcessBase {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      if (!(await this.checkChainId(stepData, wallet))) {
-        return;
-      }
       let txData;
       if (wallet.generateUserBurnData) { // wallet custumized
         txData = await wallet.generateUserBurnData(params.crossScAddr,
@@ -24,7 +21,7 @@ class ProcessErc20UserFastBurn extends ProcessBase {
           params.userAccount,
           { coinValue: params.fee });
       } else {
-        let scData = await this.m_txGeneratorService.generateUserBurnData(params.crossScAddr,
+        let scData = await this.txGeneratorService.generateUserBurnData(params.crossScAddr,
           params.storemanGroupId,
           params.tokenPairID,
           params.value,
@@ -32,23 +29,23 @@ class ProcessErc20UserFastBurn extends ProcessBase {
           params.tokenAccount,
           params.userAccount,
           { tokenType: params.tokenType, chainType: params.scChainType, from: params.fromAddr, coinValue: params.fee });
-        txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.fee, scData.data, params.fromAddr);
+        txData = await this.txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.fee, scData.data, params.fromAddr);
       }
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessErc20UserFastBurn error: %O", err);
-      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
-    let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
+    let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
     let direction = (params.scChainType === tokenPair.fromChainType) ? "MINT" : "BURN";
     let checkChainType = (direction === "MINT") ? tokenPair.toChainType : tokenPair.fromChainType;
-    let blockNumber = await this.m_storemanService.getChainBlockNumber(checkChainType);
+    let blockNumber = await this.storemanService.getChainBlockNumber(checkChainType);
     // exception: burn legency EOS from ethereum to wanchain is "BURN"
-    let taskType = this.m_tokenPairService.getTokenEventType(params.tokenPairID, direction);
+    let taskType = this.tokenPairService.getTokenEventType(params.tokenPairID, direction);
     let srcToken = (direction === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
     let txEventTopics = [];
     let topic0 = (params.tokenType === "Erc20") ? "0xe314e23175856b9484e39ab0547753cf1b5cd0cbe3b0d7018c953d31f23fc767" : "0x988781dff960cf5a144a15c9b0c4d1346196e415e64ea7ebd609c6ac0559bbbb";

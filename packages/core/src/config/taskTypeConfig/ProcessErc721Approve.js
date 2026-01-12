@@ -9,16 +9,13 @@ class ProcessErc721Approve extends ProcessBase {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      if (!(await this.checkChainId(stepData, wallet))) {
-        return;
-      }
       let options = { chainType: params.scChainType, from: params.fromAddr };
-      let scData = await this.m_txGeneratorService.generatorErc721ApproveData(params.tokenAddr, params.operator, options);
-      let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.tokenAddr, 0, scData.data, params.fromAddr);
+      let scData = await this.txGeneratorService.generatorErc721ApproveData(params.tokenAddr, params.operator, options);
+      let txData = await this.txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.tokenAddr, 0, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessErc721Approve error: %O", err);
-      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to approve ERC721 token");
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to approve ERC721 token");
     }
   }
 

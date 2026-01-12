@@ -31,7 +31,6 @@ class MintCoinHandle {
       networkFee
     };
     console.debug("MintCoinHandle params: %O", params);
-    params.chainId = await convert.wallet.getChainId();
     let steps = [
       { name: "userFastMint", stepIndex: 1, params }
     ];

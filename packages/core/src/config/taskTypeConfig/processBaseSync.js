@@ -18,7 +18,15 @@ class ProcessBaseSync {
   async sendTx(stepData, txData, wallet) {
     try {
       let params = stepData.params;
-      await this.checkWallet(params, wallet);
+      let checkWalletId = await this.storemanService.checkWalletId(params.chainType, wallet);
+      if (!checkWalletId) {
+        throw new Error("Wallet chain mismatch");
+      }
+      let accounts = await wallet.getAccounts();
+      let curAccount = accounts && accounts[0] || "";
+      if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
+        throw new Error("Wallet account mismatch");
+      }
       let txHash = await wallet.sendTransaction(txData);
       let txReceipt = await this.storemanService.waitTxReceipt(params.chainType, txHash, 30000, 3000);
       if (txReceipt && (txReceipt.status == 1)) {
@@ -32,20 +40,6 @@ class ProcessBaseSync {
       } else {
         throw err;
       }
-    }
-  }
-
-  async checkWallet(params, wallet) {
-    let chainInfo = this.chainInfoService.getChainInfoByType(params.chainType);
-    let chainId = await wallet.getChainId();
-    if (chainId != chainInfo.walletChainId) {
-      console.error("wallet chainId %d != %d", chainId, chainInfo.walletChainId);
-      throw new Error("Wallet chain mismatch");
-    }
-    let accounts = await wallet.getAccounts();
-    let curAccount = accounts && accounts[0] || "";
-    if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-      throw new Error("Wallet account mismatch");
     }
   }
 }
