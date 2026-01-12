@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601121230", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601121800", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -541,7 +541,7 @@ class WanBridge extends EventEmitter {
         balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, options.account, assets, options));
       }
     } catch (err) {
-      console.error("%s _getChainAssets error: %O", chainName, err);
+      console.log("%s _getChainAssets error: %O", chainName, err);
     }
     for (let asset in assets) {
       assetInfos.push({

@@ -174,8 +174,13 @@ class StoremanService {
   async getAccountBalances(chainType, addr, assets, options) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     let result = {};
-    if (chainInfo._isEVM) { // evm support multicall, include Tron
-      let evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
+    if (chainInfo._isEVM) { // support multicall
+      let evmAddress = "";
+      try { // convert xdc and tron variant address to standard evm address silently
+        evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
+      } catch (err) {
+        return result;
+      }
       if (tool.isValidEthAddress(evmAddress)) {
         let mcs = [], subgraphs = [];
         for (let asset in assets) {

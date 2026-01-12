@@ -27,7 +27,7 @@ function validateAddress(address, options = {}) {
     console.log("polkadot %s %s address %s formatted to %s", options.chain, options.network, address, addr);
     return (address === addr);
   } catch (err) {
-    console.log("polkadot %s %s address %s is invalid: %s", options.chain, options.network, address, err);
+    // console.log("polkadot %s %s address %s is invalid: %s", options.chain, options.network, address, err);
     return false;
   }
 }
