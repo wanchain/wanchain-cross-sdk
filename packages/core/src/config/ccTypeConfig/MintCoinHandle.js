@@ -12,7 +12,7 @@ class MintCoinHandle {
     let fromChainType = (convert.convertType === "MINT") ? tokenPair.fromChainType : tokenPair.toChainType;
     let toChainType = (convert.convertType === "MINT") ? tokenPair.toChainType : tokenPair.fromChainType;
     let fromScInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals));
+    let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
     let feeUnit = fromScInfo.symbol || fromScInfo.chainType;
     let fee = tool.parseFee(convert.fee, convert.value, feeUnit, { formatWithDecimals: false });
     let networkFee = tool.parseFee(convert.fee, convert.value, feeUnit, { formatWithDecimals: false, feeType: "networkFee" });

@@ -61,7 +61,7 @@ class TokenHandler extends CCTypeHandleInterface {
         // approve 0
         if (!["VET"].includes(chainInfo.chainType)) { // some chains erc20 implement do not need approve 0
           let approve0Params = Object.assign({}, approveParams);
-          approve0Params.value = new BigNumber(0);
+          approve0Params.value = "0";
           steps.push({ name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params });
         }
         // approve

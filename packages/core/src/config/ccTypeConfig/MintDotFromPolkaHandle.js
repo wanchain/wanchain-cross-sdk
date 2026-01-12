@@ -14,7 +14,7 @@ class MintDotFromPolkaHandle {
 
   async process(tokenPair, convert) {
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, { formatWithDecimals: false });
       let toChainType = tokenPair.toChainType;
       let params = {
