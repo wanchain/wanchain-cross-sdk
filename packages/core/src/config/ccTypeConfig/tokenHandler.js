@@ -3,7 +3,6 @@ import tool from "../../utils/tool.js";
 
 class TokenHandler {
   constructor(frameworkService) {
-    super();
     this.frameworkService = frameworkService;
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
     this.configService = frameworkService.getService("ConfigService");
