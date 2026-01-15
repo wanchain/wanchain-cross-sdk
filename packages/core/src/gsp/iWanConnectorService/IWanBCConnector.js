@@ -2,19 +2,18 @@ import iWanClient from "../libs/iWan-js-sdk/apis/apiInstance.js";
 
 class IWanBCConnector {
   constructor(option) {
-    this.m_iWanOption = option;
+    this.iWanOption = option;
     this.apiClient = null;
-    this.m_biWanConnected = false;
+    this.biWanConnected = false;
   }
 
   async init(frameworkService) {
-    this.m_frameworkService = frameworkService;
-    this.m_eventService = frameworkService.getService("EventService");
-    this.configService = this.m_frameworkService.getService("ConfigService");
+    this.eventService = frameworkService.getService("EventService");
+    this.configService = frameworkService.getService("ConfigService");
     let iwanInstAry = [];
-    for (let idx = 0; idx < this.m_iWanOption.options.length; ++idx) {
-      let apiInst = new iWanClient(this.m_iWanOption.apiKey, this.m_iWanOption.secretKey, this.m_iWanOption.options[idx]);
-      if (idx === 0) {
+    for (let i = 0; i < this.iWanOption.options.length; i++) {
+      let apiInst = new iWanClient(this.iWanOption.apiKey, this.iWanOption.secretKey, this.iWanOption.options[i]);
+      if (i === 0) {
         this.apiClient = apiInst;
       }
       iwanInstAry.push(apiInst);
@@ -24,14 +23,14 @@ class IWanBCConnector {
   }
 
   async onConnect() {
-    if (this.m_biWanConnected === false) {
-      this.m_biWanConnected = true;
-      await this.m_eventService.emitEvent("iwanConnected");
+    if (this.biWanConnected === false) {
+      this.biWanConnected = true;
+      await this.eventService.emitEvent("iwanConnected");
     }
   }
 
   async isConnected() {
-    return this.m_biWanConnected;
+    return this.biWanConnected;
   }
 
   async oniwanCheckSpeedSuccess(iwanInstAry, iwanInstance) {

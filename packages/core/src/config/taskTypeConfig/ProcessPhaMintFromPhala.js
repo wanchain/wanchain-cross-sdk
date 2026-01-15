@@ -44,7 +44,7 @@ class ProcessPhaMintFromPhala {
               })
             ]
           })
-        }), null)
+        }), null) // No need to specify a certain weight if transfer will not through XCM
       ];
       // console.debug("txs:", txs);
       // 3 check balance >= (value + gasFee + minReserved)

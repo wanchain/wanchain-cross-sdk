@@ -4,7 +4,7 @@ import tool from "../../utils/tool.js";
 
 bitcoin.initEccLib(ecc);
 
-const networks = {
+const networks = { // only support BTC now
   BTC: bitcoin.networks
 };
 

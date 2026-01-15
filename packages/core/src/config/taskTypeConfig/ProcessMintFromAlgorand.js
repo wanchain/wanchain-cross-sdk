@@ -48,7 +48,7 @@ class ProcessMintFromAlgorand {
       let contract = new algosdk.ABIContract(abi);
       let method = contract.getMethodByName('userLock');
       let tokenPairID = BigInt(params.tokenPairID);
-      let args = [
+      let args = [ // (byte[32],uint64,string,uint64)
         Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex'),
         tokenPairID,
         params.userAccount,

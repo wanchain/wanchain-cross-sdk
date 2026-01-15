@@ -9,24 +9,21 @@ class CheckApiServerTxService {
 
   async init(frameworkService) {
     this.frameworkService = frameworkService;
-    this.taskService = frameworkService.getService("TaskService");
     this.webStores = frameworkService.getService("WebStores");
     this.eventService = frameworkService.getService("EventService");
+    let configService = frameworkService.getService("ConfigService");
+    let apiServerConfig = configService.getGlobalConfig("apiServer");
+    this.apiServerUrl = apiServerConfig.url;
+    let chainInfoService = frameworkService.getService("ChainInfoService");
+    let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
+    if (chainInfo) { // maybe not configured on mainnet
+      let taskService = frameworkService.getService("TaskService");
+      taskService.addTask(this, chainInfo.txScanInterval);
+    }
   }
 
   async loadTradeTask(tasks) {
     tasks.forEach(task => this.checkArray.push(task));
-  }
-
-  async start() {
-    let configService = this.frameworkService.getService("ConfigService");
-    let apiServerConfig = configService.getGlobalConfig("apiServer");
-    this.apiServerUrl = apiServerConfig.url;
-    let chainInfoService = this.frameworkService.getService("ChainInfoService");
-    let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
-    if (chainInfo) { // maybe not configured on mainnet
-      this.taskService.addTask(this, chainInfo.txScanInterval);
-    }
   }
 
   async addTask(task) {
@@ -35,30 +32,37 @@ class CheckApiServerTxService {
     this.checkArray.unshift(task);
     //console.debug("addTask:", task, "checkArray:", this.checkArray);
   }
+
   async runTask(taskPara) {
     try {
       // console.log("this.checkArray:", this.checkArray);
       let storageService = this.frameworkService.getService("StorageService");
       let count = this.checkArray.length;
       let url = this.apiServerUrl + "/api/" + this.chainType.toLowerCase() + "/queryTxInfoBySmgPbkHash/";
-      for (let idx = 0; idx < count; ++idx) {
-        let index = count - idx - 1;
+      for (let i = 0; i < count; i++) {
+        let index = count - i - 1;
         let task = this.checkArray[index];
         try {
-          let queryUrl = url + task.smgPublicKey + "/" + task.txHash.toLowerCase();
-          let ret = await axios.get(queryUrl);
-          console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
-          if (ret.data.success && ret.data.data) {
-            task.uniqueID = ret.data.data.hashX;
-            task.fromChain = this.chainType;
-            await this.eventService.emitEvent("TaskStepResult", {
-              ccTaskId: task.ccTaskId,
-              stepIndex: task.stepIndex,
-              txHash: task.txHash,
-              result: "Succeeded"
-            });
-            let scEventScanService = this.frameworkService.getService("ScEventScanService");
-            await scEventScanService.add(task);
+          if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+            let queryUrl = url + task.smgPublicKey + "/" + task.txHash.toLowerCase();
+            let ret = await axios.get(queryUrl);
+            console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
+            if (ret.data.success && ret.data.data) {
+              task.uniqueID = ret.data.data.hashX;
+              task.fromChain = this.chainType;
+              await this.eventService.emitEvent("TaskStepResult", {
+                ccTaskId: task.ccTaskId,
+                stepIndex: task.stepIndex,
+                txHash: task.txHash,
+                result: "Succeeded"
+              });
+              let scEventScanService = this.frameworkService.getService("ScEventScanService");
+              await scEventScanService.add(task);
+              await storageService.delete(this.serviceName, task.ccTaskId);
+              this.checkArray.splice(index, 1);
+            }
+          } else {
+            console.log("%s remove deleted task %s", this.serviceName, task.ccTaskId);
             await storageService.delete(this.serviceName, task.ccTaskId);
             this.checkArray.splice(index, 1);
           }

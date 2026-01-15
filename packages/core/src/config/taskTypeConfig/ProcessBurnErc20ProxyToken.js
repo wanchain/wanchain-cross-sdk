@@ -10,22 +10,8 @@ class ProcessBurnErc20ProxyToken extends ProcessBase {
   async process(stepData, wallet) {
     let params = stepData.params;
     try {
-      if (!(await this.checkChainId(stepData, wallet))) {
-        return;
-      }
-      let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
-      let nativeToken, poolToken, chainInfo;
-      if (params.scChainType === tokenPair.fromChainType) { // MINT
-        nativeToken = tokenPair.fromNativeToken;
-        poolToken = tokenPair.fromAccount;
-        chainInfo = tokenPair.fromScInfo;
-      } else {
-        nativeToken = tokenPair.toNativeToken;
-        poolToken = tokenPair.toAccount;
-        chainInfo = tokenPair.toScInfo;
-      }
       let txValue = params.fee;
-      let scData = await this.m_txGeneratorService.generateUserBurnData(params.crossScAddr,
+      let scData = await this.txGeneratorService.generateUserBurnData(params.crossScAddr,
         params.storemanGroupId,
         params.tokenPairID,
         params.value,
@@ -33,20 +19,20 @@ class ProcessBurnErc20ProxyToken extends ProcessBase {
         params.tokenAccount,
         params.userAccount,
         { tokenType: "Erc20", chainType: params.scChainType, from: params.fromAddr, coinValue: txValue });
-      let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
+      let txData = await this.txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, txValue, scData.data, params.fromAddr);
       await this.sendTransactionData(stepData, txData, wallet);
     } catch (err) {
       console.error("ProcessBurnErc20ProxyToken error: %O", err);
-      this.m_WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
+      this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));
     }
   }
 
   async getConvertInfoForCheck(stepData) {
     let params = stepData.params;
-    let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
+    let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
     let direction = (params.scChainType === tokenPair.fromChainType);
     let chainType = direction ? tokenPair.toChainType : tokenPair.fromChainType;
-    let blockNumber = await this.m_storemanService.getChainBlockNumber(chainType);
+    let blockNumber = await this.storemanService.getChainBlockNumber(chainType);
     let nativeToken = direction ? tokenPair.toNativeToken : tokenPair.fromNativeToken;
     let taskType = nativeToken ? "MINT" : "BURN"; // adapt to CheckScEvent task to scan SmgMintLogger or SmgReleaseLogger
     let srcToken = direction ? tokenPair.fromAccount : tokenPair.toAccount;

@@ -11,6 +11,7 @@ class CheckTonTx {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
+    this.webStores = this.frameworkService.getService("WebStores");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, chainInfo.txScanInterval);
     this.eventService = this.frameworkService.getService("EventService");
@@ -54,6 +55,12 @@ class CheckTonTx {
       let cur = count - i - 1; // backwards
       let task = tasks[cur];
       try {
+        if (!this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+          console.log("CheckTonTx remove deleted task %s", task.ccTaskId);
+          await storageService.delete("ScEventScanService", task.uniqueID);
+          tasks.splice(cur, 1);
+          continue;
+        }
         console.debug("CheckTonTx %s: taskId=%s, uniqueId=%s, startTime=%d", taskType, task.ccTaskId, task.uniqueID, task.fromBlockNumber);
         let event = await this.scanWanBridgeEvent(task);
         if (event) {

@@ -1,10 +1,8 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-import CCTypeHandleInterface from "./CCTypeHandleInterface.js";
 
-class TokenHandler extends CCTypeHandleInterface {
+class TokenHandler {
   constructor(frameworkService) {
-    super();
     this.frameworkService = frameworkService;
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
     this.configService = frameworkService.getService("ConfigService");
@@ -61,7 +59,7 @@ class TokenHandler extends CCTypeHandleInterface {
         // approve 0
         if (!["VET"].includes(chainInfo.chainType)) { // some chains erc20 implement do not need approve 0
           let approve0Params = Object.assign({}, approveParams);
-          approve0Params.value = new BigNumber(0);
+          approve0Params.value = "0";
           steps.push({ name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params });
         }
         // approve
@@ -153,13 +151,6 @@ class TokenHandler extends CCTypeHandleInterface {
     };
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
     steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params });
-  }
-
-  async setChainId(steps, tokenPair, convert) {
-    let chainId = await convert.wallet.getChainId();
-    for (let i = 0; i < steps.length; i++) {
-      steps[i].params.chainId = chainId;
-    }
   }
 }
 

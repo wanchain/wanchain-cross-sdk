@@ -30,7 +30,7 @@ function validateAddress(address, options = {}) { // options: {network, chain, r
       let addr = wasm.Address.from_bech32(address);
       if (addr.network_id() === networkId) {
         let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-        console.log("%s is ADA Shelly type %s address", address, prefix);
+        console.debug("%s is ADA Shelly type %s address", address, prefix);
         if (parseInt(prefix, 2) <= 7) {
           let typedAddr = wasm.BaseAddress.from_address(addr) || wasm.EnterpriseAddress.from_address(addr);
           if (typedAddr) {

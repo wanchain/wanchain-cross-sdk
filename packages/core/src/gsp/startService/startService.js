@@ -24,12 +24,8 @@ class StartService {
     this.frameworkService = new FrameworkService();
   }
 
-  async onIwanConnected() {
-    console.log("StartService onIwanConnected");
-  }
-
   async onStoremanServiceInitComplete(args) {
-    this.m_eventService.emitEvent("ReadStoremanInfoComplete", args);
+    this.eventService.emitEvent("ReadStoremanInfoComplete", args);
     //console.log("StartService onStoremanServiceInitComplete args: ", args);
   }
 
@@ -37,12 +33,20 @@ class StartService {
     try {
       let frameworkService = this.frameworkService;
       frameworkService.registerService("WebStores", stores);
+      // storageService only depends on WebStores, and depended by TokenPairService (triggered by iwan)
+      let storageService = new StorageService();
+      await storageService.init(frameworkService);
+      frameworkService.registerService("StorageService", storageService);
+      if (typeof (window) !== "undefined") {
+        let indexedDbService = new IndexedDbService();
+        await indexedDbService.init(frameworkService);
+        frameworkService.registerService("IndexedDbService", indexedDbService);
+      }
       let eventService = new EventService();
       await eventService.init(frameworkService);
       frameworkService.registerService("EventService", eventService);
-      // eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
       eventService.addEventListener("StoremanServiceInitComplete", this.onStoremanServiceInitComplete.bind(this));
-      this.m_eventService = eventService;
+      this.eventService = eventService;
       let configService = new ConfigService();
       await configService.init(network, options);
       frameworkService.registerService("ConfigService", configService);
@@ -102,14 +106,6 @@ class StartService {
       let scEventScanService = new ScEventScanService();
       await scEventScanService.init(frameworkService);
       frameworkService.registerService("ScEventScanService", scEventScanService);
-      let storageService = new StorageService();
-      await storageService.init(frameworkService);
-      frameworkService.registerService("StorageService", storageService);
-      if (typeof (window) !== "undefined") {
-        let indexedDbService = new IndexedDbService();
-        await indexedDbService.init(frameworkService);
-        frameworkService.registerService("IndexedDbService", indexedDbService);
-      }
       let crossChainFeesService = new CrossChainFeesService();
       await crossChainFeesService.init(frameworkService);
       frameworkService.registerService("CrossChainFeesService", crossChainFeesService);
@@ -122,23 +118,9 @@ class StartService {
     try {
       let frameworkService = this.frameworkService;
       let storageService = frameworkService.getService("StorageService");
-      await storageService.init_load();
-      let checkTxReceiptService = frameworkService.getService("CheckTxReceiptService");
-      await checkTxReceiptService.start();
-      let checkBtcTxService = frameworkService.getService("CheckBtcTxService");
-      await checkBtcTxService.start();
-      let checkLtcTxService = frameworkService.getService("CheckLtcTxService");
-      await checkLtcTxService.start();
-      let checkDogeTxService = frameworkService.getService("CheckDogeTxService");
-      await checkDogeTxService.start();
-      let checkXrpTxService = frameworkService.getService("CheckXrpTxService");
-      await checkXrpTxService.start();
-      let checkDotTxService = frameworkService.getService("CheckDotTxService");
-      await checkDotTxService.start();
-      let checkPhaTxService = frameworkService.getService("CheckPhaTxService");
-      await checkPhaTxService.start();
-      let checkAdaTxService = frameworkService.getService("CheckAdaTxService");
-      await checkAdaTxService.start();
+      await storageService.init_load("crossChainTaskRecords");
+      let taskService = frameworkService.getService("TaskService");
+      await taskService.start();
     } catch (err) {
       console.error("startService start err:", err);
     }

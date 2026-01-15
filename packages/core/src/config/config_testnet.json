@@ -552,6 +552,17 @@
       "walletChainId": 9746,
       "blockConfirmations": 1,
       "blockTime": 1
+    },
+    {
+      "chainId": "1073741863",
+      "chainType": "KATANAETH",
+      "chainName": "Katana",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "walletChainId": 737373,
+      "blockConfirmations": 3,
+      "blockTime": 1
     }
   ],
   "iWanConnectorService": {
@@ -663,17 +674,6 @@
         },
         "ogmios": "https://preprodogmios.wanchain.org/uriservice"
       },
-      "blockConfirmations": 30,
-      "blockTime": 12
-    },
-    {
-      "chainId": "1073741862",
-      "chainType": "DUST",
-      "chainName": "Midnight",
-      "crossScAddr": "0200d90f6d68a4e875ca44d2ecd925743cb28e14ff9cc59e34d7178725519414ca00",
-      "mintFromChainHandle": "MintFromMidnight",
-      "burnFromChainHandle": "BurnFromMidnight",
-      "chainDecimals": 6,
       "blockConfirmations": 30,
       "blockTime": 12
     },

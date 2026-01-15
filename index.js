@@ -12,7 +12,6 @@ import AlgorandExtension from "./packages/algorand/index.js";
 import SuiExtension from "./packages/sui/index.js";
 import VeChainExtension from "./packages/vechain/index.js";
 import TonExtension from "./packages/ton/index.js";
-import MidnightExtension from "./packages/midnight/index.js";
 
 export { WanBridge };
 export { EvmExtension };
@@ -26,7 +25,6 @@ export { AlgorandExtension };
 export { SuiExtension };
 export { VeChainExtension };
 export { TonExtension };
-export { MidnightExtension };
 
 export default {
   WanBridge,
@@ -40,6 +38,5 @@ export default {
   AlgorandExtension,
   SuiExtension,
   VeChainExtension,
-  TonExtension,
-  MidnightExtension
+  TonExtension
 };

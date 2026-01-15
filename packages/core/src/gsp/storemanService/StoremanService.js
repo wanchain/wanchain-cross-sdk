@@ -3,8 +3,6 @@ import tool from "../../utils/tool.js";
 import axios from "axios";
 import util from "util";
 
-const SELF_WALLET_COIN_BALANCE_CHAINS = ["ADA", "BTC", "DUST"]; // default obtaine from iwan, but some chains are not supported
-const IWAN_TOKEN_BALANCE_NONEVM_CHAINS = ["ALGO", "SUI", "TON"]; // default obtaine from wallet to optimize batch performance, but some wallets do not support
 const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
 
 // DepositForBurn
@@ -30,26 +28,12 @@ class StoremanService {
       if (tokenPair) {
         let toChainType = (fromChainType === tokenPair.fromChainType) ? tokenPair.toChainType : tokenPair.fromChainType;
         let decimals = (fromChainType === tokenPair.fromChainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
-        if (tokenPair.ancestorSymbol === "EOS" && tokenPair.fromChainType === fromChainType) {
-          // wanEOS特殊处理wan -> eth mint storeman采用旧的处理方式
-          fromChainType = "EOS";
-        }
-        let minAmountChain = toChainType;
-        if (tokenPair.fromAccount == 0) {
-          minAmountChain = tokenPair.fromChainType;
-        } else if (tokenPair.toAccount == 0) {
-          minAmountChain = tokenPair.toChainType;
-        }
-        let minAmountDecimals = (minAmountChain === tokenPair.fromChainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
         let network = this.configService.getNetwork();
         let ignoreReservation = (this.isTestMode && (network === "mainnet"));
-        let [quota, min] = await Promise.all([
-          this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation),
-          this.iwan.getMinCrossChainAmount(minAmountChain, tokenPair.ancestorSymbol)
-        ]);
+        let quota = await this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation);
         // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
         let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
-        let minQuota = new BigNumber(min[tokenPair.ancestorSymbol]).div(Math.pow(10, parseInt(minAmountDecimals)));
+        let minQuota = new BigNumber(quota[0].minQuota).div(Math.pow(10, parseInt(decimals)));
         return { maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed() };
       }
     } catch (err) {
@@ -58,7 +42,7 @@ class StoremanService {
     return { maxQuota: "0", minQuota: "0" };
   }
 
-  validateAddress(chainType, address) {
+  validateAddress(chainType, address) { // validate address format and basic static rule
     let result = false;
     let network = this.configService.getNetwork();
     let extension = this.configService.getExtension(chainType);
@@ -85,7 +69,7 @@ class StoremanService {
     return result;
   }
 
-  async checkAdaRecipient(address) {
+  async checkAdaRecipient(address) { // address format should have been validated by validateAddress
     try {
       let network = this.configService.getNetwork();
       let tool = this.configService.getExtension("ADA").tool;
@@ -104,7 +88,7 @@ class StoremanService {
     }
   }
 
-  async checkSolRecipient(address) {
+  async checkSolRecipient(address) { // address format should have been validated by validateAddress
     try {
       let accountInfo = await this.iwan.getAccountInfo("SOL", address);
       if (!accountInfo) { // account not exist is valid for SystemAccount, uninitialized accounts are owned by System Program
@@ -116,6 +100,27 @@ class StoremanService {
     } catch (err) {
       console.error("checkSolRecipient %s error: %O", err);
       return false;
+    }
+  }
+
+  async checkWalletId(chainType, wallet, options = {}) {
+    let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
+    if (chainInfo.walletChainId !== undefined) {
+      if (wallet && wallet.getChainId) {
+        let walletChainId = await wallet.getChainId();
+        if (chainInfo.walletChainId == walletChainId) {
+          return true;
+        } else {
+          if (options.debug) {
+            console.debug("checkWalletId %s != %s", walletChainId, chainInfo.walletChainId);
+          }
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return true;
     }
   }
 
@@ -133,11 +138,8 @@ class StoremanService {
       let isCoin = options.isCoin || (tokenAccount === "0x0000000000000000000000000000000000000000");
       if (isCoin) {
         decimals = direction ? tokenPair.fromScInfo.chainDecimals : tokenPair.toScInfo.chainDecimals;
-        if (SELF_WALLET_COIN_BALANCE_CHAINS.includes(chainType)) {
-          if (options.wallet) {
-            // ogmius only provide pure ADA utxo balance
-            balance = await options.wallet.getBalance(addr);
-          }
+        if (options.wallet && options.wallet.getBalance) { // prefer to get balance from wallet
+          balance = await options.wallet.getBalance(addr);
         } else {
           balance = await this.iwan.getBalance(chainType, addr);
         }
@@ -152,13 +154,13 @@ class StoremanService {
         } else { // Erc20, Erc721
           if (chainInfo._isEVM) {
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) {
-            if (chainType !== "ALGO") { // defalut convert except ALGO
+          } else if (options.wallet && options.wallet.getBalance) { // non EVM, tokenAccount is encoded as ascii by default
+            balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
+          } else { // default iwan, if iwan do not support, throw exception and return 0
+            if (chainType !== "ALGO") { // defalut decode except ALGO
               tokenAccount = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
             }
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          } else if (options.wallet) {
-            balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
           }
         }
       }
@@ -174,8 +176,13 @@ class StoremanService {
   async getAccountBalances(chainType, addr, assets, options) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     let result = {};
-    if (chainInfo._isEVM) { // evm support multicall, include Tron
-      let evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
+    if (chainInfo._isEVM) { // support multicall
+      let evmAddress = "";
+      try { // convert xdc and tron variant address to standard evm address silently
+        evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
+      } catch (err) {
+        return result;
+      }
       if (tool.isValidEthAddress(evmAddress)) {
         let mcs = [], subgraphs = [];
         for (let asset in assets) {
@@ -224,36 +231,13 @@ class StoremanService {
           res.forEach((v, i) => result[subgraphs[i].asset] = v);
         }
       }
-    } else if (IWAN_TOKEN_BALANCE_NONEVM_CHAINS.includes(chainType)) { // format of non-evm chains is different and needs to parse separately
-      if (this.validateAddress(chainType, addr)) {
-        if (chainType === "ALGO") {
-          let balances = await this.iwan.getAllBalances(chainType, addr);
-          let bMap = new Map();
-          balances.forEach(v => bMap.set(v.assetId, v.amount));
-          for (let asset in assets) {
-            let tokenInfo = assets[asset]; // include coin
-            result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
-          }
-        } else if (chainType === "SUI") {
-          let balances = await this.iwan.getAllBalances(chainType, addr);
-          let bMap = new Map();
-          balances.forEach(v => bMap.set(v.coinType, v.totalBalance));
-          for (let asset in assets) {
-            let tokenInfo = assets[asset]; // include coin
-            result[asset] = new BigNumber(bMap.get(tool.ascii2letter(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
-          }
-        }
-      }
-    } else if (options.wallet) {
-      let walletId = 0;
-      if (options.wallet.getChainId) {
-        walletId = await options.wallet.getChainId();
-      }
-      if (((walletId === chainInfo.walletChainId) || !walletId) && this.validateAddress(chainType, addr)) {
+    } else if (options.wallet && options.wallet.getBalance) {
+      let checkWalletId = await this.checkWalletId(chainType, options.wallet);
+      if (checkWalletId && this.validateAddress(chainType, addr)) {
         let assetArray = [], balances;
         try { // input addr format maybe not match wallet
           if (options.wallet.getBalances) { // fix cardano Eternl too many requests error
-            let tokens = []; // includes coin
+            let tokens = []; // includes coin: 0x0000000000000000000000000000000000000000 => ""
             for (let asset in assets) {
               assetArray.push(asset);
               tokens.push(tool.ascii2letter(tool.hexStrip0x(assets[asset].address)));
@@ -273,6 +257,34 @@ class StoremanService {
           }
         } catch (err) {
           console.error("get %s %s balances error: %O", chainType, addr, err);
+        }
+      }
+    } else { // default iwan, data formats are different and needs to parse separately
+      if (this.validateAddress(chainType, addr)) {
+        let balances = await this.iwan.getAllBalances(chainType, addr);
+        let bMap = new Map();
+        if (chainType === "ALGO") {
+          balances.forEach(v => bMap.set(v.assetId, v.amount));
+          for (let asset in assets) {
+            let tokenInfo = assets[asset]; // include coin: 0
+            result[asset] = new BigNumber(bMap.get(Number(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
+          }
+        } else if (chainType === "SUI") {
+          balances.forEach(v => bMap.set(v.coinType, v.totalBalance));
+          for (let asset in assets) {
+            let tokenInfo = assets[asset]; // include coin: 0x2::sui::SUI
+            result[asset] = new BigNumber(bMap.get(tool.ascii2letter(tokenInfo.address)) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
+          }
+        } else if (chainType === "TON") {
+          balances.forEach(v => bMap.set(v.jetton, v.balance));
+          for (let asset in assets) {
+            let tokenInfo = assets[asset]; // include coin: 0x0000000000000000000000000000000000000000
+            let addr = tokenInfo.address;
+            if (addr !== "0x0000000000000000000000000000000000000000") {
+              addr = tool.ascii2letter(tokenInfo.address);
+            }
+            result[asset] = new BigNumber(bMap.get(addr) || 0).div(Math.pow(10, tokenInfo.decimals)).toFixed();
+          }
         }
       }
     }

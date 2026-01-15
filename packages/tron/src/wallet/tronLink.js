@@ -13,10 +13,6 @@ class TronLink {
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts() {
     if (this.tronLink) {
       // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject
@@ -28,11 +24,6 @@ class TronLink {
       console.error("%s not installed or locked", this.name);
       throw new Error("Not installed or locked");
     }
-  }
-
-  async getBalance(addr) {
-    let balance = await this.tronWeb.trx.getBalance(addr);
-    return balance;
   }
 
   async sendTransaction(tx) {
