@@ -1,8 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
-import CCTypeHandleInterface from "./CCTypeHandleInterface.js";
 
-class TokenHandler extends CCTypeHandleInterface {
+class TokenHandler {
   constructor(frameworkService) {
     super();
     this.frameworkService = frameworkService;
