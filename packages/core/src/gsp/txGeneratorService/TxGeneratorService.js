@@ -137,7 +137,12 @@ class TxGeneratorService {
     let data;
     if (options.isV2) {
       let anyCaller = '0x' + '0'.repeat(64);
-      data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000).encodeABI();
+      if (options.isForward) {
+        let hookData = "0x636374702d666f72776172640000000000000000000000000000000000000000";
+        data = crossScInst.methods.depositForBurnWithHook(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000, hookData).encodeABI();
+      } else {
+        data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000).encodeABI();
+      }
     } else {
       data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount).encodeABI();
     }

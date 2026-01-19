@@ -209,10 +209,13 @@ function parseFee(fee, amount, unit, options) {
       tmp = tmp.times(fee.operateFee.discount);
     }
     result = result.plus(tmp);
+    if (fee.operateFee.cctpForward) {
+      result = result.plus(fee.operateFee.cctpForward);
+    }
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return new BigNumber(result.toFixed(decimals, options.roundingMode)).toFixed(); // remove padded '0'
+    return result.decimalPlaces(decimals, options.roundingMode).toFixed();
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0, options.roundingMode);
   }

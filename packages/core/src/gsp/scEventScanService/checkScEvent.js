@@ -191,16 +191,15 @@ class CheckScEvent {
         }
         if ((["circleMINT", "cctpV2MINT"].includes(task.taskType)) && ((task.depositNonce === undefined) || !task.transmitter)) {
           let isV2 = (task.taskType === "cctpV2MINT");
-          let [deposit, transmitter] = await Promise.all([
-            this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, { ota: task.ota, isV2 }),
-            this.getCctpMessageTransmitterAddr(isV2)
-          ]);
-          if ((deposit.depositNonce !== undefined) && transmitter) {
+          if (!task.transmitter) { // only get once, retry if failed
+            task.transmitter = await this.getCctpMessageTransmitterAddr(isV2);
+          }
+          let deposit = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, { ota: task.ota, isV2 });
+          if (deposit.depositNonce !== undefined) {
             task.depositNonce = deposit.depositNonce;
             task.depositAmount = deposit.depositAmount;
-            task.transmitter = transmitter;
-          } else { // throw error to save task
-            throw new Error(this.chainInfo.chainType + " CheckScEvent task " + task.ccTaskId + " parseCctpDeposit error");
+          } else { // throw error to break and save task, then retry at next run
+            throw new Error("cctp not confirmed");
           }
         }
         let fromBlockNumber = task.fromBlockNumber;
@@ -263,8 +262,8 @@ class CheckScEvent {
             this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
         }
       } catch (err) {
-        if (err.message === "log is not ready") {
-          console.debug("%s CheckScEvent fromBlock %d %s %O error: %s", this.chainInfo.chainType, task.fromBlockNumber, type, task, err.message);
+        if (["log is not ready", "cctp not confirmed"].includes(err.message)) {
+          console.debug("%s CheckScEvent fromBlock %d %s %s: %O", this.chainInfo.chainType, task.fromBlockNumber, type, err.message, task);
         } else {
           console.error("%s CheckScEvent fromBlock %d %s %O error: %O", this.chainInfo.chainType, task.fromBlockNumber, type, task, err);
         }
