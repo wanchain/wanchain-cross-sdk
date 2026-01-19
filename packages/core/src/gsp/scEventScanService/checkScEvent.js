@@ -3,22 +3,8 @@
 const wanUtil = require("wanchain-util");
 const tool = require("../../utils/tool");
 
-const DefaultScanBatchSize = 1000;
-const CustomizedScanBatchSize = {
-  SGB: 30,
-  OKT: 300,
-  OKB: 100,
-  MATIC: 100,
-  SEI: 500,
-  FTM: 500
-};
-
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
 const AlgoEventTypes = ["algoBURN"];
-
-// CCTP DepositForBurn and MessageReceived has discontinuous indexes, can not get correct hash by getEventHash
-// const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0";
-const CctpEvmReceiveEventHash = "0x58200b4c34ae05ee816d710053fff3fb75af4395915d3d2a771b24aa10e3cc5d";
 
 module.exports = class CheckScEvent {
   constructor(frameworkService) {
@@ -29,7 +15,7 @@ module.exports = class CheckScEvent {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
-    this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
+    this.scanBatchSize = tool.getScanBatchSize(chainInfo.chainType);
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, this.chainInfo.txScanInterval);
@@ -178,16 +164,15 @@ module.exports = class CheckScEvent {
         }
         if ((["circleMINT", "cctpV2MINT"].includes(task.taskType)) && ((task.depositNonce === undefined) || !task.transmitter)) {
           let isV2 = (task.taskType === "cctpV2MINT");
-          let [deposit, transmitter] = await Promise.all([
-            this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, {ota: task.ota, isV2}),
-            this.getCctpMessageTransmitterAddr(isV2)
-          ])
-          if ((deposit.depositNonce !== undefined) && transmitter) {
+          if (!task.transmitter) { // only get once, retry if failed
+            task.transmitter = await this.getCctpMessageTransmitterAddr(isV2);
+          }
+          let deposit = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, { ota: task.ota, isV2 });
+          if (deposit.depositNonce !== undefined) {
             task.depositNonce = deposit.depositNonce;
             task.depositAmount = deposit.depositAmount;
-            task.transmitter = transmitter;
-          } else { // throw error to save task
-            throw new Error(this.chainInfo.chainType + " CheckScEvent task " + task.ccTaskId + " parseCctpDeposit error");
+          } else { // throw error to break and save task, then retry at next run
+            throw new Error("cctp not confirmed");
           }
         }
         let fromBlockNumber = task.fromBlockNumber;
@@ -248,8 +233,8 @@ module.exports = class CheckScEvent {
                       this.chainInfo.chainType, fromBlockNumber, latestBlockNumber, type, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
         }
       } catch (err) {
-        if (err.message === "log is not ready") {
-          console.debug("%s CheckScEvent fromBlock %d %s %O error: %s", this.chainInfo.chainType, task.fromBlockNumber, type, task, err.message);
+        if (["log is not ready", "cctp not confirmed"].includes(err.message)) {
+          console.debug("%s CheckScEvent fromBlock %d %s %s: %O", this.chainInfo.chainType, task.fromBlockNumber, type, err.message, task);
         } else {
           console.error("%s CheckScEvent fromBlock %d %s %O error: %O", this.chainInfo.chainType, task.fromBlockNumber, type, task, err);
         }

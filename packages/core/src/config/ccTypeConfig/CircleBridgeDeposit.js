@@ -52,7 +52,8 @@ module.exports = class CircleBridgeDeposit extends TokenHandler {
       networkFee,
       tokenAccount,
       operateFee,
-      isV2
+      isV2,
+      isForward: convert.fee.operateFee.cctpForward !== undefined
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     steps.push({name: "depositForBurn", stepIndex: steps.length + 1, params});

@@ -2,16 +2,6 @@
 
 const tool = require("../../utils/tool.js");
 
-const DefaultScanBatchSize = 1000;
-const CustomizedScanBatchSize = {
-  SGB: 30,
-  OKT: 300,
-  OKB: 100,
-  MATIC: 100,
-  SEI: 500,
-  FTM: 500
-};
-
 module.exports = class CheckTxReceiptService {
   constructor() {
     this.taskArray = [];
@@ -70,6 +60,7 @@ module.exports = class CheckTxReceiptService {
             obj.txHash = result.txHash;
             if (obj.convertCheckInfo) {
               obj.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
+              obj.convertCheckInfo.txHash = result.txHash; // cctp
             }
           }
           if (result.result === "Succeeded") {
@@ -155,7 +146,7 @@ module.exports = class CheckTxReceiptService {
     let latestBlock = await this.iwan.getBlockNumber(obj.chain);
     let fromBlock = txCheckInfo.fromBlock;
     if (latestBlock >= fromBlock) {
-      let scanBatchSize = CustomizedScanBatchSize[obj.chain] || DefaultScanBatchSize;
+      let scanBatchSize = tool.getScanBatchSize(obj.chain);
       let rewindBlocks = parseInt(scanBatchSize * 0.6);
       let toBlock = fromBlock + scanBatchSize - 1;
       if (toBlock > latestBlock) {

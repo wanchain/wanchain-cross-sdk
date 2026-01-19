@@ -17,7 +17,7 @@ module.exports = class ProcessCircleBridgeDeposit extends ProcessBase {
             }
             let tokenPair = this.m_tokenPairService.getTokenPair(params.tokenPairID);
             let toChainInfo = (params.scChainType === tokenPair.fromChainType)? tokenPair.toScInfo : tokenPair.fromScInfo;
-            let options = {chainType: params.scChainType, from: params.fromAddr, coinValue: params.networkFee, isV2: params.isV2, operateFee: params.operateFee};
+            let options = {chainType: params.scChainType, from: params.fromAddr, coinValue: params.networkFee, isV2: params.isV2, operateFee: params.operateFee, isForward: params.isForward};
             let scData = await this.m_txGeneratorService.generateCircleBridgeDeposit(params.crossScAddr, toChainInfo.CircleBridge.domain, params.value, params.tokenAccount, params.userAccount, options);
             let txData = await this.m_txGeneratorService.generateTx(params.scChainType, scData.gasLimit, params.crossScAddr, params.networkFee, scData.data, params.fromAddr);
             if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it

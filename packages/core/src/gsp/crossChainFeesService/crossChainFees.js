@@ -21,7 +21,7 @@ module.exports = class crossChainFees {
     }
     // console.debug("estimateOperationFee %s->%s raw: %O", fromChainType, toChainType, fee);
     let feeBN = new BigNumber(fee.value);
-    return {
+    let result = {
       fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
       isRatio: fee.isPercent,
       unit: tokenPair.readableSymbol,
@@ -30,6 +30,10 @@ module.exports = class crossChainFees {
       decimals: Number(decimals),
       discount: fee.discountPercent || "1"
     };
+    if ((tokenPair.bridge === "Circle") && (tokenPair.routes[0] === "CCTPV2") && fee.forwardFee) { // cctp v2 forwardFee, valid even it is "0"
+      result.cctpForward = new BigNumber(fee.forwardFee || "0").div(Math.pow(10, decimals)).toFixed();
+    }
+    return result;
   }
 
   // contract fee
