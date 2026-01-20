@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601191530", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601201600", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -887,14 +887,14 @@ class WanBridge extends EventEmitter {
     feeType = feeType || candidateFeeType;
     if (feeType) {
       if (feeType === "networkFee") {
-        records.updateTaskFee(taskId, "networkFee", fee, true);
+        records.updateTaskFee(taskId, "networkFee", fee);
         if (taskFee.operateFee.unit === assetType) {
-          records.updateTaskFee(taskId, "operateFee", "0", true);
+          records.updateTaskFee(taskId, "operateFee", "0");
         }
       } else {
-        records.updateTaskFee(taskId, "operateFee", fee, true);
+        records.updateTaskFee(taskId, "operateFee", fee);
         if (taskFee.networkFee.unit === assetType) {
-          records.updateTaskFee(taskId, "networkFee", "0", true);
+          records.updateTaskFee(taskId, "networkFee", "0");
         }
       }
       console.debug("SDK: update task %d fee: %s%s", taskId, fee, assetType);
