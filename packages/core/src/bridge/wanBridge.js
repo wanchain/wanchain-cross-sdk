@@ -831,7 +831,6 @@ class WanBridge extends EventEmitter {
       if (taskRedeemHash.value) {
         receivedAmount = new BigNumber(taskRedeemHash.value).div(Math.pow(10, ccTask.toDecimals)).toFixed();
         if (receivedAmount !== expected) {
-          console.log({sentAmount, fee, expected, receivedAmount})
           let actualFee = BigNumber.max(new BigNumber(sentAmount).minus(receivedAmount), 0).toFixed();
           this._updateFee(taskId, ccTask.fee, ccTask.assetType, fee, actualFee);
         }
