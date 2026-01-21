@@ -1,17 +1,6 @@
 import * as wanUtil from "wanchain-util";
 import tool from "../../utils/tool.js";
 
-const DefaultScanBatchSize = 1000;
-
-const CustomizedScanBatchSize = {
-  SGB: 30,
-  OKT: 300,
-  OKB: 100,
-  MATIC: 100,
-  SEI: 500,
-  FTM: 500
-};
-
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
 const AlgoEventTypes = ["algoBURN"];
 const DustEventTypes = ["dustCLAIM"]; // not real event, just simulation
@@ -25,7 +14,7 @@ class CheckScEvent {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
-    this.scanBatchSize = CustomizedScanBatchSize[chainInfo.chainType] || DefaultScanBatchSize;
+    this.scanBatchSize = tool.getScanBatchSize(chainInfo.chainType);
     this.webStores = this.frameworkService.getService("WebStores");
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");

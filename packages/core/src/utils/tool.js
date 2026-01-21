@@ -396,6 +396,19 @@ function checkTonTxSuccess(tx) {
   return true;
 }
 
+const CustomizedScanBatchSize = {
+  SGB: 30,
+  OKT: 300,
+  OKB: 100,
+  MATIC: 100,
+  SEI: 500,
+  FTM: 500
+};
+
+function getScanBatchSize(chainType) {
+  return CustomizedScanBatchSize[chainType] || 1000;
+}
+
 export { getCurTimestamp };
 export { checkTimeout };
 export { sleep };
@@ -422,6 +435,7 @@ export { parseEvmLog };
 export { timedPromise };
 export { decodeCardanoNftAssetName };
 export { checkTonTxSuccess };
+export { getScanBatchSize };
 
 export default {
   getCurTimestamp,
@@ -449,5 +463,6 @@ export default {
   parseEvmLog,
   timedPromise,
   decodeCardanoNftAssetName,
-  checkTonTxSuccess
+  checkTonTxSuccess,
+  getScanBatchSize
 };

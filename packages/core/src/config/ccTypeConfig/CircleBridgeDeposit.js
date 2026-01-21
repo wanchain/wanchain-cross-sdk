@@ -34,7 +34,7 @@ class CircleBridgeDeposit extends TokenHandler {
     }
     let toAddressInfo = tool.getStandardAddressInfo(toChainType, innerToAddr, this.configService.getExtension(toChainType));
     let bridgeInfo = chainInfo[tokenPair.bridge + "Bridge"];
-    let isV2 = (convert.route === "CCTPV2"), isForward = (convert.fee.operateFee.cctpForward !== undefined);
+    let isV2 = (convert.route === "CCTPV2");
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -50,7 +50,7 @@ class CircleBridgeDeposit extends TokenHandler {
       tokenAccount,
       operateFee,
       isV2,
-      isForward
+      isForward: convert.fee.operateFee.cctpForward !== undefined
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     steps.push({ name: "depositForBurn", stepIndex: steps.length + 1, params });
