@@ -72,6 +72,7 @@ class CheckTxReceiptService {
             task.txHash = result.txHash;
             if (task.convertCheckInfo) {
               task.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
+              task.convertCheckInfo.txHash = result.txHash; // cctp
             }
           }
           if (result.result === "Succeeded") {

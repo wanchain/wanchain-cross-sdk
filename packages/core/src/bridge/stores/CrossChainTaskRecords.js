@@ -65,7 +65,6 @@ class CrossChainTaskRecords {
   updateTaskFee(ccTaskId, type, value, rectify = true) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
-      console.debug("task %d update %s fee: %s->%s", ccTaskId, type, ccTask.fee[type].value, value);
       ccTask.fee[type].value = value;
       if (rectify) {
         ccTask.fee[type].isRatio = false;
