@@ -1,9 +1,8 @@
-"use strict";
 
 let Dexie;
-
-if (typeof(window) !== "undefined") {
-  Dexie = require('dexie').default;
+if (typeof (window) !== "undefined") {
+  const module = await import('dexie');
+  Dexie = module.default;
 }
 
 class IndexedDbService {
@@ -32,6 +31,6 @@ class IndexedDbService {
   async setCacheData(table, items) {
     await this.db[table].bulkPut(items);
   }
-};
+}
 
-module.exports = IndexedDbService;
+export default IndexedDbService;

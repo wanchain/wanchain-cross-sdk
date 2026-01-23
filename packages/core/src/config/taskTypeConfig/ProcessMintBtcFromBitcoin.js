@@ -1,10 +1,8 @@
-'use strict';
-
-const crypto = require('crypto');
-const bitcoin = require('bitcoinjs-lib');
-const ecc = require('@bitcoinerlab/secp256k1');
-const axios = require("axios");
-const tool = require("../../utils/tool.js");
+import crypto from "crypto";
+import * as bitcoin from "bitcoinjs-lib";
+import * as ecc from "@bitcoinerlab/secp256k1";
+import axios from "axios";
+import tool from "../../utils/tool.js";
 
 bitcoin.initEccLib(ecc);
 
@@ -63,9 +61,9 @@ const networks = {
       wif: 0xf1,
     }
   }
-}
+};
 
-module.exports = class ProcessMintBtcFromBitcoin {
+class ProcessMintBtcFromBitcoin {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
   }
@@ -78,7 +76,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let ota = await this.generateOnetimeAddress(stepData, params.fromChainType, params.toChainType, params.userAccount, params.storemanGroupId, params.gpkInfo);
       // console.log("task %s %s finishStep %s ota: %s", params.ccTaskId, processorName, stepData.stepIndex, ota.address);
       if (ota.address) {
-        WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", {address: ota.address, randomId: ota.randomId});
+        WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", { address: ota.address, randomId: ota.randomId });
       } else {
         WebStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Failed to generate ota address");
       }
@@ -97,15 +95,12 @@ module.exports = class ProcessMintBtcFromBitcoin {
       let chainInfoService = this.frameworkService.getService("ChainInfoService");
       let chainInfo = chainInfoService.getChainInfoByType(fromChainType);
       let network = networks[fromChainType][chainInfo.network];
-
       const randomId = '0x' + crypto.randomBytes(32).toString('hex');
       const hashValue = tool.sha256(randomId + chainAddr, false);
-
       let tmpGPK = gpkInfo.gpk;
       if (tmpGPK.startsWith('0x')) {
         tmpGPK = "04" + tmpGPK.slice(2);
       }
-
       let ota = null;
       if (gpkInfo.algo == 2) { // schnorr340
         ota = this.getP2TR(hashValue, tmpGPK, network);
@@ -126,17 +121,16 @@ module.exports = class ProcessMintBtcFromBitcoin {
         networkFee: params.fee,
         value: params.value
       };
-
       let ret = await axios.post(url, data);
       if (ret.data.success === true) {
-        let serviceName = "Check" + fromChainType.charAt(0).toUpperCase() + fromChainType.substr(1).toLowerCase() + "TxService"
+        let serviceName = "Check" + fromChainType.charAt(0).toUpperCase() + fromChainType.substr(1).toLowerCase() + "TxService";
         let checkTxService = this.frameworkService.getService(serviceName);
         data.fromBlockNumber = await storemanService.getChainBlockNumber(toChainType);
         data.ccTaskId = params.ccTaskId;
         data.fromChain = fromChainType;
         let tokenPairService = this.frameworkService.getService("TokenPairService");
         let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-        let direction = (tokenPair.fromChainType === fromChainType)? "MINT" : "BURN";
+        let direction = (tokenPair.fromChainType === fromChainType) ? "MINT" : "BURN";
         data.taskType = tokenPairService.getTokenEventType(params.tokenPairID, direction);
         await checkTxService.addOTAInfo(data);
         return {
@@ -153,7 +147,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
       console.error('%s generateOnetimeAddress error: %O', names[fromChainType], error);
       return {
         address: ""
-      }
+      };
     }
   }
 
@@ -170,8 +164,7 @@ module.exports = class ProcessMintBtcFromBitcoin {
 
   getP2TR(hashVal, publicKey, network) {
     const xOnlyMpcPk = Buffer.from(publicKey.slice(2, 66), 'hex');
-    const redeemScript = bitcoin.script.fromASM(
-      `
+    const redeemScript = bitcoin.script.fromASM(`
       ${hashVal}
       OP_DROP
       OP_DUP
@@ -179,24 +172,21 @@ module.exports = class ProcessMintBtcFromBitcoin {
       ${bitcoin.crypto.hash160(xOnlyMpcPk).toString('hex')}
       OP_EQUALVERIFY
       OP_CHECKSIG
-      `.trim().replace(/\s+/g, ' '),
-    )
+      `.trim().replace(/\s+/g, ' '));
     const scriptTree = {
       output: redeemScript,
       version: 0xc0
-    }
+    };
     const p2tr = bitcoin.payments.p2tr({
       internalPubkey: xOnlyMpcPk,
       scriptTree: scriptTree,
       redeem: scriptTree,
-      network 
-    })
+      network
+    });
     return p2tr.address;
   }
-
   getRedeemScript(hashVal, publicKey) {
-    return bitcoin.script.fromASM(
-      `
+    return bitcoin.script.fromASM(`
       ${hashVal}
       OP_DROP
       OP_DUP
@@ -205,7 +195,8 @@ module.exports = class ProcessMintBtcFromBitcoin {
       OP_EQUALVERIFY
       OP_CHECKSIG
       `.trim()
-      .replace(/\s+/g, ' '),
-    )
+      .replace(/\s+/g, ' '));
   }
-};
+}
+
+export default ProcessMintBtcFromBitcoin;

@@ -1,15 +1,13 @@
-'use strict';
-
-const axios = require('axios');
-const tool = require("../../utils/tool.js");
+import axios from "axios";
+import tool from "../../utils/tool.js";
 
 const DepositMsg = "Program log:  relay_circle_cctp() circle message_sent_event_data: ";
 
-module.exports = class ProcessCircleBridgeSolanaReclaim {
+class ProcessCircleBridgeSolanaReclaim {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("SOL");
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -40,7 +38,7 @@ module.exports = class ProcessCircleBridgeSolanaReclaim {
             messageTransmitter: messageTransmitterAccount.publicKey,
             messageSentEventData
           };
-          let instruction = await messageTransmitterProgram.methods.reclaimEventAccount({attestation}).accounts(accounts).instruction();
+          let instruction = await messageTransmitterProgram.methods.reclaimEventAccount({ attestation }).accounts(accounts).instruction();
           let tx = await wallet.buildTransaction([instruction]);
           let txHash = await wallet.sendTransaction(tx);
           let checker = {
@@ -59,3 +57,5 @@ module.exports = class ProcessCircleBridgeSolanaReclaim {
     }
   }
 }
+
+export default ProcessCircleBridgeSolanaReclaim;

@@ -1,13 +1,11 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
-
-module.exports = class ProcessMintFromSolana {
+class ProcessMintFromSolana {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("SOL");
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -20,21 +18,21 @@ module.exports = class ProcessMintFromSolana {
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === "SOL");
-      let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let fromChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let toChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
       let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
       let wanBridgeProgram = wallet.getProgram("wanBridge", fromChainInfo.crossScAddr);
       let solVault = this.tool.findProgramAddress("vault", wanBridgeProgram.programId);
       let adminBoardProgramId = this.tool.getPublicKey(fromChainInfo.adminBoardProgram);
       let tokenpairPda = this.tool.getPda("TokenPairInfo", params.tokenPairID, adminBoardProgramId, 4);
-      let configAccountPda = this.tool.findProgramAddress("ConfigData", adminBoardProgramId)
+      let configAccountPda = this.tool.findProgramAddress("ConfigData", adminBoardProgramId);
       let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
       let destChain = Number(toChainInfo.chainId);
       let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
       let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
-      let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+      let tokenAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
       let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
-      let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
+      let crossValue = isCoin ? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
       let amount = this.tool.toBigNumber(crossValue);
       let accounts = {
         user: walletPublicKey,
@@ -77,17 +75,17 @@ module.exports = class ProcessMintFromSolana {
           uniqueID: tool.sha256(txHash),
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
-          taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction? "MINT" : "BURN")),
-          // for xrp api server
+          taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, (direction ? "MINT" : "BURN")),
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txHash,
+          txHash,
           toAddr: params.toAddr
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      console.error("error: %s", err.message)
+      console.error("error: %s", err.message);
       if (["User rejected the request."].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
@@ -96,4 +94,6 @@ module.exports = class ProcessMintFromSolana {
       }
     }
   }
-};
+}
+
+export default ProcessMintFromSolana;

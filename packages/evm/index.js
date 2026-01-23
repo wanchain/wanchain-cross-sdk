@@ -1,14 +1,21 @@
-const MetamaskWallet = require("./src/wallet/metamask");
-const RabbyWallet = require("./src/wallet/rabby");
-const OKXWallet = require("./src/wallet/okx");
-const CtrlWallet = require("./src/wallet/ctrl");
-const WalletConnect = require("./src/wallet/walletconnect");
-const WanWallet = require("./src/wallet/wanwallet");
+import MetamaskWallet from "./src/wallet/metamask.js";
+import RabbyWallet from "./src/wallet/rabby.js";
+import OkxWallet from "./src/wallet/okx.js";
+import CtrlWallet from "./src/wallet/ctrl.js";
+import WalletConnect from "./src/wallet/walletconnect.js";
+import WanWallet from "./src/wallet/wanwallet.js";
 
-module.exports = {
+export { MetamaskWallet };
+export { RabbyWallet };
+export { OkxWallet };
+export { CtrlWallet };
+export { WalletConnect };
+export { WanWallet };
+
+export default {
   MetamaskWallet,
   RabbyWallet,
-  OKXWallet,
+  OkxWallet,
   CtrlWallet,
   WalletConnect,
   WanWallet

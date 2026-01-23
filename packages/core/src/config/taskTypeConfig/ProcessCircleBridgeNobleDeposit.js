@@ -1,9 +1,7 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
-
-module.exports = class ProcessCircleBridgeNobleDeposit {
+class ProcessCircleBridgeNobleDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -17,7 +15,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let toChainInfo = (tokenPair.fromChainType === "NOBLE")? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let toChainInfo = (tokenPair.fromChainType === "NOBLE") ? tokenPair.toScInfo : tokenPair.fromScInfo;
       let crossValue = new BigNumber(params.value).minus(params.networkFee).toFixed(0);
       let recipient = params.userAccount.replace(/^0x/, '').padStart(64, '0'); // left padded with 0's to 32 bytes
       let cctpMsg = {
@@ -30,7 +28,7 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
           burnToken: "uusdc"
         }
       };
-      let fromChainInfo = (tokenPair.fromChainType === "NOBLE")? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let fromChainInfo = (tokenPair.fromChainType === "NOBLE") ? tokenPair.fromScInfo : tokenPair.toScInfo;
       let feeMsg = {
         typeUrl: "/cosmos.bank.v1beta1.MsgSend",
         value: {
@@ -43,18 +41,17 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
             }
           ],
         }
-      }
-      console.debug({cctpMsg, feeMsg});
+      };
+      console.debug({ cctpMsg, feeMsg });
       if (toChainInfo.chainType === "SOL") { // register wallet address before sending tx and it must be successful, otherwise agent may not process it
         await this.storemanService.registerSolWalletAddress(params.innerToAddr, params.toAddr);
       }
-      let txHash = await wallet.sendTransaction([cctpMsg, feeMsg], {timeoutHeight: 100});
+      let txHash = await wallet.sendTransaction([cctpMsg, feeMsg], { timeoutHeight: 100 });
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
-        webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
+        webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, { innerToAccount: params.innerToAddr });
       }
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-
-      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, {bridge: "Circle"});
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, { bridge: "Circle" });
       let checker = {
         chain: "NOBLE",
         ccTaskId: params.ccTaskId,
@@ -85,4 +82,6 @@ module.exports = class ProcessCircleBridgeNobleDeposit {
       }
     }
   }
-};
+}
+
+export default ProcessCircleBridgeNobleDeposit;

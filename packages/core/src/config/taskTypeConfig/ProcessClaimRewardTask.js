@@ -1,15 +1,13 @@
-'use strict';
-
-const BigNumber = require("bignumber.js");
-const Web3 = require("web3");
-const ProcessBaseSync = require("./processBaseSync.js");
+import BigNumber from "bignumber.js";
+import Web3 from "web3";
+import ProcessBaseSync from "./processBaseSync.js";
 
 const web3 = new Web3();
 
-module.exports = class ProcessClaimRewardTask extends ProcessBaseSync {
+class ProcessClaimRewardTask extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
 
@@ -25,9 +23,11 @@ module.exports = class ProcessClaimRewardTask extends ProcessBaseSync {
     let abi = this.configService.getAbi("rewardTask");
     let sc = new web3.eth.Contract(abi, params.scAddr);
     let data = sc.methods.claimTask(params.taskId, params.collateralId).encodeABI();
-    let coin = (params.token === "0x0000000000000000000000000000000000000000")? "0x" + new BigNumber(params.value).toString(16) : "0x00";
-    let gasLimit = await this.iwan.estimateGas(params.chainType, {from: params.fromAddr, to: params.scAddr, value: coin, data});
+    let coin = (params.token === "0x0000000000000000000000000000000000000000") ? "0x" + new BigNumber(params.value).toString(16) : "0x00";
+    let gasLimit = await this.iwan.estimateGas(params.chainType, { from: params.fromAddr, to: params.scAddr, value: coin, data });
     console.debug("ProcessClaimRewardTask gasLimit: %s", gasLimit);
-    return {data, gasLimit, coin};
+    return { data, gasLimit, coin };
   }
 }
+
+export default ProcessClaimRewardTask;

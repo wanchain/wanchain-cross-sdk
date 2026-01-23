@@ -1,8 +1,6 @@
-'use strict';
+import BigNumber from "bignumber.js";
 
-const BigNumber = require("bignumber.js");
-
-module.exports = class ClaimRewardTask {
+class ClaimRewardTask {
   constructor(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.crossTaskCfg = configService.getGlobalConfig("crossTask");
@@ -30,13 +28,13 @@ module.exports = class ClaimRewardTask {
           // approve 0
           let approve0Params = Object.assign({}, approveParams);
           approve0Params.value = 0;
-          steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params});
+          steps.push({ name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params });
           // approve
-          steps.push({name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams});
+          steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
         }
       } else {
-        steps.push({name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams});
-      }      
+        steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
+      }
     }
     // claim tx
     let params = {
@@ -50,7 +48,9 @@ module.exports = class ClaimRewardTask {
       taskType: "ProcessClaimRewardTask"
     };
     console.debug("ClaimRewardTask params: %O", params);
-    steps.push({name: "claimRewardTask", stepIndex: steps.length + 1, params});
+    steps.push({ name: "claimRewardTask", stepIndex: steps.length + 1, params });
     return steps;
   }
 }
+
+export default ClaimRewardTask;

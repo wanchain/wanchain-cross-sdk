@@ -1,10 +1,5 @@
-
 class OkxBitcoinWallet {
-  constructor(provider) {
-    const {
-      network,
-      cb
-    } = provider;
+  constructor(network, cb) {
     if (window.okxwallet?.bitcoin) {
       this.name = "okxBitcoin";
       if (!['mainnet', 'testnet'].includes(network)) {
@@ -22,7 +17,6 @@ class OkxBitcoinWallet {
       throw new Error('please install Okx Bitcoin wallet');
     }
   }
-
   async connect() {
     try {
       let wallet = await this.wallet.connect();
@@ -49,7 +43,7 @@ class OkxBitcoinWallet {
     } else if (chainId === 'testnet') {
       return chainId;
     } else {
-      return 'unknown'; 
+      return 'unknown';
     }
   }
 
@@ -60,21 +54,13 @@ class OkxBitcoinWallet {
         accounts = await this.wallet.getAccounts();
       } else {
         accounts = await this.wallet.getSelectedAccount();
-        accounts = [accounts.address]
+        accounts = [accounts.address];
       }
       return accounts;
     } catch (err) {
       console.error("%s not installed or not allowed: %O", this.name, err);
       throw new Error("Not installed or not allowed");
     }
-  }
-
-  on() {
-    window.okxwallet?.bitcoin.on('accountsChanged', this.accountsChanged.bind(this));
-  }
-
-  off() {
-    window.okxwallet?.bitcoin.off('accountsChanged', this.accountsChanged.bind(this));
   }
 
   async accountsChanged(addrs) {
@@ -84,7 +70,7 @@ class OkxBitcoinWallet {
     } else {
       const wallet = window.okxwallet.bitcoinTestnet;
       accounts = await wallet.connect();
-      accounts = [accounts.address]
+      accounts = [accounts.address];
     }
     await this.setAccount(accounts);
   }
@@ -114,7 +100,7 @@ class OkxBitcoinWallet {
     } else {
       const wallet = window.okxwallet.bitcoinTestnet;
       accounts = await wallet.connect();
-      accounts = [accounts.address]
+      accounts = [accounts.address];
     }
     await this.setAccount(accounts);
   }
@@ -123,11 +109,7 @@ class OkxBitcoinWallet {
     try {
       // let txid = await this.wallet.sendBitcoin(toAddr, satoshis, opt);
       // return txid;
-      const {
-        decimals,
-        fromAddr,
-        memo
-      } = opt;
+      const { decimals, fromAddr, memo } = opt;
       const value = new BigNumber(satoshis).dividedBy(Math.pow(10, decimals)).toFixed();
       let txid = await this.wallet.send({
         from: fromAddr,
@@ -138,9 +120,9 @@ class OkxBitcoinWallet {
       });
       return txid.txhash;
     } catch (e) {
-      console.log(e);
+      console.error(e);
     }
   }
 }
 
-module.exports = OkxBitcoinWallet;
+export default OkxBitcoinWallet;

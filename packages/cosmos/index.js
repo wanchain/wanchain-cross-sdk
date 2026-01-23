@@ -1,9 +1,14 @@
-const KeplrWallet = require("./src/wallet/keplr");
-const tool = require("./src/tool");
+import KeplrWallet from "./src/wallet/keplr.js";
+import tool from "./src/tool.js";
 
-module.exports = {
-  getChains: () => ["Cosmos", "Noble", "Kava"],
-  getSymbols: () => ["ATOM", "NOBLE", "KAVA"],
+export const getChains = () => ["Cosmos", "Noble", "Kava"];
+export const getSymbols = () => ["ATOM", "NOBLE", "KAVA"];
+export { KeplrWallet };
+export { tool };
+
+export default {
+  getChains,
+  getSymbols,
   KeplrWallet,
   tool
 };

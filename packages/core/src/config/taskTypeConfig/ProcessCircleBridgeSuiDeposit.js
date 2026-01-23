@@ -1,15 +1,13 @@
-'use strict';
-
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
 const DefaultGas = 10_000_000;
 
-module.exports = class ProcessCircleBridgeSuiDeposit {
+class ProcessCircleBridgeSuiDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("SUI");
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -21,8 +19,8 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === "SUI");
-      let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let fromChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let toChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
       let amount = params.value;
       let tx = this.tool.newTransaction();
       // fee
@@ -30,11 +28,11 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       let totalSui = new BigNumber(params.networkFee).plus(DefaultGas).toFixed();
       let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalSui);
       tx.setGasPayment(selectedSuiCoins.map(v => {
-        return {objectId: v.coinObjectId, version: v.version, digest: v.digest}
+        return { objectId: v.coinObjectId, version: v.version, digest: v.digest };
       }));
       let [feeCoin] = tx.splitCoins(tx.gas, [params.networkFee]);
       // usdc asset
-      let usdcAccount = tool.ascii2letter(direction? tokenPair.fromAccount : tokenPair.toAccount);
+      let usdcAccount = tool.ascii2letter(direction ? tokenPair.fromAccount : tokenPair.toAccount);
       let usdcCoins = await this.storemanService.getSuiCoins(params.fromAddr, usdcAccount);
       let selectedUsdcCoins = this.tool.selectCoins(usdcCoins, amount);
       let assetCoin = selectedUsdcCoins[0];
@@ -71,10 +69,10 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
       }
       let txHash = await wallet.sendTransaction(tx, params.fromAddr);
       if (params.innerToAddr && (params.innerToAddr !== params.toAddr)) {
-        this.webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, {innerToAccount: params.innerToAddr});
+        this.webStores["crossChainTaskRecords"].setExtraInfo(params.ccTaskId, { innerToAccount: params.innerToAddr });
       }
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, {bridge: "Circle"});
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, { bridge: "Circle" });
       let checker = {
         chain: "SUI",
         ccTaskId: params.ccTaskId,
@@ -117,11 +115,13 @@ module.exports = class ProcessCircleBridgeSuiDeposit {
           cnt++;
         }
       });
-      let average = cnt? Math.ceil(sum / cnt) : 0;
+      let average = cnt ? Math.ceil(sum / cnt) : 0;
       return average;
     } catch (err) {
       console.error("getRecentPrioritizationFees error: %O", err);
       return 0;
     }
   }
-};
+}
+
+export default ProcessCircleBridgeSuiDeposit;

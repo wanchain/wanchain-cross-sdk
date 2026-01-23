@@ -1,5 +1,5 @@
-const BigNumber = require("bignumber.js");
-const tool = require("../tool");
+import BigNumber from "bignumber.js";
+import tool from "../tool.js";
 
 class TronLink {
   constructor(provider) {
@@ -13,14 +13,10 @@ class TronLink {
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts() {
     if (this.tronLink) {
       // only authorize, not return accounts, this.tronWeb.trx.getAccount do not support reconnetct after reject
-      await this.tronLink.request({method: 'tron_requestAccounts'});
+      await this.tronLink.request({ method: 'tron_requestAccounts' });
     }
     if (this.tronWeb && this.tronWeb.defaultAddress && this.tronWeb.defaultAddress.base58) {
       return [this.tronWeb.defaultAddress.base58];
@@ -28,11 +24,6 @@ class TronLink {
       console.error("%s not installed or locked", this.name);
       throw new Error("Not installed or locked");
     }
-  }
-
-  async getBalance(addr) {
-    let balance = await this.tronWeb.trx.getBalance(addr);
-    return balance;
   }
 
   async sendTransaction(tx) {
@@ -46,13 +37,13 @@ class TronLink {
   async generateUserLockData(crossScAddr, smgID, tokenPairID, crossValue, userAccount, extInfo) {
     let fn = "userLock(bytes32,uint256,uint256,bytes)"; // userLock(bytes32 smgID, uint tokenPairID, uint value, bytes userAccount)
     let params = [
-      {type: 'bytes32', value: smgID},
-      {type: 'uint256', value: tokenPairID},
-      {type: 'uint256', value: new BigNumber(crossValue).toFixed()},
-      {type: 'bytes', value: userAccount}
+      { type: 'bytes32', value: smgID },
+      { type: 'uint256', value: tokenPairID },
+      { type: 'uint256', value: new BigNumber(crossValue).toFixed() },
+      { type: 'bytes', value: userAccount }
     ];
     let sc = tool.getStandardAddressInfo(crossScAddr).native;
-    let options = {callValue: new BigNumber(extInfo.coinValue).toFixed()}; // tx coin value
+    let options = { callValue: new BigNumber(extInfo.coinValue).toFixed() }; // tx coin value
     let feeLimit = await this.estimateFeeLimit(sc, fn, options, params);
     options.feeLimit = feeLimit;
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
@@ -62,11 +53,11 @@ class TronLink {
   async generatorErc20ApproveData(erc20Addr, spenderAddr, value) {
     let fn = "approve(address,uint256)"; // approve(address _spender, uint256 _value)
     let params = [
-      {type: 'address', value: spenderAddr},
-      {type: 'uint256', value: "0x" + new BigNumber(value).toString(16)},
+      { type: 'address', value: spenderAddr },
+      { type: 'uint256', value: "0x" + new BigNumber(value).toString(16) },
     ];
     let sc = tool.getStandardAddressInfo(erc20Addr).native;
-    let options = {callValue: 0};
+    let options = { callValue: 0 };
     let feeLimit = await this.estimateFeeLimit(sc, fn, options, params);
     options.feeLimit = feeLimit;
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
@@ -76,15 +67,15 @@ class TronLink {
   async generateUserBurnData(crossScAddr, smgID, tokenPairID, crossValue, fee, tokenAccount, userAccount, extInfo) {
     let fn = "userBurn(bytes32,uint256,uint256,uint256,address,bytes)"; // userBurn(bytes32 smgID, uint tokenPairID, uint value, uint fee, address tokenAccount, bytes userAccount)
     let params = [
-      {type: 'bytes32', value: smgID},
-      {type: 'uint256', value: tokenPairID},
-      {type: 'uint256', value: "0x" + new BigNumber(crossValue).toString(16)},
-      {type: 'uint256', value: "0x" + new BigNumber(fee).toString(16)},
-      {type: 'address', value: tokenAccount},
-      {type: 'bytes', value: userAccount}
+      { type: 'bytes32', value: smgID },
+      { type: 'uint256', value: tokenPairID },
+      { type: 'uint256', value: "0x" + new BigNumber(crossValue).toString(16) },
+      { type: 'uint256', value: "0x" + new BigNumber(fee).toString(16) },
+      { type: 'address', value: tokenAccount },
+      { type: 'bytes', value: userAccount }
     ];
     let sc = tool.getStandardAddressInfo(crossScAddr).native;
-    let options = {callValue: new BigNumber(extInfo.coinValue).toFixed()}; // tx coin value
+    let options = { callValue: new BigNumber(extInfo.coinValue).toFixed() }; // tx coin value
     let feeLimit = await this.estimateFeeLimit(sc, fn, options, params);
     options.feeLimit = feeLimit;
     let tx = await this.tronWeb.transactionBuilder.triggerSmartContract(sc, fn, options, params);
@@ -93,7 +84,7 @@ class TronLink {
 
   async estimateFeeLimit(sc, fn, options, params) {
     // estimate energy
-    const estimateEnergy = await this.tronWeb.transactionBuilder.triggerConstantContract(sc, fn, {callValue: options.callValue}, params, this.tronWeb.defaultAddress.base58);
+    const estimateEnergy = await this.tronWeb.transactionBuilder.triggerConstantContract(sc, fn, { callValue: options.callValue }, params, this.tronWeb.defaultAddress.base58);
     if (estimateEnergy.result.result !== true) {
       console.error("estimateEnergy: %O", estimateEnergy);
       throw new Error("estimate energy error");
@@ -104,7 +95,7 @@ class TronLink {
     let A_SIGNATURE = 67;
     let CORRECTION = 6; // actually consume more 6 than estimate, may be it is the different between signed and unsigned tx
     let estimateBandwidth = (estimateEnergy.transaction.raw_data_hex.length / 2) + DATA_HEX_PROTOBUF_EXTRA + MAX_RESULT_SIZE_IN_TX + A_SIGNATURE + CORRECTION; // only consider 1 signature
-    console.log({estimateBandwidth, estimateEnergy: estimateEnergy.energy_used});
+    console.log({ estimateBandwidth, estimateEnergy: estimateEnergy.energy_used });
     // cal fee limit by price
     let chainParas = await this.tronWeb.trx.getChainParameters();
     // console.debug({chainParas});
@@ -114,4 +105,4 @@ class TronLink {
   }
 }
 
-module.exports = TronLink;
+export default TronLink;

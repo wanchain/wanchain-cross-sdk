@@ -1,5 +1,4 @@
 class CrossChainTaskRecords {
-
   constructor() {
     this.ccTaskRecords = new Map();
   }
@@ -23,7 +22,7 @@ class CrossChainTaskRecords {
         }
         ccTask.status = ccTaskStatus;
       }
-    }    
+    }
   }
 
   setTaskOtaInfo(ccTaskId, ota) {
@@ -45,7 +44,7 @@ class CrossChainTaskRecords {
             ccTask.status = result;
             if (errInfo) {
               ccTask.errInfo = errInfo;
-            }            
+            }
           } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
             // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
             if (txHash) {
@@ -60,17 +59,19 @@ class CrossChainTaskRecords {
         }
       }
     }
-    return {isLockTx, isLocked};
+    return { isLockTx, isLocked };
   }
 
-  updateTaskFee(ccTaskId, type, value, rectify = false) {
+  updateTaskFee(ccTaskId, type, value, rectify = true) {
     let ccTask = this.ccTaskRecords.get(ccTaskId);
     if (ccTask && ccTask.fee) {
-      console.debug("task %d update %s fee: %s->%s", ccTaskId, type, ccTask.fee[type].value, value);
       ccTask.fee[type].value = value;
       if (rectify) {
         ccTask.fee[type].isRatio = false;
         ccTask.fee[type].discount = "1";
+        if (ccTask.fee[type].cctpForward) {
+          ccTask.fee[type].cctpForward = "0";
+        }
       }
     } else {
       console.error("task %d fee data is damaged", ccTaskId);
@@ -175,4 +176,4 @@ class CrossChainTaskRecords {
   }
 }
 
-module.exports = CrossChainTaskRecords;
+export default CrossChainTaskRecords;

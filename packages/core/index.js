@@ -1,5 +1,7 @@
-const WanBridge = require('./src/bridge/wanBridge');
+import WanBridge from "./src/bridge/wanBridge.js";
 
-module.exports = {
+export { WanBridge };
+
+export default {
   WanBridge
 };

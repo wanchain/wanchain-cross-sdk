@@ -1,11 +1,14 @@
-const PeraWallet = require('./src/wallet/pera');
-const tool = require('./src/tool');
+import PeraWallet from "./src/wallet/pera";
+import tool from "./src/tool.js";
 
-console.log("PeraWallet: %O", PeraWallet)
+export const getChains = () => ["Algorand"];
+export const getSymbols = () => ["ALGO"];
+export { PeraWallet };
+export { tool };
 
-module.exports = {
-  getChains: () => ["Algorand"],
-  getSymbols: () => ["ALGO"],
+export default {
+  getChains,
+  getSymbols,
   PeraWallet,
   tool
 };

@@ -1,5 +1,5 @@
-const wasm = require("../wasm");
-const tool = require("../tool.js");
+import wasm from "../wasm/index.js";
+import tool from "../tool.js";
 
 class Eternl {
   constructor(provider) {
@@ -76,7 +76,7 @@ class Eternl {
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
-      })
+      });
     } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
@@ -86,7 +86,7 @@ class Eternl {
   async getNftInfo(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
-      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+      let cardano = await this.wallet.enable({ extensions: [{ cip: 95 }] });
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       let nfts = tool.getNftInfo(value.multiasset(), tokenId);
@@ -126,4 +126,4 @@ class Eternl {
   }
 }
 
-module.exports = Eternl;
+export default Eternl;

@@ -1,4 +1,4 @@
-const Web3 = require("web3");
+import Web3 from "web3";
 
 class WalletConnect {
   constructor(provider, type = "MetaMask") {
@@ -19,7 +19,6 @@ class WalletConnect {
         ? v[1].rpcUrls[0]
         : v[1].rpcUrls;
     });
-  
     const option = {
       projectId: '20759d10d280845d112536497b73c294',
       // projectId: 'c1878849d707424196092ec9439f82f4', // pensonal walletconnect account
@@ -34,14 +33,13 @@ class WalletConnect {
         url: 'https://bridge.wanchain.org', // origin must match your domain & subdomain
         icons: ['https://www.wanscan.org/img/chain/Wanchain.png']
       }
-    }
+    };
     const provider = await this.ethProvider.init(option);
     await provider.enable();
-  
     let web3 = new Web3(provider);
     web3.eth.extend({
       methods: [
-        { 
+        {
           name: "chainId",
           call: "eth_chainId",
           outputFormatter: web3.utils.hexToNumber
@@ -56,7 +54,7 @@ class WalletConnect {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    } catch(err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
     }
     console.log('accounts', accounts);
@@ -66,12 +64,12 @@ class WalletConnect {
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
-      .on("transactionHash", txHash => {
-        resolve(txHash);
-      }).on("error", err => {
-        console.debug("web3Wallet sendTransaction error: %O", err);
-        reject(err);
-      })
+        .on("transactionHash", txHash => {
+          resolve(txHash);
+        }).on("error", err => {
+          console.debug("web3Wallet sendTransaction error: %O", err);
+          reject(err);
+        });
     });
   }
 
@@ -87,14 +85,14 @@ class WalletConnect {
 
   async on(...arg) {
     const result = await this.web3.currentProvider.on(...arg);
-    console.log('wcconnect on', result, this.web3)
+    console.log('wcconnect on', result, this.web3);
     return result;
   }
-  
+
   async off(...arg) {
     const result = await this.web3.currentProvider.off(...arg);
     return result;
   }
 }
 
-module.exports = WalletConnect;
+export default WalletConnect;

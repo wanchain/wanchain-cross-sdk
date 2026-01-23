@@ -1,89 +1,113 @@
+import mintCoinHandle from "./MintCoinHandle.js";
+import mintErc20Handle from "./MintErc20Handle.js";
+import burnErc20Handle from "./BurnErc20Handle.js";
+import mintBtcFromBitcoinHandle from "./MintBtcFromBitcoinHandle.js";
+import mintXrpFromRippleHandle from "./MintXrpFromRippleHandle.js";
+import mintDotFromPolkaHandle from "./MintDotFromPolkaHandle.js";
+import burnErc20ProxyToken from "./BurnErc20ProxyToken.js";
+import mintFromCardano from "./MintFromCardano.js";
+import burnFromCardano from "./BurnFromCardano.js";
+import circleBridgeDeposit from "./CircleBridgeDeposit.js";
+import mintFromCosmos from "./MintFromCosmos.js";
+import circleBridgeNobleDeposit from "./CircleBridgeNobleDeposit.js";
+import circleBridgeSolanaDeposit from "./CircleBridgeSolanaDeposit.js";
+import mintFromAlgorand from "./MintFromAlgorand.js";
+import mintFromSolana from "./MintFromSolana.js";
+import burnFromSolana from "./BurnFromSolana.js";
+import circleBridgeSuiDeposit from "./CircleBridgeSuiDeposit.js";
+import claimRewardTask from "./ClaimRewardTask.js";
+import mintFromSui from "./MintFromSui.js";
+import burnFromSui from "./BurnFromSui.js";
+import mintFromTon from "./MintFromTon.js";
+import burnFromMidnight from "./BurnFromMidnight.js";
 
-'use strict';
-
-module.exports = [
-    {
-      "name": "MintCoin",
-      "handle": require("./MintCoinHandle.js")
-    },
-    {
-      "name": "MintErc20",
-      "handle": require("./MintErc20Handle")
-    },
-    {
-      "name": "BurnErc20",
-      "handle": require("./BurnErc20Handle")
-    },
-    {
-      "name": "MintBtcFromBitcoinHandle",
-      "handle": require("./MintBtcFromBitcoinHandle")
-    },
-    {
-      "name": "MintXrpFromRippleHandle",
-      "handle": require("./MintXrpFromRippleHandle")
-    },
-    {
-      "name": "MintDotFromPolkaHandle",
-      "handle": require("./MintDotFromPolkaHandle")
-    },
-    {
-      "name": "BurnErc20ProxyToken",
-      "handle": require("./BurnErc20ProxyToken")
-    },
-    {
-      "name": "MintFromCardano",
-      "handle": require("./MintFromCardano")
-    },
-    {
-      "name": "BurnFromCardano",
-      "handle": require("./BurnFromCardano")
-    },
-    {
-      "name": "CircleBridgeDeposit",
-      "handle": require("./CircleBridgeDeposit")
-    },
-    {
-      "name": "MintFromCosmos",
-      "handle": require("./MintFromCosmos")
-    },
-    {
-      "name": "CircleBridgeNobleDeposit",
-      "handle": require("./CircleBridgeNobleDeposit")
-    },
-    {
-      "name": "CircleBridgeSolanaDeposit",
-      "handle": require("./CircleBridgeSolanaDeposit")
-    },
-    {
-      "name": "MintFromAlgorand",
-      "handle": require("./MintFromAlgorand")
-    },
-    {
-      "name": "MintFromSolana",
-      "handle": require("./MintFromSolana")
-    },
-    {
-      "name": "BurnFromSolana",
-      "handle": require("./BurnFromSolana")
-    },
-    {
-      "name": "CircleBridgeSuiDeposit",
-      "handle": require("./CircleBridgeSuiDeposit")
-    },
-    {
-      "name": "ClaimRewardTask",
-      "handle": require("./ClaimRewardTask")
-    },
-    {
-      "name": "MintFromSui",
-      "handle": require("./MintFromSui")
-    },
-    {
-      "name": "BurnFromSui",
-      "handle": require("./BurnFromSui")
-    },
-    {
-      "name": "MintFromTon",
-      "handle": require("./MintFromTon")
-    }
-]
+export default [
+  {
+    "name": "MintCoin",
+    "handle": mintCoinHandle
+  },
+  {
+    "name": "MintErc20",
+    "handle": mintErc20Handle
+  },
+  {
+    "name": "BurnErc20",
+    "handle": burnErc20Handle
+  },
+  {
+    "name": "MintBtcFromBitcoinHandle",
+    "handle": mintBtcFromBitcoinHandle
+  },
+  {
+    "name": "MintXrpFromRippleHandle",
+    "handle": mintXrpFromRippleHandle
+  },
+  {
+    "name": "MintDotFromPolkaHandle",
+    "handle": mintDotFromPolkaHandle
+  },
+  {
+    "name": "BurnErc20ProxyToken",
+    "handle": burnErc20ProxyToken
+  },
+  {
+    "name": "MintFromCardano",
+    "handle": mintFromCardano
+  },
+  {
+    "name": "BurnFromCardano",
+    "handle": burnFromCardano
+  },
+  {
+    "name": "CircleBridgeDeposit",
+    "handle": circleBridgeDeposit
+  },
+  {
+    "name": "MintFromCosmos",
+    "handle": mintFromCosmos
+  },
+  {
+    "name": "CircleBridgeNobleDeposit",
+    "handle": circleBridgeNobleDeposit
+  },
+  {
+    "name": "CircleBridgeSolanaDeposit",
+    "handle": circleBridgeSolanaDeposit
+  },
+  {
+    "name": "MintFromAlgorand",
+    "handle": mintFromAlgorand
+  },
+  {
+    "name": "MintFromSolana",
+    "handle": mintFromSolana
+  },
+  {
+    "name": "BurnFromSolana",
+    "handle": burnFromSolana
+  },
+  {
+    "name": "CircleBridgeSuiDeposit",
+    "handle": circleBridgeSuiDeposit
+  },
+  {
+    "name": "ClaimRewardTask",
+    "handle": claimRewardTask
+  },
+  {
+    "name": "MintFromSui",
+    "handle": mintFromSui
+  },
+  {
+    "name": "BurnFromSui",
+    "handle": burnFromSui
+  },
+  {
+    "name": "MintFromTon",
+    "handle": mintFromTon
+  },
+  {
+    "name": "BurnFromMidnight",
+    "handle": burnFromMidnight
+  },
+];

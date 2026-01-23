@@ -1,5 +1,5 @@
-const Web3 = require("web3");
-const Tools = require("../tool");
+import Web3 from "web3";
+import Tools from "../tool.js";
 
 class RabbyWallet {
   constructor(provider, type = "RabbyWallet") {
@@ -35,7 +35,7 @@ class RabbyWallet {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    } catch(err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
     }
     return accounts;
@@ -44,12 +44,12 @@ class RabbyWallet {
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
-      .on("transactionHash", txHash => {
-        resolve(txHash);
-      }).on("error", err => {
-        console.debug("rabbyWallet sendTransaction error: %O", err);
-        reject(err);
-      })
+        .on("transactionHash", txHash => {
+          resolve(txHash);
+        }).on("error", err => {
+          console.debug("rabbyWallet sendTransaction error: %O", err);
+          reject(err);
+        });
     });
   }
 
@@ -67,11 +67,11 @@ class RabbyWallet {
     let result = await window.rabby.on(...arg);
     return result;
   }
-  
+
   async off(...arg) {
     const result = await window.rabby.off(...arg);
     return result;
   }
 }
 
-module.exports = RabbyWallet;
+export default RabbyWallet;

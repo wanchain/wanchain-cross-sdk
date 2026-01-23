@@ -1,5 +1,5 @@
-const Web3 = require("web3");
-const Tools = require("../tool");
+import Web3 from "web3";
+import Tools from "../tool.js";
 
 class CtrlWallet {
   constructor(provider, type = "CtrlWallet") {
@@ -42,7 +42,7 @@ class CtrlWallet {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    } catch(err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
     }
     return accounts;
@@ -51,12 +51,12 @@ class CtrlWallet {
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
-      .on("transactionHash", txHash => {
-        resolve(txHash);
-      }).on("error", err => {
-        console.debug("ctrlWallet sendTransaction error: %O", err);
-        reject(err);
-      })
+        .on("transactionHash", txHash => {
+          resolve(txHash);
+        }).on("error", err => {
+          console.debug("ctrlWallet sendTransaction error: %O", err);
+          reject(err);
+        });
     });
   }
 
@@ -74,11 +74,11 @@ class CtrlWallet {
     let result = await window.ctrlEthProviders['Ctrl Wallet'].provider.on(...arg);
     return result;
   }
-  
+
   async off(...arg) {
     const result = await window.ctrlEthProviders['Ctrl Wallet'].provider.off(...arg);
     return result;
   }
 }
 
-module.exports = CtrlWallet;
+export default CtrlWallet;

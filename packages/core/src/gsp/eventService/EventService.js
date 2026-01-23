@@ -1,30 +1,31 @@
-'use strict';
+import events from "events";
 
-const EventEmitter = require('events').EventEmitter;
+const EventEmitter = events.EventEmitter;
 
-module.exports = class EventService {
-    constructor() {
-        this.m_eventEmitter = new EventEmitter();
-        this.m_eventEmitter.setMaxListeners(100);
-    }
+class EventService {
+  constructor() {
+    this.m_eventEmitter = new EventEmitter();
+    this.m_eventEmitter.setMaxListeners(100);
+  }
 
-    async init(frameworkService) {
-    }
+  async init(frameworkService) {
+  }
 
-    async addEventListener(eventName, listener) {
-        this.m_eventEmitter.on(eventName, listener);
-    }
+  async addEventListener(eventName, listener) {
+    this.m_eventEmitter.on(eventName, listener);
+  }
 
-    async emitEvent(eventName, args) {
-        this.m_eventEmitter.emit(eventName, args);
-    }
+  async emitEvent(eventName, args) {
+    this.m_eventEmitter.emit(eventName, args);
+  }
 
-    async removeAllListeners(eventName) {
-        this.m_eventEmitter.removeAllListeners(eventName);
-    }
+  async removeAllListeners(eventName) {
+    this.m_eventEmitter.removeAllListeners(eventName);
+  }
 
-    async removeListener(eventName, listener) {
-        this.m_eventEmitter.removeListener(eventName, listener);
-    }
-};
+  async removeListener(eventName, listener) {
+    this.m_eventEmitter.removeListener(eventName, listener);
+  }
+}
 
+export default EventService;

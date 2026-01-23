@@ -1,9 +1,14 @@
-const TronLinkWallet = require("./src/wallet/tronLink");
-const tool = require("./src/tool");
+import TronLinkWallet from "./src/wallet/tronLink.js";
+import tool from "./src/tool.js";
 
-module.exports = {
-  getChains: () => ["Tron"],
-  getSymbols: () => ["TRX"],
+export const getChains = () => ["Tron"];
+export const getSymbols = () => ["TRX"];
+export { TronLinkWallet };
+export { tool };
+
+export default {
+  getChains,
+  getSymbols,
   TronLinkWallet,
-  tool,
+  tool
 };

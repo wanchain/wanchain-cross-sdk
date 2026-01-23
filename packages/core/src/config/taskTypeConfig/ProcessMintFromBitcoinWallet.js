@@ -1,8 +1,6 @@
-'use strict';
-
-const bitcoin = require('bitcoinjs-lib');
-const ecc = require('@bitcoinerlab/secp256k1');
-const tool = require("../../utils/tool.js");
+import * as bitcoin from "bitcoinjs-lib";
+import * as ecc from "@bitcoinerlab/secp256k1";
+import tool from "../../utils/tool.js";
 
 bitcoin.initEccLib(ecc);
 
@@ -10,7 +8,7 @@ const networks = { // only support BTC now
   BTC: bitcoin.networks
 };
 
-module.exports = class ProcessMintFromBitcoinWallet {
+class ProcessMintFromBitcoinWallet {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = frameworkService.getService("WebStores");
@@ -25,11 +23,11 @@ module.exports = class ProcessMintFromBitcoinWallet {
       let memo = '07' + tokenPairHex + '0000000000000000' + tool.hexStrip0x(params.userAccount.toLowerCase()); // 07 is userLock with compact format address
       let smgAddr = this.gpk2Addr(params.fromChainType, params.gpkInfo);
       console.debug("ProcessMintFromBitcoinWallet %s smgAddr: %s", params.fromChainType, smgAddr);
-      let txHash = await wallet.sendTransaction(smgAddr, params.value, {memo, fromAddr: params.fromAddr, decimals: params.decimals});
+      let txHash = await wallet.sendTransaction(smgAddr, params.value, { memo, fromAddr: params.fromAddr, decimals: params.decimals });
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let direction = (params.fromChainType === tokenPair.fromChainType)? "MINT" : "BURN";
+      let direction = (params.fromChainType === tokenPair.fromChainType) ? "MINT" : "BURN";
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
         chain: params.fromChainType,
@@ -46,8 +44,9 @@ module.exports = class ProcessMintFromBitcoinWallet {
           chain: params.toChainType,
           taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction),
           fromChain: params.fromChainType,
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txHash,
+          txHash,
           toAddr: params.toAddr
         }
       };
@@ -90,15 +89,15 @@ module.exports = class ProcessMintFromBitcoinWallet {
   }
 
   getP2trRedeemScript(xOnlyMpcPk) {
-    let redeemScript = bitcoin.script.fromASM(
-      `
+    let redeemScript = bitcoin.script.fromASM(`
       OP_DUP
       OP_HASH160
       ${bitcoin.crypto.hash160(xOnlyMpcPk).toString('hex')}
       OP_EQUALVERIFY
       OP_CHECKSIG
-      `.trim().replace(/\s+/g, ' '),
-    );
+      `.trim().replace(/\s+/g, ' '));
     return redeemScript;
   }
-};
+}
+
+export default ProcessMintFromBitcoinWallet;

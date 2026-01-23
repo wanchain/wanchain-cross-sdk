@@ -1,4 +1,4 @@
-const { PeraWalletConnect } = require("@perawallet/connect");
+import { PeraWalletConnect } from "@perawallet/connect";
 
 class Pera {
   constructor(network) {
@@ -7,8 +7,8 @@ class Pera {
       throw new Error("Invalid network, should be 'mainnet' or 'testnet'");
     }
     this.network = network;
-    let chainId = (network === "mainnet")? 416001 : 416002;
-    this.wallet = new PeraWalletConnect({chainId});
+    let chainId = (network === "mainnet") ? 416001 : 416002;
+    this.wallet = new PeraWalletConnect({ chainId });
   }
 
   // standard function
@@ -41,5 +41,4 @@ class Pera {
     return signedTxn;
   }
 }
-
-module.exports = Pera;
+export default Pera;

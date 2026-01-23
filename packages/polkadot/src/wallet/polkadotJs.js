@@ -1,7 +1,7 @@
-const { ApiPromise, WsProvider } = require('@polkadot/api');
-const { web3Accounts, web3Enable, web3FromAddress } = require('@polkadot/extension-dapp');
-const { getSS58Format } = require('../tool.js');
-const BigNumber = require('bignumber.js');
+import { ApiPromise, WsProvider } from '@polkadot/api'
+import { web3Accounts, web3Enable, web3FromAddress } from "@polkadot/extension-dapp";
+import { getSS58Format } from "../tool.js";
+import BigNumber from "bignumber.js";
 
 const DefaultProvider = {
   Polkadot: {
@@ -11,7 +11,7 @@ const DefaultProvider = {
   Phala: {
     testnet: "wss://rhala-api.phala.network/ws"
   }
-}
+};
 
 class PolkadotJs {
   constructor(network) {
@@ -24,15 +24,11 @@ class PolkadotJs {
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts(network) {
     const allInjected = await web3Enable('WanBridge');
     if (allInjected.length) {
       let ss58Format = getSS58Format(this.chain, network);
-      let accounts = await web3Accounts({ss58Format});
+      let accounts = await web3Accounts({ ss58Format });
       return accounts.map(a => a.address);
     } else {
       console.error("%s not installed or not allowed", this.name);
@@ -50,26 +46,27 @@ class PolkadotJs {
     return new Promise(async (resolve, reject) => {
       let api = await this.getApi();
       let injector = await web3FromAddress(sender);
-      api.tx.utility.batchAll(txs).signAndSend(sender, {signer: injector.signer}, ({txHash, status}) => {
+      api.tx.utility.batchAll(txs).signAndSend(sender, { signer: injector.signer }, ({ txHash, status }) => {
         txHash = txHash.toString();
         if (status.isBroadcast) {
           console.debug("%s sendTransaction tx %s status: %s", this.chain, txHash, status.type);
           return resolve(txHash);
         } else if (status.isInBlock || status.isFinalized) {
-          let block = status.isInBlock? status.asInBlock : status.asFinalized;
+          let block = status.isInBlock ? status.asInBlock : status.asFinalized;
           console.debug("%s block %s tx %s status: %s", this.chain, block.toString(), txHash, status.type);
           return resolve(txHash);
         }
       }).catch(err => {
         return reject(err);
       });
-    })
+    });
   }
 
   // customized function
+
   setChain(chainName, provider) {
     this.chain = chainName;
-    if (provider && typeof(provider) === "string") {
+    if (provider && typeof (provider) === "string") {
       if (["mainnet", "testnet"].includes(provider)) {
         provider = DefaultProvider[chainName][provider];
       }
@@ -82,7 +79,7 @@ class PolkadotJs {
 
   async getApi() {
     if (!this.api) {
-      this.api = new ApiPromise({provider: this.provider});
+      this.api = new ApiPromise({ provider: this.provider });
     }
     await this.api.isReady;
     return this.api;
@@ -96,4 +93,4 @@ class PolkadotJs {
   }
 }
 
-module.exports = PolkadotJs;
+export default PolkadotJs;

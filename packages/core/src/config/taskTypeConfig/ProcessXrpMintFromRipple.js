@@ -1,9 +1,7 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import axios from "axios";
 
-const BigNumber = require("bignumber.js");
-const axios = require("axios");
-
-module.exports = class ProcessXrpMintFromRipple {
+class ProcessXrpMintFromRipple {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -31,7 +29,7 @@ module.exports = class ProcessXrpMintFromRipple {
     let params = stepData.params;
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
-      let direction = (chainType === tokenPair.toChainType)? "MINT" : "BURN";
+      let direction = (chainType === tokenPair.toChainType) ? "MINT" : "BURN";
       let taskType = this.tokenPairService.getTokenEventType(params.tokenPairID, direction);
       let apiServerConfig = this.configService.getGlobalConfig("apiServer");
       let url = apiServerConfig.url + "/api/xrp/addTagInfo";
@@ -64,4 +62,6 @@ module.exports = class ProcessXrpMintFromRipple {
       return 0;
     }
   }
-};
+}
+
+export default ProcessXrpMintFromRipple;

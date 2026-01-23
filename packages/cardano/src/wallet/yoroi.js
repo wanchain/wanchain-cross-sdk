@@ -1,5 +1,6 @@
-const wasm = require("../wasm");
-const tool = require("../tool.js");
+import wasm from "../wasm/index.js";
+import tool from "../tool.js";
+
 class Yoroi {
   constructor(provider) {
     if (window.cardano?.yoroi) {
@@ -75,7 +76,7 @@ class Yoroi {
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
-      })
+      });
     } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
@@ -85,7 +86,7 @@ class Yoroi {
   async getNftInfo(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
-      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+      let cardano = await this.wallet.enable({ extensions: [{ cip: 95 }] });
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       let nfts = tool.getNftInfo(value.multiasset(), tokenId);
@@ -130,7 +131,7 @@ class Yoroi {
     let accounts = await cardano.getUsedAddresses();
     let accountSet = new Set();
     accounts.forEach(v => accountSet.add(this.wasm.Address.from_bytes(Buffer.from(v, 'hex')).to_bech32()));
-    console.log("_filterUtxos by accounts: %O", accountSet)
+    console.log("_filterUtxos by accounts: %O", accountSet);
     return utxos.filter(v => {
       let utxo = this.wasm.TransactionUnspentOutput.from_hex(v);
       let output = utxo.output().address().to_bech32();
@@ -144,4 +145,4 @@ class Yoroi {
   }
 }
 
-module.exports = Yoroi;
+export default Yoroi;

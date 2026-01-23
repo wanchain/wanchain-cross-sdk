@@ -1,6 +1,6 @@
-const CoinSelection = require("./coinSelection");
-const axios = require('axios');
-const BigNumber = require('bignumber.js');
+import CoinSelection from "./coinSelection.js";
+import axios from "axios";
+import BigNumber from "bignumber.js";
 
 let wasm = null;
 
@@ -18,7 +18,7 @@ function bytesAddressToBinary(bytes) {
 
 // WAValidator can not valid testnet address
 function validateAddress(address, options = {}) { // options: {network, chain, retScriptHash}
-  let networkId = (options.network === "testnet")? 0 : 1;
+  let networkId = (options.network === "testnet") ? 0 : 1;
   try {
     if ((address.substr(0, 3) === "Ae2") || (address.substr(0, 2) === "Dd")) { // Byron
       let addr = wasm.ByronAddress.from_base58(address);
@@ -30,7 +30,7 @@ function validateAddress(address, options = {}) { // options: {network, chain, r
       let addr = wasm.Address.from_bech32(address);
       if (addr.network_id() === networkId) {
         let prefix = bytesAddressToBinary(addr.to_bytes()).slice(0, 4);
-        console.log("%s is ADA Shelly type %s address", address, prefix);
+        console.debug("%s is ADA Shelly type %s address", address, prefix);
         if (parseInt(prefix, 2) <= 7) {
           let typedAddr = wasm.BaseAddress.from_address(addr) || wasm.EnterpriseAddress.from_address(addr);
           if (typedAddr) {
@@ -65,7 +65,7 @@ function getStandardAddressInfo(address) {
     let evm = asciiToHex(native);
     // ignore cctp address as it is not supported now
     let compact = '0x' + Buffer.from(addr.to_bytes()).toString('hex');
-    return {native, evm, text: native, compact};
+    return { native, evm, text: native, compact };
   } catch (err) {
     throw new Error("Cardano address is invalid: " + address);
   }
@@ -73,13 +73,13 @@ function getStandardAddressInfo(address) {
 
 // according to web3.utils.asciiToHex
 function asciiToHex(str) {
-	let hexString = '';
-	for (let i = 0; i < str.length; i += 1) {
-		const hexCharCode = str.charCodeAt(i).toString(16);
-		// might need a leading 0
-		hexString += hexCharCode.length % 2 !== 0 ? ('0' + hexCharCode) : hexCharCode;
-	}
-	return '0x' + hexString;
+  let hexString = '';
+  for (let i = 0; i < str.length; i += 1) {
+    const hexCharCode = str.charCodeAt(i).toString(16);
+    // might need a leading 0
+    hexString += hexCharCode.length % 2 !== 0 ? ('0' + hexCharCode) : hexCharCode;
+  }
+  return '0x' + hexString;
 }
 
 function assetsToValue(assets) {
@@ -152,7 +152,7 @@ function getNftInfo(multiAsset, policyId) {
     let policy = ma.get(policyId);
     if (policy) {
       for (let [id, balance] of policy) {
-        nfts.push({id, balance}); // id is hex without 0x prefix
+        nfts.push({ id, balance }); // id is hex without 0x prefix
       }
     }
   }
@@ -191,16 +191,16 @@ function genPlutusData() { // just dummy data
   let ls = wasm.PlutusList.new();
   ls.add(wasm.PlutusData.new_integer(wasm.BigInt.from_str('1')));
   return wasm.PlutusData.new_constr_plutus_data(
-      wasm.ConstrPlutusData.new(
-          wasm.BigNum.from_str('0'),
-          ls
-      )
+    wasm.ConstrPlutusData.new(
+      wasm.BigNum.from_str('0'),
+      ls
+    )
   )
 }
 
 function showUtxos(utxos, title = "") {
   utxos.map((utxo, i) => {
-    if (typeof(utxo) === "string") {
+    if (typeof (utxo) === "string") {
       utxo = wasm.TransactionUnspentOutput.from_hex(utxo);
     }
     console.debug("%s utxo %d: %O", title, i, utxo.to_js_value());
@@ -216,8 +216,8 @@ function splitMetadata(metadata, segmentLength = 64) {
 }
 
 function sleep(time) {
-  return new Promise(function(resolve) {
-    setTimeout(function() {
+  return new Promise(function (resolve) {
+    setTimeout(function () {
       resolve();
     }, time);
   })
@@ -230,7 +230,7 @@ const OgmiosUrl = {
 
 async function evaluateTx(network, rawTx) {
   try {
-    let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", {rawTx});
+    let res = await axios.post(OgmiosUrl[network] + "/evaluateTx", { rawTx });
     return res.data;
   } catch (err) {
     console.error("evaluateTx error: %O", err);
@@ -247,7 +247,7 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
     }
   });
   let t0 = Date.now();
-  for ( ; ; ) {
+  for (; ;) {
     let chainUtxos = [], networkErr = false;
     try {
       let res = await axios.post(OgmiosUrl[network] + "/getUTXOs", checkUtxos);
@@ -260,7 +260,7 @@ async function checkUtxos(network, utxos, timeout = 0, interval = 5000) { // ms
     }
     if (chainUtxos.length >= utxos.length) {
       return true;
-    } else if ((Date.now() - t0) <  timeout) {
+    } else if ((Date.now() - t0) < timeout) {
       await sleep(interval);
     } else {
       console.debug("check utxos %d ms unavailable: %O", timeout, checkUtxos);
@@ -304,13 +304,31 @@ function nftId2AssetName(id) {
   let tmp = new BigNumber(id).toString(16);
   if (tmp.substr(0, 2) === 'de') { // 222
     return '000' + tmp;
-  } else if  (tmp.substr(0, 3) === '14d') { // 333
+  } else if (tmp.substr(0, 3) === '14d') { // 333
     return '00' + tmp;
   }
   throw new Error("unsupported nft type");
 }
 
-module.exports = {
+export { setWasm };
+export { getWasm };
+export { validateAddress };
+export { getStandardAddressInfo };
+export { assetsToValue };
+export { minAdaRequired };
+export { multiAssetCount };
+export { getAssetBalance };
+export { getNftInfo };
+export { encodeNftAssetName };
+export { nftId2AssetName };
+export { selectUtxos };
+export { genPlutusData };
+export { showUtxos };
+export { splitMetadata };
+export { evaluateTx };
+export { checkUtxos };
+
+export default {
   setWasm,
   getWasm,
   validateAddress,
@@ -328,4 +346,4 @@ module.exports = {
   splitMetadata,
   evaluateTx,
   checkUtxos
-}
+};

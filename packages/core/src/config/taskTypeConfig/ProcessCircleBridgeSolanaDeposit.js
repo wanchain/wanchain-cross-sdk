@@ -1,12 +1,10 @@
-'use strict';
+import tool from "../../utils/tool.js";
 
-const tool = require("../../utils/tool.js");
-
-module.exports = class ProcessCircleBridgeSolanaDeposit {
+class ProcessCircleBridgeSolanaDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("SOL");
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -18,15 +16,15 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === "SOL");
-      let fromChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let toChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let fromChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let toChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
       let destinationDomain = Number(toChainInfo.CircleBridge.domain);
       let destChain = Number(toChainInfo.chainId);
       let amount = this.tool.toBigNumber(params.value);
       let mintRecipient = this.tool.getPublicKey(this.tool.hex2bytes(tool.hexStrip0x(params.userAccount).padStart(64, '0')));
       let messageSentKeypair = this.tool.getKeypair();
       let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
-      let usdcAddress = this.tool.getPublicKey(tool.ascii2letter(direction? tokenPair.fromAccount : tokenPair.toAccount));
+      let usdcAddress = this.tool.getPublicKey(tool.ascii2letter(direction ? tokenPair.fromAccount : tokenPair.toAccount));
       let userTokenAccount = this.tool.getAssociatedTokenAddressSync(usdcAddress, walletPublicKey);
       let messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitter);
       let tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
@@ -73,14 +71,13 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
         // cctp program:
         circleCctpProgram: tokenMessengerMinterProgramId
       };
-
       let unitLimit = this.tool.setComputeUnitLimit(200_000);
       // let unitPrice = this.tool.setComputeUnitPrice(100_000);
       let instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts).instruction();
       let tx = await wallet.buildTransaction([unitLimit, instruction]);
       let txHash = await wallet.sendTransaction(tx, messageSentKeypair);
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, {bridge: "Circle"});
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, { bridge: "Circle" });
       let checker = {
         chain: "SOL",
         ccTaskId: params.ccTaskId,
@@ -104,7 +101,7 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      console.error("error: %s", err.message)
+      console.error("error: %s", err.message);
       if (["User rejected the request."].includes(err.message)) {
         this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
@@ -125,11 +122,13 @@ module.exports = class ProcessCircleBridgeSolanaDeposit {
           cnt++;
         }
       });
-      let average = cnt? Math.ceil(sum / cnt) : 0;
+      let average = cnt ? Math.ceil(sum / cnt) : 0;
       return average;
     } catch (err) {
       console.error("getRecentPrioritizationFees error: %O", err);
       return 0;
     }
   }
-};
+}
+
+export default ProcessCircleBridgeSolanaDeposit;

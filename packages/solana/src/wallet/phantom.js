@@ -1,10 +1,10 @@
-const anchor = require('@coral-xyz/anchor');
-const Web3 = require('@solana/web3.js');
-const cctpProxyIdl = require("../cctp/circle_cctp_proxy_contract.json");
-const messageTransmitterIdl = require("../cctp/idl_message_transmitter.json");
-const wanBridgeIdl = require("../wanbridge/cross_delegate.json");
-const { PublicKey, TransactionMessage, VersionedTransaction } = require('@solana/web3.js');
-const { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } = require('@solana/spl-token');
+import * as anchor from "@coral-xyz/anchor";
+import * as Web3 from "@solana/web3.js";
+import cctpProxyIdl from "../cctp/circle_cctp_proxy_contract.json" with { type: "json" };
+import messageTransmitterIdl from "../cctp/idl_message_transmitter.json" with { type: "json" };
+import wanBridgeIdl from "../wanbridge/cross_delegate.json" with { type: "json" };
+import { PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 class Phantom {
   constructor(network) {
@@ -14,7 +14,7 @@ class Phantom {
       const href = network === 'mainnet' ? 'https://solana-mainnet.g.alchemy.com/v2/C37RKXJKkDTkcBkt6Uc8FmCa_3AcNyFx' : Web3.clusterApiUrl(this.network);
       this.connection = new Web3.Connection(href, 'confirmed');
     } else {
-      message.error('please install phantom wallet');
+      console.error('please install phantom wallet');
       window.open('https://phantom.app');
       throw new Error('please install phantom wallet');
     }
@@ -41,7 +41,7 @@ class Phantom {
     let balance = "0";
     let publicKey = new PublicKey(address);
     if (tokenAccount) {
-      let data = await this.connection.getParsedTokenAccountsByOwner(publicKey, {mint: new Web3.PublicKey(tokenAccount)});
+      let data = await this.connection.getParsedTokenAccountsByOwner(publicKey, { mint: new Web3.PublicKey(tokenAccount) });
       let tokenInfo = data && data.value && data.value[0];
       if (tokenInfo) {
         balance = tokenInfo.account.data.parsed.info.tokenAmount.amount;
@@ -56,10 +56,10 @@ class Phantom {
     let publicKey = new PublicKey(address);
     let [coin, splTokens, spl2022tokens] = await Promise.all([
       this.connection.getBalance(publicKey),
-      this.connection.getParsedTokenAccountsByOwner(publicKey, {programId: TOKEN_PROGRAM_ID}),
-      this.connection.getParsedTokenAccountsByOwner(publicKey, {programId: TOKEN_2022_PROGRAM_ID})
+      this.connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_PROGRAM_ID }),
+      this.connection.getParsedTokenAccountsByOwner(publicKey, { programId: TOKEN_2022_PROGRAM_ID })
     ]);
-    let assets = {"": coin};
+    let assets = { "": coin };
     splTokens.value.forEach(v => {
       let ti = v.account.data.parsed.info;
       assets[ti.mint] = ti.tokenAmount.amount;
@@ -76,7 +76,7 @@ class Phantom {
       tx.sign([otherSigner]);
     }
     let provider = this.getProvider();
-    let { signature } = await provider.signAndSendTransaction(tx,  { skipPreflight: true });
+    let { signature } = await provider.signAndSendTransaction(tx, { skipPreflight: true });
     return signature;
   }
 
@@ -115,9 +115,9 @@ class Phantom {
     let provider = this.getProvider();
     let latestBlockhash = await this.connection.getLatestBlockhash();
     console.debug("%s %s latestBlockhash: %O", this.name, this.network, latestBlockhash);
-    let messageV0 = new TransactionMessage({payerKey: provider.publicKey, recentBlockhash: latestBlockhash.blockhash, instructions}).compileToV0Message();
+    let messageV0 = new TransactionMessage({ payerKey: provider.publicKey, recentBlockhash: latestBlockhash.blockhash, instructions }).compileToV0Message();
     return new VersionedTransaction(messageV0);
   }
 }
 
-module.exports = Phantom;
+export default Phantom;

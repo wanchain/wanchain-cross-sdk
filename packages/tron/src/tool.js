@@ -1,6 +1,5 @@
-const TronWeb = require('tronweb');
-
-const tronweb = new TronWeb({fullHost: "https://api.nileex.io"});
+import TronWeb from "tronweb";
+const tronweb = new TronWeb({ fullHost: "https://api.nileex.io" });
 
 function validateAddress(address) {
   let isValid = tronweb.isAddress(address);
@@ -29,10 +28,13 @@ function getStandardAddressInfo(address) {
     throw new Error("Tron address is invalid: " + address);
   }
   // ignore cctp address as it is not supported now
-  return {native, evm, text: evm, compact: evm}; // always treat tron as evm except ui, so text address is evm format
+  return { native, evm, text: evm, compact: evm }; // always treat tron as evm except ui, so text address is evm format
 }
 
-module.exports = {
+export { validateAddress };
+export { getStandardAddressInfo };
+
+export default {
   validateAddress,
   getStandardAddressInfo
-}
+};

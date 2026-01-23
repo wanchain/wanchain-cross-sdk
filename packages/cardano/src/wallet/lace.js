@@ -1,5 +1,5 @@
-const wasm = require("../wasm");
-const tool = require("../tool.js");
+import wasm from "../wasm/index.js";
+import tool from "../tool.js";
 
 class Lace {
   constructor(provider) {
@@ -21,7 +21,7 @@ class Lace {
 
   async getChainId() {
     if (!this.lace) {
-      this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+      this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
     }
     const id = await this.lace.getNetworkId();
     return id;
@@ -30,10 +30,10 @@ class Lace {
   async getAccounts() {
     try {
       let lace = null;
-      if (this.lace) {                                                                                                     
+      if (this.lace) {
         lace = this.lace;
       } else {
-        lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+        lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
         this.lace = lace;
       }
       let accounts = await lace.getUsedAddresses();
@@ -50,7 +50,7 @@ class Lace {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       if (!this.lace) {
-        this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+        this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
       }
       let balance = await this.lace.getBalance();
       let value = this.wasm.Value.from_hex(balance);
@@ -75,7 +75,7 @@ class Lace {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       if (!this.lace) {
-        this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+        this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
       }
       let balance = await this.lace.getBalance();
       let value = this.wasm.Value.from_hex(balance);
@@ -91,7 +91,7 @@ class Lace {
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
-      })
+      });
     } else {
       console.error("%s is not current address", addr);
       throw new Error("Not current address");
@@ -102,12 +102,12 @@ class Lace {
     try {
       let lace = null;
       let accounts = null;
-      if (this.lace) {                                                                                                     
+      if (this.lace) {
         lace = this.lace;
         accounts = await lace.getChangeAddress();
         accounts = [accounts];
       } else {
-        lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+        lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
         this.lace = lace;
         accounts = await lace.getUsedAddresses();
         accounts = [accounts[0]];
@@ -124,7 +124,7 @@ class Lace {
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       if (!this.lace) {
-        this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+        this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
       }
       let balance = await this.lace.getBalance();
       let value = this.wasm.Value.from_hex(balance);
@@ -138,7 +138,7 @@ class Lace {
 
   async sendTransaction(tx) {
     if (!this.lace) {
-      this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+      this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
     }
     tx = this.wasm.Transaction.from_hex(tx);
     let witnessSet = await this.lace.signTx(tx.to_hex());
@@ -156,7 +156,7 @@ class Lace {
 
   async getUtxos() {
     if (!this.lace) {
-      this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+      this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
     }
     let utxos = await this.lace.getUtxos();
     return utxos;
@@ -164,7 +164,7 @@ class Lace {
 
   async getCollateral() {
     if (!this.lace) {
-      this.lace = await this.cardano.lace.enable({ extensions: [{ cip : 95 }]});
+      this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
     }
     let utxos = await this.lace.getCollateral();
     utxos = utxos || [];
@@ -172,4 +172,4 @@ class Lace {
   }
 }
 
-module.exports = Lace;
+export default Lace;

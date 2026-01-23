@@ -1,9 +1,9 @@
 
 class UniSatWallet {
-  constructor(provider) {
+  constructor(network) {
     if (window.unisat) {
       this.name = "Unisat";
-      if (!['mainnet', 'testnet'].includes(provider.network)) {
+      if (!['mainnet', 'testnet'].includes(network)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.unisat;
@@ -42,7 +42,6 @@ class UniSatWallet {
     } else {
       return 'unknown';
     }
-
   }
 
   async getAccounts(network) {
@@ -83,4 +82,4 @@ class UniSatWallet {
   }
 }
 
-module.exports = UniSatWallet;
+export default UniSatWallet;

@@ -396,7 +396,7 @@ function descSelect(utxoSelection, outputAmount) {
   utxoSelection.subset = utxoSelection.subset.sort((a, b) => {
     return Number(
       searchAmountValue(outputAmount, b.output().amount()) -
-        searchAmountValue(outputAmount, a.output().amount())
+      searchAmountValue(outputAmount, a.output().amount())
     );
   });
 
@@ -695,7 +695,7 @@ function isQtyFulfilled(outputAmount, cumulatedAmount, nbFreeUTxO, outputAddress
     if (nbFreeUTxO > 0) {
       let maxFee =
         BigInt(protocolParameters.minFeeA) *
-          BigInt(protocolParameters.maxTxSize) +
+        BigInt(protocolParameters.maxTxSize) +
         BigInt(protocolParameters.minFeeB);
 
       maxFee = wasm.Value.new(
@@ -793,4 +793,4 @@ function createEmptyValue() {
   return value;
 }
 
-module.exports = CoinSelection;
+export default CoinSelection;

@@ -16,9 +16,9 @@ const config = {
 
   ws: {
     code: {
-      normal:1000
+      normal: 1000
     }
   }
 }
 
-module.exports = config;
+export default config;

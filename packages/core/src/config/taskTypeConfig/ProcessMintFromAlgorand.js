@@ -1,13 +1,11 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
+import base32 from "hi-base32";
 
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
-const base32 = require('hi-base32');
-
-module.exports = class ProcessMintFromAlgorand {
+class ProcessMintFromAlgorand {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("ALGO");
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -24,21 +22,18 @@ module.exports = class ProcessMintFromAlgorand {
       let suggestedParams = await client.getTransactionParams().do();
       let crossScAddr = algosdk.getApplicationAddress(BigInt(params.crossScId));
       console.debug("ProcessMintFromAlgorand crossScAddr: %s", crossScAddr);
-
       let tokenPairService = this.frameworkService.getService("TokenPairService");
       let tokenPair = tokenPairService.getTokenPair(params.tokenPairID);
-      let tokenAccount = (tokenPair.fromChainType === "ALGO")? tokenPair.fromAccount : tokenPair.toAccount;
+      let tokenAccount = (tokenPair.fromChainType === "ALGO") ? tokenPair.fromAccount : tokenPair.toAccount;
       let isCoin = (tokenAccount === "0x0000000000000000000000000000000000000000");
-      let coinValue = isCoin? params.value : params.networkFee;
-      let crossValue = isCoin? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
-
+      let coinValue = isCoin ? params.value : params.networkFee;
+      let crossValue = isCoin ? new BigNumber(params.value).minus(params.networkFee).toFixed(0) : params.value;
       let payTx = algosdk.makePaymentTxnWithSuggestedParamsFromObject({
         from: params.fromAddr,
         suggestedParams,
         to: crossScAddr,
         amount: BigInt(coinValue),
       });
-
       let assetTx = null;
       if (!isCoin) {
         assetTx = algosdk.makeAssetTransferTxnWithSuggestedParamsFromObject({
@@ -49,7 +44,6 @@ module.exports = class ProcessMintFromAlgorand {
           amount: BigInt(crossValue),
         });
       }
-
       let abi = this.configService.getAbi("algorandBridge");
       let contract = new algosdk.ABIContract(abi);
       let method = contract.getMethodByName('userLock');
@@ -62,7 +56,6 @@ module.exports = class ProcessMintFromAlgorand {
       ];
       let appArgs = [method.getSelector()];
       method.args.map((arg, i) => appArgs.push(arg.type.encode(args[i])));
-    
       let toChainInfo = this.chainInfoService.getChainInfoByType(params.toChainType);
       const options = {
         from: params.fromAddr,
@@ -71,22 +64,21 @@ module.exports = class ProcessMintFromAlgorand {
         appArgs,
         accounts: [chainInfo.feeHolder],
         boxes: [
-          {appIndex: params.crossScId, name: this.tool.getPrefixKey("mapTokenPairContractFee", tokenPairID)},
-          {appIndex: params.crossScId, name: this.tool.getPrefixKey("mapTokenPairInfo", tokenPairID)},
-          {appIndex: params.crossScId, name: this.tool.getPrefixKey("mapContractFee", BigInt(chainInfo.chainId) * BigInt(2 ** 32) + BigInt(toChainInfo.chainId))},
-          {appIndex: params.crossScId, name: this.tool.getPrefixKey("mapContractFee", BigInt(chainInfo.chainId) * BigInt(2 ** 32))},
+          { appIndex: params.crossScId, name: this.tool.getPrefixKey("mapTokenPairContractFee", tokenPairID) },
+          { appIndex: params.crossScId, name: this.tool.getPrefixKey("mapTokenPairInfo", tokenPairID) },
+          { appIndex: params.crossScId, name: this.tool.getPrefixKey("mapContractFee", BigInt(chainInfo.chainId) * BigInt(2 ** 32) + BigInt(toChainInfo.chainId)) },
+          { appIndex: params.crossScId, name: this.tool.getPrefixKey("mapContractFee", BigInt(chainInfo.chainId) * BigInt(2 ** 32)) },
         ]
-      }
+      };
       let appTx = algosdk.makeApplicationCallTxnFromObject(options);
       let txs = algosdk.assignGroupID([payTx, assetTx, appTx].filter(v => v));
-      let txGroups = txs.map(v => {return {txn: v, signers: [params.fromAddr]}});
+      let txGroups = txs.map(v => { return { txn: v, signers: [params.fromAddr] }; });
       let signedTxs = await wallet.signTransaction([txGroups]);
       let txId = algosdk.decodeSignedTransaction(signedTxs[signedTxs.length - 1]).txn.txID();
       await client.sendRawTransaction(signedTxs).do();
       this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txId, ""); // only update txHash, no result
-
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
-      let direction = (tokenPair.fromChainType === "ALGO")? "MINT" : "BURN";
+      let direction = (tokenPair.fromChainType === "ALGO") ? "MINT" : "BURN";
       let checker = {
         chain: "ALGO",
         ccTaskId: params.ccTaskId,
@@ -101,15 +93,16 @@ module.exports = class ProcessMintFromAlgorand {
           chain: params.toChainType,
           taskType: tokenPairService.getTokenEventType(params.tokenPairID, direction),
           fromChain: "ALGO",
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txId,
+          txHash: txId,
           toAddr: params.toAddr
         }
       };
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      if (err.message && (typeof(err.message) === "string") && err.message.includes("the user has rejected the transaction request")) {
+      if (err.message && (typeof (err.message) === "string") && err.message.includes("the user has rejected the transaction request")) {
         this.webStoresService["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessMintFromAlgorand error: %O", err);
@@ -117,4 +110,6 @@ module.exports = class ProcessMintFromAlgorand {
       }
     }
   }
-};
+}
+
+export default ProcessMintFromAlgorand;

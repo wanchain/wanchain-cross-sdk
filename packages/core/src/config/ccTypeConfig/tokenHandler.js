@@ -1,19 +1,15 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
-const BigNumber = require("bignumber.js");
-const tool = require('../../utils/tool.js');
-const CCTypeHandleInterface = require("./CCTypeHandleInterface.js");
-
-module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & ERC721
+class TokenHandler {
   constructor(frameworkService) {
-    super();
     this.frameworkService = frameworkService;
     this.iWanConnectorService = frameworkService.getService("iWanConnectorService");
     this.configService = frameworkService.getService("ConfigService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
-  async process(tokenPair, convert) {  
+  async process(tokenPair, convert) {
     console.error("Unimplemented interface");
     return {
       stepNum: 0,
@@ -30,16 +26,16 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
   }
 
   async buildErc20Approve(steps, tokenPair, convert) {
-    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-    let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let tokenSc = (convert.convertType === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
+    let decimals = (convert.convertType === "MINT") ? tokenPair.fromDecimals : tokenPair.toDecimals;
     let approveMaxValue = "115792089237316195423570985008687907853269984665640564039457584007913129639935"; // max;
     let crossScAddr = "";
     if (tokenPair.bridge === "Circle") {
       let bridgeInfo = chainInfo[tokenPair.bridge + "Bridge"];
-      crossScAddr = (convert.route === "CCTPV2")? bridgeInfo.crossScAddrV2 : bridgeInfo.crossScAddr;
-    } else  {
-      crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+      crossScAddr = (convert.route === "CCTPV2") ? bridgeInfo.crossScAddrV2 : bridgeInfo.crossScAddr;
+    } else {
+      crossScAddr = convert.fee.networkFee.isSubsidy ? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     }
     let approveParams = {
       ccTaskId: convert.ccTaskId,
@@ -63,22 +59,22 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         // approve 0
         if (!["VET"].includes(chainInfo.chainType)) { // some chains erc20 implement do not need approve 0
           let approve0Params = Object.assign({}, approveParams);
-          approve0Params.value = new BigNumber(0);
-          steps.push({name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params});
+          approve0Params.value = "0";
+          steps.push({ name: "erc20Approve0", stepIndex: steps.length + 1, params: approve0Params });
         }
         // approve
-        steps.push({name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams});
+        steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
       }
     } else {
-      steps.push({name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams});
+      steps.push({ name: "erc20Approve", stepIndex: steps.length + 1, params: approveParams });
     }
   }
 
   async buildErc721Approve(steps, tokenPair, convert) {
-    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let tokenSc = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
+    let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let tokenSc = (convert.convertType === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
     let value = convert.value; // [tokenId, name] or [{tokenId, name, amount}]
-    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let crossScAddr = convert.fee.networkFee.isSubsidy ? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     let approved = await this.iWanConnectorService.checkErc721Approved(chainInfo.chainType, tokenSc, value, convert.fromAddr, crossScAddr);
     if (approved === false) {
       let params = {
@@ -89,23 +85,23 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
         value,
         operator: crossScAddr,
         taskType: "ProcessErc721Approve"
-      }
+      };
       console.debug("TokenHandler buildErc721Approve params: %O", params);
-      steps.push({name: "erc721Approve", stepIndex: steps.length + 1, params});
+      steps.push({ name: "erc721Approve", stepIndex: steps.length + 1, params });
     }
   }
 
   async buildUserFastMint(steps, tokenPair, convert) {
-    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-    let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+    let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let decimals = (convert.convertType === "MINT") ? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let tokenAccount = (convert.convertType === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
+    let toChainType = (convert.convertType === "MINT") ? tokenPair.toChainType : tokenPair.fromChainType;
     let tokenType = tokenPair.protocol;
-    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
+    let value = (tokenType === "Erc20") ? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
-    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, { formatWithDecimals: false });
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, { formatWithDecimals: false });
+    let crossScAddr = convert.fee.networkFee.isSubsidy ? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -123,20 +119,20 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       tokenType
     };
     console.debug("TokenCommonHandle buildUserFastMint params: %O", params);
-    steps.push({name: "userFastMint", stepIndex: steps.length + 1, params});
+    steps.push({ name: "userFastMint", stepIndex: steps.length + 1, params });
   }
 
   async buildUserFastBurn(steps, tokenPair, convert) {
-    let chainInfo = (convert.convertType === "MINT")? tokenPair.fromScInfo : tokenPair.toScInfo;
-    let decimals = (convert.convertType === "MINT")? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let tokenAccount = (convert.convertType === "MINT")? tokenPair.fromAccount : tokenPair.toAccount;
-    let toChainType = (convert.convertType === "MINT")? tokenPair.toChainType : tokenPair.fromChainType;
+    let chainInfo = (convert.convertType === "MINT") ? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let decimals = (convert.convertType === "MINT") ? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let tokenAccount = (convert.convertType === "MINT") ? tokenPair.fromAccount : tokenPair.toAccount;
+    let toChainType = (convert.convertType === "MINT") ? tokenPair.toChainType : tokenPair.fromChainType;
     let tokenType = tokenPair.protocol;
-    let value = (tokenType === "Erc20")? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
+    let value = (tokenType === "Erc20") ? new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0) : convert.value;
     let unit = this.chainInfoService.getCoinSymbol(chainInfo.chainType);
-    let networkFee = tool.parseFee(convert.fee, convert.value, unit, {formatWithDecimals: false});
-    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, {formatWithDecimals: false});
-    let crossScAddr = convert.fee.networkFee.isSubsidy? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
+    let networkFee = tool.parseFee(convert.fee, convert.value, unit, { formatWithDecimals: false });
+    let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, { formatWithDecimals: false });
+    let crossScAddr = convert.fee.networkFee.isSubsidy ? chainInfo.subsidyCrossSc : chainInfo.crossScAddr;
     let params = {
       ccTaskId: convert.ccTaskId,
       fromAddr: convert.fromAddr,
@@ -154,13 +150,8 @@ module.exports = class TokenHandler extends CCTypeHandleInterface { // ERC20 & E
       tokenType
     };
     console.debug("TokenCommonHandle buildUserFastBurn params: %O", params);
-    steps.push({name: "userFastBurn", stepIndex: steps.length + 1, params});
-  }
-
-  async setChainId(steps, tokenPair, convert) {
-    let chainId = await convert.wallet.getChainId();
-    for (let i = 0; i < steps.length; i++) {
-      steps[i].params.chainId = chainId;
-    }
+    steps.push({ name: "userFastBurn", stepIndex: steps.length + 1, params });
   }
 }
+
+export default TokenHandler;

@@ -1,4 +1,4 @@
-const Web3 = require("web3");
+import Web3 from "web3";
 
 class WanWallet {
   constructor(provider, type = "wanwallet") {
@@ -19,11 +19,11 @@ class WanWallet {
       const wanwallet = new this.provider({
         chainId: network === 'testnet' ? 999 : 888,
         url: network === 'testnet'
-        ? 'https://gwan-ssl.wandevs.org:46891'
-        : 'https://gwan-ssl.wandevs.org:56891',
+          ? 'https://gwan-ssl.wandevs.org:46891'
+          : 'https://gwan-ssl.wandevs.org:56891',
         pollingInterval: 15000,
         requestTimeoutMs: 300000
-      })
+      });
       await wanwallet.activate();
       web3 = await wanwallet.getProvider();
       web3 = new Web3(web3);
@@ -39,21 +39,21 @@ class WanWallet {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    } catch(err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
-    }   
+    }
     return accounts;
   }
 
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
-      .on("transactionHash", txHash => {
-        resolve(txHash);
-      }).on("error", err => {
-        console.debug("web3Wallet sendTransaction error: %O", err);
-        reject(err);
-      })
+        .on("transactionHash", txHash => {
+          resolve(txHash);
+        }).on("error", err => {
+          console.debug("web3Wallet sendTransaction error: %O", err);
+          reject(err);
+        });
     });
   }
 
@@ -69,14 +69,14 @@ class WanWallet {
 
   async on(...arg) {
     const result = await this.web3.currentProvider.on(...arg);
-    console.log('wcconnect on', result, this.web3)
+    console.log('wcconnect on', result, this.web3);
     return result;
   }
-  
+
   async off(...arg) {
     const result = await this.web3.currentProvider.off(...arg);
     return result;
   }
 }
 
-module.exports = WanWallet;
+export default WanWallet;

@@ -1,8 +1,6 @@
-'use strict';
+import BigNumber from "bignumber.js";
 
-const BigNumber = require("bignumber.js");
-
-module.exports = class crossChainFees {
+class crossChainFees {
   async init(frameworkService) {
     let configService = frameworkService.getService("ConfigService");
     this.subsidyAbi = configService.getAbi("subsidyCrossSc");
@@ -11,18 +9,17 @@ module.exports = class crossChainFees {
     this.chainInfoService = frameworkService.getService("ChainInfoService");
   }
 
-  // agent fee
-  async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) {
+  async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) { // agent fee
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
-    let decimals = (fromChainType === tokenPair.fromScInfo.chainType)? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, {tokenPairID: tokenPairId, bridge: options.bridge, address: options.address});
+    let decimals = (fromChainType === tokenPair.fromScInfo.chainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address: options.address });
     if ((tokenPair.protocol !== "Erc20") || ((tokenPair.bridge === "Circle") && (tokenPair.routes[0] === "CCTPV1"))) {
       fee.value = "0";
     }
     // console.debug("estimateOperationFee %s->%s raw: %O", fromChainType, toChainType, fee);
     let feeBN = new BigNumber(fee.value);
-    return {
-      fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
+    let result = {
+      fee: fee.isPercent ? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
       isRatio: fee.isPercent,
       unit: tokenPair.readableSymbol,
       min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
@@ -30,27 +27,30 @@ module.exports = class crossChainFees {
       decimals: Number(decimals),
       discount: fee.discountPercent || "1"
     };
+    if ((tokenPair.bridge === "Circle") && (tokenPair.routes[0] === "CCTPV2") && fee.forwardFee) { // cctp v2 forwardFee, valid even it is "0"
+      result.cctpForward = new BigNumber(fee.forwardFee || "0").div(Math.pow(10, decimals)).toFixed();
+    }
+    return result;
   }
 
-  // contract fee
-  async estimateNetworkFee(tokenPairId, fromChainType, toChainType, options) {
+  async estimateNetworkFee(tokenPairId, fromChainType, toChainType, options) { // contract fee
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let direction = (fromChainType === tokenPair.fromScInfo.chainType);
-    let srcChainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let srcChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = srcChainInfo.chainDecimals;
-    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, {tokenPairID: tokenPairId, bridge: options.bridge, address: options.address, batchSize: options.batchSize});
+    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address: options.address, batchSize: options.batchSize });
     // console.debug("estimateNetworkFee %s->%s raw: %O", fromChainType, toChainType, fee);
     let feeBN = new BigNumber(fee.value);
     let unit = this.chainInfoService.getCoinSymbol(fromChainType);
     // check subsidy
     let isSubsidy = false;
     if (srcChainInfo.subsidyCrossSc && (!options.bridge)) {
-      let destChainInfo = direction? tokenPair.toScInfo : tokenPair.fromScInfo;
+      let destChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
       let args = [srcChainInfo.chainId, destChainInfo.chainId];
       isSubsidy = await this.iwan.callScFunc(srcChainInfo.chainType, srcChainInfo.subsidyCrossSc, "subsidized", args, this.subsidyAbi);
     }
     return {
-      fee: fee.isPercent? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
+      fee: fee.isPercent ? feeBN.toFixed() : feeBN.div(Math.pow(10, decimals)).toFixed(),
       isRatio: fee.isPercent,
       unit,
       min: new BigNumber(fee.minFeeLimit || "0").div(Math.pow(10, decimals)).toFixed(),
@@ -60,4 +60,6 @@ module.exports = class crossChainFees {
       isSubsidy,
     };
   }
-};
+}
+
+export default crossChainFees;

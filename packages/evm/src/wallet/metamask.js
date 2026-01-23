@@ -1,7 +1,7 @@
-const Web3 = require("web3");
-const Tools = require("../tool");
+import Web3 from "web3";
+import Tools from "../tool.js";
 
-class Web3Wallet {
+class MetaMask {
   constructor(provider, type = "MetaMask") {
     this.name = "metamask";
     this.web3 = new Web3(provider);
@@ -52,7 +52,7 @@ class Web3Wallet {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    } catch(err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
     }
     return accounts;
@@ -61,12 +61,12 @@ class Web3Wallet {
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
-      .on("transactionHash", txHash => {
-        resolve(txHash);
-      }).on("error", err => {
-        console.debug("web3Wallet sendTransaction error: %O", err);
-        reject(err);
-      })
+        .on("transactionHash", txHash => {
+          resolve(txHash);
+        }).on("error", err => {
+          console.debug("web3Wallet sendTransaction error: %O", err);
+          reject(err);
+        });
     });
   }
 
@@ -84,11 +84,11 @@ class Web3Wallet {
     let result = await window.ethereum.on(...arg);
     return result;
   }
-  
+
   async off(...arg) {
     const result = await window.ethereum.off(...arg);
     return result;
   }
 }
 
-module.exports = Web3Wallet;
+export default MetaMask;

@@ -7,11 +7,11 @@ class SuiWallet {
         if (wallet.chains && wallet.chains.includes('sui:localnet')) {
           this.wallet = wallet;
         }
-        console.debug("got SuiWallet", wallet)
+        console.debug("got SuiWallet", wallet);
       }
-    }
+    };
     this.chainId = null;
-    window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', {detail}));    
+    window.dispatchEvent(new CustomEvent('wallet-standard:app-ready', { detail }));
   }
 
   // standard function
@@ -44,10 +44,6 @@ class SuiWallet {
     return accounts;
   }
 
-  async getBalance(address, tokenAccount = "") {
-    throw new Error("Not support getBalance");
-  }
-
   async sendTransaction(tx, sender) {
     let { digest } = await this.wallet.features['sui:signAndExecuteTransaction'].signAndExecuteTransaction({
       transaction: tx,
@@ -57,7 +53,7 @@ class SuiWallet {
         showInput: true,
       },
       chain: this.chainId,
-      account: {address: sender}
+      account: { address: sender }
     });
     return digest;
   }
@@ -69,12 +65,14 @@ class SuiWallet {
   changed() {
     this.wallet.features['standard:events'].on('change', async (info) => {
       if (info && info.accounts) {
-        if (!info.accounts.length) return;
+        if (!info.accounts.length) {
+          return;
+        }
       }
       if (info && Object.keys(info).length) {
-          // console.log(`Switched to account ${publicKey.toBase58()}`);
-          // await cb(publicKey.toBase58());
-          this.chainId = info.accounts[0].chains[0];
+        // console.log(`Switched to account ${publicKey.toBase58()}`);
+        // await cb(publicKey.toBase58());
+        this.chainId = info.accounts[0].chains[0];
       }
     });
   }
@@ -82,8 +80,6 @@ class SuiWallet {
   async disconnect() {
     await this.wallet.features['standard:disconnect'].disconnect();
   }
-
-  // customized function
 }
 
-module.exports = SuiWallet;
+export default SuiWallet;

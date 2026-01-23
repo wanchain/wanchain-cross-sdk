@@ -1,8 +1,8 @@
-const Web3 = require("web3");
-const Tools = require("../tool");
+import Web3 from "web3";
+import Tools from "../tool.js";
 
-class OKXWallet {
-  constructor(provider, type = "OKXWallet") {
+class OkxWallet {
+  constructor(provider, type = "OkxWallet") {
     this.name = "okx";
     this.web3 = new Web3(provider);
     this.type = type; // the type is not mandatory, many web3-compatible wallets are slightly different, can be handled differently according to the type
@@ -16,7 +16,7 @@ class OKXWallet {
         const status = await web3Provider.enable();
         Tools.checkEnable(status);
       } catch (error) {
-        throw new Error(error); 
+        throw new Error(error);
       }
     } else {
       window.open('https://chromewebstore.google.com/detail/%E6%AC%A7%E6%98%93-web3-%E9%92%B1%E5%8C%85/mcohilncbfahbmgdjkbpemcciiolgcge');
@@ -35,7 +35,7 @@ class OKXWallet {
     let accounts = [];
     try { // WalletConnect do not support requestAccounts
       accounts = await this.web3.eth.requestAccounts();
-    } catch(err) {
+    } catch (err) {
       accounts = await this.web3.eth.getAccounts();
     }
     return accounts;
@@ -44,12 +44,12 @@ class OKXWallet {
   async sendTransaction(txData, sender) {
     return new Promise((resolve, reject) => {
       this.web3.eth.sendTransaction(txData)
-      .on("transactionHash", txHash => {
-        resolve(txHash);
-      }).on("error", err => {
-        console.debug("okxWallet sendTransaction error: %O", err);
-        reject(err);
-      })
+        .on("transactionHash", txHash => {
+          resolve(txHash);
+        }).on("error", err => {
+          console.debug("okxWallet sendTransaction error: %O", err);
+          reject(err);
+        });
     });
   }
 
@@ -67,11 +67,11 @@ class OKXWallet {
     let result = await window.okxwallet.on(...arg);
     return result;
   }
-  
+
   async off(...arg) {
     const result = await window.okxwallet.off(...arg);
     return result;
   }
 }
 
-module.exports = OKXWallet;
+export default OkxWallet;

@@ -1,7 +1,5 @@
-'use strict';
-
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
 // memo should like follows
 // memo_Type + memo_Data, Divided Symbols should be '0x'
@@ -11,18 +9,18 @@ const tool = require("../../utils/tool.js");
 // Type: 4, abnomral smg transfer for tag_userLock; Data: tag
 // Type: 5, smg debt transfer; Data: srcSmg
 const TX_TYPE = {
-  userLock2Evm:    1,
-  smgRelease:      2,
+  userLock2Evm: 1,
+  smgRelease: 2,
   userLock2NonEvm: 10
-}
+};
 
 const MemoTypeLen = 2;
 const TokenPairIDLen = 4;
 
-module.exports = class ProcessDotMintFromPolka {
+class ProcessDotMintFromPolka {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     this.extension = this.configService.getExtension("DOT");
     this.storemanService = frameworkService.getService("StoremanService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
@@ -37,14 +35,11 @@ module.exports = class ProcessDotMintFromPolka {
       let toChainInfo = this.chainInfoService.getChainInfoByType(params.toChainType);
       let memo = await this.buildUserLockData(params.tokenPairID, params.userAccount, toChainInfo);
       console.debug("ProcessDotMintFromPolka memo: %s", memo);
-
       let api = await wallet.getApi();
-
       // 1 根据storemanGroupPublicKey 生成storemanGroup的DOT地址
       let network = this.configService.getNetwork();
       let storemanGroupAddr = this.extension.tool.gpk2Address(params.storemanGroupGpk, "Polkadot", network);
       //console.log({storemanGroupAddr});
-
       // 2 生成交易串
       let txValue = '0x' + new BigNumber(params.value).toString(16);
       let txs = [
@@ -52,7 +47,6 @@ module.exports = class ProcessDotMintFromPolka {
         api.tx.balances.transferKeepAlive(storemanGroupAddr, txValue)
       ];
       // console.debug("txs:", txs);
-
       // 3 check balance >= (value + gasFee + minReserved)
       let balance = await wallet.getBalance(params.fromAddr);
       let gasFee = await wallet.estimateFee(params.fromAddr, txs);
@@ -65,11 +59,9 @@ module.exports = class ProcessDotMintFromPolka {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", "Insufficient balance");
         return;
       }
-
       // 5 签名并发送
       let txHash = await wallet.sendTransaction(txs, params.fromAddr);
       webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-
       // 查询目的链当前blockNumber
       let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checkPara = {
@@ -81,7 +73,6 @@ module.exports = class ProcessDotMintFromPolka {
         smgPublicKey: params.storemanGroupGpk,
         taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, "MINT")
       };
-
       let checkDotTxService = this.frameworkService.getService("CheckDotTxService");
       await checkDotTxService.addTask(checkPara);
     } catch (err) {
@@ -113,4 +104,6 @@ module.exports = class ProcessDotMintFromPolka {
     }
     return memo;
   }
-};
+}
+
+export default ProcessDotMintFromPolka;

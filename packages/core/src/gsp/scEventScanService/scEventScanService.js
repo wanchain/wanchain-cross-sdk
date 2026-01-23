@@ -1,13 +1,11 @@
-"use strict";
+import CheckScEvent from "./checkScEvent.js";
+import CheckBtcTx from "./checkBtcTx.js";
+import CheckXrpTx from "./checkXrpTx.js";
+import CheckApiServerTx from "./checkApiServerTx.js";
+import CheckSuiTx from "./checkSuiTx.js";
+import CheckTonTx from "./checkTonTx.js";
 
-const CheckScEvent = require("./checkScEvent");
-const CheckBtcTx = require("./checkBtcTx");
-const CheckXrpTx = require("./checkXrpTx");
-const CheckApiServerTx = require("./checkApiServerTx");
-const CheckSuiTx = require("./checkSuiTx");
-const CheckTonTx = require("./checkTonTx");
-
-module.exports = class ScEventScanService {
+class ScEventScanService {
   constructor() {
   }
 
@@ -15,25 +13,22 @@ module.exports = class ScEventScanService {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
-
     this.mapCheckHandle = new Map();
-
     // evm event add similar chains
     let eventChains = this.configService.getGlobalConfig("StoremanService");
-    let nonEvmChains = ["ALGO"];
+    let nonEvmChains = ["ALGO", "DUST"];
     for (let chain of nonEvmChains) {
       let extension = this.configService.getExtension(chain);
       let info = this.chainInfoService.getChainInfoByType(chain);
       if (extension && info) {
         eventChains = eventChains.concat(info);
       }
-    };
+    }
     for (let chain of eventChains) {
       let checkScEvent = new CheckScEvent(frameworkService);
       checkScEvent.init(chain);
       this.mapCheckHandle.set(chain.chainType, checkScEvent);
-    };
-
+    }
     // apiServer chains
     let apiServerChains = ["DOT", "PHA", "ADA", "ATOM", "NOBLE", "KAVA", "SOL"];
     for (let chain of apiServerChains) {
@@ -45,25 +40,20 @@ module.exports = class ScEventScanService {
         this.mapCheckHandle.set(chain, checkTx);
       }
     }
-
     // BTC series chains
     let checkBtcTx = new CheckBtcTx(frameworkService, "BTC");
     await checkBtcTx.init();
     this.mapCheckHandle.set("BTC", checkBtcTx);
-
     let checkLtcTx = new CheckBtcTx(frameworkService, "LTC");
     await checkLtcTx.init();
     this.mapCheckHandle.set("LTC", checkLtcTx);
-
     let checkDogeTx = new CheckBtcTx(frameworkService, "DOGE");
     await checkDogeTx.init();
     this.mapCheckHandle.set("DOGE", checkDogeTx);
-
     // other dedicated chains
     let checkXrpTx = new CheckXrpTx(frameworkService);
     await checkXrpTx.init("XRP");
     this.mapCheckHandle.set("XRP", checkXrpTx);
-  
     let extension = this.configService.getExtension("SUI");
     let info = this.chainInfoService.getChainInfoByType("SUI");
     if (extension && info) {
@@ -71,7 +61,6 @@ module.exports = class ScEventScanService {
       await checkSuiTx.init(info);
       this.mapCheckHandle.set("SUI", checkSuiTx);
     }
-
     extension = this.configService.getExtension("TON");
     info = this.chainInfoService.getChainInfoByType("TON");
     if (extension && info) {
@@ -84,7 +73,7 @@ module.exports = class ScEventScanService {
   async loadTradeTask(tasks) {
     try {
       for (let task of tasks) {
-        await this.load(task)
+        await this.load(task);
       }
     } catch (err) {
       console.log("ScEventScanService loadTradeTask error: %O", err);
@@ -100,7 +89,6 @@ module.exports = class ScEventScanService {
       await handle.add(task);
     }
   }
-
   async load(task) {
     // console.log("scEventScanService load task: %O", task);
     let handle = this.mapCheckHandle.get(task.chain);
@@ -110,5 +98,6 @@ module.exports = class ScEventScanService {
       console.error("ScEventScan for %s unavailable", task.chain);
     }
   }
-};
+}
 
+export default ScEventScanService;

@@ -1,11 +1,11 @@
-const TonWeb = require('tonweb');
-const {Cell} = require("@ton/core");
+import TonWeb from "tonweb";
+import { Cell } from "@ton/core";
 
 class Tonkeeper {
   constructor(network) {
     this.name = "Tonkeeper";
     this.network = network;
-    this.wallet = window.tonkeeper.tonconnect;
+    this.wallet = window.tonkeeper?.tonconnect;
   }
 
   // standard function
@@ -25,13 +25,9 @@ class Tonkeeper {
 
   async getAccounts() {
     let result = await this.checkWallet();
-    let wallet = new (TonWeb.Wallets.all.v4R2)(null, {wc: 0, publicKey: Buffer.from(result.items[0].publicKey, "hex")});
+    let wallet = new (TonWeb.Wallets.all.v4R2)(null, { wc: 0, publicKey: Buffer.from(result.items[0].publicKey, "hex") });
     let address = await wallet.getAddress();
     return [address.toString(true, true, false, this.network === "testnet")];
-  }
-
-  async getBalance(address, tokenAccount = "") {
-    throw new Error("Not support getBalance");
   }
 
   async sendTransaction(msg, options = {}) {
@@ -58,7 +54,7 @@ class Tonkeeper {
   async connect() {
     let result = await this.wallet.connect(2, {
       manifestUrl: 'https://bridge.wanchain.org/tonconnect-manifest.json',
-      items: [{name: 'ton_addr'}]
+      items: [{ name: 'ton_addr' }]
     });
     if (result.event === 'connect') {
       return result.payload;
@@ -68,4 +64,4 @@ class Tonkeeper {
   }
 }
 
-module.exports = Tonkeeper;
+export default Tonkeeper;

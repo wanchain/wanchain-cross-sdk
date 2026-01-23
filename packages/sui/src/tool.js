@@ -1,12 +1,12 @@
-const BigNumber = require('bignumber.js');
-const { Transaction } = require('@mysten/sui/transactions');
+import BigNumber from "bignumber.js";
+import { Transaction } from "@mysten/sui/transactions";
 
 function validateAddress(address) {
   return /^0x[0-9a-f]{64}$/.test(address);
 }
 
 function getStandardAddressInfo(address) {
-  return {native: address, evm: address, text: address, cctp: address, compact: address};
+  return { native: address, evm: address, text: address, cctp: address, compact: address };
 }
 
 function newTransaction() {
@@ -78,6 +78,6 @@ const tools = {
   newTransaction,
   selectCoins,
   parseCctpDepositMessage
-}
+};
 
 export default tools;

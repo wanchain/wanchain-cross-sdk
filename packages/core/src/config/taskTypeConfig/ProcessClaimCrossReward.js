@@ -1,14 +1,12 @@
-'use strict';
-
-const Web3 = require("web3");
-const ProcessBaseSync = require("./processBaseSync.js");
+import Web3 from "web3";
+import ProcessBaseSync from "./processBaseSync.js";
 
 const web3 = new Web3();
 
-module.exports = class ProcessClaimCrossReward extends ProcessBaseSync {
+class ProcessClaimCrossReward extends ProcessBaseSync {
   constructor(frameworkService) {
     super(frameworkService);
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
 
@@ -27,9 +25,9 @@ module.exports = class ProcessClaimCrossReward extends ProcessBaseSync {
     let abi = this.configService.getAbi("rewardTask");
     let sc = new web3.eth.Contract(abi, params.scAddr);
     let data = sc.methods.claimReward(params.taskId, this.getTxHashBytes(params.txHash), params.signature).encodeABI();
-    let gasLimit = await this.iwan.estimateGas(params.chainType, {from: params.fromAddr, to: params.scAddr, value: 0, data});
+    let gasLimit = await this.iwan.estimateGas(params.chainType, { from: params.fromAddr, to: params.scAddr, value: 0, data });
     console.debug("ProcessClaimCrossReward gasLimit: %s", gasLimit);
-    return {data, gasLimit};
+    return { data, gasLimit };
   }
 
   getTxHashBytes(txHash) {
@@ -42,3 +40,5 @@ module.exports = class ProcessClaimCrossReward extends ProcessBaseSync {
     }
   }
 }
+
+export default ProcessClaimCrossReward;
