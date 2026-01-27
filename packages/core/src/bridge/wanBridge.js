@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601271652", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601272030", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -607,9 +607,6 @@ class WanBridge extends EventEmitter {
       if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
         throw new Error("Invalid wallet account");
       }
-    } else if (task.toChainType === "DUST") {
-      let eventType = this.tokenPairService.getTokenEventType(task.assetPairId, task.convertType);
-      params = { taskType: "ProcessMidnightClaim", uniqueId: task.uniqueId, ccTaskId: taskId, isNative: eventType === 'BURN' };
     } else {
       throw new Error("Not reclaimable");
     }
@@ -842,8 +839,7 @@ class WanBridge extends EventEmitter {
     }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
-    if ((ccTask.fromChainType === "SOL" && ccTask.bridge === "Circle") ||
-      (ccTask.toChainType === "DUST")) {
+    if ((ccTask.fromChainType === "SOL") && (ccTask.bridge === "Circle")) {
       records.setExtraInfo(taskId, { reclaimStatus: "Ready" });
     }
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");

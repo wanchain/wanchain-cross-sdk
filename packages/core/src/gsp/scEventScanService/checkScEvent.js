@@ -27,10 +27,6 @@ class CheckScEvent {
       this.eventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
       let extension = this.configService.getExtension("ALGO");
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
-    } else if (chainInfo.chainType === "DUST") {
-      this.eventTypes = DustEventTypes;
-      this.eventHandler.set("dustCLAIM", this.processDustClaim.bind(this));
-      this.tool = this.configService.getExtension("DUST").tool;
     } else { // evm
       this.crossScAbi = this.configService.getAbi("crossSc");
       this.cctpProxyAbi = this.configService.getAbi("cctpProxy");

@@ -26,9 +26,6 @@ import processClaimCrossReward from "./ProcessClaimCrossReward.js";
 import processMintFromSui from "./ProcessMintFromSui.js";
 import processBurnFromSui from "./ProcessBurnFromSui.js";
 import processMintFromTon from "./ProcessMintFromTon.js";
-import processMidnightRechargeFee from "./ProcessMidnightRechargeFee.js";
-import processBurnFromMidnight from "./ProcessBurnFromMidnight.js";
-import processMidnightClaim from "./ProcessMidnightClaim.js";
 
 export default [
   {
@@ -142,17 +139,5 @@ export default [
   {
     "name": "ProcessMintFromTon",
     "handle": processMintFromTon
-  },
-  {
-    "name": "ProcessMidnightRechargeFee",
-    "handle": processMidnightRechargeFee
-  },
-  {
-    "name": "ProcessBurnFromMidnight",
-    "handle": processBurnFromMidnight
-  },
-  {
-    "name": "ProcessMidnightClaim",
-    "handle": processMidnightClaim
   }
 ];

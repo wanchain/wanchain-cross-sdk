@@ -16,7 +16,7 @@ class ScEventScanService {
     this.mapCheckHandle = new Map();
     // evm event add similar chains
     let eventChains = this.configService.getGlobalConfig("StoremanService");
-    let nonEvmChains = ["ALGO", "DUST"];
+    let nonEvmChains = ["ALGO"];
     for (let chain of nonEvmChains) {
       let extension = this.configService.getExtension(chain);
       let info = this.chainInfoService.getChainInfoByType(chain);

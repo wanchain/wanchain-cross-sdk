@@ -87,8 +87,6 @@ class CheckTxReceiptService {
         }
       } else if (task.chain === "TON") {
         txReceipt = await this.getTonTxReceipt(task); // get user txHash by msgHash, and cross txHash by user txHash
-      } else if (task.chain === "DUST") {
-        txReceipt = { status: 1 };
       } else {
         txReceipt = await this.iwan.getTransactionReceipt(task.chain, task.txHash);
       }
