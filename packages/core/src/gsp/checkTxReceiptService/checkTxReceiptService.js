@@ -1,16 +1,5 @@
 import tool from "../../utils/tool.js";
 
-const DefaultScanBatchSize = 1000;
-
-const CustomizedScanBatchSize = {
-  SGB: 30,
-  OKT: 300,
-  OKB: 100,
-  MATIC: 100,
-  SEI: 500,
-  FTM: 500
-};
-
 class CheckTxReceiptService {
   constructor() {
     this.taskArray = [];
@@ -72,6 +61,7 @@ class CheckTxReceiptService {
             task.txHash = result.txHash;
             if (task.convertCheckInfo) {
               task.convertCheckInfo.uniqueID = "0x" + tool.hexStrip0x(result.txHash);
+              task.convertCheckInfo.txHash = result.txHash; // cctp
             }
           }
           if (result.result === "Succeeded") {
@@ -159,7 +149,7 @@ class CheckTxReceiptService {
     let latestBlock = await this.iwan.getBlockNumber(task.chain);
     let fromBlock = txCheckInfo.fromBlock;
     if (latestBlock >= fromBlock) {
-      let scanBatchSize = CustomizedScanBatchSize[task.chain] || DefaultScanBatchSize;
+      let scanBatchSize = tool.getScanBatchSize(task.chain);
       let rewindBlocks = parseInt(scanBatchSize * 0.6);
       let toBlock = fromBlock + scanBatchSize - 1;
       if (toBlock > latestBlock) {

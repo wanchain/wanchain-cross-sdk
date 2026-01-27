@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601151150", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601272030", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -204,6 +204,9 @@ class WanBridge extends EventEmitter {
         isSubsidy: networkFee.isSubsidy
       }
     };
+    if (operateFee.cctpForward) {
+      fee.operateFee.cctpForward = operateFee.cctpForward;
+    }
     if (networkFee.isSubsidy) {
       let chainInfo = this.chainInfoService.getChainInfoByType(fromChainType);
       let subsidyBalance = await this.storemanService.getAccountBalance(tokenPair.id, fromChainType, chainInfo.subsidyCrossSc, { isCoin: true });
@@ -223,7 +226,7 @@ class WanBridge extends EventEmitter {
       let targetChainType = (fromChainName === tokenPair.fromChainName) ? tokenPair.toChainType : tokenPair.fromChainType;
       hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", { chainType, targetChainType, tokenPairID: tokenPair.id });
       if (tokenPair.bridge) { // only Circle now, ingnore cctpV2 quota
-        quota = { maxQuota: hideQuota ? "0" : Infinity.toString(), minQuota: "0" };
+        quota = { maxQuota: hideQuota ? "0" : Infinity, minQuota: "0" };
       } else {
         let smg = await this.getSmgInfo();
         quota = await this.storemanService.getStroremanGroupQuotaInfo(chainType, tokenPair.id, smg.id);
@@ -824,13 +827,13 @@ class WanBridge extends EventEmitter {
     let receivedAmount;
     if (ccTask.protocol === "Erc20") {
       let sentAmount = ccTask.sentAmount || ccTask.amount;
-      let expected = new BigNumber(sentAmount);
-      let fee = tool.parseFee(ccTask.fee, expected, ccTask.assetType);
-      expected = expected.minus(fee).toFixed();
+      let fee = tool.parseFee(ccTask.fee, sentAmount, ccTask.assetType);
+      let expected = new BigNumber(sentAmount).minus(fee).toFixed();
       if (taskRedeemHash.value) {
         receivedAmount = new BigNumber(taskRedeemHash.value).div(Math.pow(10, ccTask.toDecimals)).toFixed();
         if (receivedAmount !== expected) {
-          this._updateFee(taskId, ccTask.fee, ccTask.assetType, sentAmount, receivedAmount);
+          let actualFee = BigNumber.max(new BigNumber(sentAmount).minus(receivedAmount), 0).toFixed();
+          this._updateFee(taskId, ccTask.fee, ccTask.assetType, fee, actualFee);
         }
       } else {
         receivedAmount = expected;
@@ -865,9 +868,8 @@ class WanBridge extends EventEmitter {
     this._distributeEvent("redeem", { taskId, txHash });
   }
 
-  _updateFee(taskId, taskFee, assetType, sentAmount, receivedAmount) {
+  _updateFee(taskId, taskFee, assetType, estimateFee, actualFee) {
     let records = this.stores.crossChainTaskRecords;
-    let fee = new BigNumber(sentAmount).minus(receivedAmount).toFixed();
     let feeType = "", candidateFeeType = ""; // prefer to update exist fee
     if (taskFee.networkFee.unit === assetType) {
       candidateFeeType = "networkFee";
@@ -884,19 +886,19 @@ class WanBridge extends EventEmitter {
     feeType = feeType || candidateFeeType;
     if (feeType) {
       if (feeType === "networkFee") {
-        records.updateTaskFee(taskId, "networkFee", fee, true);
+        records.updateTaskFee(taskId, "networkFee", actualFee);
         if (taskFee.operateFee.unit === assetType) {
-          records.updateTaskFee(taskId, "operateFee", "0", true);
+          records.updateTaskFee(taskId, "operateFee", "0");
         }
       } else {
-        records.updateTaskFee(taskId, "operateFee", fee, true);
+        records.updateTaskFee(taskId, "operateFee", actualFee);
         if (taskFee.networkFee.unit === assetType) {
-          records.updateTaskFee(taskId, "networkFee", "0", true);
+          records.updateTaskFee(taskId, "networkFee", "0");
         }
       }
-      console.debug("SDK: update task %d fee: %s%s", taskId, fee, assetType);
+      console.debug("SDK: update task %d %s fee: %s->%s %s", taskId, feeType, estimateFee, actualFee, assetType);
     } else {
-      console.error("SDK: can't update task %d fee: %s%s", taskId, fee, assetType);
+      console.error("SDK: can't update task %d fee: %s->%s %s", taskId, estimateFee, actualFee, assetType);
     }
   }
 

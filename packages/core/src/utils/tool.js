@@ -209,10 +209,13 @@ function parseFee(fee, amount, unit, options) {
       tmp = tmp.times(fee.operateFee.discount);
     }
     result = result.plus(tmp);
+    if (fee.operateFee.cctpForward) {
+      result = result.plus(fee.operateFee.cctpForward);
+    }
     decimals = fee.operateFee.decimals;
   }
   if (options.formatWithDecimals) {
-    return new BigNumber(result.toFixed(decimals, options.roundingMode)).toFixed(); // remove padded '0'
+    return result.decimalPlaces(decimals, options.roundingMode).toFixed();
   } else {
     return result.times(Math.pow(10, decimals)).toFixed(0, options.roundingMode);
   }
@@ -393,6 +396,19 @@ function checkTonTxSuccess(tx) {
   return true;
 }
 
+const CustomizedScanBatchSize = {
+  SGB: 30,
+  OKT: 300,
+  OKB: 100,
+  MATIC: 100,
+  SEI: 500,
+  FTM: 500
+};
+
+function getScanBatchSize(chainType) {
+  return CustomizedScanBatchSize[chainType] || 1000;
+}
+
 export { getCurTimestamp };
 export { checkTimeout };
 export { sleep };
@@ -419,6 +435,7 @@ export { parseEvmLog };
 export { timedPromise };
 export { decodeCardanoNftAssetName };
 export { checkTonTxSuccess };
+export { getScanBatchSize };
 
 export default {
   getCurTimestamp,
@@ -446,5 +463,6 @@ export default {
   parseEvmLog,
   timedPromise,
   decodeCardanoNftAssetName,
-  checkTonTxSuccess
+  checkTonTxSuccess,
+  getScanBatchSize
 };

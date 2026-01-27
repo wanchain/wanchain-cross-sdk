@@ -61,7 +61,6 @@ class Keplr {
     denom = denom || (DefaultChainInfo[this.chainId] && DefaultChainInfo[this.chainId].denom) || "uatom";
     let client = await this.getStargateClient();
     let balances = await client.getAllBalances(addr);
-    console.log("Keplr getBalances: %O", balances);
     for (let b of balances) {
       if (b.denom === denom) {
         balance = b.amount;
