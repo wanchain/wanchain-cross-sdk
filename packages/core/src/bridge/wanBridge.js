@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601272030", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601291110", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -114,7 +114,7 @@ class WanBridge extends EventEmitter {
     if (this._isThirdPartyWallet(chainType) && !wallet) { // BTC support both
       return true;
     } else {
-      return (await this.storemanService.checkWalletId(chainType, wallet, {debug: true}));
+      return (await this.storemanService.checkWalletId(chainType, wallet, { debug: true }));
     }
   }
 
@@ -897,7 +897,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  async _onTaskStepResult(taskStepResult) { // only for async tx receipt to update lockTx result
+  async _onTaskStepResult(taskStepResult) { // both for sync error, sync txHash, async tx receipt
     console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
@@ -909,14 +909,15 @@ class WanBridge extends EventEmitter {
     if (ccTask) {
       this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
       let { isLockTx, isLocked } = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
-      if (isLockTx) {
-        let lockEvent = { taskId, txHash };
-        await this._distributeEvent("lock", lockEvent);
-      }
-      if (isLocked) {
-        let lockedEvent = { taskId, txHash };
-        console.debug("lockedEvent: %O", lockedEvent);
-        this._distributeEvent("locked", lockedEvent);
+      if (["Failed", "Rejected"].includes(result)) {
+        this._distributeEvent("error", { taskId, reason: errInfo || result });
+      } else {
+        if (isLockTx) {
+          await this._distributeEvent("lock", { taskId, txHash });
+        }
+        if (isLocked) {
+          this._distributeEvent("locked", { taskId, txHash });
+        }
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
