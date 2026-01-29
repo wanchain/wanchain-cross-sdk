@@ -21,11 +21,10 @@ class ProcessBurnFromSolana {
       let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
       let wanBridgeProgram = wallet.getProgram("wanBridge", fromChainInfo.crossScAddr);
       let adminBoardProgramId = this.tool.getPublicKey(fromChainInfo.adminBoardProgram);
-      let tokenpairPda = this.tool.getPda("TokenPairInfo", params.tokenPairID, adminBoardProgramId, 4);
+      let tokenpairPda = this.tool.findProgramAddress("TokenPairInfo", adminBoardProgramId, [Number(params.tokenPairID)]);
       let configAccountPda = this.tool.findProgramAddress("ConfigData", adminBoardProgramId);
       let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
-      let destChain = Number(toChainInfo.chainId);
-      let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
+      let feePda = this.tool.findProgramAddress("FeeData", configProgramId, [Number(toChainInfo.chainId)]);
       let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
       let tokenAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
       let amount = this.tool.toBigNumber(params.value);

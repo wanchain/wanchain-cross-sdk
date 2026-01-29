@@ -29,8 +29,8 @@ class CrossChainTask {
       uniqueId: '',
       fee: null,
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
-      reclaimStatus: '',
-      reclaimHash: '',
+      claimStatus: '',
+      claimHash: '',
       errInfo: '',
       wanPoints: '',
       // options

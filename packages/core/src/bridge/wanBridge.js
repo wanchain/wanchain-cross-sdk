@@ -53,7 +53,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
-    this.eventService.addEventListener("ReclaimTxHash", this._onReclaimTxHash.bind(this)); // for tx receipt service to notify reclaim result
+    this.eventService.addEventListener("ClaimTxHash", this._onClaimTxHash.bind(this)); // for tx receipt service to notify claim result
     await this._service.start();
   }
 
@@ -341,8 +341,8 @@ class WanBridge extends EventEmitter {
         redeemHash: task.redeemHash,
         uniqueId: task.uniqueId || "",
         status: task.status,
-        reclaimStatus: task.reclaimStatus,
-        reclaimHash: task.reclaimHash,
+        claimStatus: task.claimStatus,
+        claimHash: task.claimHash,
         errInfo: task.errInfo,
         wanPoints: task.wanPoints,
         fromAccountId: task.fromAccountId,
@@ -444,6 +444,7 @@ class WanBridge extends EventEmitter {
       return tokenAccount;
     }
   }
+
   getFromChains(options) { // options MUST contain protocols
     let fromChainSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
@@ -588,34 +589,36 @@ class WanBridge extends EventEmitter {
     return null;
   }
 
-  async reclaim(taskId, wallet) {
+  async claim(taskId, wallet) {
     let records = this.stores.crossChainTaskRecords;
     let task = records.getTaskById(taskId);
     if (!task) {
       throw new Error("Task does not exist");
     }
-    if (["Processing", "Succeeded"].includes(task.reclaimStatus)) {
-      throw new Error("Already reclaimed");
+    if (["Processing", "Succeeded"].includes(task.claimStatus)) {
+      throw new Error("Already claimed");
     }
-    if (!["Ready", "Failed"].includes(task.reclaimStatus)) {
+    if (!["Ready", "Failed"].includes(task.claimStatus)) {
       throw new Error("Not ready");
     }
     let params;
     if ((task.fromChainType === "SOL") && (task.bridge === "Circle")) {
-      params = { taskType: "ProcessCircleBridgeSolanaReclaim", lockHash: task.lockHash, ccTaskId: taskId, fromAddr: task.fromAccount };
+      let isV2 = task.stepData && task.stepData[0] && task.stepData[0].params && task.stepData[0].params.isV2;
+      params = { taskType: "ProcessCircleBridgeSolanaReclaim", lockHash: task.lockHash, ccTaskId: taskId, fromAddr: task.fromAccount, isV2 };
+      console.log("CircleBridgeSolanaReclaim params: %O", params);
       let addresses = await wallet.getAccounts();
       if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
         throw new Error("Invalid wallet account");
       }
     } else {
-      throw new Error("Not reclaimable");
+      throw new Error("Not claimable");
     }
     let err = await this.txTaskHandleService.processTxTask({ params }, wallet);
     if (err) {
-      console.error("reclaim task %s error: %O", taskId, err);
+      console.error("claim task %s error: %O", taskId, err);
       throw err;
     } else {
-      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { reclaimStatus: "Processing" }, true);
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { claimStatus: "Processing" }, true);
       this.storageService.save("crossChainTaskRecords", taskId, task);
     }
   }
@@ -840,7 +843,7 @@ class WanBridge extends EventEmitter {
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     if ((ccTask.fromChainType === "SOL") && (ccTask.bridge === "Circle")) {
-      records.setExtraInfo(taskId, { reclaimStatus: "Ready" });
+      records.setExtraInfo(taskId, { claimStatus: "Ready" });
     }
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
     if (wanPointsServer) {
@@ -923,24 +926,22 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onReclaimTxHash(taskReclaimHash) {
-    console.debug("_onReclaimTxHash: %O", taskReclaimHash);
-    let taskId = taskReclaimHash.ccTaskId;
-    let txHash = taskReclaimHash.txHash;
-    let result = taskReclaimHash.result; // Succeeded / Failed
-    let errInfo = taskReclaimHash.errInfo || "";
+  _onClaimTxHash(taskClaimHash) {
+    console.debug("_onClaimTxHash: %O", taskClaimHash);
+    let taskId = taskClaimHash.ccTaskId;
+    let txHash = taskClaimHash.txHash;
+    let result = taskClaimHash.result; // Succeeded / Failed
+    let errInfo = taskClaimHash.errInfo || "";
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { reclaimStatus: result, reclaimHash: txHash }, true);
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { claimStatus: result, claimHash: txHash }, true);
       if (errInfo) {
-        let event = { taskId, txHash, reason: "Reclaim failed" };
-        console.error("reclaimEvent: %O", event);
+        let event = { taskId, txHash, reason: "claim failed" };
         this._distributeEvent("error", event);
       } else {
         let event = { taskId, txHash };
-        console.debug("reclaimEvent: %O", event);
-        this._distributeEvent("reclaim", event);
+        this._distributeEvent("claim", event);
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }

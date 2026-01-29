@@ -70,7 +70,9 @@ function findProgramAddress(label, programId, extraSeeds) {
   const seeds = [Buffer.from(anchor.utils.bytes.utf8.encode(label))];
   if (extraSeeds) {
     for (const extraSeed of extraSeeds) {
-      if (typeof extraSeed === "string") {
+      if (typeof extraSeed === "number") {
+        seeds.push(new anchor.BN(extraSeed).toArrayLike(Buffer, "le", 4));
+      } else if (typeof extraSeed === "string") {
         seeds.push(Buffer.from(anchor.utils.bytes.utf8.encode(extraSeed)));
       } else if (Array.isArray(extraSeed)) {
         seeds.push(Buffer.from(extraSeed));
@@ -102,13 +104,12 @@ function getAssociatedTokenAddressSync(tokenAddress, owner, allowOwnerOffCurve =
   }
 }
 
-function getPda(key, id, programId, idBytes) {
-  const res = PublicKey.findProgramAddressSync([Buffer.from(key), new anchor.BN(id).toArrayLike(Buffer, "le", idBytes)], programId);
-  return { publicKey: res[0], bump: res[1] };
-}
-
 function getPublicKey(address) {
-  return new PublicKey(address);
+  if (address) {
+    return new PublicKey(address);
+  } else {
+    return PublicKey.default;
+  }
 }
 
 function getKeypair() {
@@ -158,7 +159,6 @@ const tools = {
   getTokenProgramId,
   findProgramAddress,
   getAssociatedTokenAddressSync,
-  getPda,
   getPublicKey,
   getKeypair,
   setComputeUnitLimit,

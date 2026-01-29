@@ -14,10 +14,13 @@ class CircleBridgeSolanaDeposit {
       let decimals = direction ? tokenPair.fromDecimals : tokenPair.toDecimals;
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
       let networkFee = tool.parseFee(convert.fee, convert.value, "SOL", { formatWithDecimals: false, feeType: "networkFee" });
+      let operateFee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol, { formatWithDecimals: false, roundingMode: BigNumber.ROUND_UP }); // cctpV2 maxFee
       let toChainType = direction ? tokenPair.toChainType : tokenPair.fromChainType;
       let toAddressInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
+      let isV2 = (convert.route === "CCTPV2");
       let params = {
         ccTaskId: convert.ccTaskId,
+        fromAddr: convert.fromAddr,
         toChainType,
         feeHolder: chainInfo.feeHolder,
         userAccount: toAddressInfo.cctp || toAddressInfo.evm,
@@ -26,7 +29,8 @@ class CircleBridgeSolanaDeposit {
         value,
         taskType: "ProcessCircleBridgeSolanaDeposit",
         networkFee,
-        fromAddr: convert.fromAddr
+        operateFee,
+        isV2
       };
       console.debug("CircleBridgeSolanaDeposit params: %O", params);
       let steps = [
