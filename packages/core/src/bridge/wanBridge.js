@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601291720", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601301750", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -53,6 +53,7 @@ class WanBridge extends EventEmitter {
     this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
     this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
     this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
+    this.eventService.addEventListener("Claimable", this._onClaimable.bind(this)); // for sc event service to notify cctp forward failed and claim Ready
     this.eventService.addEventListener("ClaimTxHash", this._onClaimTxHash.bind(this)); // for tx receipt service to notify claim result
     await this._service.start();
   }
@@ -318,11 +319,12 @@ class WanBridge extends EventEmitter {
       all = records.getTaskByPage(options.page, options.number, options.protocols);
     }
     let history = all.map(task => {
-      let item = {
+      return {
         taskId: task.ccTaskId,
         pairId: task.assetPairId,
         timestamp: task.ccTaskId,
         asset: task.assetType,
+        assetAlias: task.assetAlias,
         protocol: task.protocol,
         bridge: task.bridge,
         fromSymbol: task.fromSymbol,
@@ -341,18 +343,15 @@ class WanBridge extends EventEmitter {
         redeemHash: task.redeemHash,
         uniqueId: task.uniqueId || "",
         status: task.status,
-        claimStatus: task.claimStatus,
-        claimHash: task.claimHash,
         errInfo: task.errInfo,
         wanPoints: task.wanPoints,
-        fromAccountId: task.fromAccountId,
-        toAccountId: task.toAccountId,
-        extend: task.extend
-      };
-      if (task.assetAlias) {
-        item.assetAlias = task.assetAlias;
+        // optional
+        fromAccountId: task.fromAccountId || "",
+        toAccountId: task.toAccountId || "",
+        extend: task.extend,
+        claimStatus: task.claimStatus,
+        claimHash: task.claimHash,
       }
-      return item;
     });
     console.debug("SDK: getHistory, options: %O, count: %O", options, history);
     return history;
@@ -842,8 +841,12 @@ class WanBridge extends EventEmitter {
     }
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
-    if ((ccTask.fromChainType === "SOL") && (ccTask.bridge === "Circle")) {
-      records.setExtraInfo(taskId, { claimStatus: "Ready" });
+    if (ccTask.bridge === "Circle") {
+      if (ccTask.fromChainType === "SOL") { // set claimStatus to Ready, to claim cctp event data account, regardless of claim usdc status
+        records.setExtraInfo(taskId, { claimStatus: "Ready" }, true);
+      } else if (ccTask.claimStatus) { // claim cctp usdc is via thirdparty tool, just clear claim status
+        records.setExtraInfo(taskId, { claimStatus: "" }, true);
+      }
     }
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
     if (wanPointsServer) {
@@ -922,6 +925,17 @@ class WanBridge extends EventEmitter {
           this._distributeEvent("locked", { taskId, txHash });
         }
       }
+      this.storageService.save("crossChainTaskRecords", taskId, ccTask);
+    }
+  }
+
+  _onClaimable(taskClaimable) {
+    console.debug("_onClaimable: %O", taskClaimable);
+    let taskId = taskClaimable.ccTaskId;
+    let records = this.stores.crossChainTaskRecords;
+    let ccTask = records.ccTaskRecords.get(taskId);
+    if (ccTask && (ccTask.status === "Converting")) {
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { claimStatus: "Ready" });
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
   }

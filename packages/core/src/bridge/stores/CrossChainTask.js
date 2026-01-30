@@ -28,26 +28,29 @@ class CrossChainTask {
       redeemHash: '',
       uniqueId: '',
       fee: null,
-      ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
-      claimStatus: '',
-      claimHash: '',
       errInfo: '',
       wanPoints: '',
-      // options
-      fromAccountId: '',
-      toAccountId: '',
-      extend: null
     };
   }
+
+  static optionalProperty = Object.freeze({
+    ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
+    fromAccountId: '', // oneId
+    toAccountId: '', // oneId
+    extend: null, // dappp custom data, such as external quix tasks
+    innerToAccount: '', // cctp to solana
+    claimStatus: '',
+    claimHash: '',
+  });
 
   setTaskData(taskData) {
     for (let k in taskData) {
       if (k !== 'ccTaskId') {
-        let sk = (k === 'direction') ? 'convertType' : k;
-        if (this.ccTaskData[sk] !== undefined) {
-          this.ccTaskData[sk] = taskData[k];
+        let ik = (k === 'direction') ? 'convertType' : k;
+        if ((this.ccTaskData[ik] !== undefined) || (this.constructor.optionalProperty[ik] !== undefined)) {
+          this.ccTaskData[ik] = taskData[k];
         } else {
-          console.error("task %s setTaskData undefined key %s", this.ccTaskData.ccTaskId, sk);
+          console.error("task %s setTaskData undefined key %s", this.ccTaskData.ccTaskId, ik);
         }
       }
     }
