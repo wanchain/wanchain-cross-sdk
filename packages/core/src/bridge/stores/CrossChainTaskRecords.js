@@ -107,17 +107,7 @@ class CrossChainTaskRecords {
   }
 
   loadTradeTask(ccTaskList) {
-    for (let i = 0; i < ccTaskList.length; i++) {
-      let ccTask = ccTaskList[i];
-      if (ccTask.ota !== undefined) {
-        if (!ccTask.protocol) {
-          ccTask.protocol = "Erc20"; // for compatibility
-        }
-        this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
-      } else {
-        console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);
-      }
-    }
+    ccTaskList.forEach(ccTask => this.ccTaskRecords.set(ccTask.ccTaskId, ccTask));
   }
 
   // should always be called before saving task information
