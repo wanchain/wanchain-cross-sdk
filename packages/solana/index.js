@@ -1,9 +1,14 @@
-const PhantomWallet = require("./src/wallet/phantom");
-const tool = require("./src/tool").default;
+import PhantomWallet from "./src/wallet/phantom.js";
+import tool from "./src/tool.js";
 
-module.exports = {
-  getChains: () => ["Solana"],
-  getSymbols: () => ["SOL"],
+export const getChains = () => ["Solana"];
+export const getSymbols = () => ["SOL"];
+export { PhantomWallet };
+export { tool };
+
+export default {
+  getChains,
+  getSymbols,
   PhantomWallet,
   tool
 };

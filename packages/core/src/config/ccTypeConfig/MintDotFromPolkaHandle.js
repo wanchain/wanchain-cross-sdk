@@ -1,14 +1,12 @@
-'use strict';
-
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
 const TaskTypes = {
   DOT: "ProcessDotMintFromPolka",
   PHA: "ProcessPhaMintFromPhala"
 };
 
-module.exports = class MintDotFromPolkaHandle {
+class MintDotFromPolkaHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -16,8 +14,8 @@ module.exports = class MintDotFromPolkaHandle {
 
   async process(tokenPair, convert) {
     try {
-      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed();
-      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, {formatWithDecimals: false});
+      let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, tokenPair.fromDecimals)).toFixed(0);
+      let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol, { formatWithDecimals: false });
       let toChainType = tokenPair.toChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
@@ -32,11 +30,11 @@ module.exports = class MintDotFromPolkaHandle {
         fee,
         fromAddr: convert.fromAddr,
         fromChainID: tokenPair.fromChainID, // for Phala
-        toChainID: tokenPair.toChainID      // for Phala
+        toChainID: tokenPair.toChainID // for Phala
       };
       console.debug("MintDotFromPolkaHandle params: %O", params);
       let steps = [
-        {name: "userFastMint", stepIndex: 1, params}
+        { name: "userFastMint", stepIndex: 1, params }
       ];
       return steps;
     } catch (err) {
@@ -44,4 +42,6 @@ module.exports = class MintDotFromPolkaHandle {
       throw err;
     }
   }
-};
+}
+
+export default MintDotFromPolkaHandle;

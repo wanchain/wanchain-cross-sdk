@@ -1,9 +1,7 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
-const BigNumber = require("bignumber.js");
-const tool = require('../../utils/tool.js');
-
-module.exports = class MintXrpFromRipple {
+class MintXrpFromRipple {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -13,16 +11,16 @@ module.exports = class MintXrpFromRipple {
     try {
       let value = new BigNumber(convert.value);
       let direction = (convert.convertType === "MINT");
-      let fromAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+      let fromAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
       if (fromAccount == 0) { // token ignore decimals
-        let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
+        let decimals = direction ? tokenPair.fromDecimals : tokenPair.toDecimals;
         value = value.multipliedBy(Math.pow(10, decimals));
       }
       value = value.toFixed();
       // neither apiServer nor storeman agent adopt the fee, they get fee from iwan or config contract,
       // so do not distinguish networkFee and operateFee, and ignore returned fee value of apiServer
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.readableSymbol);
-      let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
+      let toChainType = direction ? tokenPair.toChainType : tokenPair.fromChainType;
       let params = {
         ccTaskId: convert.ccTaskId,
         toChainType,
@@ -37,7 +35,7 @@ module.exports = class MintXrpFromRipple {
       };
       console.debug("Mint %s FromRipple params: %O", tokenPair.readableSymbol, params);
       let steps = [
-        {name: "addTag", stepIndex: 1, params}
+        { name: "addTag", stepIndex: 1, params }
       ];
       return steps;
     } catch (err) {
@@ -45,4 +43,6 @@ module.exports = class MintXrpFromRipple {
       throw err;
     }
   }
-};
+}
+
+export default MintXrpFromRipple;

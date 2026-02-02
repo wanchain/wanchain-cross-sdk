@@ -1,9 +1,9 @@
-const wanUtil = require('wanchain-util');
-const ethUtil = require('ethereumjs-util');
-const WAValidator = require('multicoin-address-validator');
-const BigNumber = require('bignumber.js');
-const crypto = require('crypto');
-const Web3 = require('web3');
+import * as wanUtil from "wanchain-util";
+import * as ethUtil from "ethereumjs-util";
+import WAValidator from "multicoin-address-validator";
+import BigNumber from "bignumber.js";
+import crypto from "crypto";
+import Web3 from "web3";
 
 const web3 = new Web3();
 
@@ -23,7 +23,7 @@ function checkTimeout(baseTimestamp, milliSecond) {
 }
 
 async function sleep(time) {
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     setTimeout(() => {
       resolve();
     }, time);
@@ -32,20 +32,22 @@ async function sleep(time) {
 
 function hexStrip0x(hexStr) {
   if (0 == hexStr.indexOf('0x')) {
-      return hexStr.slice(2);
+    return hexStr.slice(2);
   }
   return hexStr;
 }
 
 function bytes2hex(bytes) {
-  return Array.from(bytes, function(byte) {
+  return Array.from(bytes, function (byte) {
     return ('0' + (byte & 0xFF).toString(16)).slice(-2);
   }).join('');
 }
 
 function hex2bytes(hex) {
   const bytes = [];
-  for (let c = 0; c < hex.length; c += 2) bytes.push(parseInt(hex.substr(c, 2), 16));
+  for (let c = 0; c < hex.length; c += 2) {
+    bytes.push(parseInt(hex.substr(c, 2), 16));
+  }
   return bytes;
 }
 
@@ -53,7 +55,7 @@ function ascii2letter(asciiStr) {
   let str = hexStrip0x(asciiStr.trim());
   let len = str.length;
   if (len % 2 != 0) {
-     return '';
+    return '';
   }
   let letterStr = [];
   for (var i = 0; i < len; i = i + 2) {
@@ -85,7 +87,7 @@ function isValidWanAddress(address) {
       }
     }
     return validate;
-  } catch(err) {
+  } catch (err) {
     console.log("validate WAN address %s err: %O", address, err);
     return false;
   }
@@ -142,7 +144,7 @@ function getXdcAddressInfo(address) {
     throw new Error("XDC address is invalid: " + address);
   }
   // ignore cctp address as it is not supported now
-  return {native, evm, text: evm, compact: evm};
+  return { native, evm, text: evm, compact: evm };
 }
 
 /*
@@ -164,15 +166,15 @@ function getStandardAddressInfo(chainType, address, extension = null) {
   } else if (extension && extension.tool && extension.tool.getStandardAddressInfo) { // cctp is optional
     return extension.tool.getStandardAddressInfo(address, chainType);
   } else if (/^0x[0-9a-fA-F]{40}$/.test(address)) {
-    return {native: address, evm: address, text: address, cctp: address, compact: address};
+    return { native: address, evm: address, text: address, cctp: address, compact: address };
   } else { // default text format, do not consider cctp or compact address which depends on specific encode method
     let evmBytes = web3.utils.asciiToHex(address);
-    return {native: address, evm: evmBytes, text: address};
+    return { native: address, evm: evmBytes, text: address };
   }
 }
 
 function parseFee(fee, amount, unit, options) {
-  options = Object.assign({formatWithDecimals: true}, options);
+  options = Object.assign({ formatWithDecimals: true }, options);
   let result = new BigNumber(0), networkFee = new BigNumber(0), decimals = 0, tmp;
   if ((fee.networkFee.unit === unit) && ((!fee.networkFee.isSubsidy) || options.includeSubsidy)) {
     tmp = new BigNumber(fee.networkFee.value);
@@ -221,7 +223,7 @@ function parseFee(fee, amount, unit, options) {
 
 function sha256(str, addPrefix = true) {
   let hash = crypto.createHash('sha256').update(str).digest('hex');
-  return addPrefix? ('0x' + hash) : hash;
+  return addPrefix ? ('0x' + hash) : hash;
 }
 
 function cmpAddress(address1, address2) {
@@ -234,29 +236,29 @@ function xrpNormalizeCurrencyCode(currencyCode, maxLength = 20) {
     return "";
   }
   if (currencyCode.length === 3 && currencyCode.trim().toLowerCase() !== 'xrp') {
-      // "Standard" currency code
-      return currencyCode.trim();
+    // "Standard" currency code
+    return currencyCode.trim();
   }
   if (currencyCode.match(/^[a-fA-F0-9]{40}$/) && !isNaN(parseInt(currencyCode, 16))) {
-      // Hexadecimal currency code
-      const hex = currencyCode.toString().replace(/(00)+$/g, '');
-      if (hex.startsWith('01')) {
-          // Old demurrage code. https://xrpl.org/demurrage.html
-          return xrpConvertDemurrageToUTF8(currencyCode);
+    // Hexadecimal currency code
+    const hex = currencyCode.toString().replace(/(00)+$/g, '');
+    if (hex.startsWith('01')) {
+      // Old demurrage code. https://xrpl.org/demurrage.html
+      return xrpConvertDemurrageToUTF8(currencyCode);
+    }
+    if (hex.startsWith('02')) {
+      // XLS-16d NFT Metadata using XLS-15d Concise Transaction Identifier
+      // https://github.com/XRPLF/XRPL-Standards/discussions/37
+      const xlf15d = Buffer.from(hex, 'hex').slice(8).toString('utf-8').slice(0, maxLength).trim();
+      if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== 'xrp') {
+        return xlf15d;
       }
-      if (hex.startsWith('02')) {
-          // XLS-16d NFT Metadata using XLS-15d Concise Transaction Identifier
-          // https://github.com/XRPLF/XRPL-Standards/discussions/37
-          const xlf15d = Buffer.from(hex, 'hex').slice(8).toString('utf-8').slice(0, maxLength).trim();
-          if (xlf15d.match(/[a-zA-Z0-9]{3,}/) && xlf15d.toLowerCase() !== 'xrp') {
-              return xlf15d;
-          }
-      }
-      const decodedHex = Buffer.from(hex, 'hex').toString('utf-8').slice(0, maxLength).trim();
-      if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== 'xrp') {
-          // ASCII or UTF-8 encoded alphanumeric code, 3+ characters long
-          return decodedHex;
-      }
+    }
+    const decodedHex = Buffer.from(hex, 'hex').toString('utf-8').slice(0, maxLength).trim();
+    if (decodedHex.match(/[a-zA-Z0-9]{3,}/) && decodedHex.toLowerCase() !== 'xrp') {
+      // ASCII or UTF-8 encoded alphanumeric code, 3+ characters long
+      return decodedHex;
+    }
   }
   return "";
 }
@@ -264,10 +266,10 @@ function xrpNormalizeCurrencyCode(currencyCode, maxLength = 20) {
 function xrpConvertDemurrageToUTF8(demurrageCode) {
   let bytes = Buffer.from(demurrageCode, "hex");
   let code = String.fromCharCode(bytes[1]) + String.fromCharCode(bytes[2]) + String.fromCharCode(bytes[3]);
-  let interest_start = (bytes[4] << 24) + (bytes[5] << 16) + (bytes[6] <<  8) + (bytes[7]);
+  let interest_start = (bytes[4] << 24) + (bytes[5] << 16) + (bytes[6] << 8) + (bytes[7]);
   let interest_period = bytes.readDoubleBE(8);
   const year_seconds = 31536000; // By convention, the XRP Ledger's interest/demurrage rules use a fixed number of seconds per year (31536000), which is not adjusted for leap days or leap seconds
-  let interest_after_year = Math.pow(Math.E, (interest_start+year_seconds - interest_start) / interest_period)
+  let interest_after_year = Math.pow(Math.E, (interest_start + year_seconds - interest_start) / interest_period);
   let interest = (interest_after_year * 100) - 100;
   return (`${code} (${interest}% pa)`);
 }
@@ -310,14 +312,14 @@ function parseTokenPairSymbol(chain, symbol, options = {}) {
 }
 
 function getErrMsg(err, defaultMsg) {
-  if (typeof(err) === "string") {
+  if (typeof (err) === "string") {
     return err;
   }
-  if (err.message && (typeof(err.message) === "string")) {
+  if (err.message && (typeof (err.message) === "string")) {
     return err.message;
   }
   let msg = err.toString();
-  if (msg && (msg[0] !== '[') && (msg[msg.length-1] !== ']')) { // "[object Object]"
+  if (msg && (msg[0] !== '[') && (msg[msg.length - 1] !== ']')) { // "[object Object]"
     return msg;
   }
   return defaultMsg || "Unknown error";
@@ -366,18 +368,18 @@ async function timedPromise(promise, msg = 'PTIMEOUT', ms = 5000) {
     }),
   ]);
   return wrappedPromise.then((result) => {
-      clearTimeout(timer);
-      return result;
+    clearTimeout(timer);
+    return result;
   }).catch((err) => {
-      clearTimeout(timer);
-      throw err;
-  })
+    clearTimeout(timer);
+    throw err;
+  });
 }
 
 function decodeCardanoNftAssetName(assetName) {
   let id = new BigNumber(assetName.slice(8), 16).toFixed();
   let typeCode = assetName.slice(1, 5);
-  return {typeCode, id};
+  return { typeCode, id };
 }
 
 function checkTonTxSuccess(tx) {
@@ -407,7 +409,35 @@ function getScanBatchSize(chainType) {
   return CustomizedScanBatchSize[chainType] || 1000;
 }
 
-module.exports = {
+export { getCurTimestamp };
+export { checkTimeout };
+export { sleep };
+export { hexStrip0x };
+export { bytes2hex };
+export { hex2bytes };
+export { ascii2letter };
+export { isValidEthAddress };
+export { isValidWanAddress };
+export { isValidBtcAddress };
+export { isValidLtcAddress };
+export { isValidDogeAddress };
+export { isValidXrpAddress };
+export { isValidXdcAddress };
+export { getStandardAddressInfo };
+export { parseFee };
+export { sha256 };
+export { cmpAddress };
+export { parseXrpTokenPairAccount };
+export { validateXrpTokenAmount };
+export { parseTokenPairSymbol };
+export { getErrMsg };
+export { parseEvmLog };
+export { timedPromise };
+export { decodeCardanoNftAssetName };
+export { checkTonTxSuccess };
+export { getScanBatchSize };
+
+export default {
   getCurTimestamp,
   checkTimeout,
   sleep,
@@ -435,4 +465,4 @@ module.exports = {
   decodeCardanoNftAssetName,
   checkTonTxSuccess,
   getScanBatchSize
-}
+};

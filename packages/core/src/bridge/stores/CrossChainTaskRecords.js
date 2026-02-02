@@ -1,5 +1,4 @@
 class CrossChainTaskRecords {
-
   constructor() {
     this.ccTaskRecords = new Map();
   }
@@ -23,7 +22,7 @@ class CrossChainTaskRecords {
         }
         ccTask.status = ccTaskStatus;
       }
-    }    
+    }
   }
 
   setTaskOtaInfo(ccTaskId, ota) {
@@ -45,22 +44,24 @@ class CrossChainTaskRecords {
             ccTask.status = result;
             if (errInfo) {
               ccTask.errInfo = errInfo;
-            }            
+            }
           } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
-            // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
+            // both tx hash and receipt will trigger updateTaskByStepResult, emit once lock and locked events separately
             if (txHash) {
               isLockTx = !ccTask.lockHash;
               ccTask.lockHash = txHash; // may repriced, always update lockHash
             }
-            if (result) { // on evm do not change status until receipt with result
-              isLocked = (ccTask.status !== "Converting");
-              ccTask.status = "Converting";
+            if (result) {
+              if (ccTask.status === "Performing") { // filter duplicate event to prevent status overwriting
+                isLocked = true;
+                ccTask.status = "Converting";
+              }
             }
           }
         }
       }
     }
-    return {isLockTx, isLocked};
+    return { isLockTx, isLocked };
   }
 
   updateTaskFee(ccTaskId, type, value, rectify = true) {
@@ -177,4 +178,4 @@ class CrossChainTaskRecords {
   }
 }
 
-module.exports = CrossChainTaskRecords;
+export default CrossChainTaskRecords;

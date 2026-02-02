@@ -1,9 +1,7 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
-
-module.exports = class MintFromCosmos {
+class MintFromCosmos {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -11,13 +9,13 @@ module.exports = class MintFromCosmos {
 
   async process(tokenPair, convert) {
     let direction = (convert.convertType === "MINT");
-    let fromChainType = direction? tokenPair.fromChainType : tokenPair.toChainType;
-    let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
-    let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
+    let fromChainType = direction ? tokenPair.fromChainType : tokenPair.toChainType;
+    let toChainType = direction ? tokenPair.toChainType : tokenPair.fromChainType;
+    let decimals = direction ? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let chainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
-      let networkFee = tool.parseFee(convert.fee, convert.value, (chainInfo.symbol || fromChainType), {formatWithDecimals: false, feeType: "networkFee"});
+      let networkFee = tool.parseFee(convert.fee, convert.value, (chainInfo.symbol || fromChainType), { formatWithDecimals: false, feeType: "networkFee" });
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType,
@@ -35,7 +33,7 @@ module.exports = class MintFromCosmos {
       };
       console.debug("Mint %s FromCardano params: %O", tokenPair.readableSymbol, params);
       let steps = [
-        {name: "userFastMint", stepIndex: 1, params}
+        { name: "userFastMint", stepIndex: 1, params }
       ];
       return steps;
     } catch (err) {
@@ -43,4 +41,6 @@ module.exports = class MintFromCosmos {
       throw err;
     }
   }
-};
+}
+
+export default MintFromCosmos;

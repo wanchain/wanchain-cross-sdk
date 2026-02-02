@@ -1,9 +1,14 @@
-const TonkeeperWallet = require("./src/wallet/tonkeeper");
-const tool = require("./src/tool").default;
+import TonkeeperWallet from "./src/wallet/tonkeeper.js";
+import tool from "./src/tool.js";
 
-module.exports = {
-  getChains: () => ["Ton"],
-  getSymbols: () => ["TON"],
+export const getChains = () => ["Ton"];
+export const getSymbols = () => ["TON"];
+export { TonkeeperWallet };
+export { tool };
+
+export default {
+  getChains,
+  getSymbols,
   TonkeeperWallet,
   tool
 };

@@ -1,5 +1,5 @@
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool");
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
 class AssetPairs {
 
@@ -36,30 +36,29 @@ class AssetPairs {
       });
       this.smgList = smgList;
     }
-
     if (tokenPairs) { // maybe only update smgs
       let pairList = tokenPairs.map(pair => { // tokenPairService have chainType info but not expose to frontend
         this.tokens.add(this.getTokenAccount(pair.fromChainType, pair.fromAccount, configService).toLowerCase());
         this.tokens.add(this.getTokenAccount(pair.toChainType, pair.toAccount, configService).toLowerCase());
         let assetPair = {
           assetPairId: pair.id,
-          assetType: pair.readableSymbol,    // the readable ancestory symbol for this token
+          assetType: pair.readableSymbol, // the readable ancestory symbol for this token
           assetAlias: pair.assetAlias,
-          protocol: pair.protocol,           // token protocol: Erc20, Erc721, Erc1155
+          protocol: pair.protocol, // token protocol: Erc20, Erc721, Erc1155
           ancestorChainName: pair.ancestorChainName, // ancestor Chain Name
-          fromSymbol: pair.fromSymbol,       // token symbol for fromChain
-          toSymbol: pair.toSymbol,           // token symbol for toChain
-          fromDecimals: pair.fromDecimals,   // from token decimals
-          toDecimals: pair.toDecimals,       // to token decimals
+          fromSymbol: pair.fromSymbol, // token symbol for fromChain
+          toSymbol: pair.toSymbol, // token symbol for toChain
+          fromDecimals: pair.fromDecimals, // from token decimals
+          toDecimals: pair.toDecimals, // to token decimals
           fromChainName: pair.fromChainName, // from Chain Name
-          toChainName: pair.toChainName,     // to Chain Name
+          toChainName: pair.toChainName, // to Chain Name
           fromAccount: pair.fromAccount,
           toAccount: pair.toAccount,
-          fromIsNative: pair.fromIsNative,   // is fromAccount is coin or native token
-          toIsNative: pair.toIsNative,       // is toAccount is coin or native token
-          fromIssuer: pair.fromIssuer,       // issuer of fromAccount, only for xFlow
-          toIssuer: pair.toIssuer,           // issuer of toAccount, only for xFlow
-          bridge: pair.bridge,               // bridge, default is WanBridge
+          fromIsNative: pair.fromIsNative, // is fromAccount is coin or native token
+          toIsNative: pair.toIsNative, // is toAccount is coin or native token
+          fromIssuer: pair.fromIssuer, // issuer of fromAccount, only for xFlow
+          toIssuer: pair.toIssuer, // issuer of toAccount, only for xFlow
+          bridge: pair.bridge, // bridge, default is WanBridge
           direction: pair.direction,
         };
         return assetPair;
@@ -127,4 +126,4 @@ class AssetPairs {
   }
 }
 
-module.exports = AssetPairs;
+export default AssetPairs;

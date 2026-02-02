@@ -1,5 +1,4 @@
 class CrossChainTask {
-
   constructor(taskId) {
     this.ccTaskData = {
       ccTaskId: taskId, // the unique id for convert task
@@ -13,12 +12,12 @@ class CrossChainTask {
       toSymbol: '', // toChain token symbol
       fromChainType: '', // fromChain type
       toChainType: '', // toChain type
-      fromChainName: '',  // fromChain name
+      fromChainName: '', // fromChain name
       toChainName: '', // toChain name
       smg: null, // storemanGroup for this task
       fromAccount: '', // the from account
       toAccount: '', // the to account
-      amount: '',  // convert amount
+      amount: '', // convert amount
       fromDecimals: 0, // from token decimals
       toDecimals: 0, // to token decimals
       sentAmount: '', // actually sent amount
@@ -28,8 +27,7 @@ class CrossChainTask {
       lockHash: '',
       redeemHash: '',
       uniqueId: '',
-      fee: null, 
-      isOtaTx: false, // adapted to BTC/XRP crosschain task on 2021.0111 
+      fee: null,
       ota: null, // adapted to BTC/XRP crosschain task on 2021.0111
       reclaimStatus: '',
       reclaimHash: '',
@@ -45,7 +43,7 @@ class CrossChainTask {
   setTaskData(taskData) {
     for (let k in taskData) {
       if (k !== 'ccTaskId') {
-        let sk = (k === 'direction')? 'convertType' : k;
+        let sk = (k === 'direction') ? 'convertType' : k;
         if (this.ccTaskData[sk] !== undefined) {
           this.ccTaskData[sk] = taskData[k];
         } else {
@@ -61,8 +59,8 @@ class CrossChainTask {
       step.stepResult = "";
       step.errInfo = "";
     });
-    this.setTaskData({stepData});
+    this.setTaskData({ stepData });
   }
 }
 
-module.exports = CrossChainTask;
+export default CrossChainTask;

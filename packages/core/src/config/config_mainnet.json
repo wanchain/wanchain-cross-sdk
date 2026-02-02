@@ -310,7 +310,7 @@
       "crossScAddr": "0xFFB876Bd5Bee99e992cAc826A04396002f5f4a65",
       "CircleBridge": {
         "domain": 11,
-        "crossScAddrV2" : "0xD6965a9b739240dB7ACD36E3AFb2dfe1dAE7c694"
+        "crossScAddrV2": "0xD6965a9b739240dB7ACD36E3AFb2dfe1dAE7c694"
       },
       "chainDecimals": 18,
       "walletChainId": 59144,
@@ -370,7 +370,7 @@
       "CircleBridge": {
         "domain": 13,
         "crossScAddr": "",
-        "crossScAddrV2" : "0x508927b6247179D72142B60Fc69f5E4d58cbEb64"
+        "crossScAddrV2": "0x508927b6247179D72142B60Fc69f5E4d58cbEb64"
       },
       "walletChainId": 146,
       "blockConfirmations": 20,
@@ -473,7 +473,7 @@
       "CircleBridge": {
         "domain": 14,
         "crossScAddr": "",
-        "crossScAddrV2" : "0x79d745178BC271A1f29F8fbE9251dfC512db842C"
+        "crossScAddrV2": "0x79d745178BC271A1f29F8fbE9251dfC512db842C"
       },
       "walletChainId": 480,
       "blockConfirmations": 6,
@@ -489,7 +489,7 @@
       "CircleBridge": {
         "domain": 10,
         "crossScAddr": "",
-        "crossScAddrV2" : "0x22C835B306916ec6cb3568e7ffD61bF821Ed593d"
+        "crossScAddrV2": "0x22C835B306916ec6cb3568e7ffD61bF821Ed593d"
       },
       "walletChainId": 130,
       "blockConfirmations": 12,
@@ -504,7 +504,7 @@
       "crossScAddr": "0x14CA89ac9Cd73B01Bf71a3aF3f8cf8fd224d6A1d",
       "CircleBridge": {
         "domain": 16,
-        "crossScAddrV2" : "0xDd8830d9454365a3b81d0EC6F4272AE5337795bb"
+        "crossScAddrV2": "0xDd8830d9454365a3b81d0EC6F4272AE5337795bb"
       },
       "walletChainId": 1329,
       "blockConfirmations": 1,
@@ -701,7 +701,7 @@
       "chainId": "2147484107",
       "chainType": "KAVA",
       "chainName": "Kava",
-      "feeHolder" : "kava15wal47p8s029q2hgexfw6m9yjmjuqwkr2cvk0u",
+      "feeHolder": "kava15wal47p8s029q2hgexfw6m9yjmjuqwkr2cvk0u",
       "mintFromChainHandle": "MintFromCosmos",
       "chainDecimals": 6,
       "walletChainId": "kava_2222-10",

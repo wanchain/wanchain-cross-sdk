@@ -1,73 +1,79 @@
-"use strict";
+import axios from "axios";
 
-const axios = require("axios");
+class CheckXrpTx {
+  constructor(frameworkService) {
+    this.frameworkService = frameworkService;
+    this.checkAry = [];
+  }
 
-module.exports = class CheckXrpTx {
-    constructor(frameworkService) {
-        this.m_frameworkService = frameworkService;
-        this.m_CheckAry = [];
+  async init(chainType) {
+    this.webStores = this.frameworkService.getService("WebStores");
+    this.eventService = this.frameworkService.getService("EventService");
+    let configService = this.frameworkService.getService("ConfigService");
+    this.apiServerConfig = configService.getGlobalConfig("apiServer");
+    let chainInfoService = this.frameworkService.getService("ChainInfoService");
+    let chainInfo = chainInfoService.getChainInfoByType(chainType);
+    let taskService = this.frameworkService.getService("TaskService");
+    taskService.addTask(this, chainInfo.txScanInterval);
+  }
+
+  async add(task) {
+    try {
+      let url = this.apiServerConfig.url + "/api/xrp/addTxInfo";
+      let data = {
+        xrpAddr: task.toAddr,
+        chainType: task.fromChain,
+        chainAddr: task.fromAddr,
+        chainHash: task.chainHash || task.txHash
+      };
+      let ret = await axios.post(url, data);
+      if (ret.data.success === true) {
+        console.log("CheckXrpTx save to apiServer success");
+        this.checkAry.unshift(task);
+      } else {
+        console.error("CheckXrpTx save to apiServer fail: %O", data);
+      }
+    } catch (err) {
+      console.log("CheckXrpTx err:", err);
     }
+  }
 
-    async init(chainType) {
-        this.m_taskService = this.m_frameworkService.getService("TaskService");
-        this.m_configService = this.m_frameworkService.getService("ConfigService");
-        this.m_apiServerConfig = this.m_configService.getGlobalConfig("apiServer");
-        let chainInfoService = this.m_frameworkService.getService("ChainInfoService");
-        let chainInfo = chainInfoService.getChainInfoByType(chainType);
-        this.m_taskService.addTask(this, chainInfo.txScanInterval);
-        this.m_eventService = this.m_frameworkService.getService("EventService");
-    }
+  async load(task) {
+    this.checkAry.unshift(task);
+  }
 
-    async add(obj) {
-        try {
-            let url = this.m_apiServerConfig.url + "/api/xrp/addTxInfo";
-            let postJson = {
-                xrpAddr: obj.toAddr,
-                chainType: obj.fromChain,
-                chainAddr: obj.fromAddr,
-                chainHash: obj.chainHash
-            };
-            let ret = await axios.post(url, postJson);
-            if (ret.data.success === true) {
-                console.log("CheckXrpTx save to apiServer success");
-                this.m_CheckAry.unshift(obj);
-            } else {
-                console.error("CheckXrpTx save to apiServer fail: %O", postJson);
-            }
+  async runTask(taskPara) {
+    try {
+      if (this.checkAry.length <= 0) {
+        return;
+      }
+      let storageService = this.frameworkService.getService("StorageService");
+      let url = this.apiServerConfig.url + "/api/xrp/queryTxAckInfo/";
+      let count = this.checkAry.length;
+      for (let i = 0; i < count; i++) {
+        let index = count - i - 1;
+        let task = this.checkAry[index];
+        if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+          let txUrl = url + task.uniqueID;
+          let ret = await axios.get(txUrl);
+          console.debug("checkXrpTx %s ret.data: %O", txUrl, ret.data);
+          if (ret.data.success && ret.data.data) {
+            let eventService = this.frameworkService.getService("EventService");
+            let data = ret.data.data;
+            await eventService.emitEvent("RedeemTxHash", { ccTaskId: task.ccTaskId, txHash: data.xrpHash, toAccount: data.xrpAddr, value: data.value });
+            await storageService.delete("ScEventScanService", task.uniqueID);
+            this.checkAry.splice(index, 1);
+          }
+        } else {
+          console.log("CheckXrpTx remove deleted task %s", task.ccTaskId);
+          await storageService.delete("ScEventScanService", task.uniqueID);
+          this.checkAry.splice(index, 1);
         }
-        catch (err) {
-            console.log("CheckXrpTx err:", err);
-        }
+      }
+    } catch (err) {
+      console.error("CheckXrpTx error: %O", err);
     }
+  }
+}
 
-    async load(obj) {
-        this.m_CheckAry.unshift(obj);
-    }
-
-    async runTask(taskPara) {
-        try {
-            if (this.m_CheckAry.length <= 0) {
-                return;
-            }
-            let url = this.m_apiServerConfig.url + "/api/xrp/queryTxAckInfo/";
-            let count = this.m_CheckAry.length;
-            for (let idx = 0; idx < count; ++idx) {
-                let index = count - idx - 1;
-                let obj = this.m_CheckAry[index];
-                let txUrl = url + obj.uniqueID;
-                let ret = await axios.get(txUrl);
-                console.debug("checkXrpTx %s ret.data: %O", txUrl, ret.data);
-                if (ret.data.success && ret.data.data) {
-                    let eventService = this.m_frameworkService.getService("EventService");
-                    let data = ret.data.data;
-                    await eventService.emitEvent("RedeemTxHash", {ccTaskId: obj.ccTaskId, txHash: data.xrpHash, toAccount: data.xrpAddr, value: data.value});
-                    let storageService = this.m_frameworkService.getService("StorageService");
-                    await storageService.delete("ScEventScanService", obj.uniqueID);
-                    this.m_CheckAry.splice(index, 1);
-                }
-            }
-        } catch (err) {
-            console.error("CheckXrpTx error: %O", err);
-        }
-    }
-};
+export default CheckXrpTx;

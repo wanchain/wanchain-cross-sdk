@@ -1,9 +1,14 @@
-const SuiWallet = require("./src/wallet/suiWallet");
-const tool = require("./src/tool").default;
+import SuiWallet from "./src/wallet/suiWallet.js";
+import tool from "./src/tool.js";
 
-module.exports = {
-  getChains: () => ["Sui"],
-  getSymbols: () => ["SUI"],
+export const getChains = () => ["Sui"];
+export const getSymbols = () => ["SUI"];
+export { SuiWallet };
+export { tool };
+
+export default {
+  getChains,
+  getSymbols,
   SuiWallet,
   tool
 };

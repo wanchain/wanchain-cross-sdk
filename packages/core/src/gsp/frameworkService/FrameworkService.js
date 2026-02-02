@@ -1,17 +1,16 @@
-'use strict';
 
 class FrameworkService {
-    constructor(options) {
-        this.serviceRegistry = {};
-    }
+  constructor(options) {
+    this.serviceRegistry = {};
+  }
 
-    registerService(serviceName, serviceInstance) {
-        this.serviceRegistry[serviceName] = serviceInstance;
-    }
+  registerService(serviceName, serviceInstance) {
+    this.serviceRegistry[serviceName] = serviceInstance;
+  }
 
-    getService(serviceName) {
-        return this.serviceRegistry[serviceName];
-    }
+  getService(serviceName) {
+    return this.serviceRegistry[serviceName];
+  }
 }
 
-module.exports = FrameworkService;
+export default FrameworkService;

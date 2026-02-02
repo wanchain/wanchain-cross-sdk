@@ -1,6 +1,5 @@
-"use strict";
 
-module.exports = class CheckSuiTx {
+class CheckSuiTx {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.eventTasks = new Map();
@@ -8,6 +7,7 @@ module.exports = class CheckSuiTx {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
+    this.webStores = this.frameworkService.getService("WebStores");
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
     this.taskService.addTask(this, chainInfo.txScanInterval);
@@ -61,6 +61,12 @@ module.exports = class CheckSuiTx {
       let cur = count - i - 1; // backwards
       let task = tasks[cur];
       try {
+        if (!this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+          console.log("CheckSuiTx remove deleted task %s", task.ccTaskId);
+          await storageService.delete("ScEventScanService", task.uniqueID);
+          tasks.splice(cur, 1);
+          continue;
+        }
         let event = null;
         console.debug("CheckSuiTx block %d %s: taskId=%s, uniqueId=%s, cursor=%O", latestBlockNumber, taskType, task.ccTaskId, task.uniqueID, task.fromBlockNumber);
         if (task.taskType === "circleMINT") {
@@ -83,7 +89,7 @@ module.exports = class CheckSuiTx {
   async scanWanBridgeEvent(task) {
     if (task.fromBlockNumber == 0) { // retry get cursor firstly
       let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
-      let cursor = await this.storemanService.getChainBlockNumber("SUI", {rewind: delay});
+      let cursor = await this.storemanService.getChainBlockNumber("SUI", { rewind: delay });
       if (cursor) {
         task.fromBlockNumber = cursor;
         console.debug("scanWanBridgeEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
@@ -92,18 +98,18 @@ module.exports = class CheckSuiTx {
         return null;
       }
     }
-    let result = await this.iwan.getScEvent("SUI", this.chainInfo.crossScAddr, [], {moduleName: "cross", cursor: task.fromBlockNumber, limit: 1});
+    let result = await this.iwan.getScEvent("SUI", this.chainInfo.crossScAddr, [], { moduleName: "cross", cursor: task.fromBlockNumber, limit: 1 });
     let ccTxs = result.data;
     for (let tx of ccTxs) {
       let txHash = tx.id.txDigest;
       let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
-      let msgType = (task.taskType === "MINT")? this.SmgMintMsg : this.SmgReleaseMsg;
+      let msgType = (task.taskType === "MINT") ? this.SmgMintMsg : this.SmgReleaseMsg;
       let smgEvent = receipt.events.find(v => ((v.transactionModule === "cross") && (v.type === msgType)));
       if (smgEvent && smgEvent.parsedJson) {
         let uniqueId = '0x' + Buffer.from(smgEvent.parsedJson.unique_id).toString('hex');
         if (uniqueId === task.uniqueID) {
           console.debug("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
-          return {txHash,  toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount};
+          return { txHash, toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount };
         }
       }
     }
@@ -114,7 +120,7 @@ module.exports = class CheckSuiTx {
   async scanCircleEvent(task) {
     if (task.fromBlockNumber == 0) { // retry get cursor firstly
       let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
-      let cursor = await this.storemanService.getChainBlockNumber("SUI", {bridge: "Circle", rewind: delay});
+      let cursor = await this.storemanService.getChainBlockNumber("SUI", { bridge: "Circle", rewind: delay });
       if (cursor) {
         task.fromBlockNumber = cursor;
         console.debug("scanCircleEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
@@ -124,7 +130,7 @@ module.exports = class CheckSuiTx {
       }
     }
     if (task.depositNonce === undefined) {
-      let deposit = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, {ota: task.ota});
+      let deposit = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, { ota: task.ota });
       if (deposit.depositNonce !== undefined) {
         task.depositNonce = deposit.depositNonce;
         task.depositAmount = deposit.depositAmount;
@@ -133,7 +139,7 @@ module.exports = class CheckSuiTx {
         return null;
       }
     }
-    let result = await this.iwan.getScEvent("SUI", this.chainInfo.CircleBridge.crossScAddr, [], {moduleName: "fee_collector", cursor: task.fromBlockNumber, limit: 1});
+    let result = await this.iwan.getScEvent("SUI", this.chainInfo.CircleBridge.crossScAddr, [], { moduleName: "fee_collector", cursor: task.fromBlockNumber, limit: 1 });
     let ccTxs = result.data;
     for (let tx of ccTxs) {
       let txHash = tx.id.txDigest;
@@ -144,7 +150,7 @@ module.exports = class CheckSuiTx {
         let sourceDomain = receiveEvent.parsedJson.source_domain; // number
         let nonce = receiveEvent.parsedJson.nonce; // string
         if ((sourceDomain == task.depositDomain) && (nonce == task.depositNonce)) {
-          return {txHash}; // no value or toAccount
+          return { txHash }; // no value or toAccount
         }
       }
     }
@@ -153,8 +159,10 @@ module.exports = class CheckSuiTx {
   }
 
   async updateUIAndStorage(task, txHash, toAccount, value) {
-    this.eventService.emitEvent("RedeemTxHash", {ccTaskId: task.ccTaskId, txHash, toAccount: toAccount || "", value: value || task.value});
+    this.eventService.emitEvent("RedeemTxHash", { ccTaskId: task.ccTaskId, txHash, toAccount: toAccount || "", value: value || task.value });
     let storageService = this.frameworkService.getService("StorageService");
     await storageService.delete("ScEventScanService", task.uniqueID);
   }
-};
+}
+
+export default CheckSuiTx;

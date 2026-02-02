@@ -1,14 +1,14 @@
-const tool = require("../utils/tool.js");
-const keypairs = require('ripple-keypairs');
-const elliptic = require('elliptic');
-const Secp256k1 = elliptic.ec('secp256k1');
-const xrpAddrCodec = require('ripple-address-codec');
-const CrossChainTask = require('./stores/CrossChainTask');
-const BigNumber = require("bignumber.js");
-const util = require('util');
+import tool from "../utils/tool.js";
+import * as keypairs from "ripple-keypairs";
+import * as elliptic from "elliptic";
+import * as xrpAddrCodec from "ripple-address-codec";
+import CrossChainTask from "./stores/CrossChainTask.js";
+import BigNumber from "bignumber.js";
+import util from "util";
 
-// consistant with crosschain contract
-const MAX_NFT_BATCH_SIZE = 10;
+const Secp256k1 = elliptic.ec('secp256k1');
+
+const MAX_NFT_BATCH_SIZE = 10; // consistant with crosschain contract
 
 const gpkAlgs = {
   ecdsa: 0,
@@ -94,7 +94,6 @@ class BridgeTask {
     if (err) {
       throw new Error(err);
     }
-
     // set task data
     let taskData = {
       assetPairId: this._tokenPair.id,
@@ -116,9 +115,8 @@ class BridgeTask {
       toDecimals: this._toChainInfo.decimals,
       fromChainType: this._fromChainInfo.chainType,
       toChainType: this._toChainInfo.chainType,
-      isOtaTx: !this._wallet,
       fee: this._fee,
-      smg: {name: this._smg? this._smg.name : "", gpk: this._gpkInfo? this._gpkInfo.gpk : ""}
+      smg: { name: this._smg ? this._smg.name : "", gpk: this._gpkInfo ? this._gpkInfo.gpk : "" }
     };
     // console.debug({taskData});
     this._task.setTaskData(taskData);
@@ -129,7 +127,7 @@ class BridgeTask {
     // build
     let steps = await this._buildTaskSteps();
     this._task.initSteps(steps);
-    this._task.setTaskData({status: "Performing"});
+    this._task.setTaskData({ status: "Performing" });
     // save context
     let bridge = this._bridge;
     let ccTaskData = this._task.ccTaskData;
@@ -140,7 +138,7 @@ class BridgeTask {
   }
 
   async _checkFee(isSubsidy) {
-    let options = {protocol: this._tokenPair.protocol, address: [this._fromAccount || "", this._toAccount]};
+    let options = { protocol: this._tokenPair.protocol, address: [this._fromAccount || "", this._toAccount] };
     let isErc20 = (this._tokenPair.protocol === "Erc20");
     if (!isErc20) {
       options.batchSize = this._amount.length;
@@ -149,7 +147,7 @@ class BridgeTask {
     this._fee = await this._bridge.estimateFee((this._tokenPair.assetAlias || this._tokenPair.readableSymbol), this._fromChainInfo.chainName, this._toChainInfo.chainName, options);
     if (this._fee.networkFee.isSubsidy) {
       // check subsidyCrossSc coin balance and clear subsidyFee
-      let subsidyFee = tool.parseFee(this._fee, this._amount, this._fee.networkFee.unit, {feeType: "networkFee", includeSubsidy: true});
+      let subsidyFee = tool.parseFee(this._fee, this._amount, this._fee.networkFee.unit, { feeType: "networkFee", includeSubsidy: true });
       let subsidyBalance = this._fee.networkFee.subsidyBalance;
       console.debug("balance for fee subsidy: %s/%s %s", subsidyBalance, subsidyFee, this._fee.networkFee.unit);
       if (new BigNumber(subsidyBalance).lt(subsidyFee)) {
@@ -171,8 +169,7 @@ class BridgeTask {
     return "";
   }
 
-  // depends on fee
-  async _checkSmg() {
+  async _checkSmg() { // depends on fee
     // get active smg
     let smg = await this._bridge.getSmgInfo();
     this._smg = smg;
@@ -192,7 +189,7 @@ class BridgeTask {
     if (!gpk) {
       return "Invalid protocol parameter";
     }
-    this._gpkInfo = {gpk, curve, algo};
+    this._gpkInfo = { gpk, curve, algo };
     if (this._tokenPair.protocol !== "Erc20") { // only Erc20 need to check token smg balance
       return "";
     }
@@ -201,7 +198,7 @@ class BridgeTask {
     if (smg.changed) { // optimize for mainnet getQuota performance issue
       this._quota = await this._bridge.storemanService.getStroremanGroupQuotaInfo(fromChainType, this._tokenPair.id, smg.id);
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._tokenPair.readableSymbol, this._quota);
-      let networkFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol, {feeType: "networkFee"});
+      let networkFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol, { feeType: "networkFee" });
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
       if (agentAmount.gt(this._quota.maxQuota)) {
         return "Exceed maxQuota";
@@ -210,13 +207,13 @@ class BridgeTask {
       }
     }
     // check activating balance
-    let tokenAccount = (this._direction === "MINT")? this._tokenPair.fromAccount : this._tokenPair.toAccount;
+    let tokenAccount = (this._direction === "MINT") ? this._tokenPair.fromAccount : this._tokenPair.toAccount;
     let isLockCoin = (tokenAccount == 0);
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(fromChainType);
     let crossScAddr = chainInfo.crossScAddr || (chainInfo.CircleBridge && (chainInfo.CircleBridge.crossScAddr || chainInfo.CircleBridge.crossScAddrV2));
     if ((!crossScAddr) && chainInfo.minReserved) { // do not check contract as it only set once
       let smgAddr = this._getSmgAddress(fromChainType);
-      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, fromChainType, smgAddr, {wallet: this._wallet, isCoin: true});
+      let smgBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, fromChainType, smgAddr, { wallet: this._wallet, isCoin: true });
       console.debug("%s smgAddr %s balance: %s", fromChainType, smgAddr, smgBalance.toFixed());
       let estimateBalance = smgBalance;
       if (isLockCoin) { // only lock coin would change balance, ignore lock token networkFee
@@ -241,7 +238,7 @@ class BridgeTask {
       let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, smgAddr);
       if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
         let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
-        console.debug("Storeman has no trust line for %s: smg=%s, liquidity=%s", token, smgAddr, line? line.limit.minus(line.balance).toFixed() : "0");
+        console.debug("Storeman has no trust line for %s: smg=%s, liquidity=%s", token, smgAddr, line ? line.limit.minus(line.balance).toFixed() : "0");
         return "The XRPL token crosschain is being activated. Please try again later";
       }
     }
@@ -249,12 +246,13 @@ class BridgeTask {
   }
 
   async _checkFromAccount() {
+    let chainType = this._fromChainInfo.chainType;
     if (!this._fromAccount) { // third party wallet
       return "";
     }
-    let chainType = this._fromChainInfo.chainType;
+
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
-    let coinBalance  = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet, isCoin: true});
+    let coinBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, { wallet: this._wallet, isCoin: true });
     let assetBalance;
     let coinSymbol = this._bridge.chainInfoService.getCoinSymbol(chainType);
     let requiredCoin = new BigNumber(0);
@@ -264,7 +262,7 @@ class BridgeTask {
       requiredCoin = requiredCoin.plus(this._amount); // includes fee
       requiredAsset = 0;
     } else {
-      assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, {wallet: this._wallet});
+      assetBalance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._fromAccount, { wallet: this._wallet });
       requiredCoin = requiredCoin.plus(tool.parseFee(this._fee, this._amount, coinSymbol));
       requiredAsset = this._amount;
     }
@@ -303,7 +301,7 @@ class BridgeTask {
 
   async _checkToAccount(options) {
     let chainType = this._toChainInfo.chainType;
-    let tokenAccount = (this._direction === "MINT")? this._tokenPair.toAccount : this._tokenPair.fromAccount;
+    let tokenAccount = (this._direction === "MINT") ? this._tokenPair.toAccount : this._tokenPair.fromAccount;
     let isRedeemCoin = (tokenAccount == 0);
     // check address id
     if (options.toAccountId) {
@@ -315,7 +313,7 @@ class BridgeTask {
     // check activating balance
     let chainInfo = this._bridge.chainInfoService.getChainInfoByType(chainType);
     if (chainInfo.minReserved && ((chainType !== "SOL") || isRedeemCoin)) { // solana contract will pay on releasing token, but user should pay on releasing SOL
-      let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._toAccount, {isCoin: true});
+      let balance = await this._bridge.storemanService.getAccountBalance(this._tokenPair.id, chainType, this._toAccount, { isCoin: true });
       console.debug("toAccount %s balance: %s", this._toAccount, balance.toFixed());
       let estimateBalance = balance;
       if (isRedeemCoin) { // only redeem coin would change balance
@@ -328,15 +326,15 @@ class BridgeTask {
           console.error("Amount is too small to activate recipient account, at least %s %s", diff.toFixed(), this._fromChainInfo.symbol);
         }
         return util.format("%s enforces an existential deposit requirement. Make sure that the balance of destination address remains above %s %s.",
-                           chainInfo.chainName,
-                           chainInfo.minReserved,
-                           chainInfo.symbol || chainType);
+          chainInfo.chainName,
+          chainInfo.minReserved,
+          chainInfo.symbol || chainType);
       }
     }
     // check xrp token trust line
     if (chainType === "XRP") {
       try {
-        let aInfo = await this._bridge.iwan.getAccountInfo("XRP", this._toAccount, {version: "v2"});
+        let aInfo = await this._bridge.iwan.getAccountInfo("XRP", this._toAccount, { version: "v2" });
         if (aInfo && aInfo.account_data.FlagsParsed && aInfo.account_data.FlagsParsed.lsfRequireDestTag) { // FlagsParsed is appeded by iwan
           console.error("XRP account %s requires destination tag", this._toAccount);
           return "The destination address requiring the user to input a tag is not supported. Please switch to another suitable XRPL address, such as a standard wallet address.";
@@ -355,9 +353,9 @@ class BridgeTask {
           let line = await this._bridge.storemanService.getXrpTokenTrustLine(tokenAccount, this._toAccount);
           if ((!line) || line.limit.minus(line.balance).lt(this._amount)) {
             let token = tool.parseXrpTokenPairAccount(tokenAccount, true).join(".");
-            let reason = line? "Liquidity is not enough" : "No trust line";
+            let reason = line ? "Liquidity is not enough" : "No trust line";
             let msg = util.format("%s for %s", reason, token);
-            console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line? line.limit.minus(line.balance).toFixed() : "0");
+            console.debug("Recipient %s %s: liquidity=%s", this._toAccount, msg, line ? line.limit.minus(line.balance).toFixed() : "0");
             return msg;
           }
         } catch (err) { // "Account not found." or other exceptions
@@ -413,40 +411,44 @@ class BridgeTask {
 
   async _procTaskSteps() {
     let steps = this._task.ccTaskData.stepData;
-    console.debug("bridgeTask _procTaskSteps total %d at %s ms", steps.length, tool.getCurTimestamp());
+    console.debug("bridgeTask %s proc %d steps start at %d ms", this.id, steps.length, tool.getCurTimestamp());
     let curStep = 0, executedStep = -1, stepTxHash = "";
-    for (; curStep < steps.length; ) {
+    for (; curStep < steps.length;) {
       let taskStep = steps[curStep];
+      if (executedStep != curStep) {
+        console.debug("bridgeTask %s proc step %d at %d ms", this.id, curStep, tool.getCurTimestamp());
+        await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
+        executedStep = curStep;
+      }
+      /* now sync abnormal stepResult and txHash are returned via finishTaskStep, it should emit TaskStepResult to save task info and trigger lock event, it will trigger finishTaskStep again, but it is harmless,
+         it would be more elegant if they emit TaskStepResult event instead of calling finishTaskStep to reuse the unified process
+      */
       let stepResult = taskStep.stepResult;
-      if (!stepResult) {
-        if (taskStep.txHash && !stepTxHash) {
-          await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, ""); // only update txHash, no result
+      if (stepResult) { // sync result
+        if (["Failed", "Rejected"].includes(stepResult)) { // abnormal, result is error info
+          await this._bridge.eventService.emitEvent("TaskStepResult", { ccTaskId: this.id, stepIndex: taskStep.stepIndex, txHash: "", result: stepResult, errInfo: taskStep.errInfo });
+          break;
+        } else if (!this._wallet) { // normal ota, result is ota address, XRP tagId or BTC randomId
+          this._procOtaAddr(stepResult); // ota save step and task info by itself
+        } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) { // normal tx receipt, has already emitted TaskStepResult event, here is only for some special processes
+          await tool.sleep(30000); // Moonbeam need to wait for approve tx to take effect
+        }
+        console.debug("bridgeTask %s proc step %d: %O", this.id, curStep, taskStep);
+        curStep++;
+        stepTxHash = "";
+      } else { // normal, tx always sync return hash, and async return status by emit TaskStepResult event
+        if (taskStep.txHash && !stepTxHash) { // sync txHash
+          await this._bridge.eventService.emitEvent("TaskStepResult", { ccTaskId: this.id, stepIndex: taskStep.stepIndex, txHash: taskStep.txHash, result: "" });
           stepTxHash = taskStep.txHash;
         }
-        if (executedStep != curStep) {
-          console.debug("bridgeTask _procTaskSteps step %s at %s ms", curStep, tool.getCurTimestamp());
-          await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
-          executedStep = curStep;
-        } else {
+        if ((curStep + 1) >= steps.length) { // immediatly finish loop after last step tx
+          break;
+        } else { // otherwise wait step result
           await tool.sleep(3000);
         }
-        continue;
       }
-      console.debug("proc task %d step %d: %O", this.id, curStep, taskStep);
-      if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult contains ota address, XRP tagId or BTC randomId
-        await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
-        this._bridge._distributeEvent("error", {taskId: this.id, reason: taskStep.errInfo || stepResult});
-        break;
-      }
-      if (!this._wallet) {
-        this._procOtaAddr(stepResult);
-      } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
-        await tool.sleep(30000); // wait Moonbeam approve take effect
-      }
-      await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
-      curStep++;
-      stepTxHash = "";
     }
+    console.debug("bridgeTask %s proc %d steps finish at %d ms", this.id, steps.length, tool.getCurTimestamp());
   }
 
   _procOtaAddr(stepResult) {
@@ -455,14 +457,14 @@ class BridgeTask {
     }
     let records = this._bridge.stores.crossChainTaskRecords;
     let chainType = this._fromChainInfo.chainType;
-    let ota = {taskId: this.id};
+    let ota = { taskId: this.id };
     if (["BTC", "LTC", "DOGE"].includes(chainType)) {
-      records.setTaskOtaInfo(this.id, {address: stepResult.address, randomId: stepResult.randomId});
+      records.setTaskOtaInfo(this.id, { address: stepResult.address, randomId: stepResult.randomId });
       this._ota = stepResult.address;
       ota.address = this._ota;
     } else if (chainType === "XRP") {
       let xrpAddr = this._getXAddressByTagId(stepResult);
-      records.setTaskOtaInfo(this.id, {address: xrpAddr.xAddr, tagId: xrpAddr.tagId, rAddress: xrpAddr.rAddr});
+      records.setTaskOtaInfo(this.id, { address: xrpAddr.xAddr, tagId: xrpAddr.tagId, rAddress: xrpAddr.rAddr });
       this._ota = xrpAddr.xAddr;
       ota.address = this._ota;
       ota.rAddress = xrpAddr.rAddr;
@@ -470,27 +472,10 @@ class BridgeTask {
     } else {
       throw new Error("Invalid ota chain type " + chainType);
     }
+    let ccTask = records.ccTaskRecords.get(this.id);
+    this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
     this._bridge._distributeEvent("ota", ota);
     console.debug("%s OTA: %O", chainType, ota);
-  }
-
-  async _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // only for sync step result to update lockTx hash
-    let records = this._bridge.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(this.id);
-    if (ccTask) {
-      let {isLockTx, isLocked} = records.updateTaskByStepResult(this.id, stepIndex, txHash, stepResult, errInfo);
-      if (isLockTx) {
-        let lockEvent = {taskId: this.id, txHash};
-        console.debug("lockTxHash: %O", lockEvent);
-        this._bridge._distributeEvent("lock", lockEvent);
-      }
-      if (isLocked) {
-        let lockedEvent = {taskId: this.id, txHash};
-        console.debug("lockedEvent: %O", lockedEvent);
-        this._bridge._distributeEvent("locked", lockedEvent);
-      }
-      this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
-    }
   }
 
   _getSmgXrpClassicAddress() {
@@ -523,4 +508,4 @@ class BridgeTask {
   }
 }
 
-module.exports = BridgeTask;
+export default BridgeTask;

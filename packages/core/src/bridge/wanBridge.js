@@ -1,12 +1,12 @@
-const EventEmitter = require('events').EventEmitter;
-const CrossChainTaskRecords = require('./stores/CrossChainTaskRecords');
-const CrossChainTask = require('./stores/CrossChainTask');
-const AssetPairs = require('./stores/AssetPairs');
-const StartService = require('../gsp/startService/startService.js');
-const BridgeTask = require('./bridgeTask.js');
-const tool = require('../utils/tool.js');
-const BigNumber = require("bignumber.js");
-const axios = require("axios");
+import { EventEmitter } from "events";
+import CrossChainTaskRecords from "./stores/CrossChainTaskRecords.js";
+import CrossChainTask from "./stores/CrossChainTask.js";
+import AssetPairs from "./stores/AssetPairs.js";
+import StartService from "../gsp/startService/startService.js";
+import BridgeTask from "./bridgeTask.js";
+import tool from "../utils/tool.js";
+import BigNumber from "bignumber.js";
+import axios from "axios";
 
 const THIRD_PARTY_WALLET_CHAINS = ["BTC", "LTC", "DOGE", "XRP"];
 
@@ -19,12 +19,12 @@ const TaskInfoMapping = { // for QuiX to insert task info
   "asset": "assetType",
   "fromChain": "fromChainName",
   "toChain": "toChainName",
-}
+};
 
 class WanBridge extends EventEmitter {
-  constructor(network = "testnet", options = {}) { // options is only for dev
+  constructor(network = "testnet", options = {}) {
     super();
-    this.network = (network == "mainnet")? "mainnet" : "testnet";
+    this.network = (network == "mainnet") ? "mainnet" : "testnet";
     this.isTestMode = options.isTestMode || false;
     this.smgName = options.smgName || "";
     this.prefer = options.prefer || "cctp"; // prefer cctp or wb when both tokenpair exist, default cctp
@@ -35,9 +35,9 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601211835", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2601291110", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
-    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, {isTestMode: this.isTestMode, prefer: this.prefer}));
+    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
     this.eventService = this._service.getService("EventService");
     this.storemanService = this._service.getService("StoremanService");
@@ -81,7 +81,7 @@ class WanBridge extends EventEmitter {
       smg = this.selectSmg();
       changed = true; // optimize for mainnet getQuota performance issue
     }
-    return Object.assign({}, smg, {changed});
+    return Object.assign({}, smg, { changed });
   }
 
   selectSmg() {
@@ -109,35 +109,20 @@ class WanBridge extends EventEmitter {
   }
 
   async checkWallet(chainName, wallet) {
-    console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet? wallet.name : undefined);
+    console.debug("SDK: checkWallet, chainName: %s, wallet: %s", chainName, wallet ? wallet.name : undefined);
     let chainType = this.tokenPairService.getChainType(chainName);
     if (this._isThirdPartyWallet(chainType) && !wallet) { // BTC support both
       return true;
     } else {
-      let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
-      if (chainInfo.walletChainId !== undefined) {
-        if (wallet) {
-          let walletChainId = await wallet.getChainId();
-          if (chainInfo.walletChainId == walletChainId) {
-            return true;
-          } else {
-            console.debug("SDK: checkWallet id %s != %s", walletChainId, chainInfo.walletChainId);
-            return false;
-          }
-        } else {
-          return false;
-        }
-      } else {
-        return true;
-      }
+      return (await this.storemanService.checkWalletId(chainType, wallet, { debug: true }));
     }
   }
 
   async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
     console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
-                  tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
+      tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
     if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
-      let devChains = ["Cardano", "Cosmos", "Kava", "Noble", "Solana"];
+      let devChains = ["Cosmos", "Kava", "Noble"];
       if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
         throw new Error("Only support dev group");
       }
@@ -166,24 +151,11 @@ class WanBridge extends EventEmitter {
       throw new Error("Missing wallet");
     }
     // create task
-    let direction = (fromChainName === tokenPair.fromChainName)? "MINT" : "BURN";
+    let direction = (fromChainName === tokenPair.fromChainName) ? "MINT" : "BURN";
     let task = new BridgeTask(this, tokenPair, direction, fromAccount, toAccount, amount, wallet);
     await task.init(options);
     await task.start();
     return task;
-  }
-
-  cancelTask(taskId) {
-    console.debug("SDK: cancelTask, taskId: %s", taskId);
-    // only set the status, do not really stop the task
-    let records = this.stores.crossChainTaskRecords;
-    let ccTask = records.ccTaskRecords.get(taskId);
-    if (!ccTask) {
-      return;
-    }
-    records.modifyTradeTaskStatus(taskId, "Rejected");
-    this._distributeEvent("error", {taskId, reason: "Rejected"});
-    this.storageService.save("crossChainTaskRecords", taskId, ccTask);
   }
 
   async getAccountBalance(assetType, chainName, account, options = {}) {
@@ -218,7 +190,8 @@ class WanBridge extends EventEmitter {
         min: operateFee.min,
         max: operateFee.max,
         decimals: operateFee.decimals,
-        discount: operateFee.discount},
+        discount: operateFee.discount
+      },
       networkFee: {
         value: networkFee.fee,
         unit: networkFee.unit,
@@ -236,7 +209,7 @@ class WanBridge extends EventEmitter {
     }
     if (networkFee.isSubsidy) {
       let chainInfo = this.chainInfoService.getChainInfoByType(fromChainType);
-      let subsidyBalance = await this.storemanService.getAccountBalance(tokenPair.id, fromChainType, chainInfo.subsidyCrossSc, {isCoin: true});
+      let subsidyBalance = await this.storemanService.getAccountBalance(tokenPair.id, fromChainType, chainInfo.subsidyCrossSc, { isCoin: true });
       fee.networkFee.subsidyBalance = subsidyBalance.toFixed();
     }
     console.debug("SDK: estimateFee, result: %O", fee);
@@ -249,11 +222,11 @@ class WanBridge extends EventEmitter {
     let protocol = options.protocol || "Erc20";
     if (protocol === "Erc20") {
       let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
-      let chainType = (fromChainName === tokenPair.fromChainName)? tokenPair.fromChainType : tokenPair.toChainType;
-      let targetChainType = (fromChainName === tokenPair.fromChainName)? tokenPair.toChainType : tokenPair.fromChainType;
-      hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", {chainType, targetChainType, tokenPairID: tokenPair.id});
+      let chainType = (fromChainName === tokenPair.fromChainName) ? tokenPair.fromChainType : tokenPair.toChainType;
+      let targetChainType = (fromChainName === tokenPair.fromChainName) ? tokenPair.toChainType : tokenPair.fromChainType;
+      hideQuota = await this.iwan.call("getCrossChainTokenQuotaHiddenFlag", { chainType, targetChainType, tokenPairID: tokenPair.id });
       if (tokenPair.bridge) { // only Circle now, ingnore cctpV2 quota
-        quota = {maxQuota: hideQuota? "0" : Infinity.toString(), minQuota: "0"};
+        quota = { maxQuota: hideQuota ? "0" : Infinity, minQuota: "0" };
       } else {
         let smg = await this.getSmgInfo();
         quota = await this.storemanService.getStroremanGroupQuotaInfo(chainType, tokenPair.id, smg.id);
@@ -262,14 +235,14 @@ class WanBridge extends EventEmitter {
         }
       }
     } else {
-      quota = {maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0"};
+      quota = { maxQuota: MAX_NFT_BATCH_SIZE.toString(), minQuota: "0" };
     }
     console.debug("SDK: getQuota, hide: %s, result: %O", hideQuota, quota);
     return quota;
   }
 
   validateAddress(chainName, address, options = {}) { // validate address format and basic static rule
-    options = Object.assign({debug: true, checkToken: true}, options);
+    options = Object.assign({ debug: true, checkToken: true }, options);
     let chainType = this.tokenPairService.getChainType(chainName);
     let result = this.storemanService.validateAddress(chainType, address);
     if (result === false) {
@@ -308,15 +281,15 @@ class WanBridge extends EventEmitter {
   async getNftInfo(assetType, chainName, account, options = {}) {
     console.debug("SDK: getNftInfo, assetType: %s, chainName: %s, account: %s, options: %O", assetType, chainName, account, options);
     let tokenPair = this._matchTokenPair(assetType, chainName, chainName, options);
-    let token = (chainName === tokenPair.fromChainName)? tokenPair.fromAccount : tokenPair.toAccount;
+    let token = (chainName === tokenPair.fromChainName) ? tokenPair.fromAccount : tokenPair.toAccount;
     let chainType = this.tokenPairService.getChainType(chainName);
     // for cardano
-    options.isNative = (chainType === tokenPair.fromChainType)? tokenPair.fromIsNative : tokenPair.toIsNative;
+    options.isNative = (chainType === tokenPair.fromChainType) ? tokenPair.fromIsNative : tokenPair.toIsNative;
     options.ancestorChainType = tokenPair.ancestorChainType; // mapping nft token
     options.ancestorAccount = tokenPair.ancestorAccount; // mapping nft token // mapping nft token
     // for cardano original nft token
-    options.fromChainID = (chainType === tokenPair.fromChainType)? tokenPair.fromChainID : tokenPair.toChainID; // original nft token
-    options.toChainID = (chainType === tokenPair.fromChainType)? tokenPair.toChainID : tokenPair.fromChainID; // original nft token
+    options.fromChainID = (chainType === tokenPair.fromChainType) ? tokenPair.fromChainID : tokenPair.toChainID; // original nft token
+    options.toChainID = (chainType === tokenPair.fromChainType) ? tokenPair.toChainID : tokenPair.fromChainID; // original nft token
     let infos = await this.storemanService.getNftInfo(tokenPair.protocol, chainType, token, account, options);
     infos.forEach(v => {
       v.ancestorChainName = tokenPair.ancestorChainName; // frontend show ancestorChainName
@@ -471,7 +444,6 @@ class WanBridge extends EventEmitter {
       return tokenAccount;
     }
   }
-
   getFromChains(options) { // options MUST contain protocols
     let fromChainSet = new Set();
     let assetPairList = this.stores.assetPairs.assetPairList;
@@ -490,7 +462,7 @@ class WanBridge extends EventEmitter {
     return Array.from(fromChainSet);
   }
 
-  async getChainAssets(options) { // options should contain wallet for non-EVM chain
+  async getChainAssets(options) { // options should contain wallet for most non-EVM chains
     console.debug("SDK: getChainAssets, options: %O", this._getDebugOptions(options));
     let ts0 = Date.now();
     let chains = options.chainNames || this.getFromChains(options);
@@ -556,7 +528,7 @@ class WanBridge extends EventEmitter {
       isNative: tokenPair.toIsNative,
       issuer: tokenPair.toIssuer
     };
-    let result = (tokenPair.fromChainName === fromChainName)? {from: from, to: to} : {from: to, to: from};
+    let result = (tokenPair.fromChainName === fromChainName) ? { from: from, to: to } : { from: to, to: from };
     result.bridge = tokenPair.bridge;
     result.routes = tokenPair.routes;
     return result;
@@ -572,7 +544,7 @@ class WanBridge extends EventEmitter {
         balances = await tool.timedPromise(this.storemanService.getAccountBalances(chainType, options.account, assets, options));
       }
     } catch (err) {
-      console.error("%s _getChainAssets error: %O", chainName, err);
+      console.log("%s _getChainAssets error: %O", chainName, err);
     }
     for (let asset in assets) {
       assetInfos.push({
@@ -611,7 +583,7 @@ class WanBridge extends EventEmitter {
         blockTime: chainInfo.blockTime || 12,
         blockConfirmations: chainInfo.blockConfirmations || 1,
         highlightEndTime
-      }
+      };
     }
     return null;
   }
@@ -628,23 +600,22 @@ class WanBridge extends EventEmitter {
     if (!["Ready", "Failed"].includes(task.reclaimStatus)) {
       throw new Error("Not ready");
     }
-    let taskType = "";
+    let params;
     if ((task.fromChainType === "SOL") && (task.bridge === "Circle")) {
-      taskType = "ProcessCircleBridgeSolanaReclaim";
+      params = { taskType: "ProcessCircleBridgeSolanaReclaim", lockHash: task.lockHash, ccTaskId: taskId, fromAddr: task.fromAccount };
+      let addresses = await wallet.getAccounts();
+      if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
+        throw new Error("Invalid wallet account");
+      }
     } else {
       throw new Error("Not reclaimable");
     }
-    let addresses = await wallet.getAccounts();
-    if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
-      throw new Error("Invalid wallet account");
-    }
-    let params = {taskType, lockHash: task.lockHash, ccTaskId: taskId, fromAddr: task.fromAccount};
-    let err = await this.txTaskHandleService.processTxTask({params}, wallet);
+    let err = await this.txTaskHandleService.processTxTask({ params }, wallet);
     if (err) {
       console.error("reclaim task %s error: %O", taskId, err);
       throw err;
     } else {
-      this.stores.crossChainTaskRecords.setExtraInfo(taskId, {reclaimStatus: "Processing"}, true);
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { reclaimStatus: "Processing" }, true);
       this.storageService.save("crossChainTaskRecords", taskId, task);
     }
   }
@@ -654,12 +625,12 @@ class WanBridge extends EventEmitter {
     discounts.forEach(v => {
       v.amount = new BigNumber(v.amount).div(10 ** 18).toFixed();
       v.discount = new BigNumber(v.discount).div(10 ** 18).toFixed();
-    })
+    });
     return discounts;
   }
 
   async accountAddress2Id(addresses) {
-    let data = await this.iwan.call("getMultiAccountIdentity", {identityParams: addresses});
+    let data = await this.iwan.call("getMultiAccountIdentity", { identityParams: addresses });
     let result = {};
     data.forEach(v => {
       if (v.id) {
@@ -671,23 +642,23 @@ class WanBridge extends EventEmitter {
   }
 
   async accountId2Address(id, chainName) {
-    let data = await this.iwan.call("getMultiAccountByIdentity", {identityParams:[id]});
+    let data = await this.iwan.call("getMultiAccountByIdentity", { identityParams: [id] });
     let result = [];
-    let chainInfo = chainName? this.chainInfoService.getChainInfoByName(chainName) : null;
+    let chainInfo = chainName ? this.chainInfoService.getChainInfoByName(chainName) : null;
     data.forEach(v => {
       let ci = this.chainInfoService.getChainInfoByType(v.chainType);
       if (ci) { // wanbridge support this chain
         if (chainName) {
-          let checkFormat = this.validateAddress(chainName, v.account, {debug: false, checkToken: false});
+          let checkFormat = this.validateAddress(chainName, v.account, { debug: false, checkToken: false });
           if (checkFormat) {
             if (ci.chainType === chainInfo.chainType) {
-              result.unshift({chainName: ci.chainName, address: v.account});
+              result.unshift({ chainName: ci.chainName, address: v.account });
             } else {
-              result.push({chainName: ci.chainName, address: v.account});
+              result.push({ chainName: ci.chainName, address: v.account });
             }
           }
         } else {
-          result.push({chainName: ci.chainName, address: v.account});
+          result.push({ chainName: ci.chainName, address: v.account });
         }
       }
     });
@@ -751,11 +722,11 @@ class WanBridge extends EventEmitter {
     } else {
       throw new Error("Task does not exist");
     }
-    let url = (this.network === "testnet")? "https://testnet.wanscan.org/api/sign" : "https://www.wanscan.org/api/sign";
-    let res = await axios.post(url, {type: "ccRewardTask", taskId, txHash});
+    let url = (this.network === "testnet") ? "https://testnet.wanscan.org/api/sign" : "https://www.wanscan.org/api/sign";
+    let res = await axios.post(url, { type: "ccRewardTask", taskId, txHash });
     if (res.data.signature) {
-      let params = {taskType: "ProcessClaimCrossReward", taskId, txHash, signature: res.data.signature, fromAddr, wallet};
-      let err = await this.txTaskHandleService.processTxTask({params}, wallet);
+      let params = { taskType: "ProcessClaimCrossReward", taskId, txHash, signature: res.data.signature, fromAddr, wallet };
+      let err = await this.txTaskHandleService.processTxTask({ params }, wallet);
       if (err) {
         console.error("claimCrossReward task %s error: %O", taskId, err);
         throw err;
@@ -772,7 +743,7 @@ class WanBridge extends EventEmitter {
       this._distributeEvent("ready", assetPairList.map(v => Object.assign({}, v)));
       console.debug("WanBridge is ready for %d assetPairs and %d smgs", assetPairList.length, this.stores.assetPairs.smgList.length);
     } else {
-      this._distributeEvent("error", {reason: "Failed to initialize storeman"});
+      this._distributeEvent("error", { reason: "Failed to initialize storeman" });
       console.error("WanBridge has error");
     }
   }
@@ -790,16 +761,16 @@ class WanBridge extends EventEmitter {
     let fee = new BigNumber(tool.parseFee(ccTask.fee, ccTask.amount, ccTask.assetType));
     if (fee.gte(value)) {
       let errInfo = "Amount is too small to pay the bridge fee";
-      console.error({taskId, errInfo});
+      console.error({ taskId, errInfo });
       records.modifyTradeTaskStatus(taskId, "Failed", errInfo);
-      this._distributeEvent("error", {taskId, reason: errInfo});
+      this._distributeEvent("error", { taskId, reason: errInfo });
     } else {
       records.modifyTradeTaskStatus(taskId, "Converting");
     }
     records.setTaskLockTxHash(taskId, txHash, value, taskLockHash.sender, taskLockHash.uniqueId);
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    await this._distributeEvent("lock", {taskId, txHash});
-    this._distributeEvent("locked", {taskId, txHash});
+    await this._distributeEvent("lock", { taskId, txHash });
+    this._distributeEvent("locked", { taskId, txHash });
   }
 
   _onLockTxTimeout(taskLockTimeout) {
@@ -811,7 +782,7 @@ class WanBridge extends EventEmitter {
       let errInfo = "Waiting for locking asset timeout";
       records.modifyTradeTaskStatus(taskId, "Timeout", errInfo);
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-      this._distributeEvent("error", {taskId, reason: errInfo});
+      this._distributeEvent("error", { taskId, reason: errInfo });
     }
   }
 
@@ -846,7 +817,7 @@ class WanBridge extends EventEmitter {
         console.error("actual toAccount %s does not match expected toAccount %s", taskRedeemHash.toAccount, ccTask.innerToAccount || ccTask.toAccount);
         status = "Error";
         errInfo = "Please contact the Wanchain Foundation (techsupport@wanchain.org)";
-        this._distributeEvent("error", {taskId, reason: errInfo});
+        this._distributeEvent("error", { taskId, reason: errInfo });
       }
     }
     let receivedAmount;
@@ -869,7 +840,7 @@ class WanBridge extends EventEmitter {
     records.modifyTradeTaskStatus(taskId, status, errInfo);
     records.setTaskRedeemTxHash(taskId, txHash, receivedAmount);
     if ((ccTask.fromChainType === "SOL") && (ccTask.bridge === "Circle")) {
-      records.setExtraInfo(taskId, {reclaimStatus: "Ready"});
+      records.setExtraInfo(taskId, { reclaimStatus: "Ready" });
     }
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
     if (wanPointsServer) {
@@ -884,12 +855,12 @@ class WanBridge extends EventEmitter {
       } catch (err) {
         console.debug("wanPoints %s error: %O", url, err);
       }
-      records.setExtraInfo(taskId, {wanPoints});
+      records.setExtraInfo(taskId, { wanPoints });
     } else {
       console.debug("%s does not support wanPoints", this.network);
     }
     this.storageService.save("crossChainTaskRecords", taskId, ccTask);
-    this._distributeEvent("redeem", {taskId, txHash});
+    this._distributeEvent("redeem", { taskId, txHash });
   }
 
   _updateFee(taskId, taskFee, assetType, estimateFee, actualFee) {
@@ -926,7 +897,7 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  async _onTaskStepResult(taskStepResult) { // only for async tx receipt to update lockTx result
+  async _onTaskStepResult(taskStepResult) { // both for sync error, sync txHash, async tx receipt
     console.debug("_onTaskStepResult: %O", taskStepResult);
     let taskId = taskStepResult.ccTaskId;
     let stepIndex = taskStepResult.stepIndex;
@@ -937,15 +908,16 @@ class WanBridge extends EventEmitter {
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
       this.stores.crossChainTaskRecords.finishTaskStep(taskId, stepIndex, txHash, result, errInfo);
-      let {isLockTx, isLocked} = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
-      if (isLockTx) {
-        let lockEvent = {taskId, txHash};
-        await this._distributeEvent("lock", lockEvent);
-      }
-      if (isLocked) {
-        let lockedEvent = {taskId, txHash};
-        console.debug("lockedEvent: %O", lockedEvent);
-        this._distributeEvent("locked", lockedEvent);
+      let { isLockTx, isLocked } = records.updateTaskByStepResult(taskId, stepIndex, txHash, result, errInfo);
+      if (["Failed", "Rejected"].includes(result)) {
+        this._distributeEvent("error", { taskId, reason: errInfo || result });
+      } else {
+        if (isLockTx) {
+          await this._distributeEvent("lock", { taskId, txHash });
+        }
+        if (isLocked) {
+          this._distributeEvent("locked", { taskId, txHash });
+        }
       }
       this.storageService.save("crossChainTaskRecords", taskId, ccTask);
     }
@@ -960,13 +932,13 @@ class WanBridge extends EventEmitter {
     let records = this.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(taskId);
     if (ccTask) {
-      this.stores.crossChainTaskRecords.setExtraInfo(taskId, {reclaimStatus: result, reclaimHash: txHash}, true);
+      this.stores.crossChainTaskRecords.setExtraInfo(taskId, { reclaimStatus: result, reclaimHash: txHash }, true);
       if (errInfo) {
-        let event = {taskId, txHash, reason: "Reclaim failed"};
+        let event = { taskId, txHash, reason: "Reclaim failed" };
         console.error("reclaimEvent: %O", event);
         this._distributeEvent("error", event);
       } else {
-        let event = {taskId, txHash};
+        let event = { taskId, txHash };
         console.debug("reclaimEvent: %O", event);
         this._distributeEvent("reclaim", event);
       }
@@ -983,9 +955,9 @@ class WanBridge extends EventEmitter {
   }
 
   async _registerTxOperator(txHash) {
-    let host = (this.network === "mainnet")? "https://www.wanscan.org" : "https://testnet.wanscan.org";
-    let operator = this.isTestMode? "WanBridgePre" : "WanBridge";
-    let data = {txHash, operator};
+    let host = (this.network === "mainnet") ? "https://www.wanscan.org" : "https://testnet.wanscan.org";
+    let operator = this.isTestMode ? "WanBridgePre" : "WanBridge";
+    let data = { txHash, operator };
     try {
       let result = await axios.post(host + '/api/cc/tx/operator', data);
       if (result.data.operator !== operator) {
@@ -1032,4 +1004,4 @@ class WanBridge extends EventEmitter {
   }
 }
 
-module.exports = WanBridge;
+export default WanBridge;

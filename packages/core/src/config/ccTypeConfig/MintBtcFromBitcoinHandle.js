@@ -1,9 +1,7 @@
-'use strict';
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
-const BigNumber = require("bignumber.js");
-const tool = require('../../utils/tool.js');
-
-module.exports = class MintBtcFromBitcoinHandle {
+class MintBtcFromBitcoinHandle {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -11,16 +9,16 @@ module.exports = class MintBtcFromBitcoinHandle {
 
   async process(tokenPair, convert) {
     let direction = (convert.convertType === "MINT");
-    let fromChainType = direction? tokenPair.fromChainType : tokenPair.toChainType;
-    let toChainType = direction? tokenPair.toChainType : tokenPair.fromChainType;
-    let decimals = direction? tokenPair.fromDecimals : tokenPair.toDecimals;
+    let fromChainType = direction ? tokenPair.fromChainType : tokenPair.toChainType;
+    let toChainType = direction ? tokenPair.toChainType : tokenPair.fromChainType;
+    let decimals = direction ? tokenPair.fromDecimals : tokenPair.toDecimals;
     try {
       let value = new BigNumber(convert.value).multipliedBy(Math.pow(10, decimals)).toFixed(0);
       let fee = tool.parseFee(convert.fee, convert.value, tokenPair.ancestorSymbol);
-      let taskType = convert.wallet? "ProcessMintFromBitcoinWallet" : "ProcessMintBtcFromBitcoin";
-      let taskName = convert.wallet? "userFastMint" : "addOTA";
+      let taskType = convert.wallet ? "ProcessMintFromBitcoinWallet" : "ProcessMintBtcFromBitcoin";
+      let taskName = convert.wallet ? "userFastMint" : "addOTA";
       let addrInfo = tool.getStandardAddressInfo(toChainType, convert.toAddr, this.configService.getExtension(toChainType));
-      let userAccount = convert.wallet? addrInfo.compact : addrInfo.text; // op_return use compact format to avoid size limit
+      let userAccount = convert.wallet ? addrInfo.compact : addrInfo.text; // op_return use compact format to avoid size limit
       let params = {
         ccTaskId: convert.ccTaskId,
         fromChainType,
@@ -38,7 +36,7 @@ module.exports = class MintBtcFromBitcoinHandle {
       };
       console.debug("Mint %s params: %O", fromChainType, params);
       let steps = [
-        {name: taskName, stepIndex: 1, params}
+        { name: taskName, stepIndex: 1, params }
       ];
       return steps;
     } catch (err) {
@@ -46,4 +44,6 @@ module.exports = class MintBtcFromBitcoinHandle {
       throw err;
     }
   }
-};
+}
+
+export default MintBtcFromBitcoinHandle;

@@ -1,9 +1,9 @@
 
 class UniSatWallet {
-  constructor(provider) {
+  constructor(network) {
     if (window.unisat) {
       this.name = "Unisat";
-      if (!['mainnet', 'testnet'].includes(provider)) {
+      if (!['mainnet', 'testnet'].includes(network)) {
         throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
       }
       this.wallet = window.unisat;
@@ -11,6 +11,23 @@ class UniSatWallet {
       window.open('https://chromewebstore.google.com/detail/unisat-wallet/ppbibelpcjmhbdihakflkdcoccbgbkpo');
       throw new Error('please install Unisat wallet');
     }
+  }
+
+  async connect() {
+    try {
+      let accounts = await this.wallet.requestAccounts();
+      if (!accounts.length) {
+        throw new Error("Not installed or not allowed");
+      }
+      return accounts;
+    } catch (err) {
+      console.error("%s not installed or not allowed: %O", this.name, err);
+      throw new Error("Not installed or not allowed");
+    }
+  }
+
+  disconnect() {
+    this.wallet.disconnect();
   }
 
   // standard function
@@ -25,7 +42,6 @@ class UniSatWallet {
     } else {
       return 'unknown';
     }
-
   }
 
   async getAccounts(network) {
@@ -56,6 +72,14 @@ class UniSatWallet {
       console.log(e);
     }
   }
+
+  on(...arg) {
+    this.wallet.on(...arg);
+  }
+
+  off(...arg) {
+    this.wallet.off(...arg);
+  }
 }
 
-module.exports = UniSatWallet;
+export default UniSatWallet;

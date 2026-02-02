@@ -1,21 +1,35 @@
-const {WanBridge, Web3Wallet, UnisatWallet, OkxBitcoinWallet} = require('./packages/core');
+import { WanBridge } from "./packages/core/index.js";
 
 // extensions
-const CardanoExtension = require('./packages/cardano');
-const PolkadotExtension = require('./packages/polkadot');
-const TronExtension = require('./packages/tron');
-const CosmosExtension = require('./packages/cosmos');
-const SolanaExtension = require('./packages/solana');
-const AlgorandExtension = require('./packages/algorand');
-const SuiExtension = require('./packages/sui');
-const VeChainExtension = require('./packages/vechain');
-const TonExtension = require('./packages/ton');
+import EvmExtension from './packages/evm';
+import BitcoinExtension from './packages/bitcoin';
+import CardanoExtension from "./packages/cardano/index.js";
+import PolkadotExtension from "./packages/polkadot/index.js";
+import TronExtension from "./packages/tron/index.js";
+import CosmosExtension from "./packages/cosmos/index.js";
+import SolanaExtension from "./packages/solana/index.js";
+import AlgorandExtension from "./packages/algorand/index.js";
+import SuiExtension from "./packages/sui/index.js";
+import VeChainExtension from "./packages/vechain/index.js";
+import TonExtension from "./packages/ton/index.js";
 
-module.exports = {
+export { WanBridge };
+export { EvmExtension };
+export { BitcoinExtension };
+export { CardanoExtension };
+export { PolkadotExtension };
+export { TronExtension };
+export { CosmosExtension };
+export { SolanaExtension };
+export { AlgorandExtension };
+export { SuiExtension };
+export { VeChainExtension };
+export { TonExtension };
+
+export default {
   WanBridge,
-  Web3Wallet,
-  UnisatWallet,
-  OkxBitcoinWallet,
+  EvmExtension,
+  BitcoinExtension,
   CardanoExtension,
   PolkadotExtension,
   TronExtension,

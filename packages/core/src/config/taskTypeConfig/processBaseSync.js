@@ -1,12 +1,10 @@
-'use strict';
-
-let WalletRejects = [
+const WalletRejects = [
   "Error: Returned error: Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 1
   "Error: XDCPay Tx Signature: User denied transaction signature.", // XDCPay 2
   "Confirmation declined by user", // TronLink
-]
+];
 
-module.exports = class ProcessBaseSync {
+class ProcessBaseSync {
   constructor(frameworkService) {
     this.chainInfoService = frameworkService.getService("ChainInfoService");
     this.storemanService = frameworkService.getService("StoremanService");
@@ -20,7 +18,15 @@ module.exports = class ProcessBaseSync {
   async sendTx(stepData, txData, wallet) {
     try {
       let params = stepData.params;
-      await this.checkWallet(params, wallet);
+      let checkWalletId = await this.storemanService.checkWalletId(params.chainType, wallet);
+      if (!checkWalletId) {
+        throw new Error("Wallet chain mismatch");
+      }
+      let accounts = await wallet.getAccounts();
+      let curAccount = accounts && accounts[0] || "";
+      if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
+        throw new Error("Wallet account mismatch");
+      }
       let txHash = await wallet.sendTransaction(txData);
       let txReceipt = await this.storemanService.waitTxReceipt(params.chainType, txHash, 30000, 3000);
       if (txReceipt && (txReceipt.status == 1)) {
@@ -36,18 +42,6 @@ module.exports = class ProcessBaseSync {
       }
     }
   }
+}
 
-  async checkWallet(params, wallet) {
-    let chainInfo = this.chainInfoService.getChainInfoByType(params.chainType);
-    let chainId = await wallet.getChainId();
-    if (chainId != chainInfo.walletChainId) {
-      console.error("wallet chainId %d != %d", chainId, chainInfo.walletChainId);
-      throw new Error("Wallet chain mismatch");
-    }
-    let accounts = await wallet.getAccounts();
-    let curAccount = accounts && accounts[0] || "";
-    if (curAccount.toLowerCase() !== params.fromAddr.toLowerCase()) {
-      throw new Error("Wallet account mismatch");
-    }  
-  }
-};
+export default ProcessBaseSync;

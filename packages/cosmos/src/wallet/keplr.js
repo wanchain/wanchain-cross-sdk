@@ -1,7 +1,7 @@
-const Stargate = require("@cosmjs/stargate");
-const ProtoSigning = require("@cosmjs/proto-signing");
-const { MsgDepositForBurn } = require("../cctp/message");
-const Long = require("long");
+import * as Stargate from "@cosmjs/stargate";
+import * as ProtoSigning from "@cosmjs/proto-signing";
+import { MsgDepositForBurn } from "../cctp/message.js";
+import Long from "long";
 
 const DefaultChainInfo = {
   "provider": {
@@ -24,7 +24,7 @@ const DefaultChainInfo = {
     rpc: "https://rpc.kava.io",
     denom: "ukava"
   }
-}
+};
 
 const MyRegistry = new ProtoSigning.Registry(Stargate.defaultRegistryTypes.concat([
   ["/circle.cctp.v1.MsgDepositForBurn", MsgDepositForBurn],
@@ -52,7 +52,7 @@ class Keplr {
     } catch (err) {
       console.error("%s getAccounts error: %O", this.name, err);
       throw new Error("Not installed or not allowed");
-    } 
+    }
   }
 
   // TODO: getBalances, now only support one asset
@@ -61,7 +61,6 @@ class Keplr {
     denom = denom || (DefaultChainInfo[this.chainId] && DefaultChainInfo[this.chainId].denom) || "uatom";
     let client = await this.getStargateClient();
     let balances = await client.getAllBalances(addr);
-    console.log("Keplr getBalances: %O", balances);
     for (let b of balances) {
       if (b.denom === denom) {
         balance = b.amount;
@@ -71,8 +70,7 @@ class Keplr {
     return balance;
   }
 
-  // options = {memo, timeoutHeight, gasPrice}
-  async sendTransaction(messages, options) {
+  async sendTransaction(messages, options) { // options = {memo, timeoutHeight, gasPrice}
     options = options || {};
     let memo = options.memo || "";
     let timeoutHeight = options.timeoutHeight || 0;
@@ -88,7 +86,7 @@ class Keplr {
     // fee
     let gasUsed = await client.simulate(key.bech32Address, messages, memo);
     gasUsed = gasUsed * 1.5; // rectify by experience
-    console.debug({gasUsed, gasPrice});
+    console.debug({ gasUsed, gasPrice });
     let fee = (0, Stargate.calculateFee)(Math.round(gasUsed), gasPrice);
     // timeoutHeight
     let maxHeight = new Long(0);
@@ -114,11 +112,11 @@ class Keplr {
   async getStargateClient() {
     if (!this.stargateClient) {
       let offlineSigner = this.wallet.getOfflineSigner(this.chainId);
-      let client = await Stargate.SigningStargateClient.connectWithSigner(this.rpc, offlineSigner, {registry: MyRegistry});
+      let client = await Stargate.SigningStargateClient.connectWithSigner(this.rpc, offlineSigner, { registry: MyRegistry });
       this.stargateClient = client;
     }
     return this.stargateClient;
   }
 }
 
-module.exports = Keplr;
+export default Keplr;

@@ -1,7 +1,7 @@
-const {Address, Cell, beginCell: sdkBeginCell} = require("@ton/core");
-const {getSecureRandomNumber} = require('@ton/crypto');
+import { Address, Cell, beginCell as sdkBeginCell } from "@ton/core";
+import { getSecureRandomNumber } from "@ton/crypto";
 
-function validateAddress(address, options) { // options: {network, chain}
+function validateAddress(address, options) {
   try {
     if (Address.isFriendly(address)) {
       let addr = Address.parseFriendly(address);
@@ -45,6 +45,6 @@ const tools = {
   getQueryId,
   msg2Cell,
   beginCell
-}
+};
 
 export default tools;

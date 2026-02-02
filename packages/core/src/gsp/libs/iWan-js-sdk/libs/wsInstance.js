@@ -1,141 +1,140 @@
-const EventEmitter = require('events').EventEmitter;
-
-const config = require('../conf/config.js');
+import { EventEmitter } from "events";
+import config from "../conf/config.js";
 
 let WebSocketClass = undefined;
-if (typeof(WebSocket) !== "undefined") {
-    WebSocketClass = WebSocket;
+if (typeof (WebSocket) !== "undefined") {
+  WebSocketClass = WebSocket;
 } else {
-    WebSocketClass = require('ws');
+  WebSocketClass = require('ws');
 }
 
 const CONN_OPTIONS = {
-    'handshakeTimeout': 12000,
-    rejectUnauthorized: false
+  'handshakeTimeout': 12000,
+  rejectUnauthorized: false
 };
 
-class WsEvent extends EventEmitter {}
+class WsEvent extends EventEmitter { }
 
 class WsInstance {
-    constructor(apiKey, secretKey, option) {
-        this.needReconnect = true;
-        this.activeClose = false;  // marked if client take the initiative to close connect
-        this.apiKey = apiKey;
-        this.secretKey = secretKey;
-        this.open = false;
-        this.events = new WsEvent();
-        this.option = Object.assign({url:config.socketUrl,port:config.socketPort,flag:config.apiFlag,version:config.apiVersion} ,option);
-        this.ws_url = 'wss://' + this.option.url + ':' + this.option.port;
-        if (this.option.flag) {
-            this.ws_url += '/' + this.option.flag;
-        }
-
-        if (this.apiKey) {
-            this.ws_url += '/' + this.option.version + '/' + this.apiKey;
-
-            this.lockReconnect = false;
-            this.functionDict = {};
-            this.createWebSocket();
-        } else {
-            throw new Error('Should config \'APIKEY\' and \'SECRETKEY\'');
-            process.exit();
-        }
+  constructor(apiKey, secretKey, option) {
+    this.needReconnect = true;
+    this.activeClose = false;  // marked if client take the initiative to close connect
+    this.apiKey = apiKey;
+    this.secretKey = secretKey;
+    this.open = false;
+    this.events = new WsEvent();
+    this.option = Object.assign({ url: config.socketUrl, port: config.socketPort, flag: config.apiFlag, version: config.apiVersion }, option);
+    this.ws_url = 'wss://' + this.option.url + ':' + this.option.port;
+    if (this.option.flag) {
+      this.ws_url += '/' + this.option.flag;
     }
 
-    createWebSocket() {
-        try {
-            this.wss = new WebSocketClass(this.ws_url);
-            this.initEventHandle();
-        } catch (e) {
-            this.reconnect();
-        }
-    }
+    if (this.apiKey) {
+      this.ws_url += '/' + this.option.version + '/' + this.apiKey;
 
-    initEventHandle() {
-        this.wss.onopen = () => {
-            console.log("wss onopen");
-            this.open = true;
-            this.events.emit("open");
-        };
-        this.wss.onmessage = (message) => {
-            // console.log('wss onmessage: %O', message.data);
-            var re = JSON.parse(message.data);
-            this.getMessage(re);
-        };
-        this.wss.onerror = (err) => {
-            console.log('wss on error',err);
-            if(!this.activeClose) {
-                this.reconnect();
-            }
-            this.open = false;
-        };
-        this.wss.onclose = () => {
-            console.log('wss on onclose. Arguments: ', arguments);
-            this.open = false;
-            this.clearRequests();
-            console.log("ApiInstance notified socket has closed.");
-            if(!this.activeClose) {
-                this.reconnect();
-            }
-        };
+      this.lockReconnect = false;
+      this.functionDict = {};
+      this.createWebSocket();
+    } else {
+      throw new Error('Should config \'APIKEY\' and \'SECRETKEY\'');
+      process.exit();
     }
+  }
 
-    clearRequests() {
-        for (let key of Object.keys(this.functionDict)) {
-            let fn = this.functionDict[key];
-            delete this.functionDict[key];
-            fn({ error: "websocket error"});
-        }
+  createWebSocket() {
+    try {
+      this.wss = new WebSocketClass(this.ws_url);
+      this.initEventHandle();
+    } catch (e) {
+      this.reconnect();
     }
+  }
 
-    reconnect() {
-        console.log("[WYH_DEBUG] reconnect() ... ");
-        if (this.needReconnect === false) {
-            return;
-        }
-        if (this.lockReconnect) {
-            return;
-        }
-        this.lockReconnect = true;
-        this.reTt && clearTimeout(this.reTt);
-        this.reTt = setTimeout(() => {
-            this.createWebSocket();
-            this.lockReconnect = false;
-        }, 500);
+  initEventHandle() {
+    this.wss.onopen = () => {
+      console.log("wss onopen");
+      this.open = true;
+      this.events.emit("open");
+    };
+    this.wss.onmessage = (message) => {
+      // console.log('wss onmessage: %O', message.data);
+      var re = JSON.parse(message.data);
+      this.getMessage(re);
+    };
+    this.wss.onerror = (err) => {
+      console.log('wss on error', err);
+      if (!this.activeClose) {
+        this.reconnect();
+      }
+      this.open = false;
+    };
+    this.wss.onclose = () => {
+      console.log('wss on onclose. Arguments: ', arguments);
+      this.open = false;
+      this.clearRequests();
+      console.log("ApiInstance notified socket has closed.");
+      if (!this.activeClose) {
+        this.reconnect();
+      }
+    };
+  }
+
+  clearRequests() {
+    for (let key of Object.keys(this.functionDict)) {
+      let fn = this.functionDict[key];
+      delete this.functionDict[key];
+      fn({ error: "websocket error" });
     }
+  }
 
-    close() {
-        //this.heartCheck.reset();
-        console.log("Active closing ...");
-        this.needReconnect = false;
-        if (this.reTt) {
-            clearTimeout(this.reTt);
-        }
-        this.activeClose = true;
-        this.wss.close();
+  reconnect() {
+    console.log("[WYH_DEBUG] reconnect() ... ");
+    if (this.needReconnect === false) {
+      return;
     }
-
-    sendMessage(message, callback) {
-        let idx = message.id.toString()
-
-        this.wss.send(JSON.stringify(message));
-        this.functionDict[idx] = callback;
+    if (this.lockReconnect) {
+      return;
     }
+    this.lockReconnect = true;
+    this.reTt && clearTimeout(this.reTt);
+    this.reTt = setTimeout(() => {
+      this.createWebSocket();
+      this.lockReconnect = false;
+    }, 500);
+  }
 
-    getMessage(message) {
-        let idx = message.id.toString();
-        let fn = this.functionDict[idx];
-        if (fn) {
-            delete this.functionDict[idx];
-            fn(message);
-        } else {
-            console.log("req %s has been cleared", idx);
-        }
+  close() {
+    //this.heartCheck.reset();
+    console.log("Active closing ...");
+    this.needReconnect = false;
+    if (this.reTt) {
+      clearTimeout(this.reTt);
     }
+    this.activeClose = true;
+    this.wss.close();
+  }
 
-    async addConnectNotify(callback) {
-        this.events.on("open", callback);
+  sendMessage(message, callback) {
+    let idx = message.id.toString()
+
+    this.wss.send(JSON.stringify(message));
+    this.functionDict[idx] = callback;
+  }
+
+  getMessage(message) {
+    let idx = message.id.toString();
+    let fn = this.functionDict[idx];
+    if (fn) {
+      delete this.functionDict[idx];
+      fn(message);
+    } else {
+      console.log("req %s has been cleared", idx);
     }
+  }
+
+  async addConnectNotify(callback) {
+    this.events.on("open", callback);
+  }
 }
 
-module.exports = WsInstance;
+export default WsInstance;

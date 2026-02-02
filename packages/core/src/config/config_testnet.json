@@ -43,7 +43,7 @@
       "CircleBridge": {
         "domain": 1,
         "crossScAddr": "0x8D2D7e337Bb8d416d7b7DC10450C0a426a256617",
-        "crossScAddrV2" : "0x7dc37a6ACfe3eD545f5500811C0E12D71b21bcA7"
+        "crossScAddrV2": "0x7dc37a6ACfe3eD545f5500811C0E12D71b21bcA7"
       },
       "chainDecimals": 18,
       "walletChainId": 43113,
@@ -71,7 +71,7 @@
       "CircleBridge": {
         "domain": 7,
         "crossScAddr": "0x2c88f07Ae3b7B6bb2Ecd62dEF2Dc2E139cE22194",
-        "crossScAddrV2" : "0x5F09De765c1B35B6454321adB3E36E15418bbc0C"
+        "crossScAddrV2": "0x5F09De765c1B35B6454321adB3E36E15418bbc0C"
       },
       "walletChainId": 80002,
       "blockConfirmations": 500,
@@ -112,7 +112,7 @@
       "CircleBridge": {
         "domain": 2,
         "crossScAddr": "0x30de9d1D358Ff1B60Fb8057235aaC35e23b7650f",
-        "crossScAddrV2" : "0xCbB55130E7DA1fF04c36D61f75CC615A7854eeb8"
+        "crossScAddrV2": "0xCbB55130E7DA1fF04c36D61f75CC615A7854eeb8"
       },
       "chainDecimals": 18,
       "walletChainId": 11155420,
@@ -286,7 +286,7 @@
       "CircleBridge": {
         "domain": 6,
         "crossScAddr": "0x3ecc2399611A26E70dbac73714395b13Bc3B69fA",
-        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
+        "crossScAddrV2": "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "chainDecimals": 18,
       "walletChainId": 84532,
@@ -301,7 +301,7 @@
       "crossScAddr": "0xD25DB04661C468ea27C720970e9521d3F259690d",
       "CircleBridge": {
         "domain": 11,
-        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
+        "crossScAddrV2": "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "chainDecimals": 18,
       "walletChainId": 59141,
@@ -393,7 +393,7 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 13,
-        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
+        "crossScAddrV2": "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "walletChainId": 14601,
       "blockConfirmations": 20,
@@ -495,7 +495,7 @@
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "CircleBridge": {
         "domain": 14,
-        "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
+        "crossScAddrV2": "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
       "walletChainId": 4801,
       "blockConfirmations": 6,
@@ -510,7 +510,7 @@
       "crossScAddr": "0x5292B2936daD44EdFbFB2929f9f246304167843b",
       "CircleBridge": {
         "domain": 10,
-        "crossScAddrV2" : "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
+        "crossScAddrV2": "0x4915736A3623c2BaC3a4D545FD12019ad46Ad6d5"
       },
       "walletChainId": 1301,
       "blockConfirmations": 12,
@@ -525,7 +525,7 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "CircleBridge": {
         "domain": 16,
-        "crossScAddrV2" : "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
+        "crossScAddrV2": "0x25034ecf7050D8ee536ADf51f41C7aAEAB480F27"
       },
       "walletChainId": 1328,
       "blockConfirmations": 1,
@@ -551,6 +551,17 @@
       "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
       "walletChainId": 9746,
       "blockConfirmations": 1,
+      "blockTime": 1
+    },
+    {
+      "chainId": "1073741863",
+      "chainType": "KATANAETH",
+      "chainName": "Katana",
+      "symbol": "ETH",
+      "chainDecimals": 18,
+      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "walletChainId": 737373,
+      "blockConfirmations": 3,
       "blockTime": 1
     }
   ],
@@ -728,7 +739,7 @@
       "chainDecimals": 6,
       "minReserved": 0.1,
       "rpc": {
-        "url" : "https://testnet-api.algonode.cloud",
+        "url": "https://testnet-api.algonode.cloud",
         "key": "b7e384d0317b8050ce45900a94a1931e28540e1f69b2d242b424659c341b4697"
       },
       "blockConfirmations": 1,
@@ -817,8 +828,7 @@
   "crossConfigSc": "0x86704C09EE544cF5e3BA2f92E35d1f65f10F7014",
   "crossTask": {
     "scAddr": "0xD4782Ce66E5Deea91dF0a8d0626411C16E2E4Fe0",
-    "tokens": {
-    }
+    "tokens": {}
   },
   "wanPointsServer": "",
   "cctpApiUrl": "https://iris-api-sandbox.circle.com"

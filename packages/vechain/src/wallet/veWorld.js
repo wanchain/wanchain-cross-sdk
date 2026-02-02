@@ -1,33 +1,29 @@
-const { ABIContract, Address, Clause, VET, Units } = require('@vechain/sdk-core');
-const { DAppKit } = require('@vechain/dapp-kit');
-const wanBridgeAbi = require("../abi/crossDelegate.json");
-const erc20Abi = require("../abi/erc20.json");
-const BigNumber = require("bignumber.js");
+import { ABIContract, Address, Clause, VET, Units } from "@vechain/sdk-core";
+import { DAppKit } from "@vechain/dapp-kit";
+import wanBridgeAbi from "../abi/crossDelegate.json" with { type: "json" };
+import erc20Abi from "../abi/erc20.json" with { type: "json" };
+import BigNumber from "bignumber.js";
 
 const DefaultProvider = {
   mainnet: "https://mainnet.vechain.org",
   testnet: "https://testnet.vechain.org"
-}
+};
 
 class VeWorld {
   constructor(network, rpc) {
     this.name = "VeWorld";
     this.network = network;
-    this.kit = new DAppKit({ // { thor, vendor, wallet }
+    this.kit = new DAppKit({
       nodeUrl: rpc || DefaultProvider[network] || "",
-      genesis: (network === "mainnet")? 'main' : 'test'
+      genesis: (network === "mainnet") ? 'main' : 'test'
     });
     this.kit.wallet.setSource('veworld');
   }
 
   // standard function
 
-  async getChainId() {
-    return 0;
-  }
-
   async getAccounts() {
-    let {account} = await this.kit.wallet.connect();
+    let { account } = await this.kit.wallet.connect();
     return [account];
   }
 
@@ -69,4 +65,4 @@ class VeWorld {
   }
 }
 
-module.exports = VeWorld;
+export default VeWorld;

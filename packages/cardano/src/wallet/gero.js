@@ -1,11 +1,19 @@
-const wasm = require("../wasm");
-const tool = require("../tool.js");
+import wasm from "../wasm/index.js";
+import tool from "../tool.js";
 
 class Gero {
-  constructor() {
-    this.name = "Gero";
-    this.wallet = window.cardano.gerowallet;
-    this.wasm = wasm.getWasm();
+  constructor(provider) {
+    if (window.cardano?.gerowallet) {
+      this.name = "Gero";
+      if (!['mainnet', 'testnet'].includes(provider)) {
+        throw new Error("Invalid provider, should be 'mainnet' or 'testnet'");
+      }
+      this.wallet = window.cardano.gerowallet;
+      this.wasm = wasm.getWasm();
+    } else {
+      window.open('https://www.gerowallet.io');
+      throw new Error('please install gero wallet');
+    }
   }
 
   // standard function
@@ -68,7 +76,7 @@ class Gero {
         } else {
           return value.coin().to_str(); // TODO: sub token locked coin
         }
-      })
+      });
     } else {
       console.error("%s is not used address", addr);
       throw new Error("Not used address");
@@ -78,7 +86,7 @@ class Gero {
   async getNftInfo(addr, tokenId) {
     let accounts = await this.getAccounts();
     if (accounts.includes(addr)) {
-      let cardano = await this.wallet.enable({extensions: [{cip: 95}]});
+      let cardano = await this.wallet.enable({ extensions: [{ cip: 95 }] });
       let balance = await cardano.getBalance();
       let value = this.wasm.Value.from_hex(balance);
       let nfts = tool.getNftInfo(value.multiasset(), tokenId);
@@ -118,4 +126,4 @@ class Gero {
   }
 }
 
-module.exports = Gero;
+export default Gero;

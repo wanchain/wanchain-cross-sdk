@@ -1,15 +1,13 @@
-'use strict';
-
-const BigNumber = require("bignumber.js");
-const tool = require("../../utils/tool.js");
+import BigNumber from "bignumber.js";
+import tool from "../../utils/tool.js";
 
 const DefaultGas = 10_000_000;
 
-module.exports = class ProcessBurnFromSui {
+class ProcessBurnFromSui {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.webStores = this.frameworkService.getService("WebStores");
-    this.configService  = frameworkService.getService("ConfigService");
+    this.configService = frameworkService.getService("ConfigService");
     let extension = this.configService.getExtension("SUI");
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
@@ -21,8 +19,8 @@ module.exports = class ProcessBurnFromSui {
     try {
       let tokenPair = this.tokenPairService.getTokenPair(params.tokenPairID);
       let direction = (tokenPair.fromChainType === "SUI");
-      let chainInfo = direction? tokenPair.fromScInfo : tokenPair.toScInfo;
-      let tokenAccount = direction? tokenPair.fromAccount : tokenPair.toAccount;
+      let chainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
+      let tokenAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
       let coinType = tool.ascii2letter(tokenAccount);
       let totalSui = new BigNumber(params.networkFee).plus(DefaultGas);
       let tx = this.tool.newTransaction();
@@ -30,7 +28,7 @@ module.exports = class ProcessBurnFromSui {
       let suiCoins = await this.storemanService.getSuiCoins(params.fromAddr, "0x2::sui::SUI");
       let selectedSuiCoins = this.tool.selectCoins(suiCoins, totalSui.toFixed(0));
       tx.setGasPayment(selectedSuiCoins.map(v => {
-        return {objectId: v.coinObjectId, version: v.version, digest: v.digest}
+        return { objectId: v.coinObjectId, version: v.version, digest: v.digest };
       }));
       let [feeCoin] = tx.splitCoins(tx.gas, [params.networkFee]);
       let assetCoins = await this.storemanService.getSuiCoins(params.fromAddr, coinType);
@@ -77,9 +75,8 @@ module.exports = class ProcessBurnFromSui {
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
           taskType: this.tokenPairService.getTokenEventType(params.tokenPairID, direction),
-          // for xrp api server
+          // for api server
           fromAddr: params.fromAddr,
-          chainHash: txHash,
           toAddr: params.toAddr
         }
       };
@@ -94,4 +91,6 @@ module.exports = class ProcessBurnFromSui {
       }
     }
   }
-};
+}
+
+export default ProcessBurnFromSui;
