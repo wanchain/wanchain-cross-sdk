@@ -231,7 +231,7 @@ class WanBridge extends EventEmitter {
       } else {
         let smg = await this.getSmgInfo();
         quota = await this.storemanService.getStroremanGroupQuotaInfo(chainType, tokenPair.id, smg.id);
-        if (hideQuota) {
+        if (hideQuota && (assetType !== "NIGHT")) {
           quota.maxQuota = "0";
         }
       }

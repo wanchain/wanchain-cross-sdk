@@ -29,6 +29,9 @@ class StoremanService {
         let toChainType = (fromChainType === tokenPair.fromChainType) ? tokenPair.toChainType : tokenPair.fromChainType;
         let decimals = (fromChainType === tokenPair.fromChainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
         let network = this.configService.getNetwork();
+        if ((tokenPair.ancestorName === "NIGHT") && (toChainType === "ADA") && (network === "mainnet") && !this.isTestMode) {
+          return {maxQuota: Infinity, minQuota: "10000"};
+        }
         let ignoreReservation = (this.isTestMode && (network === "mainnet"));
         let quota = await this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation);
         // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
