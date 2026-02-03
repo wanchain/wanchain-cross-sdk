@@ -5,13 +5,17 @@ SDK for cross-chain based on WanBridge, it consists of several sub-modules:
 
 <li>Core
 
-Support cross-chain between EVM chains, and some chains which SDK does not automatically initiate transaction on them.
+Cross-chain framework, combined with chain extensions to execute cross chain operations.
 
 [@wandevs/cross-core](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/core)
 
 <li>Extensions
 
-Support cross-chain between specific chain and other chains. Each extension integrates the corresponding wallet, SDK would call wallet api to send transactions.
+Each extension encapsulates wallets and basic functions, SDK would call them to execute cross chain between specific chains.
+
+[@wandevs/cross-evm](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/evm)
+
+[@wandevs/cross-bitcoin](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/bitcoin)
 
 [@wandevs/cross-cardano](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/cardano)
 
@@ -24,3 +28,7 @@ Support cross-chain between specific chain and other chains. Each extension inte
 [@wandevs/cross-solana](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/solana)
 
 [@wandevs/cross-algorand](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/algorand)
+
+[@wandevs/cross-sui](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/sui)
+
+[@wandevs/cross-vechain](https://github.com/wanchain/wanchain-cross-sdk/blob/dev/packages/vechain)
