@@ -163,7 +163,8 @@ class CheckScEvent {
       let cur = count - i - 1; // backwards
       let task = tasks[cur];
       try {
-        if (!this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
+        let ccTask = this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId);
+        if (!ccTask) {
           console.log("%s CheckScEvent remove deleted task %s", this.chainInfo.chainType, task.ccTaskId);
           await storageService.delete("ScEventScanService", task.uniqueID);
           tasks.splice(cur, 1);
@@ -223,7 +224,7 @@ class CheckScEvent {
             event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
           } else if (task.taskType === "cctpV2MINT") {
             let topics = [eventHash, undefined, task.depositNonce];
-            event = await this.scanCctpV2Event(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
+            event = await this.scanCctpV2Event(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain, ccTask);
           } else if (task.taskType === "algoBURN") {
             event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, task.uniqueID);
           } else if (this.chainInfo.chainType === "TRX") {
@@ -306,7 +307,7 @@ class CheckScEvent {
     return null;
   }
 
-  async scanCctpV2Event(fromBlockNumber, toBlockNumber, sc, topics, depositDomain) {
+  async scanCctpV2Event(fromBlockNumber, toBlockNumber, sc, topics, depositDomain, ccTask) {
     let events = await this.iwan.getScEvent(
       this.chainInfo.chainType,
       sc, // cctpV2 transmitter
@@ -328,6 +329,12 @@ class CheckScEvent {
             return { txHash, toAccount, value: decoded.args.amount };
           }
         }
+      }
+    }
+    if (!ccTask.claimStatus) {
+      let msg = await this.storemanService.getCctpV2Message(ccTask.fromChainType, ccTask.lockHash);
+      if (msg && (msg.forwardState === "FAILED")) {
+        this.eventService.emitEvent("Claimable", { ccTaskId: ccTask.ccTaskId });
       }
     }
     return null;

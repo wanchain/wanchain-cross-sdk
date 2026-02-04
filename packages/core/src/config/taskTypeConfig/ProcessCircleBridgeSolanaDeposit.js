@@ -19,16 +19,24 @@ class ProcessCircleBridgeSolanaDeposit {
       let fromChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
       let toChainInfo = direction ? tokenPair.toScInfo : tokenPair.fromScInfo;
       let destinationDomain = Number(toChainInfo.CircleBridge.domain);
-      let destChain = Number(toChainInfo.chainId);
       let amount = this.tool.toBigNumber(params.value);
       let mintRecipient = this.tool.getPublicKey(this.tool.hex2bytes(tool.hexStrip0x(params.userAccount).padStart(64, '0')));
       let messageSentKeypair = this.tool.getKeypair();
       let walletPublicKey = this.tool.getPublicKey(params.fromAddr);
       let usdcAddress = this.tool.getPublicKey(tool.ascii2letter(direction ? tokenPair.fromAccount : tokenPair.toAccount));
       let userTokenAccount = this.tool.getAssociatedTokenAddressSync(usdcAddress, walletPublicKey);
-      let messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitter);
-      let tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
-      let crossProxyProgram = wallet.getProgram("cctpProxy", fromChainInfo.CircleBridge.crossScAddr);
+
+      let messageTransmitterProgramId, tokenMessengerMinterProgramId, crossProxyProgram;
+      if (params.isV2) {
+        messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitterV2);
+        tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinterV2);
+        crossProxyProgram = wallet.getProgram("cctpV2Proxy", fromChainInfo.CircleBridge.crossScAddrV2);
+      } else {
+        messageTransmitterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.messageTransmitter);
+        tokenMessengerMinterProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.tokenMessengerMinter);
+        crossProxyProgram = wallet.getProgram("cctpProxy", fromChainInfo.CircleBridge.crossScAddr);
+      }
+
       let messageTransmitterAccount = this.tool.findProgramAddress("message_transmitter", messageTransmitterProgramId);
       let tokenMessenger = this.tool.findProgramAddress("token_messenger", tokenMessengerMinterProgramId);
       let tokenMinter = this.tool.findProgramAddress("token_minter", tokenMessengerMinterProgramId);
@@ -37,8 +45,8 @@ class ProcessCircleBridgeSolanaDeposit {
       let authorityPda = this.tool.findProgramAddress("sender_authority", tokenMessengerMinterProgramId);
       let tokenMessengerEventAuthority = this.tool.findProgramAddress("__event_authority", tokenMessengerMinterProgramId);
       let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
-      let domainPda = this.tool.getPda("DomainData", destinationDomain, configProgramId, 4);
-      let feePda = this.tool.getPda("FeeData", destChain, configProgramId, 4);
+      let domainPda = this.tool.findProgramAddress("DomainData", configProgramId, [destinationDomain]);
+      let feePda = this.tool.findProgramAddress("FeeData", configProgramId, [Number(toChainInfo.chainId)]);
       let cfgAdminPda = this.tool.findProgramAddress("admin_roles", configProgramId);
       let cfgDataPda = this.tool.findProgramAddress("ConfigData", crossProxyProgram.programId);
       let accounts = {
@@ -61,19 +69,34 @@ class ProcessCircleBridgeSolanaDeposit {
         eventAuthority: tokenMessengerEventAuthority.publicKey,
         program: tokenMessengerMinterProgramId, // the same as "tokenMessengerMinterProgram"
         // proxy
-        configAccount: cfgDataPda.publicKey,
         feeReceiver: this.tool.getPublicKey(fromChainInfo.CircleBridge.feeHolder),
-        // accounts for configure program:
+        // configure program:
         configProgramAdminRolesAccount: cfgAdminPda.publicKey,
         configProgramDomainDataAccount: domainPda.publicKey,
         configProgramFeeDataAccount: feePda.publicKey,
-        configProgram: configProgramId,
+
         // cctp program:
         circleCctpProgram: tokenMessengerMinterProgramId
       };
+
       let unitLimit = this.tool.setComputeUnitLimit(200_000);
-      // let unitPrice = this.tool.setComputeUnitPrice(100_000);
-      let instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts).instruction();
+      let instruction;
+      if (params.isV2) {
+        let denylistPda = this.tool.findProgramAddress("denylist_account", tokenMessengerMinterProgramId, [walletPublicKey]);
+        accounts.denylistAccount = denylistPda.publicKey;
+        let destCaller = this.tool.getPublicKey(); // zero-address
+        let maxFee = this.tool.toBigNumber(params.operateFee);
+        let minFinalityThreshold = 1000;
+        instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient, destCaller, maxFee, minFinalityThreshold).accounts(accounts).instruction();
+      } else {
+        // proxy
+        accounts.configAccount = cfgDataPda.publicKey;
+        // configure program:
+        accounts.configProgram = configProgramId;
+        // let unitPrice = this.tool.setComputeUnitPrice(100_000);
+        instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient).accounts(accounts).instruction();
+      }
+
       let tx = await wallet.buildTransaction([unitLimit, instruction]);
       let txHash = await wallet.sendTransaction(tx, messageSentKeypair);
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
@@ -90,7 +113,7 @@ class ProcessCircleBridgeSolanaDeposit {
           uniqueID: tool.sha256(txHash),
           chain: params.toChainType,
           fromBlockNumber: blockNumber,
-          taskType: "circleMINT",
+          taskType: params.isV2? "cctpV2MINT" : "circleMINT",
           fromChain: fromChainInfo.chainType,
           depositDomain: fromChainInfo.CircleBridge.domain,
           depositNonce: undefined, // deposit nonce is really uniqueID

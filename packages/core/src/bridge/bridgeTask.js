@@ -104,9 +104,7 @@ class BridgeTask {
       amount: this._amount,
       bridge: this._tokenPair.bridge,
       fromAccount: this._fromAccount,
-      fromAccountId: options.fromAccountId || '',
       toAccount: this._toAccount,
-      toAccountId: options.toAccountId || '',
       fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
@@ -118,6 +116,12 @@ class BridgeTask {
       fee: this._fee,
       smg: { name: this._smg ? this._smg.name : "", gpk: this._gpkInfo ? this._gpkInfo.gpk : "" }
     };
+    if (options.fromAccountId) {
+      taskData.fromAccountId = options.fromAccountId;
+    }
+    if (options.toAccountId) {
+      taskData.toAccountId = options.toAccountId;
+    }
     // console.debug({taskData});
     this._task.setTaskData(taskData);
   }
@@ -411,40 +415,44 @@ class BridgeTask {
 
   async _procTaskSteps() {
     let steps = this._task.ccTaskData.stepData;
-    console.debug("bridgeTask _procTaskSteps total %d at %s ms", steps.length, tool.getCurTimestamp());
+    console.debug("bridgeTask %s proc %d steps start at %d ms", this.id, steps.length, tool.getCurTimestamp());
     let curStep = 0, executedStep = -1, stepTxHash = "";
     for (; curStep < steps.length;) {
       let taskStep = steps[curStep];
+      if (executedStep != curStep) {
+        console.debug("bridgeTask %s proc step %d at %d ms", this.id, curStep, tool.getCurTimestamp());
+        await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
+        executedStep = curStep;
+      }
+      /* now sync abnormal stepResult and txHash are returned via finishTaskStep, it should emit TaskStepResult to save task info and trigger lock event, it will trigger finishTaskStep again, but it is harmless,
+         it would be more elegant if they emit TaskStepResult event instead of calling finishTaskStep to reuse the unified process
+      */
       let stepResult = taskStep.stepResult;
-      if (!stepResult) {
-        if (taskStep.txHash && !stepTxHash) {
-          await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, ""); // only update txHash, no result
+      if (stepResult) { // sync result
+        if (["Failed", "Rejected"].includes(stepResult)) { // abnormal, result is error info
+          await this._bridge.eventService.emitEvent("TaskStepResult", { ccTaskId: this.id, stepIndex: taskStep.stepIndex, txHash: "", result: stepResult, errInfo: taskStep.errInfo });
+          break;
+        } else if (!this._wallet) { // normal ota, result is ota address, XRP tagId or BTC randomId
+          this._procOtaAddr(stepResult); // ota save step and task info by itself
+        } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) { // normal tx receipt, has already emitted TaskStepResult event, here is only for some special processes
+          await tool.sleep(30000); // Moonbeam need to wait for approve tx to take effect
+        }
+        console.debug("bridgeTask %s proc step %d: %O", this.id, curStep, taskStep);
+        curStep++;
+        stepTxHash = "";
+      } else { // normal, tx always sync return hash, and async return status by emit TaskStepResult event
+        if (taskStep.txHash && !stepTxHash) { // sync txHash
+          await this._bridge.eventService.emitEvent("TaskStepResult", { ccTaskId: this.id, stepIndex: taskStep.stepIndex, txHash: taskStep.txHash, result: "" });
           stepTxHash = taskStep.txHash;
         }
-        if (executedStep != curStep) {
-          console.debug("bridgeTask _procTaskSteps step %s at %s ms", curStep, tool.getCurTimestamp());
-          await this._bridge.txTaskHandleService.processTxTask(taskStep, this._wallet);
-          executedStep = curStep;
-        } else {
+        if ((curStep + 1) >= steps.length) { // immediatly finish loop after last step tx
+          break;
+        } else { // otherwise wait step result
           await tool.sleep(3000);
         }
-        continue;
       }
-      console.debug("proc task %d step %d: %O", this.id, curStep, taskStep);
-      if (["Failed", "Rejected"].includes(stepResult)) { // ota stepResult contains ota address, XRP tagId or BTC randomId
-        await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
-        this._bridge._distributeEvent("error", { taskId: this.id, reason: taskStep.errInfo || stepResult });
-        break;
-      }
-      if (!this._wallet) {
-        this._procOtaAddr(stepResult);
-      } else if ((taskStep.name === "erc20Approve") && (this._fromChainInfo.chainType === "MOVR")) {
-        await tool.sleep(30000); // wait Moonbeam approve take effect
-      }
-      await this._updateTaskByStepData(taskStep.stepIndex, taskStep.txHash, stepResult, taskStep.errInfo);
-      curStep++;
-      stepTxHash = "";
     }
+    console.debug("bridgeTask %s proc %d steps finish at %d ms", this.id, steps.length, tool.getCurTimestamp());
   }
 
   _procOtaAddr(stepResult) {
@@ -468,27 +476,9 @@ class BridgeTask {
     } else {
       throw new Error("Invalid ota chain type " + chainType);
     }
-    this._bridge._distributeEvent("ota", ota);
-    console.debug("%s OTA: %O", chainType, ota);
-  }
-
-  async _updateTaskByStepData(stepIndex, txHash, stepResult, errInfo = "") { // only for sync step result to update lockTx hash
-    let records = this._bridge.stores.crossChainTaskRecords;
     let ccTask = records.ccTaskRecords.get(this.id);
-    if (ccTask) {
-      let { isLockTx, isLocked } = records.updateTaskByStepResult(this.id, stepIndex, txHash, stepResult, errInfo);
-      if (isLockTx) {
-        let lockEvent = { taskId: this.id, txHash };
-        console.debug("lockTxHash: %O", lockEvent);
-        this._bridge._distributeEvent("lock", lockEvent);
-      }
-      if (isLocked) {
-        let lockedEvent = { taskId: this.id, txHash };
-        console.debug("lockedEvent: %O", lockedEvent);
-        this._bridge._distributeEvent("locked", lockedEvent);
-      }
-      this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
-    }
+    this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
+    this._bridge._distributeEvent("ota", ota);
   }
 
   _getSmgXrpClassicAddress() {

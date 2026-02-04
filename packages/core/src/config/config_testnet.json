@@ -730,7 +730,10 @@
         "configProgram": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8",
         "messageTransmitter": "CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd",
         "tokenMessengerMinter": "CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3",
-        "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg"
+        "feeHolder": "EtofF5C29xgvcWzD5YS8XXsbo87n8e3iDQ2dhTY3faVg",
+        "crossScAddrV2": "ALn3PFRNUCdXu8gxWcW9SAfWAYUC7BZDwF46VpMJro3E",
+        "messageTransmitterV2": "CCTPV2Sm4AdWt5296sk4P66VBZ7bEhcARwFaaS9YPbeC",
+        "tokenMessengerMinterV2": "CCTPV2vPZJS2u2BBsUoscuikbYjnpFmbFsvVuJdgUMQe"
       },
       "chainDecimals": 9,
       "walletChainId": "devnet",

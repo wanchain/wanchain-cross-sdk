@@ -7,6 +7,9 @@ core of wanchain-cross-sdk for cross-chain based on WanBridge.
 Use NPM or Yarn to install the package:
 ```bash
 npm install --save @wandevs/cross-core
+
+# (optional) install extension corresponding to the chain
+npm install --save @wandevs/cross-evm
 ```
 ## Prerequisites
 <li>wanchain-cross-sdk relies on iWan service, accessed through API key, you can apply from iWan website.
@@ -15,23 +18,20 @@ npm install --save @wandevs/cross-core
 
 <li>Install your favorite Web3 wallet from Chrome Web Store, such as:
 
-[MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn),
-[WanMask](https://github.com/wanchain/wanmask),
-[XDCPay](https://chrome.google.com/webstore/detail/xdcpay/bocpokimicclpaiekenaeelehdjllofo),
-[OKX Wallet](https://chrome.google.com/webstore/detail/okx-wallet/mcohilncbfahbmgdjkbpemcciiolgcge),
-[CLV Wallet](https://chrome.google.com/webstore/detail/clv-wallet/nhnkbkgjikgcigadomkphalanndcapjk)
+[MetaMask](https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn)
 
-SDK core has built-in Web3Wallet support for cross-chain between EVM chains. Some extensions are provided to support sending transactions on other chains, such as Cardano, Polkadot and Tron, please refer the corresponding guide.
+Taking the cross chain of EVM chain as an example. Some other extensions are provided to support sending transactions on different chains, such as Bitcoin, Cardano, Polkadot, Tron, Sui, etc. Please refer to the corresponding guidelines.
 
-<li>If you need to cross-chain from Bitcoin, Litecoin or XRP Ledger, you should install related wallets. 
+<li>If you need to cross-chain from Litecoin, Doge or XRP Ledger, you should install related wallets.
 
 SDK does not automatically initiate transaction on these chains, you need do it manually.
 
 ## Usage
-Step 1: Import WanBridge and Web3Wallet, create a bridge instance and subscribe to events.
+Step 1: Import WanBridge and EvmExtension, create a bridge instance and subscribe to events.
 
 ```javascript
-import { WanBridge, Web3Wallet } from '@wandevs/cross-core'
+import { WanBridge } from '@wandevs/cross-core'
+import EvmExtension from '@wandevs/cross-evm'
 
 let bridge = new WanBridge("testnet"); // testnet or mainnet
 bridge.on("ready", assetPairs => {
@@ -109,10 +109,10 @@ let iwanAuth = {
 
 // options is not necessary if none of customization requirements
 let options = {
-  extensions: [],     // register extensions when cross-chain from Cardano, Polkadot and Tron
-  crossAssets: [],    // filter asset pairs by asset types
-  crossChains: [],    // filter asset pairs by chains
-  crossProtocols: [], // filter asset pairs by protocols: Erc20, Erc721, Erc1155
+  extensions: [EvmExtension],     // register extensions when cross-chain from Cardano, Polkadot, etc.
+  crossAssets: [],                // filter asset pairs by asset types
+  crossChains: [],                // filter asset pairs by chains
+  crossProtocols: [],             // filter asset pairs by protocols: Erc20, Erc721, Erc1155
 };
 
 bridge.init(iwanAuth, options);
@@ -121,8 +121,8 @@ bridge.init(iwanAuth, options);
 Step 3: Connect a wallet.
 
 ```javascript
-// no need to create wallet when cross-chain from Bitcoin, Litecoin, Doge or XRP Ledger, user should send transaction manually
-let web3Wallet = new Web3Wallet(window.ethereum);
+// no need to create wallet when cross-chain from Litecoin, Doge or XRP Ledger, user should send transaction manually
+let wallet = new EvmExtension.MetamaskWallet();
 ```
 
 Step 4: Select a asset pair and create cross-chain task (take Erc20 for example).
@@ -134,15 +134,15 @@ try {
   let toChainName = "Wanchain";
 
   // check wallet network
-  let checkWallet = await bridge.checkWallet(fromChainName, web3Wallet);
+  let checkWallet = await bridge.checkWallet(fromChainName, wallet);
   if (checkWallet === false) {
     throw "Invalid wallet or network";
   }
 
   // get wallet current selected account
-  let fromAccount = web3Wallet.getAccounts("testnet")[0];
+  let fromAccount = wallet.getAccounts("testnet")[0];
 
-  // input cross-chain receipient
+  // input cross-chain receipient, make sure the address is correct, otherwise funds will be lost
   let toAccount = 'recipient-address';
 
   // input cross-chain amount, the format of different token types is as follows
@@ -186,7 +186,7 @@ try {
   }
 
   // create a cross-chain task
-  let task = await bridge.createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, {wallet: web3Wallet});
+  let task = await bridge.createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, {wallet: wallet});
 } catch(err) {
   console.error(err);
   /* createTask will check the task context and may throw the following error:
@@ -251,11 +251,11 @@ A cross-chain task can be in the following statuses:
 <li>Succeeded:  Redeem transaction has been sent and the task has been successfully completed
 <li>Failed:     Failed to finish the task
 <li>Error:      The task is completed but incorrect, the asset is not transferred to the account specified by the user
-<li>Rejected:   Task is cancelled
+<li>Rejected:   Task is cancelled by user
 <li>Timeout:    Waiting for locking asset more than 24 hours
 
 Do not close or refresh the web page before receiving the "lock" event, otherwise the task will stop and cannot be resumed.
 
 Step 5: Get transaction records.
 
-You can call bridge.getHistory(taskId) at any time to get the transaction records of all tasks or one task, and the records are saved in the browser's local storage.
+You can call bridge.getHistory({taskId}) at any time to get the transaction records of all tasks or one task, and the records are saved in the browser's local storage.

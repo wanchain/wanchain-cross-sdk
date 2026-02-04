@@ -46,14 +46,16 @@ class CrossChainTaskRecords {
               ccTask.errInfo = errInfo;
             }
           } else if (["userFastMint", "userFastBurn", "depositForBurn"].includes(ccTask.stepData[i].name)) {
-            // on evm both tx and receipt will trigger updateTaskByStepResult, update txHash and notify dapp only once
+            // both tx hash and receipt will trigger updateTaskByStepResult, emit once lock and locked events separately
             if (txHash) {
               isLockTx = !ccTask.lockHash;
               ccTask.lockHash = txHash; // may repriced, always update lockHash
             }
-            if (result) { // on evm do not change status until receipt with result
-              isLocked = (ccTask.status !== "Converting");
-              ccTask.status = "Converting";
+            if (result) {
+              if (ccTask.status === "Performing") { // filter duplicate event to prevent status overwriting
+                isLocked = true;
+                ccTask.status = "Converting";
+              }
             }
           }
         }
@@ -105,17 +107,7 @@ class CrossChainTaskRecords {
   }
 
   loadTradeTask(ccTaskList) {
-    for (let i = 0; i < ccTaskList.length; i++) {
-      let ccTask = ccTaskList[i];
-      if (ccTask.ota !== undefined) {
-        if (!ccTask.protocol) {
-          ccTask.protocol = "Erc20"; // for compatibility
-        }
-        this.ccTaskRecords.set(ccTask.ccTaskId, ccTask);
-      } else {
-        console.debug("skip not-compatible old version task id %s record", ccTask.ccTaskId);
-      }
-    }
+    ccTaskList.forEach(ccTask => this.ccTaskRecords.set(ccTask.ccTaskId, ccTask));
   }
 
   // should always be called before saving task information

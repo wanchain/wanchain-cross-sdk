@@ -6,27 +6,33 @@ const DepositMsg = "Program log:  relay_circle_cctp() circle message_sent_event_
 class ProcessCircleBridgeSolanaReclaim {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
-    this.webStores = this.frameworkService.getService("WebStores");
-    this.configService = frameworkService.getService("ConfigService");
-    let extension = this.configService.getExtension("SOL");
+    let configService = frameworkService.getService("ConfigService");
+    let extension = configService.getExtension("SOL");
     this.tool = extension.tool;
-    this.storemanService = frameworkService.getService("StoremanService");
-    this.apiServer = this.configService.getGlobalConfig("apiServer");
-    this.chainInfoService = this.frameworkService.getService("ChainInfoService");
+    this.cctpApiUrl = configService.getGlobalConfig("cctpApiUrl");
+    this.chainInfoService = frameworkService.getService("ChainInfoService");
     this.iwan = frameworkService.getService("iWanConnectorService");
   }
 
   async process(stepData, wallet) {
     let params = stepData.params;
-    let queryUrl = this.apiServer.url + "/api/sol/queryTxInfoBySmgPbkHash/cctp/" + params.lockHash;
+    let queryUrl = this.cctpApiUrl + (params.isV2? "/v2/messages/5?transactionHash=" : "/v1/messages/5/") + params.lockHash;
     let ret = await axios.get(queryUrl);
-    console.debug("ProcessCircleBridgeSolanaReclaim %s: %O", queryUrl, ret.data);
-    if (ret.data.success && ret.data.data && ret.data.data.attestation) {
-      let attestation = Buffer.from(tool.hexStrip0x(ret.data.data.attestation), 'hex');
+    console.debug("ProcessCircleBridgeSolanaReclaim %s: %O", queryUrl, ret.data.messages[0]);
+    let msg = ret.data.messages && ret.data.messages[0] || {};
+    if (msg.attestation && (msg.attestation !== "PENDING") && (msg.message)) { // v2 require attestation and message, v1 only attestation
       let chainInfo = this.chainInfoService.getChainInfoByType("SOL");
-      let messageTransmitterProgram = wallet.getProgram("messageTransmitter", chainInfo.CircleBridge.messageTransmitter);
-      let messageTransmitterProgramId = this.tool.getPublicKey(chainInfo.CircleBridge.messageTransmitter);
-      let messageTransmitterAccount = this.tool.findProgramAddress("message_transmitter", messageTransmitterProgramId);
+      let programName, programAddr;
+      if (params.isV2) {
+        programName = "messageTransmitterV2";
+        programAddr = chainInfo.CircleBridge.messageTransmitterV2;
+      } else {
+        programName = "messageTransmitter";
+        programAddr = chainInfo.CircleBridge.messageTransmitter;
+      }
+      let messageTransmitterProgram = wallet.getProgram(programName, programAddr);
+      let messageTransmitterProgramId = this.tool.getPublicKey(programAddr);
+      let messageTransmitterAccount = this.tool.findProgramAddress("message_transmitter", messageTransmitterProgramId); // same for v1 and v2
       let txInfo = await this.iwan.getTransactionReceipt('SOL', params.lockHash); // "no receipt was found"
       if (txInfo && txInfo.meta) {
         let depositMsg = txInfo.meta.logMessages.find(v => v.indexOf(DepositMsg) >= 0);
@@ -38,7 +44,14 @@ class ProcessCircleBridgeSolanaReclaim {
             messageTransmitter: messageTransmitterAccount.publicKey,
             messageSentEventData
           };
-          let instruction = await messageTransmitterProgram.methods.reclaimEventAccount({ attestation }).accounts(accounts).instruction();
+          let instruction;
+          let attestation = Buffer.from(tool.hexStrip0x(msg.attestation), 'hex');
+          if (params.isV2) {
+            let destinationMessage = Buffer.from(tool.hexStrip0x(msg.message), 'hex');
+            instruction = await messageTransmitterProgram.methods.reclaimEventAccount({ attestation, destinationMessage }).accounts(accounts).instruction();
+          } else {
+            instruction = await messageTransmitterProgram.methods.reclaimEventAccount({ attestation }).accounts(accounts).instruction();
+          }
           let tx = await wallet.buildTransaction([instruction]);
           let txHash = await wallet.sendTransaction(tx);
           let checker = {
@@ -46,15 +59,15 @@ class ProcessCircleBridgeSolanaReclaim {
             ccTaskId: params.ccTaskId,
             stepIndex: 0,
             txHash,
-            event: "ReclaimTxHash"
+            event: "ClaimTxHash"
           };
           let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
           await checkTxReceiptService.add(checker);
+          return;
         }
       }
-    } else {
-      throw new Error("Not ready");
     }
+    throw new Error("Not ready");
   }
 }
 
