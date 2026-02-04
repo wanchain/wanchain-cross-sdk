@@ -431,6 +431,7 @@ class TokenPairService {
     }
     return logo;
   }
+
   getChainLogo(chainType) {
     let logo = this.chainLogo.get(chainType);
     if (!logo) {
