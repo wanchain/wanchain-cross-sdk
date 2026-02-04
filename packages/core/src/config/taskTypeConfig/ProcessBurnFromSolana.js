@@ -9,6 +9,7 @@ class ProcessBurnFromSolana {
     this.tool = extension.tool;
     this.storemanService = frameworkService.getService("StoremanService");
     this.tokenPairService = frameworkService.getService("TokenPairService");
+    this.iwan = frameworkService.getService("iWanConnectorService");
   }
 
   async process(stepData, wallet) {
@@ -26,9 +27,10 @@ class ProcessBurnFromSolana {
       let configProgramId = this.tool.getPublicKey(fromChainInfo.CircleBridge.configProgram);
       let feePda = this.tool.findProgramAddress("FeeData", configProgramId, [Number(toChainInfo.chainId)]);
       let smgId = Buffer.from(tool.hexStrip0x(params.storemanGroupId), 'hex');
-      let tokenAccount = direction ? tokenPair.fromAccount : tokenPair.toAccount;
+      let tokenAccount = tool.ascii2letter(direction ? tokenPair.fromAccount : tokenPair.toAccount);
       let amount = this.tool.toBigNumber(params.value);
-      let tokenAddress = this.tool.getPublicKey(tool.ascii2letter(tokenAccount));
+      let tokenAddress = this.tool.getPublicKey(tokenAccount);
+      let tokenInfo = await this.iwan.getAccountInfo('SOL', tokenAccount);
       let accounts = {
         user: walletPublicKey,
         feeReceiver: this.tool.getPublicKey(fromChainInfo.feeHolder),
@@ -37,6 +39,7 @@ class ProcessBurnFromSolana {
         tokenPairAccount: tokenpairPda.publicKey,
         cctpAdminBoardFeeAccount: feePda.publicKey,
         mappingTokenMint: tokenAddress,
+        tokenProgram: this.tool.getPublicKey(tokenInfo.owner),
         tokenManagerProgram: this.tool.getPublicKey(fromChainInfo.tokenManagerProgram),
         userAta: this.tool.getAssociatedTokenAddressSync(tokenAddress, walletPublicKey)
       };

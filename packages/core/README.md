@@ -22,7 +22,7 @@ npm install --save @wandevs/cross-evm
 
 Taking the cross chain of EVM chain as an example. Some other extensions are provided to support sending transactions on different chains, such as Bitcoin, Cardano, Polkadot, Tron, Sui, etc. Please refer to the corresponding guidelines.
 
-<li>If you need to cross-chain from Litecoin, Doge or XRP Ledger, you should install related wallets. 
+<li>If you need to cross-chain from Litecoin, Doge or XRP Ledger, you should install related wallets.
 
 SDK does not automatically initiate transaction on these chains, you need do it manually.
 
