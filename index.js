@@ -1,8 +1,8 @@
 import { WanBridge } from "./packages/core/index.js";
 
 // extensions
-import EvmExtension from './packages/evm';
-import BitcoinExtension from './packages/bitcoin';
+import EvmExtension from './packages/evm/index.js';
+import BitcoinExtension from './packages/bitcoin/index.js';
 import CardanoExtension from "./packages/cardano/index.js";
 import PolkadotExtension from "./packages/polkadot/index.js";
 import TronExtension from "./packages/tron/index.js";
