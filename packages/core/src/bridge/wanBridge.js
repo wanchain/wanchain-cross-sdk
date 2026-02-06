@@ -850,7 +850,7 @@ class WanBridge extends EventEmitter {
       } else if (ccTask.claimStatus) { // claim cctp usdc is via thirdparty tool, just clear claim status
         records.setExtraInfo(taskId, { claimStatus: "" }, true);
       }
-    } else if (ccTask.toChainType === "DUST")) {
+    } else if (ccTask.toChainType === "DUST") {
       records.setExtraInfo(taskId, { claimStatus: "Ready" });
     }
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
