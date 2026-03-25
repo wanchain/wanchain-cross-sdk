@@ -41,11 +41,13 @@ class ProcessMintFromSolana {
         configAccount: configAccountPda.publicKey,
         tokenPairAccount: tokenpairPda.publicKey,
         cctpAdminBoardFeeAccount: feePda.publicKey,
-        mappingTokenMint: null,
-        tokenVault: null,
-        userAta: null
       };
-      if (!isCoin) {
+      if (isCoin) {
+        accounts.mappingTokenMint = null;
+        accounts.tokenProgram = this.tool.getTokenProgramId();
+        accounts.tokenVault = null;
+        accounts.userAta = null;
+      } else {
         tokenAccount = tool.ascii2letter(tokenAccount);
         let tokenAddress = this.tool.getPublicKey(tokenAccount);
         accounts.mappingTokenMint = tokenAddress;
