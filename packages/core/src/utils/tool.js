@@ -284,9 +284,8 @@ function parseXrpTokenPairAccount(tokenAccount, normalizeCurrency) {
 }
 
 function validateXrpTokenAmount(amount) {
-  let v = new BigNumber(amount).toExponential();
-  let [p, e] = v.split("e");
-  if ((p.replace(/\./g, '').length > 16) || (e > 95) || (e < -81)) {
+  let [p, e] = new BigNumber(amount).toExponential().split("e");
+  if ((p.replace(/\./g, '').length > 15) || (e > 80) || (e < -96)) {
     return false;
   }
   return true;
