@@ -1,7 +1,7 @@
 import BigNumber from "bignumber.js";
 import tool from "../../utils/tool.js";
 
-class BurnFromMidnight {
+class MintFromMidnight {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.configService = frameworkService.getService("ConfigService");
@@ -26,20 +26,20 @@ class BurnFromMidnight {
         storemanGroupId: convert.storemanGroupId,
         tokenPairID: convert.tokenPairId,
         value,
-        taskType: "ProcessBurnFromMidnight",
+        taskType: "ProcessMintFromMidnight",
         networkFee,
         fromAddr: convert.fromAddr
       };
-      console.debug("BurnFromMidnight params: %O", params);
+      console.debug("MintFromMidnight params: %O", params);
       let steps = [
-        { name: "userFastBurn", stepIndex: 1, params }
-      ];
+        { name: "userFastMint", stepIndex: 1, params }
+      ]
       return steps;
     } catch (err) {
-      console.error("BurnFromMidnight error: %O", err);
+      console.error("MintFromMidnight error: %O", err);
       throw err;
     }
   }
 }
 
-export default BurnFromMidnight;
+export default MintFromMidnight;

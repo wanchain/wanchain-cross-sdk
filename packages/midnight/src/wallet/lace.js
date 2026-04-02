@@ -1,41 +1,54 @@
 class Lace {
   constructor() {
-    this.name = "Midnight Lace";
+    this.name = "Lace Midnight";
+    this.chainId = "";
   }
 
   // standard function
 
   async getChainId() {
-    return 0;
+    return this.chainId;
   }
 
   async getAccounts() {
     try {
-      let wallet = await window.midnight.mnLace.enable();
-      let state = await wallet.state();
-      return [state.address];
+      let wallet = await this.connect();
+      let addr = await wallet.getUnshieldedAddress();
+      return [addr.unshieldedAddress];
     } catch (err) {
       console.error("%s not installed or not enabled: %O", this.name, err);
       throw new Error("Not installed or not enabled");
     }
   }
 
-  // do not support getBalance for privacy
   async getBalance(addr, tokenId) {
-    return "0";
+    tokenId = tokenId || "0000000000000000000000000000000000000000000000000000000000000000";
+    let accounts = await this.getAccounts();
+    if (addr === accounts[0]) {
+      let wallet = await this.connect();
+      let balance = await wallet.getUnshieldedBalances();
+      for (let id of Object.keys(balance)) {
+        if (tokenId === id) {
+          return balance[id].toString();
+        }
+      }
+      return "0";
+    } else {
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
+    }
   }
 
-  async getWallet() { // wrap wallet
-    let wallet = await window.midnight.mnLace.enable();
+  setChainId(chainId) {
+    this.chainId = chainId;
+  }
+
+  // customized function
+
+  async connect() { // wrap wallet
+    let walletKey = Object.keys(window.midnight)[0];
+    let wallet = await window.midnight[walletKey].connect(this.chainId);
     return wallet;
-  }
-
-  async sendTransaction(tx) {
-    let wallet = await window.midnight.mnLace.enable();
-    let provedTx = await wallet.balanceAndProveTransaction(tx, []);
-    console.log("proved tx: %O", provedTx);
-    let txHash = await wallet.submitTransaction(provedTx);
-    console.log("txHash: %s", txHash);
   }
 }
 

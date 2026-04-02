@@ -34,7 +34,7 @@ bridge.init(iwanAuth, {extensions: [MidnightExtension]});
 Step 2: Connect a wallet.
 
 ```javascript
-let wallet = new MidnightExtension.MidnightLaceWallet();
+let wallet = new MidnightExtension.LaceMidnightWallet();
 ```
 
 Step 3: Select a related asset pair and create cross-chain task.

@@ -3,7 +3,7 @@ import tool from "../../utils/tool.js";
 
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
 const AlgoEventTypes = ["algoBURN"];
-const DustEventTypes = ["dustCLAIM"]; // not real event, just simulation
+const DustEventTypes = ["dustREDEEM"]; // not real event, just simulation
 
 class CheckScEvent {
   constructor(frameworkService) {
@@ -29,7 +29,7 @@ class CheckScEvent {
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
     } else if (chainInfo.chainType === "DUST") {
       this.eventTypes = DustEventTypes;
-      this.eventHandler.set("dustCLAIM", this.processDustClaim.bind(this));
+      this.eventHandler.set("dustREDEEM", this.processDustRedeem.bind(this));
       this.tool = this.configService.getExtension("DUST").tool;
     } else { // evm
       this.crossScAbi = this.configService.getAbi("crossSc");
@@ -122,10 +122,10 @@ class CheckScEvent {
     await this.processScLogger("algoBURN", eventHash, eventName);
   }
 
-  async processDustClaim() {
+  async processDustRedeem() {
     let eventHash = ""; // not used
     let eventName = ""; // not used
-    await this.processScLogger("dustCLAIM", eventHash, eventName);
+    await this.processScLogger("dustREDEEM", eventHash, eventName);
   }
 
   getEventHash(abi, eventName) {
@@ -230,8 +230,8 @@ class CheckScEvent {
           } else if (this.chainInfo.chainType === "TRX") {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
-          } else if (task.taskType === "dustCLAIM") {
-            event = await this.scanDustClaim(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID, task.taskType === "BURN");
+          } else if (task.taskType === "dustREDEEM") {
+            event = await this.scanDustRedeem(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID, task.taskType === "BURN");
           } else {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             let topics = [eventHash, eventUnique.toLowerCase()];
@@ -460,8 +460,8 @@ class CheckScEvent {
     }
   }
 
-  async scanDustClaim(fromBlock, toBlock, txHash, uniqueID, isNative) {
-    let claimable = await this.tool.checkClaimable(uniqueID, isNative);
+  async scanDustRedeem(fromBlock, toBlock, txHash, uniqueID, isNative) {
+    let claimable = await this.tool.checkRedeemed(uniqueID, isNative);
     if (claimable) { // there are no smg txHash, use user txHash instead
       return { txHash, toAccount: "", value: "" };
     }

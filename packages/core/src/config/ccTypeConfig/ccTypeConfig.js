@@ -19,6 +19,7 @@ import claimRewardTask from "./ClaimRewardTask.js";
 import mintFromSui from "./MintFromSui.js";
 import burnFromSui from "./BurnFromSui.js";
 import mintFromTon from "./MintFromTon.js";
+import mintFromMidnight from "./MintFromMidnight.js";
 import burnFromMidnight from "./BurnFromMidnight.js";
 
 export default [
@@ -105,6 +106,10 @@ export default [
   {
     "name": "MintFromTon",
     "handle": mintFromTon
+  },
+  {
+    "name": "MintFromMidnight",
+    "handle": mintFromMidnight
   },
   {
     "name": "BurnFromMidnight",

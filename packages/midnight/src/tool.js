@@ -1,20 +1,19 @@
-import { CrossChainApi, initNetwork, getCoinPublicKeyFromShieldAddress } from 'midnight-crosschain';
-import { levelPrivateStateProvider } from '@midnight-ntwrk/midnight-js-level-private-state-provider';
+import { CrossChainApi, initNetwork, getUserAddressFromUnshieldAddress } from 'midnight-crosschain';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
-import { createBalancedTx } from '@midnight-ntwrk/midnight-js-types';
-import { Transaction } from '@midnight-ntwrk/ledger';
-import { Transaction as ZswapTransaction } from '@midnight-ntwrk/zswap';
-import { getLedgerNetworkId, getZswapNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
+import { Transaction } from '@midnight-ntwrk/ledger-v8';
+import { PrivateStateProvider } from './privateStateProvider.js';
+import { fromHex, toHex } from '@midnight-ntwrk/compact-runtime';
 
 const apiConfig = {
   testnet: {
-    contractAddress: '0200d90f6d68a4e875ca44d2ecd925743cb28e14ff9cc59e34d7178725519414ca00',
-    indexerUri: 'https://indexer.testnet-02.midnight.network/api/v1/graphql',
-    indexerWsUri: 'wss://indexer.testnet-02.midnight.network/api/v1/graphql/ws',
-    // node: 'https://rpc.testnet-02.midnight.network',
-    proverServerUri: 'http://44.229.225.45:6300'
+    contractAddress: '2fa8088e71ec85ac0bee4a6a5af8f04268c16099367e72d490ed5be125776976',
+    indexerUri: 'https://indexer.preview.midnight.network/api/v3/graphql',
+    indexerWsUri: 'wss://indexer.preview.midnight.network/api/v3/graphql/ws',
+    // node: 'https://rpc.preview.midnight.network',
+    // proverServerUri: 'https://lace-proof-pub.preview.midnight.network'
+    proverServerUri: 'http://35.163.105.105:6300'
   }
 }
 
@@ -23,34 +22,47 @@ const api = new CrossChainApi();
 let providersCache = null;
 
 async function initializeProviders(network, wallet) {
-  const cfg = apiConfig[network];
-  const zkConfigPath = window.location.origin + '/chains/mn/zk';
+  let cfg = apiConfig[network];
+  let zkConfigPath = window.location.origin + '/chains/mn/zk';
+  let keyMaterialProvider = new FetchZkConfigProvider(zkConfigPath, fetch.bind(window));
   providersCache = providersCache || {
-    privateStateProvider: levelPrivateStateProvider({
-      privateStateStoreName: 'crosschain-state',
-    }),
-    zkConfigProvider: new FetchZkConfigProvider(zkConfigPath, fetch.bind(window)),
-    proofProvider: httpClientProofProvider(cfg.proverServerUri),
+    privateStateProvider: PrivateStateProvider(),
+    zkConfigProvider: keyMaterialProvider,
+    proofProvider: httpClientProofProvider(cfg.proverServerUri, keyMaterialProvider),
     publicDataProvider: indexerPublicDataProvider(cfg.indexerUri, cfg.indexerWsUri)
   };
   if (wallet) {
-    const walletState = await wallet.state();
+    let shieldedAddresses = await wallet.getShieldedAddresses();
     providersCache.walletProvider = {
-      coinPublicKey: walletState.coinPublicKey,
-      encryptionPublicKey: walletState.encryptionPublicKey,
-      balanceTx(tx, newCoins) {
-        return wallet
-          .balanceAndProveTransaction(
-            ZswapTransaction.deserialize(tx.serialize(getLedgerNetworkId()), getZswapNetworkId()),
-            newCoins,
-          )
-          .then((zswapTx) => Transaction.deserialize(zswapTx.serialize(getZswapNetworkId()), getLedgerNetworkId()))
-          .then(createBalancedTx);
+      getCoinPublicKey() {
+        return shieldedAddresses.shieldedCoinPublicKey;
+      },
+      getEncryptionPublicKey() {
+        return shieldedAddresses.shieldedEncryptionPublicKey;
+      },
+      async balanceTx(tx) {
+        try {
+          let serializedTx = toHex(tx.serialize());
+          let received = await wallet.balanceUnsealedTransaction(serializedTx);
+          let result = Transaction.deserialize(
+            'signature',
+            'proof',
+            'binding',
+            fromHex(received.tx),
+          );
+          return result;
+        } catch (err) {
+          console.error("balanceTx error: %O", err);
+          throw err;
+        }
       }
     };
     providersCache.midnightProvider = {
-      submitTx(tx) {
-        return wallet.submitTransaction(tx);
+      async submitTx(tx) {
+        await wallet.submitTransaction(toHex(tx.serialize()));
+        let txIdentifiers = tx.identifiers();
+        let txId = txIdentifiers[0]; // Return the first transaction ID
+        return txId;
       }
     };
   } else {
@@ -61,7 +73,7 @@ async function initializeProviders(network, wallet) {
 };
 
 async function setApiProviders(network, wallet = null) {
-  initNetwork(network === 'testnet' ? 2 : 0);
+  initNetwork(network === 'testnet' ? "preview" : "mainnet");
   let isInit = !providersCache;
   await initializeProviders(network, wallet);
   await api.init(providersCache);
@@ -72,7 +84,7 @@ async function setApiProviders(network, wallet = null) {
 
 function validateAddress(address) {
   try {
-    getCoinPublicKeyFromShieldAddress(address);
+    getUserAddressFromUnshieldAddress(address);
     return true;
   } catch (err) {
     // console.error("midnight validateAddress %s error: %O", address, err);
@@ -82,19 +94,19 @@ function validateAddress(address) {
 
 async function getUserFeeBalance(address) {
   let ledgerState = await api.getLedgerState();
-  let userBytes = getCoinPublicKeyFromShieldAddress(address);
+  let userBytes = getUserAddressFromUnshieldAddress(address);
   let key = { bytes: userBytes };
   let balance = ledgerState.userFeeBalance.member(key) ? ledgerState.userFeeBalance.lookup(key).toString() : 0;
   console.debug("getUserFeeBalance %s: %O", address, balance);
   return balance;
 }
 
-async function checkClaimable(uniqueId, isNative) {
+async function checkRedeemed(uniqueId, isNative) {
   let ledgerState = await api.getLedgerState();
   let data = isNative ? ledgerState.coinToBeClaimed : ledgerState.mappingTokenToBeClaim;
   let key = { bytes: new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex')) };
   let result = data.member(key) ? data.lookup(key) : null;
-  console.log("checkClaimable %s %s: %O", uniqueId, isNative, result);
+  console.log("checkRedeemed %s %s: %O", uniqueId, isNative, result);
   return result;
 }
 
@@ -102,12 +114,12 @@ export { api };
 export { setApiProviders };
 export { validateAddress };
 export { getUserFeeBalance };
-export { checkClaimable };
+export { checkRedeemed };
 
 export default {
   api,
   setApiProviders,
   validateAddress,
   getUserFeeBalance,
-  checkClaimable
+  checkRedeemed
 };

@@ -1,4 +1,4 @@
-import MidnightLaceWallet from "./src/wallet/lace.js";
+import LaceMidnightWallet from "./src/wallet/lace.js";
 import tool from "./src/tool.js";
 
 async function init(network) {
@@ -7,14 +7,14 @@ async function init(network) {
 
 export const getChains = () => ["Midnight"];
 export const getSymbols = () => ["DUST"];
-export { MidnightLaceWallet };
+export { LaceMidnightWallet };
 export { tool };
 export { init };
 
 export default {
   getChains,
   getSymbols,
-  MidnightLaceWallet,
+  LaceMidnightWallet,
   tool,
   init
 };

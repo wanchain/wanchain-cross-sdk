@@ -251,7 +251,7 @@ class BridgeTask {
 
   async _checkFromAccount() {
     let chainType = this._fromChainInfo.chainType;
-    if ((chainType === "DUST") || !this._fromAccount) { // third party wallet
+    if (!this._fromAccount) { // third party wallet
       return "";
     }
 

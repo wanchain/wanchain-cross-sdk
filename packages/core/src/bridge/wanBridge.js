@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2602051110", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2603301745", this.network, this.isTestMode, this.smgName, this.prefer);
     this._service = new StartService();
     await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
     this.configService = this._service.getService("ConfigService");
@@ -609,9 +609,6 @@ class WanBridge extends EventEmitter {
       if ((addresses.length === 0) || (addresses[0] !== task.fromAccount)) {
         throw new Error("Invalid wallet account");
       }
-    } else if (task.toChainType === "DUST") {
-      let eventType = this.tokenPairService.getTokenEventType(task.assetPairId, task.convertType);
-      params = { taskType: "ProcessMidnightClaim", uniqueId: task.uniqueId, ccTaskId: taskId, isNative: eventType === 'BURN' };
     } else {
       throw new Error("Not claimable");
     }
@@ -850,8 +847,6 @@ class WanBridge extends EventEmitter {
       } else if (ccTask.claimStatus) { // claim cctp usdc is via thirdparty tool, just clear claim status
         records.setExtraInfo(taskId, { claimStatus: "" }, true);
       }
-    } else if (ccTask.toChainType === "DUST") {
-      records.setExtraInfo(taskId, { claimStatus: "Ready" });
     }
     let wanPointsServer = this.configService.getGlobalConfig("wanPointsServer");
     if (wanPointsServer) {
