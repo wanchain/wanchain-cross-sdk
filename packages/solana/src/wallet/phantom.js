@@ -1,7 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
 import * as Web3 from "@solana/web3.js";
 import cctpProxyIdl from "../cctp/circle_cctp_proxy_contract.json" with { type: "json" };
-import messageTransmitterIdl from "../cctp/idl_message_transmitter.json" with { type: "json" };
+import cctpV2ProxyIdl from "../cctp/circle_cctp_v2_proxy_contract.json" with { type: "json" };
+import messageTransmitterIdl from "../cctp/message_transmitter.json" with { type: "json" };
+import messageTransmitterV2Idl from "../cctp/message_transmitter_v2.json" with { type: "json" };
 import wanBridgeIdl from "../wanbridge/cross_delegate.json" with { type: "json" };
 import { PublicKey, TransactionMessage, VersionedTransaction } from "@solana/web3.js";
 import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
@@ -94,16 +96,29 @@ class Phantom {
   }
 
   getProgram(name, id) {
-    let provider = this.getProvider();
+    let idl;
     if (name === "cctpProxy") {
-      return new anchor.Program(cctpProxyIdl, id, provider);
+      idl = cctpProxyIdl;
+    } else if (name === "cctpV2Proxy") {
+      idl = cctpV2ProxyIdl;
     } else if (name === "messageTransmitter") {
-      return new anchor.Program(messageTransmitterIdl, id, provider);
+      idl = messageTransmitterIdl;
+    } else if (name === "messageTransmitterV2") {
+      idl = messageTransmitterV2Idl;
     } else if (name === "wanBridge") {
-      return new anchor.Program(wanBridgeIdl, id, provider);
+      idl = wanBridgeIdl;
     } else {
       return null;
     }
+    if (id) {
+      if (id !== idl.address) {
+        console.log("solana program id do not equal to idl address,  %s != %s", id, idl.address);
+        idl = Object.assign({}, idl);
+        idl.address = id;
+      }
+    }
+    let provider = this.getProvider();
+    return new anchor.Program(idl, provider);
   }
 
   async getRecentPrioritizationFees() {

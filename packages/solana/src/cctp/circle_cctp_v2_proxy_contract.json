@@ -1,7 +1,7 @@
 {
-  "address": "D8tMd16M6BraHdNxUTMJPq4RPUYVsQ6DswVvDqTCGoup",
+  "address": "ALn3PFRNUCdXu8gxWcW9SAfWAYUC7BZDwF46VpMJro3E",
   "metadata": {
-    "name": "circle_cctp_proxy_contract",
+    "name": "circle_cctp_v2_proxy_contract",
     "version": "0.1.0",
     "spec": "0.1.0",
     "description": "Created with Anchor"
@@ -117,110 +117,8 @@
           "signer": true
         },
         {
-          "name": "user",
-          "writable": true
-        },
-        {
-          "name": "token_mint",
-          "writable": true
-        },
-        {
-          "name": "user_ata",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "const",
-                "value": [
-                  6,
-                  221,
-                  246,
-                  225,
-                  215,
-                  101,
-                  161,
-                  147,
-                  217,
-                  203,
-                  225,
-                  70,
-                  206,
-                  235,
-                  121,
-                  172,
-                  28,
-                  180,
-                  133,
-                  237,
-                  95,
-                  91,
-                  55,
-                  145,
-                  58,
-                  140,
-                  245,
-                  133,
-                  126,
-                  255,
-                  0,
-                  169
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "token_mint"
-              }
-            ],
-            "program": {
-              "kind": "const",
-              "value": [
-                140,
-                151,
-                37,
-                143,
-                78,
-                36,
-                137,
-                241,
-                187,
-                61,
-                16,
-                41,
-                20,
-                142,
-                13,
-                131,
-                11,
-                90,
-                19,
-                153,
-                218,
-                255,
-                16,
-                132,
-                4,
-                142,
-                123,
-                216,
-                219,
-                233,
-                248,
-                89
-              ]
-            }
-          }
-        },
-        {
-          "name": "token_program",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
-          "name": "associated_token_program",
-          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+          "name": "caller",
+          "signer": true
         },
         {
           "name": "authority_pda"
@@ -229,7 +127,7 @@
           "name": "message_transmitter"
         },
         {
-          "name": "used_nonces",
+          "name": "used_nonce",
           "writable": true
         },
         {
@@ -329,6 +227,9 @@
           "writable": true
         },
         {
+          "name": "denylist_account"
+        },
+        {
           "name": "message_transmitter",
           "writable": true
         },
@@ -385,6 +286,168 @@
         {
           "name": "mint_recipient",
           "type": "pubkey"
+        },
+        {
+          "name": "destination_caller",
+          "type": "pubkey"
+        },
+        {
+          "name": "max_fee",
+          "type": "u64"
+        },
+        {
+          "name": "min_finality_threshold",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "relay_circle_cctp_with_hook",
+      "discriminator": [
+        24,
+        89,
+        164,
+        28,
+        72,
+        4,
+        186,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "config_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  67,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  68,
+                  97,
+                  116,
+                  97
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "fee_receiver",
+          "writable": true
+        },
+        {
+          "name": "config_program_admin_roles_account"
+        },
+        {
+          "name": "config_program_domain_data_account"
+        },
+        {
+          "name": "config_program_fee_data_account"
+        },
+        {
+          "name": "config_program",
+          "address": "dFYBRAFvZKq9F4mYGkLQu8DbfZRFrmi5dNSTDfwC3a8"
+        },
+        {
+          "name": "circle_cctp_program"
+        },
+        {
+          "name": "owner",
+          "signer": true
+        },
+        {
+          "name": "event_rent_payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sender_authority_pda"
+        },
+        {
+          "name": "burn_token_account",
+          "writable": true
+        },
+        {
+          "name": "denylist_account"
+        },
+        {
+          "name": "message_transmitter",
+          "writable": true
+        },
+        {
+          "name": "token_messenger"
+        },
+        {
+          "name": "remote_token_messenger"
+        },
+        {
+          "name": "token_minter"
+        },
+        {
+          "name": "local_token",
+          "writable": true
+        },
+        {
+          "name": "burn_token_mint",
+          "writable": true
+        },
+        {
+          "name": "message_sent_event_data",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "message_transmitter_program"
+        },
+        {
+          "name": "token_messenger_minter_program"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "system_program"
+        },
+        {
+          "name": "event_authority"
+        },
+        {
+          "name": "program"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "destination_domain",
+          "type": "u32"
+        },
+        {
+          "name": "mint_recipient",
+          "type": "pubkey"
+        },
+        {
+          "name": "destination_caller",
+          "type": "pubkey"
+        },
+        {
+          "name": "max_fee",
+          "type": "u64"
+        },
+        {
+          "name": "min_finality_threshold",
+          "type": "u32"
+        },
+        {
+          "name": "hook_data",
+          "type": "bytes"
         }
       ]
     },

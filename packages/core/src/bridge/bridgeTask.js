@@ -104,9 +104,7 @@ class BridgeTask {
       amount: this._amount,
       bridge: this._tokenPair.bridge,
       fromAccount: this._fromAccount,
-      fromAccountId: options.fromAccountId || '',
       toAccount: this._toAccount,
-      toAccountId: options.toAccountId || '',
       fromChainName: this._fromChainInfo.chainName,
       toChainName: this._toChainInfo.chainName,
       fromSymbol: this._fromChainInfo.symbol,
@@ -118,6 +116,12 @@ class BridgeTask {
       fee: this._fee,
       smg: { name: this._smg ? this._smg.name : "", gpk: this._gpkInfo ? this._gpkInfo.gpk : "" }
     };
+    if (options.fromAccountId) {
+      taskData.fromAccountId = options.fromAccountId;
+    }
+    if (options.toAccountId) {
+      taskData.toAccountId = options.toAccountId;
+    }
     // console.debug({taskData});
     this._task.setTaskData(taskData);
   }
@@ -475,7 +479,6 @@ class BridgeTask {
     let ccTask = records.ccTaskRecords.get(this.id);
     this._bridge.storageService.save("crossChainTaskRecords", this.id, ccTask);
     this._bridge._distributeEvent("ota", ota);
-    console.debug("%s OTA: %O", chainType, ota);
   }
 
   _getSmgXrpClassicAddress() {

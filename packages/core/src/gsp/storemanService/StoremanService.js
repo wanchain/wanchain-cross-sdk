@@ -639,9 +639,27 @@ class StoremanService {
     return data;
   }
 
+  async getCctpV2Message(fromChain, txHash) {
+    let chainInfo = this.chainInfoService.getChainInfoByType(fromChain);
+    let cctpApiUrl = this.configService.getGlobalConfig("cctpApiUrl");
+    let url = util.format("%s/v2/messages/%d?transactionHash=%s", cctpApiUrl, chainInfo.CircleBridge.domain, txHash);
+    let res = await axios.get(url);
+    return res && res.data && res.data.messages && res.data.messages[0];
+  }
+
   async parseCctpDeposit(fromChain, txHash, options) {
     let result = {};
-    if (fromChain === "NOBLE") {
+    if (options.isV2) { // v2 is common for evm and other chains
+      let msg = await this.getCctpV2Message(fromChain, txHash);
+      if (msg) {
+        if (msg.eventNonce && msg.decodedMessage) {
+          result.depositNonce = msg.eventNonce;
+          result.depositAmount = msg.decodedMessage.decodedMessageBody.amount;
+        } else if (msg.attestation === "PENDING") {
+          console.debug("parseCctpV2Deposit for chain %s tx %s pending: %s", fromChain, txHash, msg.delayReason);
+        }
+      }
+    } else if (fromChain === "NOBLE") {
       let receipt = await this.iwan.getTransactionReceipt(fromChain, txHash);
       let event = receipt.events.find(v => (v.type === "circle.cctp.v1.DepositForBurn"));
       if (event) {
@@ -682,21 +700,6 @@ class StoremanService {
         if (cctpMsg) {
           result.depositNonce = cctpMsg.nonce;
           result.depositAmount = cctpMsg.amount;
-        }
-      }
-    } else if (options.isV2) { // evm v2
-      let chainInfo = this.chainInfoService.getChainInfoByType(fromChain);
-      let cctpApiUrl = this.configService.getGlobalConfig("cctpApiUrl");
-      let url = util.format("%s/v2/messages/%d?transactionHash=%s", cctpApiUrl, chainInfo.CircleBridge.domain, txHash);
-      let res = await axios.get(url);
-      // console.log("cctp api rs: %O", res)
-      if (res && res.data && res.data.messages) {
-        let msg = res.data.messages[0];
-        if (msg.eventNonce && msg.decodedMessage) {
-          result.depositNonce = msg.eventNonce;
-          result.depositAmount = msg.decodedMessage.decodedMessageBody.amount;
-        } else if (msg.attestation === "PENDING") {
-          console.debug("parseCctpDeposit for chain %s tx %s pending: %s", fromChain, txHash, msg.delayReason);
         }
       }
     } else { // evm v1

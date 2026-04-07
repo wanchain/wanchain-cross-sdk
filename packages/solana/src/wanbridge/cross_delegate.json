@@ -1,369 +1,65 @@
 {
-  "version": "0.1.0",
-  "name": "cross_delegate",
+  "address": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB",
+  "metadata": {
+    "name": "cross_delegate",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
   "instructions": [
     {
       "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
       "accounts": [
         {
           "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "cpiAuthority",
-          "isMut": false,
-          "isSigner": false
+          "name": "cpi_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  80,
+                  100,
+                  97,
+                  65,
+                  83,
+                  67,
+                  112,
+                  105,
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "userLock",
-      "docs": [
-        "@param  smgID                           ID of storeman",
-        "@param  tokenPairID                     token pair ID of cross chain coin/token",
-        "@param  value                           exchange value",
-        "@param  userAccount                     account of user, used to receive shadow chain token"
-      ],
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "solVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userAta",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "tokenVault",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "mappingTokenMint",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "feeReceiver",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "adminBoardProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "configAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenPairAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "cctpAdminBoardFeeAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32"
-        },
-        {
-          "name": "value",
-          "type": "u64"
-        },
-        {
-          "name": "userAccount",
-          "type": "bytes"
-        }
-      ]
-    },
-    {
-      "name": "userBurn",
-      "docs": [
-        "@param  smgID                           ID of storeman. In business domain it is byte32 type.",
-        "@param  tokenPairID                     token pair ID of cross chain token",
-        "@param  value                           exchange value",
-        "@param  userAccount                     account of user, used to receive original chain token"
-      ],
-      "accounts": [
-        {
-          "name": "user",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "userAta",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mappingTokenMint",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "configAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenManagerProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "feeReceiver",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "adminBoardProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenPairAccount",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "cctpAdminBoardFeeAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32"
-        },
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "fee",
-          "type": "u64"
-        },
-        {
-          "name": "tokenAccount",
-          "type": "publicKey"
-        },
-        {
-          "name": "userAccount",
-          "type": "bytes"
-        }
-      ]
-    },
-    {
-      "name": "smgRelease",
-      "docs": [
-        "@param  uniqueID                        fast cross chain random number",
-        "@param  smgID                           ID of storeman",
-        "@param  tokenPairID                     token pair ID of cross chain token",
-        "@param  value                           exchange value",
-        "@param  fee                             exchange fee",
-        "@param  userAccount                     address of user, used to receive original token/coin",
-        "@param  r                               signature",
-        "@param  s                               signature"
-      ],
-      "accounts": [
-        {
-          "name": "signer",
-          "isMut": true,
-          "isSigner": true
-        },
-        {
-          "name": "user",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "solVault",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "userAta",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "tokenVault",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "feeReceiver",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "mappingTokenMint",
-          "isMut": true,
-          "isSigner": false,
-          "isOptional": true
-        },
-        {
-          "name": "configAccount",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "txHistory",
-          "isMut": true,
-          "isSigner": false
-        },
-        {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
-        },
-        {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
-        }
-      ],
-      "args": [
-        {
-          "name": "uniqueId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          }
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32"
-        },
-        {
-          "name": "amount",
-          "type": "u64"
-        },
-        {
-          "name": "fee",
-          "type": "u64"
-        },
-        {
-          "name": "tokenAccount",
-          "type": "publicKey"
-        },
-        {
-          "name": "userAccount",
-          "type": "publicKey"
-        },
-        {
-          "name": "r",
-          "type": "u8"
-        },
-        {
-          "name": "s",
-          "type": {
-            "array": [
-              "u8",
-              64
-            ]
-          }
-        },
-        {
-          "name": "ttl",
-          "type": "i64"
-        }
-      ]
-    },
-    {
-      "name": "smgMint",
+      "name": "smg_mint",
       "docs": [
         "@param  uniqueID                        fast cross chain random number",
         "@param  smgID                           ID of storeman",
@@ -374,81 +70,339 @@
         "@param  r                               signature",
         "@param  s                               signature"
       ],
+      "discriminator": [
+        255,
+        110,
+        147,
+        177,
+        101,
+        137,
+        52,
+        114
+      ],
       "accounts": [
         {
           "name": "signer",
-          "isMut": true,
-          "isSigner": true
+          "writable": true,
+          "signer": true
         },
         {
-          "name": "user",
-          "isMut": false,
-          "isSigner": false
+          "name": "user"
         },
         {
-          "name": "userAta",
-          "isMut": true,
-          "isSigner": false
+          "name": "user_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
-          "name": "feeReceiver",
-          "isMut": false,
-          "isSigner": false
+          "name": "fee_receiver"
         },
         {
-          "name": "feeReceiverAta",
-          "isMut": true,
-          "isSigner": false
+          "name": "fee_receiver_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "fee_receiver"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
         },
         {
-          "name": "mappingTokenMint",
-          "isMut": true,
-          "isSigner": false
+          "name": "mapping_token_mint",
+          "writable": true
         },
         {
-          "name": "tokenSeedData",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_seed_data",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  84,
+                  111,
+                  107,
+                  101,
+                  110,
+                  83,
+                  101,
+                  101,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                80,
+                21,
+                188,
+                99,
+                155,
+                241,
+                164,
+                167,
+                184,
+                247,
+                193,
+                90,
+                131,
+                246,
+                248,
+                242,
+                83,
+                190,
+                113,
+                138,
+                115,
+                241,
+                93,
+                22,
+                88,
+                179,
+                84,
+                69,
+                66,
+                128,
+                55,
+                102
+              ]
+            }
+          }
         },
         {
-          "name": "configAccount",
-          "isMut": false,
-          "isSigner": false
+          "name": "config_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  67,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  68,
+                  97,
+                  116,
+                  97
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                100,
+                11,
+                201,
+                223,
+                51,
+                197,
+                221,
+                59,
+                138,
+                31,
+                16,
+                137,
+                186,
+                128,
+                244,
+                15,
+                93,
+                175,
+                202,
+                35,
+                91,
+                223,
+                115,
+                231,
+                237,
+                127,
+                90,
+                65,
+                10,
+                245,
+                185,
+                88
+              ]
+            }
+          }
         },
         {
-          "name": "txHistory",
-          "isMut": true,
-          "isSigner": false
+          "name": "tx_history",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  84,
+                  120,
+                  85,
+                  110,
+                  105,
+                  113,
+                  117,
+                  101,
+                  73,
+                  68
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hash_x"
+              }
+            ]
+          }
         },
         {
-          "name": "cpiAuthority",
-          "isMut": false,
-          "isSigner": false
+          "name": "cpi_authority",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  80,
+                  100,
+                  97,
+                  65,
+                  83,
+                  67,
+                  112,
+                  105,
+                  83,
+                  105,
+                  103,
+                  110,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
         },
         {
-          "name": "tokenManagerProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_manager_program",
+          "address": "6PcqfvWkBv3m9F5XBU2kMAedycs6BPzDGfi8zcWam3kH"
         },
         {
-          "name": "tokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "token_program"
         },
         {
-          "name": "associatedTokenProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         },
         {
-          "name": "systemProgram",
-          "isMut": false,
-          "isSigner": false
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "uniqueId",
+          "name": "unique_id",
           "type": {
             "array": [
               "u8",
@@ -457,7 +411,7 @@
           }
         },
         {
-          "name": "smgId",
+          "name": "smg_id",
           "type": {
             "array": [
               "u8",
@@ -466,7 +420,7 @@
           }
         },
         {
-          "name": "tokenPairId",
+          "name": "token_pair_id",
           "type": "u32"
         },
         {
@@ -478,12 +432,12 @@
           "type": "u64"
         },
         {
-          "name": "tokenAccount",
-          "type": "publicKey"
+          "name": "token_account",
+          "type": "pubkey"
         },
         {
-          "name": "userAccount",
-          "type": "publicKey"
+          "name": "user_account",
+          "type": "pubkey"
         },
         {
           "name": "r",
@@ -503,322 +457,1069 @@
           "type": "i64"
         }
       ]
+    },
+    {
+      "name": "smg_release",
+      "docs": [
+        "@param  uniqueID                        fast cross chain random number",
+        "@param  smgID                           ID of storeman",
+        "@param  tokenPairID                     token pair ID of cross chain token",
+        "@param  value                           exchange value",
+        "@param  fee                             exchange fee",
+        "@param  userAccount                     address of user, used to receive original token/coin",
+        "@param  r                               signature",
+        "@param  s                               signature"
+      ],
+      "discriminator": [
+        92,
+        142,
+        246,
+        161,
+        151,
+        92,
+        136,
+        23
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user",
+          "writable": true
+        },
+        {
+          "name": "sol_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "sol_vault"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "fee_receiver",
+          "writable": true
+        },
+        {
+          "name": "mapping_token_mint",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "config_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  67,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  68,
+                  97,
+                  116,
+                  97
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                100,
+                11,
+                201,
+                223,
+                51,
+                197,
+                221,
+                59,
+                138,
+                31,
+                16,
+                137,
+                186,
+                128,
+                244,
+                15,
+                93,
+                175,
+                202,
+                35,
+                91,
+                223,
+                115,
+                231,
+                237,
+                127,
+                90,
+                65,
+                10,
+                245,
+                185,
+                88
+              ]
+            }
+          }
+        },
+        {
+          "name": "tx_history",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  84,
+                  120,
+                  85,
+                  110,
+                  105,
+                  113,
+                  117,
+                  101,
+                  73,
+                  68
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hash_x"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "unique_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "smg_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "token_pair_id",
+          "type": "u32"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "fee",
+          "type": "u64"
+        },
+        {
+          "name": "token_account",
+          "type": "pubkey"
+        },
+        {
+          "name": "user_account",
+          "type": "pubkey"
+        },
+        {
+          "name": "r",
+          "type": "u8"
+        },
+        {
+          "name": "s",
+          "type": {
+            "array": [
+              "u8",
+              64
+            ]
+          }
+        },
+        {
+          "name": "ttl",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "user_burn",
+      "docs": [
+        "@param  smgID                           ID of storeman. In business domain it is byte32 type.",
+        "@param  tokenPairID                     token pair ID of cross chain token",
+        "@param  value                           exchange value",
+        "@param  userAccount                     account of user, used to receive original chain token"
+      ],
+      "discriminator": [
+        45,
+        69,
+        104,
+        173,
+        101,
+        180,
+        47,
+        188
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  6,
+                  221,
+                  246,
+                  225,
+                  215,
+                  101,
+                  161,
+                  147,
+                  217,
+                  203,
+                  225,
+                  70,
+                  206,
+                  235,
+                  121,
+                  172,
+                  28,
+                  180,
+                  133,
+                  237,
+                  95,
+                  91,
+                  55,
+                  145,
+                  58,
+                  140,
+                  245,
+                  133,
+                  126,
+                  255,
+                  0,
+                  169
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "mapping_token_mint",
+          "writable": true
+        },
+        {
+          "name": "config_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  67,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  68,
+                  97,
+                  116,
+                  97
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                100,
+                11,
+                201,
+                223,
+                51,
+                197,
+                221,
+                59,
+                138,
+                31,
+                16,
+                137,
+                186,
+                128,
+                244,
+                15,
+                93,
+                175,
+                202,
+                35,
+                91,
+                223,
+                115,
+                231,
+                237,
+                127,
+                90,
+                65,
+                10,
+                245,
+                185,
+                88
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_manager_program",
+          "address": "6PcqfvWkBv3m9F5XBU2kMAedycs6BPzDGfi8zcWam3kH"
+        },
+        {
+          "name": "fee_receiver",
+          "writable": true
+        },
+        {
+          "name": "admin_board_program",
+          "address": "7jYCM8k5Nvwg5vyPpLk2yjivQhexPDMXuK8CSbUKqL6B"
+        },
+        {
+          "name": "token_pair_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  84,
+                  111,
+                  107,
+                  101,
+                  110,
+                  80,
+                  97,
+                  105,
+                  114,
+                  73,
+                  110,
+                  102,
+                  111
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "token_pair_id"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                100,
+                11,
+                201,
+                223,
+                51,
+                197,
+                221,
+                59,
+                138,
+                31,
+                16,
+                137,
+                186,
+                128,
+                244,
+                15,
+                93,
+                175,
+                202,
+                35,
+                91,
+                223,
+                115,
+                231,
+                237,
+                127,
+                90,
+                65,
+                10,
+                245,
+                185,
+                88
+              ]
+            }
+          }
+        },
+        {
+          "name": "cctp_admin_board_fee_account"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "smg_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "token_pair_id",
+          "type": "u32"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "fee",
+          "type": "u64"
+        },
+        {
+          "name": "token_account",
+          "type": "pubkey"
+        },
+        {
+          "name": "user_account",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "user_lock",
+      "docs": [
+        "@param  smgID                           ID of storeman",
+        "@param  tokenPairID                     token pair ID of cross chain coin/token",
+        "@param  value                           exchange value",
+        "@param  userAccount                     account of user, used to receive shadow chain token"
+      ],
+      "discriminator": [
+        66,
+        17,
+        214,
+        126,
+        235,
+        133,
+        82,
+        114
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "sol_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_ata",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_vault",
+          "writable": true,
+          "optional": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "sol_vault"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "mapping_token_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "mapping_token_mint",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "fee_receiver",
+          "writable": true
+        },
+        {
+          "name": "admin_board_program",
+          "address": "7jYCM8k5Nvwg5vyPpLk2yjivQhexPDMXuK8CSbUKqL6B"
+        },
+        {
+          "name": "config_account",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  67,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  68,
+                  97,
+                  116,
+                  97
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                100,
+                11,
+                201,
+                223,
+                51,
+                197,
+                221,
+                59,
+                138,
+                31,
+                16,
+                137,
+                186,
+                128,
+                244,
+                15,
+                93,
+                175,
+                202,
+                35,
+                91,
+                223,
+                115,
+                231,
+                237,
+                127,
+                90,
+                65,
+                10,
+                245,
+                185,
+                88
+              ]
+            }
+          }
+        },
+        {
+          "name": "token_pair_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  84,
+                  111,
+                  107,
+                  101,
+                  110,
+                  80,
+                  97,
+                  105,
+                  114,
+                  73,
+                  110,
+                  102,
+                  111
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "token_pair_id"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                100,
+                11,
+                201,
+                223,
+                51,
+                197,
+                221,
+                59,
+                138,
+                31,
+                16,
+                137,
+                186,
+                128,
+                244,
+                15,
+                93,
+                175,
+                202,
+                35,
+                91,
+                223,
+                115,
+                231,
+                237,
+                127,
+                90,
+                65,
+                10,
+                245,
+                185,
+                88
+              ]
+            }
+          }
+        },
+        {
+          "name": "cctp_admin_board_fee_account"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "smg_id",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "token_pair_id",
+          "type": "u32"
+        },
+        {
+          "name": "value",
+          "type": "u64"
+        },
+        {
+          "name": "user_account",
+          "type": "bytes"
+        }
+      ]
     }
   ],
   "accounts": [
     {
-      "name": "AdminRoleData",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "initialized",
-            "type": "bool"
-          },
-          {
-            "name": "adminRole",
-            "type": "publicKey"
-          },
-          {
-            "name": "operators",
-            "type": {
-              "array": [
-                "publicKey",
-                3
-              ]
-            }
-          }
-        ]
-      }
+      "name": "ConfigData",
+      "discriminator": [
+        221,
+        205,
+        236,
+        51,
+        101,
+        165,
+        133,
+        250
+      ]
+    },
+    {
+      "name": "FeeData",
+      "discriminator": [
+        115,
+        3,
+        225,
+        19,
+        253,
+        170,
+        39,
+        212
+      ]
+    },
+    {
+      "name": "TokenPairDataAccount",
+      "discriminator": [
+        121,
+        139,
+        1,
+        242,
+        107,
+        26,
+        59,
+        69
+      ]
+    },
+    {
+      "name": "TokenSeedData",
+      "discriminator": [
+        125,
+        229,
+        59,
+        250,
+        219,
+        84,
+        12,
+        54
+      ]
     },
     {
       "name": "TxHistory",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "ttl",
-            "type": "i64"
-          }
-        ]
-      }
-    }
-  ],
-  "types": [
-    {
-      "name": "ProofData",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "hashX",
-            "type": {
-              "defined": "Bytes32"
-            }
-          },
-          {
-            "name": "tokenPairId",
-            "type": "u32"
-          },
-          {
-            "name": "amount",
-            "type": "u64"
-          },
-          {
-            "name": "fee",
-            "type": "u64"
-          },
-          {
-            "name": "tokenAccount",
-            "type": "publicKey"
-          },
-          {
-            "name": "userAccount",
-            "type": "publicKey"
-          },
-          {
-            "name": "curChainId",
-            "type": "u64"
-          },
-          {
-            "name": "ttl",
-            "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "Bytes32",
-      "type": {
-        "kind": "alias",
-        "value": {
-          "array": [
-            "u8",
-            32
-          ]
-        }
-      }
+      "discriminator": [
+        102,
+        102,
+        173,
+        63,
+        77,
+        176,
+        146,
+        232
+      ]
     }
   ],
   "events": [
     {
       "name": "AddToken",
-      "fields": [
-        {
-          "name": "tokenAddress",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "index": false
-        },
-        {
-          "name": "symbol",
-          "type": "string",
-          "index": false
-        },
-        {
-          "name": "decimals",
-          "type": "u8",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "Transfer",
-      "fields": [
-        {
-          "name": "from",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "to",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "value",
-          "type": "u64",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "UserLockLogger",
-      "fields": [
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          },
-          "index": false
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32",
-          "index": false
-        },
-        {
-          "name": "tokenAccount",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "value",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "contractFee",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "userAccount",
-          "type": "bytes",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "UserBurnLogger",
-      "fields": [
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          },
-          "index": false
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32",
-          "index": false
-        },
-        {
-          "name": "tokenAccount",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "value",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "contractFee",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "fee",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "userAccount",
-          "type": "bytes",
-          "index": false
-        }
-      ]
-    },
-    {
-      "name": "SmgReleaseLogger",
-      "fields": [
-        {
-          "name": "uniqueId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          },
-          "index": false
-        },
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          },
-          "index": false
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32",
-          "index": false
-        },
-        {
-          "name": "value",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "tokenAccount",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "userAccount",
-          "type": "publicKey",
-          "index": false
-        }
+      "discriminator": [
+        42,
+        21,
+        93,
+        67,
+        177,
+        172,
+        88,
+        219
       ]
     },
     {
       "name": "SmgMintLogger",
-      "fields": [
-        {
-          "name": "uniqueId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          },
-          "index": false
-        },
-        {
-          "name": "smgId",
-          "type": {
-            "array": [
-              "u8",
-              32
-            ]
-          },
-          "index": false
-        },
-        {
-          "name": "tokenPairId",
-          "type": "u32",
-          "index": false
-        },
-        {
-          "name": "value",
-          "type": "u64",
-          "index": false
-        },
-        {
-          "name": "tokenAccount",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "userAccount",
-          "type": "publicKey",
-          "index": false
-        }
+      "discriminator": [
+        16,
+        234,
+        46,
+        201,
+        20,
+        101,
+        55,
+        19
+      ]
+    },
+    {
+      "name": "SmgReleaseLogger",
+      "discriminator": [
+        230,
+        33,
+        26,
+        207,
+        204,
+        237,
+        220,
+        252
+      ]
+    },
+    {
+      "name": "Transfer",
+      "discriminator": [
+        25,
+        18,
+        23,
+        7,
+        172,
+        116,
+        130,
+        28
+      ]
+    },
+    {
+      "name": "UserBurnLogger",
+      "discriminator": [
+        114,
+        68,
+        178,
+        6,
+        134,
+        161,
+        208,
+        87
+      ]
+    },
+    {
+      "name": "UserLockLogger",
+      "discriminator": [
+        238,
+        38,
+        12,
+        31,
+        218,
+        151,
+        151,
+        160
       ]
     }
   ],
@@ -856,7 +1557,350 @@
       "msg": "Fee receiver verify failed."
     }
   ],
-  "metadata": {
-    "address": "E3iKvJgGNycXrmsh2aryY25z29PpU4dvo4CBuXCKQiGB"
-  }
+  "types": [
+    {
+      "name": "AddToken",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "token_address",
+            "type": "pubkey"
+          },
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string"
+          },
+          {
+            "name": "decimals",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ConfigData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ttl",
+            "type": "i64"
+          },
+          {
+            "name": "gpk",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "gpk_slot_start",
+            "type": "i64"
+          },
+          {
+            "name": "gpk_slot_end",
+            "type": "i64"
+          },
+          {
+            "name": "new_gpk",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "new_gpk_slot_start",
+            "type": "i64"
+          },
+          {
+            "name": "new_gpk_slot_end",
+            "type": "i64"
+          },
+          {
+            "name": "new_gpk_slot_update",
+            "type": "i64"
+          },
+          {
+            "name": "fee_receiver",
+            "type": "pubkey"
+          },
+          {
+            "name": "cross_delegate",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_manager",
+            "type": "pubkey"
+          },
+          {
+            "name": "cctp_admin_board",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FeeData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SmgMintLogger",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "uniqueID",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "smgID",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "tokenPairID",
+            "type": "u32"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "userAccount",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SmgReleaseLogger",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "uniqueID",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "smgID",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "tokenPairID",
+            "type": "u32"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "userAccount",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenPairDataAccount",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "token_pair_id",
+            "type": "u32"
+          },
+          {
+            "name": "from_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "to_chain_id",
+            "type": "u32"
+          },
+          {
+            "name": "to_account",
+            "type": "bytes"
+          },
+          {
+            "name": "token_type",
+            "type": "u8"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TokenSeedData",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seed_symbol",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Transfer",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "from",
+            "type": "pubkey"
+          },
+          {
+            "name": "to",
+            "type": "pubkey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TxHistory",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "ttl",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserBurnLogger",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "smgID",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "tokenPairID",
+            "type": "u32"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "contractFee",
+            "type": "u64"
+          },
+          {
+            "name": "fee",
+            "type": "u64"
+          },
+          {
+            "name": "userAccount",
+            "type": "bytes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserLockLogger",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "smgID",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "tokenPairID",
+            "type": "u32"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "value",
+            "type": "u64"
+          },
+          {
+            "name": "contractFee",
+            "type": "u64"
+          },
+          {
+            "name": "userAccount",
+            "type": "bytes"
+          }
+        ]
+      }
+    }
+  ]
 }
