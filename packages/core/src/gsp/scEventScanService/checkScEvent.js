@@ -231,7 +231,7 @@ class CheckScEvent {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
           } else if (task.taskType === "dustREDEEM") {
-            event = await this.scanDustRedeem(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID, task.taskType === "BURN");
+            event = await this.scanDustRedeem(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID);
           } else {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             let topics = [eventHash, eventUnique.toLowerCase()];
@@ -460,8 +460,8 @@ class CheckScEvent {
     }
   }
 
-  async scanDustRedeem(fromBlock, toBlock, txHash, uniqueID, isNative) {
-    let claimable = await this.tool.checkRedeemed(uniqueID, isNative);
+  async scanDustRedeem(fromBlock, toBlock, txHash, uniqueID) {
+    let claimable = await this.tool.checkRedeemed(uniqueID);
     if (claimable) { // there are no smg txHash, use user txHash instead
       return { txHash, toAccount: "", value: "" };
     }

@@ -101,12 +101,12 @@ async function getUserFeeBalance(address) {
   return balance;
 }
 
-async function checkRedeemed(uniqueId, isNative) {
+async function checkRedeemed(uniqueId) {
   let ledgerState = await api.getLedgerState();
-  let data = isNative ? ledgerState.coinToBeClaimed : ledgerState.mappingTokenToBeClaim;
+  let data = ledgerState.crossProposalHis;
   let key = { bytes: new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex')) };
   let result = data.member(key) ? data.lookup(key) : null;
-  console.log("checkRedeemed %s %s: %O", uniqueId, isNative, result);
+  console.log("checkRedeemed %s: %O", uniqueId, result);
   return result;
 }
 
