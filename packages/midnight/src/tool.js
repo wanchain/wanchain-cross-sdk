@@ -92,34 +92,23 @@ function validateAddress(address) {
   }
 }
 
-async function getUserFeeBalance(address) {
-  let ledgerState = await api.getLedgerState();
-  let userBytes = getUserAddressFromUnshieldAddress(address);
-  let key = { bytes: userBytes };
-  let balance = ledgerState.userFeeBalance.member(key) ? ledgerState.userFeeBalance.lookup(key).toString() : 0;
-  console.debug("getUserFeeBalance %s: %O", address, balance);
-  return balance;
-}
-
 async function checkRedeemed(uniqueId) {
   let ledgerState = await api.getLedgerState();
   let data = ledgerState.crossProposalHis;
-  let key = { bytes: new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex')) };
+  let key = new Uint8Array(Buffer.from(uniqueId.slice(2), 'hex'));
   let result = data.member(key) ? data.lookup(key) : null;
-  console.log("checkRedeemed %s: %O", uniqueId, result);
+  console.debug("DUST checkRedeemed %s: %O", uniqueId, result);
   return result;
 }
 
 export { api };
 export { setApiProviders };
 export { validateAddress };
-export { getUserFeeBalance };
 export { checkRedeemed };
 
 export default {
   api,
   setApiProviders,
   validateAddress,
-  getUserFeeBalance,
   checkRedeemed
 };
