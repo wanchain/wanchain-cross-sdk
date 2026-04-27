@@ -8,11 +8,11 @@ import { fromHex, toHex } from '@midnight-ntwrk/compact-runtime';
 
 const apiConfig = {
   testnet: {
-    contractAddress: '2fa8088e71ec85ac0bee4a6a5af8f04268c16099367e72d490ed5be125776976',
-    indexerUri: 'https://indexer.preview.midnight.network/api/v3/graphql',
-    indexerWsUri: 'wss://indexer.preview.midnight.network/api/v3/graphql/ws',
-    // node: 'https://rpc.preview.midnight.network',
-    // proverServerUri: 'https://lace-proof-pub.preview.midnight.network'
+    contractAddress: 'e18145baaee32c097b65a7a8100f196cef5790c07e1814d62a309c9a082837ae',
+    indexerUri: 'https://indexer.preprod.midnight.network/api/v4/graphql',
+    indexerWsUri: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
+    // node: 'https://rpc.preprod.midnight.network',
+    // proverServerUri: 'https://proof-server.preprod.midnight.network'
     proverServerUri: 'http://35.163.105.105:6300'
   }
 }
@@ -73,7 +73,7 @@ async function initializeProviders(network, wallet) {
 };
 
 async function setApiProviders(network, wallet = null) {
-  initNetwork(network === 'testnet' ? "preview" : "mainnet");
+  initNetwork(network === 'testnet' ? "preprod" : "mainnet");
   let isInit = !providersCache;
   await initializeProviders(network, wallet);
   await api.init(providersCache);
