@@ -1,13 +1,13 @@
 class Lace {
-  constructor() {
+  constructor(network) {
     this.name = "Lace Midnight";
-    this.chainId = "";
+    this.network = (network === "mainnet") ? "mainnet" : "preprod";
   }
 
   // standard function
 
   async getChainId() {
-    return this.chainId;
+    return this.network;
   }
 
   async getAccounts() {
@@ -39,15 +39,11 @@ class Lace {
     }
   }
 
-  setChainId(chainId) {
-    this.chainId = chainId;
-  }
-
   // customized function
 
   async connect() { // wrap wallet
     let walletKey = Object.keys(window.midnight)[0];
-    let wallet = await window.midnight[walletKey].connect(this.chainId);
+    let wallet = await window.midnight[walletKey].connect(this.network);
     return wallet;
   }
 }

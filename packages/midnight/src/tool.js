@@ -73,7 +73,7 @@ async function initializeProviders(network, wallet) {
 };
 
 async function setApiProviders(network, wallet = null) {
-  initNetwork(network === 'testnet' ? "preprod" : "mainnet");
+  initNetwork(network === 'mainnet' ? "mainnet" : "preprod");
   let isInit = !providersCache;
   await initializeProviders(network, wallet);
   await api.init(providersCache);
