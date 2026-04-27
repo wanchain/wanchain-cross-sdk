@@ -182,23 +182,23 @@ class ProcessBurnFromCardano {
   }
 
   async buildCostModels(costModelParameters) {
-    let costModels = costModelParameters.costModels;
+    let costModels = costModelParameters.plutusCostModels;
     let v1 = this.wasm.CostModel.new();
     let index = 0;
-    for (let key in costModels['PlutusV1']) {
-      v1.set(index, this.wasm.Int.new_i32(costModels['PlutusV1'][key]));
+    for (let key in costModels['plutus:v1']) {
+      v1.set(index, this.wasm.Int.new_i32(costModels['plutus:v1'][key]));
       index++;
     }
     let v2 = this.wasm.CostModel.new();
     index = 0;
-    for (let key in costModels['PlutusV2']) {
-      v2.set(index, this.wasm.Int.new_i32(costModels['PlutusV2'][key]));
+    for (let key in costModels['plutus:v2']) {
+      v2.set(index, this.wasm.Int.new_i32(costModels['plutus:v2'][key]));
       index++;
     }
     let v3 = this.wasm.CostModel.new();
     index = 0;
-    for (let key in costModels['PlutusV3']) {
-      v3.set(index, this.wasm.Int.new_i32(costModels['PlutusV3'][key]));
+    for (let key in costModels['plutus:v3']) {
+      v3.set(index, this.wasm.Int.new_i32(costModels['plutus:v3'][key]));
       index++;
     }
     let result = this.wasm.Costmdls.new();
