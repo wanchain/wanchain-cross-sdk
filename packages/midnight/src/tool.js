@@ -13,7 +13,7 @@ const apiConfig = {
     indexerWsUri: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
     // node: 'https://rpc.preprod.midnight.network',
     // proverServerUri: 'https://proof-server.preprod.midnight.network'
-    proverServerUri: 'http://35.163.105.105:6300'
+    proverServerUri: 'https://nodes-testnet.wandevs.org/proof-server-midnight'
   }
 }
 
