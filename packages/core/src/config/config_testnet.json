@@ -686,8 +686,9 @@
       "mintFromChainHandle": "MintFromMidnight",
       "burnFromChainHandle": "BurnFromMidnight",
       "chainDecimals": 6,
-      "blockConfirmations": 30,
-      "blockTime": 12
+      "walletChainId": "preprod",
+      "blockConfirmations": 10,
+      "blockTime": 6
     },
     {
       "chainId": "2147483766",

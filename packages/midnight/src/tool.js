@@ -23,7 +23,7 @@ let providersCache = null;
 
 async function initializeProviders(network, wallet) {
   let cfg = apiConfig[network];
-  let zkConfigPath = window.location.origin + '/chains/mn/zk';
+  let zkConfigPath = window.location.origin + '/chains/midnight';
   let keyMaterialProvider = new FetchZkConfigProvider(zkConfigPath, fetch.bind(window));
   providersCache = providersCache || {
     privateStateProvider: PrivateStateProvider(),

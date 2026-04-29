@@ -36,26 +36,32 @@ class WanBridge extends EventEmitter {
 
   async init(iwanAuth, options = {}) {
     console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2603301745", this.network, this.isTestMode, this.smgName, this.prefer);
-    this._service = new StartService();
-    await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
-    this.configService = this._service.getService("ConfigService");
-    this.eventService = this._service.getService("EventService");
-    this.storemanService = this._service.getService("StoremanService");
-    this.storageService = this._service.getService("StorageService");
-    this.feesService = this._service.getService("CrossChainFeesService");
-    this.chainInfoService = this._service.getService("ChainInfoService");
-    this.tokenPairService = this._service.getService("TokenPairService");
-    this.txTaskHandleService = this._service.getService("TxTaskHandleService");
-    this.cctHandleService = this._service.getService("CCTHandleService");
-    this.iwan = this._service.getService("iWanConnectorService");
-    this.eventService.addEventListener("ReadStoremanInfoComplete", this._onStoremanInitilized.bind(this)); // for token pair service to notify data ready
-    this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
-    this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
-    this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
-    this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
-    this.eventService.addEventListener("Claimable", this._onClaimable.bind(this)); // for sc event service to notify cctp forward failed and claim Ready
-    this.eventService.addEventListener("ClaimTxHash", this._onClaimTxHash.bind(this)); // for tx receipt service to notify claim result
-    await this._service.start();
+    try {
+      this._service = new StartService();
+      await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
+      this.configService = this._service.getService("ConfigService");
+      this.eventService = this._service.getService("EventService");
+      this.storemanService = this._service.getService("StoremanService");
+      this.storageService = this._service.getService("StorageService");
+      this.feesService = this._service.getService("CrossChainFeesService");
+      this.chainInfoService = this._service.getService("ChainInfoService");
+      this.tokenPairService = this._service.getService("TokenPairService");
+      this.txTaskHandleService = this._service.getService("TxTaskHandleService");
+      this.cctHandleService = this._service.getService("CCTHandleService");
+      this.iwan = this._service.getService("iWanConnectorService");
+      this.eventService.addEventListener("ReadStoremanInfoComplete", this._onInitilized.bind(this)); // for token pair service to notify data ready
+      this.eventService.addEventListener("LockTxHash", this._onLockTxHash.bind(this)); // for BTC/LTC/DOGE/XRP(thirdparty wallet) to notify lock txHash and sentAmount
+      this.eventService.addEventListener("LockTxTimeout", this._onLockTxTimeout.bind(this)); // for BTC/LTC/DOGE/XRP to set lock tx timeout
+      this.eventService.addEventListener("RedeemTxHash", this._onRedeemTxHash.bind(this)); // for all to notify redeem txHash
+      this.eventService.addEventListener("TaskStepResult", this._onTaskStepResult.bind(this)); // for tx receipt service to update result
+      this.eventService.addEventListener("Claimable", this._onClaimable.bind(this)); // for sc event service to notify cctp forward failed and claim Ready
+      this.eventService.addEventListener("ClaimTxHash", this._onClaimTxHash.bind(this)); // for tx receipt service to notify claim result
+      await this._service.start();
+      return true;
+    } catch (err) {
+      this._onInitilized(false);
+      return false;
+    }
   }
 
   isReady() {
@@ -739,13 +745,13 @@ class WanBridge extends EventEmitter {
     }
   }
 
-  _onStoremanInitilized(success) {
+  _onInitilized(success) {
     if (success) {
       let assetPairList = this.stores.assetPairs.assetPairList;
       this._distributeEvent("ready", assetPairList.map(v => Object.assign({}, v)));
       console.debug("WanBridge is ready for %d assetPairs and %d smgs", assetPairList.length, this.stores.assetPairs.smgList.length);
     } else {
-      this._distributeEvent("error", { reason: "Failed to initialize storeman" });
+      this._distributeEvent("error", { reason: "Failed to initialize" });
       console.error("WanBridge has error");
     }
   }
