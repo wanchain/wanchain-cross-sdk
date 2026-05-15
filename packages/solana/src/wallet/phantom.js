@@ -12,9 +12,9 @@ class Phantom {
   constructor(network) {
     if (window.phantom) {
       this.name = "Phantom";
-      this.network = (network === "mainnet") ? "mainnet-beta" : "devnet";
-      const href = network === 'mainnet' ? 'https://solana-mainnet.g.alchemy.com/v2/C37RKXJKkDTkcBkt6Uc8FmCa_3AcNyFx' : Web3.clusterApiUrl(this.network);
-      this.connection = new Web3.Connection(href, 'confirmed');
+      this.network = (network === 'testnet') ? 'devnet' : 'mainnet-beta'; // mainnet network should be rpc
+      let rpc = (network === 'testnet') ? Web3.clusterApiUrl(this.network) : network;
+      this.connection = new Web3.Connection(rpc, 'confirmed');
     } else {
       console.error('please install phantom wallet');
       window.open('https://phantom.app');
