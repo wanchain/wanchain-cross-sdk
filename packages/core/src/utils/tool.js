@@ -403,7 +403,8 @@ const CustomizedScanBatchSize = {
   OKB: 100,
   MATIC: 100,
   SEI: 500,
-  FTM: 500
+  FTM: 500,
+  ARETH: 128
 };
 
 function getScanBatchSize(chainType) {

@@ -11,7 +11,7 @@ npm install --save @wandevs/cross-midnight
 ## Prerequisites
 <li>Install your favorite Midnight wallet from Chrome Web Store, such as:
 
-[Midnight Lace](https://chrome.google.com/webstore/detail/nami/lpfcbjknijpeeillifnkikgncikgfhdo)
+[Lace](https://microsoftedge.microsoft.com/addons/detail/efeiemlfnahiidnjglmehaihacglceia)
 
 ## Usage
 Step 1: Import WanBridge and midnight extension, create a bridge instance and initialize it with the extension.
