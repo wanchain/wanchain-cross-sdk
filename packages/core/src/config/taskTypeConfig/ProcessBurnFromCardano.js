@@ -158,7 +158,7 @@ class ProcessBurnFromCardano {
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
       console.error("ProcessBurnFromCardano error: %O", err);
-      if (["User declined to sign the transaction.", "User rejected", "user declined signing tx"].includes(err.info)) { // code 2 include other errors
+      if (["User declined to sign the transaction.", "User rejected", "user declined signing tx", "User rejected transaction"].includes(err.info)) {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", tool.getErrMsg(err, "Failed to send transaction"));

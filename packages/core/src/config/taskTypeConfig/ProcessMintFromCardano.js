@@ -134,7 +134,7 @@ class ProcessAdaMintFromCardano {
       let checkAdaTxService = this.frameworkService.getService("CheckAdaTxService");
       await checkAdaTxService.addTask(checkPara);
     } catch (err) {
-      if (["User declined to sign the transaction.", "User rejected", "user declined signing tx"].includes(err.info)) { // code 2 include other errors
+      if (["User declined to sign the transaction.", "User rejected", "user declined signing tx", "User rejected transaction"].includes(err.info)) { // code 2 include other errors
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
         console.error("ProcessAdaMintFromCardano error: %O", err);
