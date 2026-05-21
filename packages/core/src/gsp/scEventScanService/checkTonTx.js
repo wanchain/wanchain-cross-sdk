@@ -22,7 +22,7 @@ class CheckTonTx {
   }
 
   async add(task) {
-    let tasks = this.eventTasks.get(task.taskType);
+    let tasks = this.eventTasks.get("BURN");
     if (tasks) {
       tasks.unshift(task);
     } else {

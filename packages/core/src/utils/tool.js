@@ -300,6 +300,8 @@ function parseTokenPairSymbol(chain, symbol, options = {}) {
     } else {
       return ascii2letter(hexStrip0x(symbol));
     }
+  } else if ((chain === "DUST") || (chain == '1073741862')) {
+    return ascii2letter(hexStrip0x(symbol));
   } else if ((options.ancestorChain === "ADA") || (options.ancestorChain == '2147485463')) {
     if (options.protocol !== "Erc20") { // cardano original nft token do not have symbol, it is same as ancestorSymbol (ascii decoded hex string without 0x prefix)
       if (/^[0-9a-fA-F]+$/.test(symbol)) {
@@ -401,7 +403,8 @@ const CustomizedScanBatchSize = {
   OKB: 100,
   MATIC: 100,
   SEI: 500,
-  FTM: 500
+  FTM: 500,
+  ARETH: 128
 };
 
 function getScanBatchSize(chainType) {

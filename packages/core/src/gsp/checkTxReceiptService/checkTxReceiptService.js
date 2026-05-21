@@ -12,9 +12,14 @@ class CheckTxReceiptService {
     this.eventService = frameworkService.getService("EventService");
     this.chainInfoService = frameworkService.getService("ChainInfoService");
     let configService = frameworkService.getService("ConfigService");
+    this.network = configService.getNetwork();
     let tonExtension = configService.getExtension("TON");
     if (tonExtension) {
       this.tonTool = tonExtension.tool;
+    }
+    let dustExtension = configService.getExtension("DUST");
+    if (dustExtension) {
+      this.dustTool = dustExtension.tool;
     }
     let taskService = frameworkService.getService("TaskService");
     taskService.addTask(this, 5000);
@@ -87,6 +92,8 @@ class CheckTxReceiptService {
         }
       } else if (task.chain === "TON") {
         txReceipt = await this.getTonTxReceipt(task); // get user txHash by msgHash, and cross txHash by user txHash
+      } else if (task.chain === "DUST") {
+        txReceipt = await this.dustTool.getTxReceipt(this.network, task.txHash);
       } else {
         txReceipt = await this.iwan.getTransactionReceipt(task.chain, task.txHash);
       }
@@ -109,6 +116,8 @@ class CheckTxReceiptService {
         } else if (task.chain === "TON") {
           isSuccess = txReceipt.success;
           txHash = txReceipt.txHash;
+        } else if (task.chain === "DUST") {
+          isSuccess = txReceipt.block && txReceipt.block.height;
         } else {
           isSuccess = (txReceipt.status == 1); // 0x0/0x1, true/false
         }

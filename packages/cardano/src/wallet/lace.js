@@ -141,7 +141,7 @@ class Lace {
       this.lace = await this.cardano.lace.enable({ extensions: [{ cip: 95 }] });
     }
     tx = this.wasm.Transaction.from_hex(tx);
-    let witnessSet = await this.lace.signTx(tx.to_hex());
+    let witnessSet = await this.lace.signTx(tx.to_hex(), true);
     witnessSet = this.wasm.TransactionWitnessSet.from_hex(witnessSet);
     let redeemers = tx.witness_set().redeemers();
     if (redeemers) {

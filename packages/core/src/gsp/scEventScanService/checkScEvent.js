@@ -2,8 +2,6 @@ import * as wanUtil from "wanchain-util";
 import tool from "../../utils/tool.js";
 
 const EvmEventTypes = ["MINT", "BURN", "MINTNFT", "BURNNFT", "circleMINT", "cctpV2MINT"];
-const AlgoEventTypes = ["algoBURN"];
-const DustEventTypes = ["dustCLAIM"]; // not real event, just simulation
 
 class CheckScEvent {
   constructor(frameworkService) {
@@ -23,10 +21,16 @@ class CheckScEvent {
     this.configService = this.frameworkService.getService("ConfigService");
     this.storemanService = this.frameworkService.getService("StoremanService");
     if (chainInfo.chainType === "ALGO") {
-      this.eventTypes = AlgoEventTypes;
-      this.eventHandler.set("algoBURN", this.processAlgoBurn.bind(this));
+      this.eventTypes = ["MINT", "BURN"];
+      this.eventHandler.set("MINT", this.processScLogger.bind(this, "MINT"));
+      this.eventHandler.set("BURN", this.processScLogger.bind(this, "BURN"));
       let extension = this.configService.getExtension("ALGO");
       this.smgReleaseCodec = extension.tool.getLogCodec('(string,byte[32],byte[32],uint64,uint64,uint64,address)');
+    } else if (chainInfo.chainType === "DUST") {
+      this.eventTypes = ["MINT", "BURN"];
+      this.eventHandler.set("MINT", this.processScLogger.bind(this, "MINT"));
+      this.eventHandler.set("BURN", this.processScLogger.bind(this, "BURN"));
+      this.tool = this.configService.getExtension("DUST").tool;
     } else { // evm
       this.crossScAbi = this.configService.getAbi("crossSc");
       this.cctpProxyAbi = this.configService.getAbi("cctpProxy");
@@ -110,18 +114,6 @@ class CheckScEvent {
     let eventHash = this.getEventHash(this.cctpV2MessageTransmitterAbi, "MessageReceived");
     let eventName = "MessageReceived";
     await this.processScLogger("cctpV2MINT", eventHash, eventName);
-  }
-
-  async processAlgoBurn() {
-    let eventHash = ""; // not used
-    let eventName = "SmgReleaseLogger";
-    await this.processScLogger("algoBURN", eventHash, eventName);
-  }
-
-  async processDustClaim() {
-    let eventHash = ""; // not used
-    let eventName = ""; // not used
-    await this.processScLogger("dustCLAIM", eventHash, eventName);
   }
 
   getEventHash(abi, eventName) {
@@ -215,19 +207,19 @@ class CheckScEvent {
              so reserve the compatible code temporarily
           */
           let event;
-          if (task.taskType === "circleMINT") {
+          if (this.chainInfo.chainType === "ALGO") {
+            event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, task.uniqueID);
+          } else if (this.chainInfo.chainType === "TRX") {
+            let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
+            event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
+          } else if (this.chainInfo.chainType === "DUST") {
+            event = await this.scanDustRedeem(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID);
+          } else if (task.taskType === "circleMINT") {
             let topics = [eventHash, undefined, '0x' + Number(task.depositNonce).toString(16).padStart(64, '0')];
             event = await this.scanCircleEvent(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain);
           } else if (task.taskType === "cctpV2MINT") {
             let topics = [eventHash, undefined, task.depositNonce];
             event = await this.scanCctpV2Event(fromBlockNumber, toBlockNumber, task.transmitter, topics, task.depositDomain, ccTask);
-          } else if (task.taskType === "algoBURN") {
-            event = await this.scanAlgoScEvent(fromBlockNumber, toBlockNumber, task.uniqueID);
-          } else if (this.chainInfo.chainType === "TRX") {
-            let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
-            event = await this.scanTrxScEvent(fromBlockNumber, toBlockNumber, eventName, eventHash, eventUnique);
-          } else if (task.taskType === "dustCLAIM") {
-            event = await this.scanDustClaim(fromBlockNumber, toBlockNumber, task.txHash, task.uniqueID, task.taskType === "BURN");
           } else {
             let eventUnique = "0x" + tool.hexStrip0x(task.uniqueID);
             let topics = [eventHash, eventUnique.toLowerCase()];
@@ -456,8 +448,8 @@ class CheckScEvent {
     }
   }
 
-  async scanDustClaim(fromBlock, toBlock, txHash, uniqueID, isNative) {
-    let claimable = await this.tool.checkClaimable(uniqueID, isNative);
+  async scanDustRedeem(fromBlock, toBlock, txHash, uniqueID) {
+    let claimable = await this.tool.checkRedeemed(uniqueID);
     if (claimable) { // there are no smg txHash, use user txHash instead
       return { txHash, toAccount: "", value: "" };
     }

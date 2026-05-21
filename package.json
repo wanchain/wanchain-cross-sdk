@@ -61,6 +61,12 @@
     "@vechain/dapp-kit": "^1.5.0",
     "@ton/core": "0.59.0",
     "@ton/crypto": "3.3.0",
-    "tonweb": "^0.0.66"
+    "tonweb": "^0.0.66",
+    "midnight-crosschain": "git+https://github.com/fridayback/midnight-crosschain.git#0.20-light",
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "4.0.4",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "4.0.4",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.0.4",
+    "@midnight-ntwrk/ledger-v8": "8.0.3",
+    "graphql-http": "1.22.4"
   }
 }

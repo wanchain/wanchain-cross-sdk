@@ -158,13 +158,18 @@ class StoremanService {
         } else { // Erc20, Erc721
           if (chainInfo._isEVM) {
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          } else if (options.wallet && options.wallet.getBalance) { // non EVM, tokenAccount is encoded as ascii by default
-            balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
-          } else { // default iwan, if iwan do not support, throw exception and return 0
-            if (chainType !== "ALGO") { // defalut decode except ALGO
-              tokenAccount = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+          } else { // non EVM, tokenAccount is encoded as ascii by default except some chains
+            if (!["ALGO"].includes(chainType)) {
+              tokenAccount = tool.hexStrip0x(tokenAccount);
+              if (!["DUST"].includes(chainType)) {
+                tokenAccount = tool.ascii2letter(tokenAccount);
+              }
             }
-            balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
+            if (options.wallet && options.wallet.getBalance) {
+              balance = await options.wallet.getBalance(addr, tokenAccount);
+            } else { // default iwan, if iwan do not support, throw exception and return 0
+              balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
+            }
           }
         }
       }

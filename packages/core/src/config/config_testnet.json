@@ -678,6 +678,19 @@
       "blockTime": 12
     },
     {
+      "chainId": "1073741862",
+      "chainType": "DUST",
+      "chainName": "Midnight",
+      "symbol": "NIGHT",
+      "crossScAddr": "e18145baaee32c097b65a7a8100f196cef5790c07e1814d62a309c9a082837ae",
+      "mintFromChainHandle": "MintFromMidnight",
+      "burnFromChainHandle": "BurnFromMidnight",
+      "chainDecimals": 6,
+      "walletChainId": "preprod",
+      "blockConfirmations": 10,
+      "blockTime": 6
+    },
+    {
       "chainId": "2147483766",
       "chainType": "ATOM",
       "chainName": "Cosmos",

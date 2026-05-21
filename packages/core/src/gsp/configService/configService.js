@@ -79,17 +79,26 @@ class ConfigService {
     }
     await Promise.all(extensions.map(async (ext, i) => {
       if (ext.getChains && ext.getSymbols) { // not necessary for extensions which only define wallets
-        let chains = ext.getChains();
+        let chains = ext.getChains(); // only for readability
         let symbols = ext.getSymbols();
         if (chains && symbols && (chains.length === symbols.length)) {
+          let failed = false;
           if (ext.init) {
-            await ext.init(this.network);
+            try {
+              await ext.init(this.network);
+            } catch (err) {
+              failed = true;
+              console.error(err);
+            }
           }
           symbols.forEach((symbol, i) => {
-            this.extensions.set(symbol, ext);
-            console.debug("register %s(%s) extension", chains[i], symbol);
+            if (failed) {
+              console.error("register %s(%s) extension failed", chains[i], symbol);
+            } else {
+              this.extensions.set(symbol, ext);
+              console.debug("register %s(%s) extension success", chains[i], symbol);
+            }
           });
-          return;
         }
       }
     }));
