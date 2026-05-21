@@ -5,6 +5,7 @@ import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-p
 import { Transaction } from '@midnight-ntwrk/ledger-v8';
 import { PrivateStateProvider } from './privateStateProvider.js';
 import { fromHex, toHex } from '@midnight-ntwrk/compact-runtime';
+import axios from "axios";
 
 const apiConfig = {
   testnet: {
@@ -23,15 +24,22 @@ let providersCache = null;
 
 async function initializeProviders(network, wallet) {
   let cfg = apiConfig[network];
-  let zkConfigPath = window.location.origin + '/chains/midnight';
-  let keyMaterialProvider = new FetchZkConfigProvider(zkConfigPath, fetch.bind(window));
-  providersCache = providersCache || {
-    privateStateProvider: PrivateStateProvider(),
-    zkConfigProvider: keyMaterialProvider,
-    proofProvider: httpClientProofProvider(cfg.proverServerUri, keyMaterialProvider),
-    publicDataProvider: indexerPublicDataProvider(cfg.indexerUri, cfg.indexerWsUri)
+  if (!providersCache) {
+    let zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/chains/midnight', fetch.bind(window));
+    providersCache = {
+      privateStateProvider: PrivateStateProvider(),
+      zkConfigProvider,
+      proofProvider: httpClientProofProvider(cfg.proverServerUri, zkConfigProvider),
+      publicDataProvider: indexerPublicDataProvider(cfg.indexerUri, cfg.indexerWsUri)
+    }
   };
   if (wallet) {
+    let config = await wallet.getConfiguration();
+    let proverServerUri = config.proverServerUri;
+    if (proverServerUri !== 'http://localhost:6300') {
+      proverServerUri = cfg.proverServerUri; // public uri is unavailable
+    }
+    providersCache.proofProvider = httpClientProofProvider(proverServerUri, providersCache.zkConfigProvider);
     let shieldedAddresses = await wallet.getShieldedAddresses();
     providersCache.walletProvider = {
       getCoinPublicKey() {
@@ -66,6 +74,7 @@ async function initializeProviders(network, wallet) {
       }
     };
   } else {
+    providersCache.proofProvider = undefined;
     providersCache.walletProvider = undefined;
     providersCache.midnightProvider = undefined;
   }
@@ -73,7 +82,7 @@ async function initializeProviders(network, wallet) {
 };
 
 async function setApiProviders(network, wallet = null) {
-  initNetwork(network === 'mainnet' ? "mainnet" : "preprod");
+  initNetwork((network === 'mainnet') ? "mainnet" : "preprod");
   let isInit = !providersCache;
   await initializeProviders(network, wallet);
   await api.init(providersCache);
@@ -92,6 +101,19 @@ function validateAddress(address) {
   }
 }
 
+async function getTxReceipt(network, txHash) {
+  let query = `{
+    transactions(offset: { hash: "${txHash}" }) {
+      block {
+        height
+        hash
+      }
+    }
+  }`;
+  let res = await axios.post(apiConfig[network].indexerUri, { query });
+  return res.data.data.transactions[0];
+}
+
 async function checkRedeemed(uniqueId) {
   let ledgerState = await api.getLedgerState();
   let data = ledgerState.crossProposalHis;
@@ -104,11 +126,13 @@ async function checkRedeemed(uniqueId) {
 export { api };
 export { setApiProviders };
 export { validateAddress };
+export { getTxReceipt };
 export { checkRedeemed };
 
 export default {
   api,
   setApiProviders,
   validateAddress,
+  getTxReceipt,
   checkRedeemed
 };
