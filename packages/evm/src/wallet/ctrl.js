@@ -29,7 +29,7 @@ class CtrlWallet {
   }
 
   async getNetworkId() {
-    const networkId = await this.web3eth.net.getId();
+    const networkId = await this.web3.eth.net.getId();
     return networkId;
   }
 
