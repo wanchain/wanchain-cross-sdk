@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2605211750", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2606051550", this.network, this.isTestMode, this.smgName, this.prefer);
     try {
       this._service = new StartService();
       await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
@@ -182,6 +182,15 @@ class WanBridge extends EventEmitter {
     let toChainType = this.tokenPairService.getChainType(toChainName);
     if (tokenPair.bridge === "Circle") {
       options.bridge = tokenPair.routes[0];
+      if ((options.bridge === "CCTPV2") && (toChainType === "SOL")) {
+        let sol = this.configService.getExtension(toChainType);
+        let usdcAccount = tool.ascii2letter((tokenPair.fromChainType === "SOL") ? tokenPair.fromAccount : tokenPair.toAccount);
+        let userAccount = options.address.to;
+        let ata = sol.tool.getAssociatedTokenAddressSync(sol.tool.getPublicKey(usdcAccount), sol.tool.getPublicKey(userAccount)).toString();
+        let ataInfo = await this.iwan.getAccountInfo('SOL', ata);
+        options.includeRecipientSetup = ataInfo? false : true;
+        console.debug("SOL CCTPV2 %s(ata %s) includeRecipientSetup: %s", userAccount, ata, options.includeRecipientSetup);
+      }
     }
     let [operateFee, networkFee] = await Promise.all([
       this.feesService.estimateOperationFee(tokenPair.id, fromChainType, toChainType, options),
@@ -213,6 +222,7 @@ class WanBridge extends EventEmitter {
     };
     if (operateFee.cctpForward) {
       fee.operateFee.cctpForward = operateFee.cctpForward;
+      fee.operateFee.cctpSetupRecipient = options.includeRecipientSetup || false;
     }
     if (networkFee.isSubsidy) {
       let chainInfo = this.chainInfoService.getChainInfoByType(fromChainType);

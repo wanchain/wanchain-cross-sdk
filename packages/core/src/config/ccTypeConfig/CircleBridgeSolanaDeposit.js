@@ -30,7 +30,8 @@ class CircleBridgeSolanaDeposit {
         taskType: "ProcessCircleBridgeSolanaDeposit",
         networkFee,
         operateFee,
-        isV2
+        isV2,
+        isForward: convert.fee.operateFee.cctpForward !== undefined,
       };
       console.debug("CircleBridgeSolanaDeposit params: %O", params);
       let steps = [

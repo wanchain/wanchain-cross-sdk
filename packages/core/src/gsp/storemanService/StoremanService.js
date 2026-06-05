@@ -3,8 +3,6 @@ import tool from "../../utils/tool.js";
 import axios from "axios";
 import util from "util";
 
-const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
-
 // DepositForBurn
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0"; // v1
 
@@ -571,25 +569,24 @@ class StoremanService {
   }
 
   async getChainBlockNumber(chainType, options = {}) {
-    if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
-      return 0;
-    }
     try {
+      let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
       if (chainType === "SUI") { // cursor
-        let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
         let scAddr = options.bridge ? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
         let moduleName = options.bridge ? "fee_collector" : "cross";
         let events = await this.iwan.getScEvent("SUI", scAddr, [], { moduleName, order: 'descending', limit: options.rewind || 1 });
         return events.nextCursor;
       } else if (chainType === "TON") { // timestamp in second
         return parseInt(Date.now() / 1000);
-      } else { // EVM chains return blockNumber 
+      } else if (chainInfo._isEVM) { // EVM chains return blockNumber
         let blockNumber = await this.iwan.getBlockNumber(chainType);
         return blockNumber;
+      } else {
+        return 0; // scan by apiServer, do not need blockNumber
       }
     } catch (err) {
       console.log("%s getChainBlockNumber error: %O", chainType, err);
-      return 0; // should retry later
+      return 0; // maybe should retry later
     }
   }
 

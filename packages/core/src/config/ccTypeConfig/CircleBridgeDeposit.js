@@ -43,14 +43,15 @@ class CircleBridgeDeposit extends TokenHandler {
       tokenPairID: convert.tokenPairId,
       value,
       userAccount: toAddressInfo.cctp || toAddressInfo.evm,
-      toAddr: convert.toAddr, // for readability
+      toAddr: convert.toAddr, // for cctp forward to solana hook data
       innerToAddr, // for cctp to solana
       taskType: "ProcessCircleBridgeDeposit",
       networkFee,
       tokenAccount,
       operateFee,
       isV2,
-      isForward: convert.fee.operateFee.cctpForward !== undefined
+      isForward: convert.fee.operateFee.cctpForward !== undefined,
+      isSetupRecipient: convert.fee.operateFee.cctpSetupRecipient
     };
     console.debug("CircleBridgeDeposit buildDeposit params: %O", params);
     steps.push({ name: "depositForBurn", stepIndex: steps.length + 1, params });

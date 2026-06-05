@@ -12,7 +12,9 @@ class crossChainFees {
   async estimateOperationFee(tokenPairId, fromChainType, toChainType, options) { // agent fee
     let tokenPair = this.tokenPairService.getTokenPair(tokenPairId);
     let decimals = (fromChainType === tokenPair.fromScInfo.chainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
-    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address: options.address });
+    let addr = options.address || {};
+    let address = [addr.from, addr.to].filter(v => v);
+    let fee = await this.iwan.estimateCrossChainOperationFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address });
     if ((tokenPair.protocol !== "Erc20") || ((tokenPair.bridge === "Circle") && (tokenPair.routes[0] === "CCTPV1"))) {
       fee.value = "0";
     }
@@ -38,7 +40,9 @@ class crossChainFees {
     let direction = (fromChainType === tokenPair.fromScInfo.chainType);
     let srcChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let decimals = srcChainInfo.chainDecimals;
-    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address: options.address, batchSize: options.batchSize });
+    let addr = options.address || {};
+    let address = [addr.from, addr.to].filter(v => v);
+    let fee = await this.iwan.estimateCrossChainNetworkFee(fromChainType, toChainType, { tokenPairID: tokenPairId, bridge: options.bridge, address, batchSize: options.batchSize });
     // console.debug("estimateNetworkFee %s->%s raw: %O", fromChainType, toChainType, fee);
     let feeBN = new BigNumber(fee.value);
     let unit = this.chainInfoService.getCoinSymbol(fromChainType);

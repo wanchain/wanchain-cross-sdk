@@ -319,7 +319,7 @@ class CheckScEvent {
         }
       }
     }
-    if (!ccTask.claimStatus) {
+    if ((!ccTask.claimStatus) && ((Date.now() - ccTask.ccTaskId) > 300000)) { // check forwardState after 5 minutes
       let msg = await this.storemanService.getCctpV2Message(ccTask.fromChainType, ccTask.lockHash);
       if (msg && (msg.forwardState === "FAILED")) {
         this.eventService.emitEvent("Claimable", { ccTaskId: ccTask.ccTaskId });
