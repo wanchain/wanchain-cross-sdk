@@ -46,14 +46,23 @@ class PolkadotJs {
     return new Promise(async (resolve, reject) => {
       let api = await this.getApi();
       let injector = await web3FromAddress(sender);
-      api.tx.utility.batchAll(txs).signAndSend(sender, { signer: injector.signer }, ({ txHash, status }) => {
+      let unsub = null;
+      unsub = await api.tx.utility.batchAll(txs).signAndSend(sender, { signer: injector.signer }, ({ txHash, status }) => {
         txHash = txHash.toString();
         if (status.isBroadcast) {
           console.debug("%s sendTransaction tx %s status: %s", this.chain, txHash, status.type);
+          if (typeof(unsub) === 'function') {
+            unsub();
+            unsub = null;
+          }
           return resolve(txHash);
         } else if (status.isInBlock || status.isFinalized) {
           let block = status.isInBlock ? status.asInBlock : status.asFinalized;
           console.debug("%s block %s tx %s status: %s", this.chain, block.toString(), txHash, status.type);
+          if (typeof(unsub) === 'function') {
+            unsub();
+            unsub = null;
+          }
           return resolve(txHash);
         }
       }).catch(err => {

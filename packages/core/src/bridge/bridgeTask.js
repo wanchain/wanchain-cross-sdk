@@ -204,7 +204,7 @@ class BridgeTask {
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._tokenPair.readableSymbol, this._quota);
       let networkFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol, { feeType: "networkFee" });
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
-      if (agentAmount.gt(this._quota.maxQuota)) {
+      if (agentAmount.gt(this._quota.maxQuota)) { // it is correct even maxQuota is Infinity
         return "Exceed maxQuota";
       } else if (agentAmount.lt(this._quota.minQuota)) {
         return "Amount is too small";

@@ -42,7 +42,7 @@ class Cip30 {
           return nfts.length.toString();
         }
       } else { // coin
-        return value.coin().to_str(); // TODO: sub token locked coin
+        return value.coin().to_str(); // including locked value, keep consistent with wallet ui
       }
     } else {
       console.error("%s is not used address", addr);
@@ -66,7 +66,7 @@ class Cip30 {
             return nfts.length.toString();
           }
         } else {
-          return value.coin().to_str(); // TODO: sub token locked coin
+          return value.coin().to_str();
         }
       });
     } else {
