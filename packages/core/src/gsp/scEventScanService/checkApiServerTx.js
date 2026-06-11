@@ -95,7 +95,7 @@ class CheckApiServerTx {
         let msg = data.decodedMessage.decodedMessageBody;
         return {
           txHash: data.forwardTxHash,
-          toAccount: "", // solana cctpv2 forward is ata
+          toAccount: msg.mintRecipient, // solana cctpv2 forward is ata
           value: new BigNumber(msg.amount).minus(msg.feeExecuted).toFixed(0)
         }
       } else if (data.forwardState === "FAILED") {
