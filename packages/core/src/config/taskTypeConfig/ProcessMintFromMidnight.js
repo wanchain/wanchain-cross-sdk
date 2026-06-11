@@ -50,11 +50,11 @@ class ProcessMintFromMidnight {
       let checkTxReceiptService = this.frameworkService.getService("CheckTxReceiptService");
       await checkTxReceiptService.add(checker);
     } catch (err) {
-      console.error("ProcessMintFromMidnight error: %O", err);
       let errMsg = tool.getErrMsg(err, "Failed to send transaction");
-      if (errMsg.indexOf("User rejected transaction")) {
+      if (errMsg.indexOf("User rejected") >= 0) {
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Rejected");
       } else {
+        console.error("ProcessMintFromMidnight error: %O", err);
         webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, "", "Failed", errMsg);
       }
     }
