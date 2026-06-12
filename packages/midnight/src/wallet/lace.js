@@ -22,7 +22,7 @@ class Lace {
   }
 
   async getBalance(addr, tokenId) {
-    tokenId = tokenId || "0000000000000000000000000000000000000000000000000000000000000000";
+    tokenId = this.mappingTokenId(tokenId);
     let accounts = await this.getAccounts();
     if (addr === accounts[0]) {
       let wallet = await this.connect();
@@ -39,7 +39,35 @@ class Lace {
     }
   }
 
+  async getBalances(addr, tokenIds) {
+    let accounts = await this.getAccounts();
+    if (addr === accounts[0]) {
+      let assets = {};
+      tokenIds.forEach(v => {
+        assets[this.mappingTokenId(v)] = "0";
+      })
+      let wallet = await this.connect();
+      let balance = await wallet.getUnshieldedBalances();
+      for (let id of Object.keys(balance)) {
+        if (assets[id] !== undefined) {
+          assets[id] = balance[id].toString();
+        }
+      }
+      return tokenIds.map(v => assets[this.mappingTokenId(v)]);
+    } else {
+      console.error("%s is not current address", addr);
+      throw new Error("Not current address");
+    }
+  }
+
   // customized function
+
+  mappingTokenId(tokenId) {
+    if ((!tokenId) || (tokenId === "0000000000000000000000000000000000000000")) {
+      tokenId = "0000000000000000000000000000000000000000000000000000000000000000";
+    }
+    return tokenId;
+  }
 
   async connect() { // wrap wallet
     let walletKey = Object.keys(window.midnight)[0];

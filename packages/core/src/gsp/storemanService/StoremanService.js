@@ -126,6 +126,16 @@ class StoremanService {
     }
   }
 
+  formatNonEvmTokenAccount(chainType, tokenAccount) { // format tokenPair non-evm token account for wallet to query balance
+    if (!["ALGO"].includes(chainType)) { // tokenAccount is encoded as ascii by default except some chains
+      tokenAccount = tool.hexStrip0x(tokenAccount);
+      if (!["DUST"].includes(chainType)) {
+        tokenAccount = tool.ascii2letter(tokenAccount);
+      }
+    }
+    return tokenAccount;
+  }
+
   async getAccountBalance(assetPairId, chainType, addr, options = {}) {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -156,13 +166,8 @@ class StoremanService {
         } else { // Erc20, Erc721
           if (chainInfo._isEVM) {
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          } else { // non EVM, tokenAccount is encoded as ascii by default except some chains
-            if (!["ALGO"].includes(chainType)) {
-              tokenAccount = tool.hexStrip0x(tokenAccount);
-              if (!["DUST"].includes(chainType)) {
-                tokenAccount = tool.ascii2letter(tokenAccount);
-              }
-            }
+          } else {
+            tokenAccount = this.formatNonEvmTokenAccount(chainType, tokenAccount);
             if (options.wallet && options.wallet.getBalance) {
               balance = await options.wallet.getBalance(addr, tokenAccount);
             } else { // default iwan, if iwan do not support, throw exception and return 0
@@ -183,7 +188,7 @@ class StoremanService {
   async getAccountBalances(chainType, addr, assets, options) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     let result = {};
-    if (chainInfo._isEVM) { // support multicall
+    if (chainInfo._isEVM) { // evm support multicall
       let evmAddress = "";
       try { // convert xdc and tron variant address to standard evm address silently
         evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
@@ -247,14 +252,14 @@ class StoremanService {
             let tokens = []; // includes coin: 0x0000000000000000000000000000000000000000 => ""
             for (let asset in assets) {
               assetArray.push(asset);
-              tokens.push(tool.ascii2letter(tool.hexStrip0x(assets[asset].address)));
+              tokens.push(this.formatNonEvmTokenAccount(chainType, assets[asset].address));
             }
             balances = await options.wallet.getBalances(addr, tokens);
           } else {
             let ps = [];
             for (let asset in assets) {
               assetArray.push(asset);
-              ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
+              ps.push(options.wallet.getBalance(addr, this.formatNonEvmTokenAccount(chainType, assets[asset].address)));
             }
             balances = await Promise.all(ps);
           }
