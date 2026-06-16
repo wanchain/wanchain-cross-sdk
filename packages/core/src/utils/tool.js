@@ -404,7 +404,9 @@ const CustomizedScanBatchSize = {
   MATIC: 100,
   SEI: 500,
   FTM: 500,
-  ARETH: 128
+  ARETH: 128,
+  BASEETH: 500,
+  WORLDETH: 100
 };
 
 function getScanBatchSize(chainType) {
