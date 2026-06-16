@@ -28,7 +28,10 @@ class IndexedDbService {
     return items;
   }
 
-  async setCacheData(table, items) {
+  async setCacheData(table, items, clear = false) {
+    if (clear) {
+      await this.db[table].clear();
+    }
     await this.db[table].bulkPut(items);
   }
 }

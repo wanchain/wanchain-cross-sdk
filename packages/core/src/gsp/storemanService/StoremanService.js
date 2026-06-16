@@ -583,7 +583,7 @@ class StoremanService {
         return events.nextCursor;
       } else if (chainType === "TON") { // timestamp in second
         return parseInt(Date.now() / 1000);
-      } else if (chainInfo._isEVM) { // EVM chains return blockNumber
+      } else if (chainInfo._isEVM || ["ALGO", "DUST"].includes(chainType)) { // EVM and other iwan supported chains return blockNumber
         let blockNumber = await this.iwan.getBlockNumber(chainType);
         return blockNumber;
       } else {

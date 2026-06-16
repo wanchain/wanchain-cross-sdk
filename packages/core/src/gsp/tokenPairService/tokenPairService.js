@@ -10,8 +10,6 @@ class TokenPairService {
     this.mapTokenPairCfg = new Map(); // tokenPairId => tokenPairConfig
     this.assetLogo = new Map(); // name => logo
     this.chainLogo = new Map(); // type => logo
-    this.storageService = null; // init after token pair service
-    this.indexedDbService = null; // init after token pair service
     this.refresh = {};
     this.multiChainOrigToken = new Map();
     this.tokenIssuer = new Map();
@@ -36,6 +34,8 @@ class TokenPairService {
       this.eventService = frameworkService.getService("EventService");
       this.configService = frameworkService.getService("ConfigService");
       this.chainInfoService = frameworkService.getService("ChainInfoService");
+      this.storageService = frameworkService.getService("StorageService");
+      this.indexedDbService = frameworkService.getService("IndexedDbService");
       this.webStores = frameworkService.getService("WebStores");
       this.eventService.addEventListener("iwanConnected", this.onIwanConnected.bind(this));
       let tokenPairCfg = this.configService.getGlobalConfig("tokenPairCfg");
@@ -78,8 +78,6 @@ class TokenPairService {
   }
 
   async readAssetPair() {
-    this.storageService = this.frameworkService.getService("StorageService");
-    this.indexedDbService = this.frameworkService.getService("IndexedDbService");
     try {
       let ts0 = Date.now();
       let [tokenPairVer, chainLogoVer, tokenLogoVer] = await Promise.all([
@@ -234,9 +232,8 @@ class TokenPairService {
       tokenPairs = await this.iwan.getTokenPairs(options);
       if (this.indexedDbService) {
         tokenPairs.forEach(v => v._ver = tokenPairVer);
-        await this.indexedDbService.setCacheData("TokenPair", tokenPairs);
+        await this.indexedDbService.setCacheData("TokenPair", tokenPairs, true);
       }
-      // TODO: clear inactive tokenpairs
     }
     let ts = Date.now();
     console.debug("readTokenpairs %d consume %s ms", tokenPairs.length, ts - startTime);
