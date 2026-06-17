@@ -172,7 +172,7 @@ class ProcessBurnFromCardano {
         type: TX_TYPE.userBurn,
         tokenPairID: Number(tokenPairID),
         fromAccount: this.tool.splitMetadata(fromAccount),
-        toAccount,
+        toAccount: this.tool.splitMetadata(toAccount),
         smgID
       }
     };

@@ -208,11 +208,11 @@ function showUtxos(utxos, title = "") {
 }
 
 function splitMetadata(metadata, segmentLength = 64) {
-  let totalLength = metadata.length, result = [];
-  for (let cur = 0; cur < totalLength; cur = cur + segmentLength) {
+  let result = [];
+  for (let cur = 0; cur < metadata.length; cur = cur + segmentLength) {
     result.push(metadata.substr(cur, segmentLength));
   }
-  return result;
+  return (result.length === 1)? result[0] : result;
 }
 
 function sleep(time) {

@@ -563,6 +563,17 @@
       "walletChainId": 737373,
       "blockConfirmations": 3,
       "blockTime": 1
+    },
+    {
+      "chainId": "2147484676",
+      "chainType": "PLS",
+      "chainName": "PulseChain",
+      "symbol": "PLS",
+      "chainDecimals": 18,
+      "crossScAddr": "0x41B0AD2cC2c56950C52E7E34c4fFd6D9C4361284",
+      "walletChainId": 943,
+      "blockConfirmations": 1,
+      "blockTime": 10
     }
   ],
   "iWanConnectorService": {

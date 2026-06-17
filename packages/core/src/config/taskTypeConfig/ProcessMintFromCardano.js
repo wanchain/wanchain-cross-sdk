@@ -149,7 +149,7 @@ class ProcessAdaMintFromCardano {
         type: TX_TYPE.userLock,
         tokenPairID: Number(tokenPairID),
         fromAccount: this.tool.splitMetadata(fromAccount),
-        toAccount,
+        toAccount: this.tool.splitMetadata(toAccount),
         smgID
       }
     };

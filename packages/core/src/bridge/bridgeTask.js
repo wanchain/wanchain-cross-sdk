@@ -290,11 +290,13 @@ class BridgeTask {
     } else if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // SOL require minReserved, and need extra depositForBurn messageSentEventData rent
       requiredCoin = requiredCoin.plus("0.00295104");
     }
-    console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
-    if (coinBalance.lt(requiredCoin)) {
-      return "Insufficient balance";
+    if (requiredCoin.gt(0)) {
+      console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
+      if (coinBalance.lt(requiredCoin)) {
+        return "Insufficient balance";
+      }
     }
-    if (this._tokenPair.protocol === "Erc20") {
+    if ((this._tokenPair.protocol === "Erc20") && (requiredAsset !== 0)) {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       if (assetBalance.lt(requiredAsset)) {
         return "Insufficient asset";
