@@ -33,7 +33,7 @@
     "elliptic": "^6.5.4",
     "ethereumjs-util": "^7.0.7",
     "graphql": "16.6.0",
-    "identicon": "^3.1.1",
+    "identicon.js": "^2.3.3",
     "lowdb": "^1.0.0",
     "multicoin-address-validator": "^0.5.10",
     "ripple-keypairs": "^1.0.2",
