@@ -87,7 +87,12 @@ class ProcessCircleBridgeSolanaDeposit {
         let destCaller = this.tool.getPublicKey(); // zero-address
         let maxFee = this.tool.toBigNumber(params.operateFee);
         let minFinalityThreshold = 1000;
-        instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient, destCaller, maxFee, minFinalityThreshold).accounts(accounts).instruction();
+        if (params.isForward) {
+          let hookData = Buffer.from("636374702d666f7277617264000000000000000000000000000000000000001077616e2d627269646765000000000000", "hex"); // 'wan-bridge'
+          instruction = await crossProxyProgram.methods.relayCircleCctpWithHook(amount, destinationDomain, mintRecipient, destCaller, maxFee, minFinalityThreshold, hookData).accounts(accounts).instruction();
+        } else {
+          instruction = await crossProxyProgram.methods.relayCircleCctp(amount, destinationDomain, mintRecipient, destCaller, maxFee, minFinalityThreshold).accounts(accounts).instruction();
+        }
       } else {
         // proxy
         accounts.configAccount = cfgDataPda.publicKey;

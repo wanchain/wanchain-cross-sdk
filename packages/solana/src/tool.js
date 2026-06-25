@@ -22,7 +22,7 @@ function getStandardAddressInfo(address) {
     let decoded = bs58.decode(bs58Addr);
     let native = bs58Addr;
     let evm = asciiToHex(native);
-    let cctp = '0x' + Buffer.from(decoded).toString('hex');
+    let cctp = '0x' + decoded.toString('hex');
     return { native, evm, text: native, cctp, compact: cctp };
   } catch (err) {
     throw new Error("Solana address is invalid: " + address);

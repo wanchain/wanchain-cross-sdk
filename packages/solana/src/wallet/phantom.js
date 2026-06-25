@@ -78,7 +78,7 @@ class Phantom {
       tx.sign([otherSigner]);
     }
     let provider = this.getProvider();
-    let { signature } = await provider.signAndSendTransaction(tx, { skipPreflight: true });
+    let { signature } = await provider.signAndSendTransaction(tx, { skipPreflight: false });
     return signature;
   }
 

@@ -136,9 +136,21 @@ class TxGeneratorService {
     let destInBytes32 = '0x' + tool.hexStrip0x(userAccount).toLowerCase().padStart(64, '0');
     let data;
     if (options.isV2) {
-      let anyCaller = '0x' + '0'.repeat(64);
+      let anyCaller = '0x0000000000000000000000000000000000000000000000000000000000000000'; // 32 bytes
       if (options.isForward) {
-        let hookData = "0x636374702d666f72776172640000000000000000000000000000000000000000";
+        let magicBytes = Buffer.alloc(24);
+        magicBytes.write("cctp-forward", "utf-8");
+        let version = Buffer.alloc(4); // default 0
+        let length = Buffer.alloc(4); // default 0
+        let fields = [magicBytes, version, length];
+        if ((destDomain === 5) && options.isSetupRecipient) {
+          length.writeUInt32BE(33);
+          let ataFlag = Buffer.from([1]);
+          let sol = this.configService.getExtension("SOL");
+          let ownerBytes = Buffer.from(sol.tool.getPublicKey(options.toAddr).toBytes());
+          fields.push(ataFlag, ownerBytes);
+        }
+        let hookData = "0x" + Buffer.concat(fields).toString("hex");
         data = crossScInst.methods.depositForBurnWithHook(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000, hookData).encodeABI();
       } else {
         data = crossScInst.methods.depositForBurn(value, destDomain, destInBytes32, tokenAccount, anyCaller, options.operateFee, 1000).encodeABI();

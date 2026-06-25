@@ -70,6 +70,7 @@ class UniSatWallet {
       return txid;
     } catch (e) {
       console.log(e);
+      throw e;
     }
   }
 

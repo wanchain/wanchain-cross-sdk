@@ -70,6 +70,22 @@ class Keplr {
     return balance;
   }
 
+  async getBalances(addr, denoms) {
+    let assets = {};
+    let coin = (DefaultChainInfo[this.chainId] && DefaultChainInfo[this.chainId].denom) || "uatom";
+    denoms.forEach(v => {
+      assets[v || coin] = "0";
+    })
+    let client = await this.getStargateClient();
+    let balances = await client.getAllBalances(addr);
+    for (let b of balances) {
+      if (assets[b.denom] !== undefined) {
+        assets[b.denom] = b.amount;
+      }
+    }
+    return denoms.map(v => assets[v || coin]);
+  }
+
   async sendTransaction(messages, options) { // options = {memo, timeoutHeight, gasPrice}
     options = options || {};
     let memo = options.memo || "";

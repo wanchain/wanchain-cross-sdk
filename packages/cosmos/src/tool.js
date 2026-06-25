@@ -16,8 +16,8 @@ const AddressPrefix = {
 
 function validateAddress(address, options = {}) {
   try {
-    encoding.fromBech32(address);
-    return (address.indexOf(AddressPrefix[options.chain]) === 0);
+    let addr = encoding.fromBech32(address);
+    return (addr.prefix === AddressPrefix[options.chain]);
   } catch (err) {
     // console.error("cosmos validateAddress %s %s error: %O", options.chain, address, err);
     return false;

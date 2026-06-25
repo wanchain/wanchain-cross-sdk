@@ -481,7 +481,7 @@
       "chainName": "Shido",
       "symbol": "SHIDO",
       "chainDecimals": 18,
-      "crossScAddr": "0x08bad1A48b0B08Bf769f83ba30c1DaD0F8Bb8b6B",
+      "crossScAddr": "0x37d00FA5C8D9A18fa18493fC0A6c90Bca8aFf9A0",
       "walletChainId": 9007,
       "blockConfirmations": 6,
       "blockTime": 2
@@ -563,6 +563,17 @@
       "walletChainId": 737373,
       "blockConfirmations": 3,
       "blockTime": 1
+    },
+    {
+      "chainId": "2147484676",
+      "chainType": "PLS",
+      "chainName": "PulseChain",
+      "symbol": "PLS",
+      "chainDecimals": 18,
+      "crossScAddr": "0x41B0AD2cC2c56950C52E7E34c4fFd6D9C4361284",
+      "walletChainId": 943,
+      "blockConfirmations": 1,
+      "blockTime": 10
     }
   ],
   "iWanConnectorService": {

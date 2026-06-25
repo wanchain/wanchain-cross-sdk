@@ -3,8 +3,6 @@ import tool from "../../utils/tool.js";
 import axios from "axios";
 import util from "util";
 
-const API_SERVER_SCAN_CHAINS = ["XRP", "DOT", "ADA", "PHA", "ATOM", "NOBLE", "KAVA", "SOL"];
-
 // DepositForBurn
 const CctpEvmDepositEventHash = "0x2fa9ca894982930190727e75500a97d8dc500233a5065e0f3126c48fbe0343c0"; // v1
 
@@ -128,6 +126,16 @@ class StoremanService {
     }
   }
 
+  formatNonEvmTokenAccount(chainType, tokenAccount) { // format tokenPair non-evm token account for wallet to query balance
+    if (!["ALGO"].includes(chainType)) { // tokenAccount is encoded as ascii by default except some chains
+      tokenAccount = tool.hexStrip0x(tokenAccount);
+      if (!["DUST"].includes(chainType)) {
+        tokenAccount = tool.ascii2letter(tokenAccount);
+      }
+    }
+    return tokenAccount;
+  }
+
   async getAccountBalance(assetPairId, chainType, addr, options = {}) {
     try {
       let tokenPairService = this.frameworkService.getService("TokenPairService");
@@ -158,13 +166,13 @@ class StoremanService {
         } else { // Erc20, Erc721
           if (chainInfo._isEVM) {
             balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
-          } else if (options.wallet && options.wallet.getBalance) { // non EVM, tokenAccount is encoded as ascii by default
-            balance = await options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(tokenAccount)));
-          } else { // default iwan, if iwan do not support, throw exception and return 0
-            if (chainType !== "ALGO") { // defalut decode except ALGO
-              tokenAccount = tool.ascii2letter(tool.hexStrip0x(tokenAccount));
+          } else {
+            tokenAccount = this.formatNonEvmTokenAccount(chainType, tokenAccount);
+            if (options.wallet && options.wallet.getBalance) {
+              balance = await options.wallet.getBalance(addr, tokenAccount);
+            } else { // default iwan, if iwan do not support, throw exception and return 0
+              balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
             }
-            balance = await this.iwan.getTokenBalance(chainType, addr, tokenAccount);
           }
         }
       }
@@ -180,7 +188,7 @@ class StoremanService {
   async getAccountBalances(chainType, addr, assets, options) {
     let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
     let result = {};
-    if (chainInfo._isEVM) { // support multicall
+    if (chainInfo._isEVM) { // evm support multicall
       let evmAddress = "";
       try { // convert xdc and tron variant address to standard evm address silently
         evmAddress = tool.getStandardAddressInfo(chainType, addr, this.configService.getExtension(chainType)).evm;
@@ -244,14 +252,14 @@ class StoremanService {
             let tokens = []; // includes coin: 0x0000000000000000000000000000000000000000 => ""
             for (let asset in assets) {
               assetArray.push(asset);
-              tokens.push(tool.ascii2letter(tool.hexStrip0x(assets[asset].address)));
+              tokens.push(this.formatNonEvmTokenAccount(chainType, assets[asset].address));
             }
             balances = await options.wallet.getBalances(addr, tokens);
           } else {
             let ps = [];
             for (let asset in assets) {
               assetArray.push(asset);
-              ps.push(options.wallet.getBalance(addr, tool.ascii2letter(tool.hexStrip0x(assets[asset].address))));
+              ps.push(options.wallet.getBalance(addr, this.formatNonEvmTokenAccount(chainType, assets[asset].address)));
             }
             balances = await Promise.all(ps);
           }
@@ -566,25 +574,24 @@ class StoremanService {
   }
 
   async getChainBlockNumber(chainType, options = {}) {
-    if (API_SERVER_SCAN_CHAINS.includes(chainType)) { // scan by apiServer, do not need blockNumber
-      return 0;
-    }
     try {
+      let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
       if (chainType === "SUI") { // cursor
-        let chainInfo = this.chainInfoService.getChainInfoByType("SUI");
         let scAddr = options.bridge ? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
         let moduleName = options.bridge ? "fee_collector" : "cross";
         let events = await this.iwan.getScEvent("SUI", scAddr, [], { moduleName, order: 'descending', limit: options.rewind || 1 });
         return events.nextCursor;
       } else if (chainType === "TON") { // timestamp in second
         return parseInt(Date.now() / 1000);
-      } else { // EVM chains return blockNumber 
+      } else if (chainInfo._isEVM || ["ALGO", "DUST"].includes(chainType)) { // EVM and other iwan supported chains return blockNumber
         let blockNumber = await this.iwan.getBlockNumber(chainType);
         return blockNumber;
+      } else {
+        return 0; // scan by apiServer, do not need blockNumber
       }
     } catch (err) {
       console.log("%s getChainBlockNumber error: %O", chainType, err);
-      return 0; // should retry later
+      return 0; // maybe should retry later
     }
   }
 

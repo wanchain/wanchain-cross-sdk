@@ -142,7 +142,7 @@ class BridgeTask {
   }
 
   async _checkFee(isSubsidy) {
-    let options = { protocol: this._tokenPair.protocol, address: [this._fromAccount || "", this._toAccount] };
+    let options = { protocol: this._tokenPair.protocol, address: {from: this._fromAccount, to: this._toAccount} };
     let isErc20 = (this._tokenPair.protocol === "Erc20");
     if (!isErc20) {
       options.batchSize = this._amount.length;
@@ -204,7 +204,7 @@ class BridgeTask {
       console.debug("%s %s %s quota: %O", this._direction, this._amount, this._tokenPair.readableSymbol, this._quota);
       let networkFee = tool.parseFee(this._fee, this._amount, this._tokenPair.readableSymbol, { feeType: "networkFee" });
       let agentAmount = new BigNumber(this._amount).minus(networkFee); // use agent amount to check maxQuota and minValue, which include agentFee, exclude networkFee
-      if (agentAmount.gt(this._quota.maxQuota)) {
+      if (agentAmount.gt(this._quota.maxQuota)) { // it is correct even maxQuota is Infinity
         return "Exceed maxQuota";
       } else if (agentAmount.lt(this._quota.minQuota)) {
         return "Amount is too small";
@@ -290,11 +290,13 @@ class BridgeTask {
     } else if ((chainType === "SOL") && (this._tokenPair.bridge === "Circle")) { // SOL require minReserved, and need extra depositForBurn messageSentEventData rent
       requiredCoin = requiredCoin.plus("0.00295104");
     }
-    console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
-    if (coinBalance.lt(requiredCoin)) {
-      return "Insufficient balance";
+    if (requiredCoin.gt(0)) {
+      console.debug("required coin balance: %s/%s", requiredCoin.toFixed(), coinBalance.toFixed());
+      if (coinBalance.lt(requiredCoin)) {
+        return "Insufficient balance";
+      }
     }
-    if (this._tokenPair.protocol === "Erc20") {
+    if ((this._tokenPair.protocol === "Erc20") && (requiredAsset !== 0)) {
       console.debug("required asset balance: %s/%s", requiredAsset, assetBalance.toFixed());
       if (assetBalance.lt(requiredAsset)) {
         return "Insufficient asset";

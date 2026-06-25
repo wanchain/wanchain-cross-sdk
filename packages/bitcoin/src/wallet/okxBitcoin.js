@@ -1,3 +1,5 @@
+import BigNumber from 'bignumber.js'
+
 class OkxBitcoinWallet {
   constructor(network, cb) {
     if (window.okxwallet?.bitcoin) {
@@ -63,18 +65,6 @@ class OkxBitcoinWallet {
     }
   }
 
-  async accountsChanged(addrs) {
-    let accounts;
-    if (this.network === 'mainnet') {
-      accounts = addrs;
-    } else {
-      const wallet = window.okxwallet.bitcoinTestnet;
-      accounts = await wallet.connect();
-      accounts = [accounts.address];
-    }
-    await this.setAccount(accounts);
-  }
-
   async getBalance() {
     try {
       const res = await this.wallet.getBalance();
@@ -99,8 +89,8 @@ class OkxBitcoinWallet {
       accounts = addrs;
     } else {
       const wallet = window.okxwallet.bitcoinTestnet;
-      accounts = await wallet.connect();
-      accounts = [accounts.address];
+      const connectRes = await wallet.connect();
+      accounts = [connectRes.address];
     }
     await this.setAccount(accounts);
   }
@@ -121,6 +111,7 @@ class OkxBitcoinWallet {
       return txid.txhash;
     } catch (e) {
       console.error(e);
+      throw e;
     }
   }
 }

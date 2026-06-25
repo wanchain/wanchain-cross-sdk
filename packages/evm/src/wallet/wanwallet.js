@@ -9,7 +9,7 @@ class WanWallet {
   }
 
   async getChainId() {
-    const chainId = await this.eth.getChainId();
+    const chainId = await this.web3.eth.getChainId();
     return chainId;
   }
 
