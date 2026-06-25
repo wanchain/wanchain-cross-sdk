@@ -1,4 +1,4 @@
-class Lace {
+class OneAm {
   constructor(network) {
     this.name = "Lace Midnight";
     this.network = (network === "mainnet") ? "mainnet" : "preprod";
@@ -16,8 +16,13 @@ class Lace {
       let addr = await wallet.getUnshieldedAddress();
       return [addr.unshieldedAddress];
     } catch (err) {
-      console.error("%s not installed or not enabled: %O", this.name, err);
-      throw new Error("Not installed or not enabled");
+      let errMsg = err.message;
+      if (errMsg.indexOf("Wallet is syncing") >= 0) {
+        throw new Error(errMsg);
+      } else {
+        console.error("%s not installed or not enabled: %O", this.name, err);
+        throw new Error("Not installed or not enabled");
+      }
     }
   }
 
@@ -70,14 +75,9 @@ class Lace {
   }
 
   async connect() { // wrap wallet
-    for (let w of Object.values(window.midnight)) {
-      if (w.name === "lace") {
-        let wallet = await w.connect(this.network);
-        return wallet;
-      }
-    }
-    return null;
+    let wallet = await window.midnight["1am"].connect(this.network);
+    return wallet;
   }
 }
 
-export default Lace;
+export default OneAm;

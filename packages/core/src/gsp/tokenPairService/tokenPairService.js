@@ -33,6 +33,7 @@ class TokenPairService {
       this.iwan = frameworkService.getService("iWanConnectorService");
       this.eventService = frameworkService.getService("EventService");
       this.configService = frameworkService.getService("ConfigService");
+      this.network = this.configService.getNetwork();
       this.chainInfoService = frameworkService.getService("ChainInfoService");
       this.storageService = frameworkService.getService("StorageService");
       this.indexedDbService = frameworkService.getService("IndexedDbService");
@@ -222,9 +223,8 @@ class TokenPairService {
     if (tokenPairs.length) { // maybe indexedDb TokenPair is cleared
       console.debug("all tokenpair hit cache");
     } else {
-      let network = this.configService.getNetwork();
       let options;
-      if (network === "mainnet") {
+      if (this.network === "mainnet") {
         options = this.isTestMode ? { tags: ["bridgeBeta"] } : { tags: ["bridge"] };
       } else {
         options = { isAllTokenPairs: true };
@@ -490,12 +490,16 @@ class TokenPairService {
     }
   }
 
-  getBridgeInfo(bridges) {
+  getBridgeInfo(bridges, fromChainType, toChainType) {
     let bridge = '', routes = []; // default WanBridge, bridge keep empty for compatible
     if (bridges && bridges[0]) { // only cctp now, bridges is ['CCTPV1'] or ['CCTPV2'], iwan only fill the prefer one, not both
       if (bridges[0].indexOf('CCTP') >= 0) {
         bridge = 'Circle';
-        routes = bridges;
+        if ((bridges[0] === 'CCTPV2') && (this.network === "mainnet") && (!this.isTestMode) && [fromChainType, toChainType].includes('SOL')) {
+          routes = ['CCTPV1'];
+        } else {
+          routes = bridges;
+        }
       }
     }
     return { bridge, routes };
@@ -514,7 +518,7 @@ class TokenPairService {
       tokenPair.toDecimals = tokenPair.decimals || 0; // erc721 has no decimals
       tokenPair.fromDecimals = tokenPair.fromDecimals || tokenPair.toDecimals;
       tokenPair.protocol = tokenPair.toAccountType || "Erc20"; // fromAccountType always be the same as toAccountType
-      let bi = this.getBridgeInfo(tokenPair.bridge); // rewrite bridge filed
+      let bi = this.getBridgeInfo(tokenPair.bridge, tokenPair.fromScInfo.chainType, tokenPair.toScInfo.chainType); // rewrite bridge filed
       tokenPair.bridge = bi.bridge;
       tokenPair.routes = bi.routes;
       try {
