@@ -16,11 +16,11 @@ class OneAm {
       let addr = await wallet.getUnshieldedAddress();
       return [addr.unshieldedAddress];
     } catch (err) {
+      console.error("1am wallet getUnshieldedAddress error: %O", err);
       let errMsg = err.message;
       if (errMsg.indexOf("Wallet is syncing") >= 0) {
         throw new Error(errMsg);
       } else {
-        console.error("%s not installed or not enabled: %O", this.name, err);
         throw new Error("Not installed or not enabled");
       }
     }
