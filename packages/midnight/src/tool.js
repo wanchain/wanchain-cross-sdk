@@ -1,4 +1,4 @@
-import { CrossChainApi, initNetwork, getUserAddressFromUnshieldAddress } from 'midnight-crosschain';
+import { CrossChainApi, initNetwork, getUserAddressFromUnshieldAddress, getUnshieldAddressFromUserAddress } from 'midnight-crosschain';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
 import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
@@ -91,10 +91,12 @@ async function setApiProviders(network, wallet = null) {
   }
 }
 
-function validateAddress(address) {
+function validateAddress(address, options) {
   try {
-    getUserAddressFromUnshieldAddress(address);
-    return true;
+    let userAddr = getUserAddressFromUnshieldAddress(address);
+    let network = (options.network === 'mainnet') ? "mainnet" : "preprod";
+    let unshieldAddr = getUnshieldAddressFromUserAddress(Buffer.from(userAddr).toString("hex"), network);
+    return (unshieldAddr === address);
   } catch (err) {
     // console.error("midnight validateAddress %s error: %O", address, err);
     return false;
