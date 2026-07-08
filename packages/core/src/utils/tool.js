@@ -414,6 +414,40 @@ function getScanBatchSize(chainType) {
   return CustomizedScanBatchSize[chainType] || 1000;
 }
 
+function parseProtobufStruct(data) {
+  if (!data) {
+    return null;
+  }
+  if (data.kind && typeof data.kind === 'object') {
+    return parseProtobufStruct(data.kind);
+  }
+  if (data.oneofKind === "structValue" && data.structValue?.fields) {
+    return parseProtobufStruct(data.structValue);
+  }
+  if (data.fields) {
+    const result = {};
+    for (const [key, field] of Object.entries(data.fields)) {
+      const kind = field?.kind;
+      if (kind && kind.oneofKind) {
+        const valueType = kind.oneofKind;
+        const rawValue = kind[valueType];
+        if (valueType === "structValue") {
+          result[key] = parseProtobufStruct(rawValue);
+        } else if (valueType === "listValue") {
+          result[key] = (rawValue.values || []).map((v) => {
+            if (v.oneofKind) return v[v.oneofKind];
+            return parseProtobufStruct(v);
+          });
+        } else { // basic: stringValue, numberValue, boolValue
+          result[key] = rawValue;
+        }
+      }
+    }
+    return result;
+  }
+  return data;
+}
+
 export { getCurTimestamp };
 export { checkTimeout };
 export { sleep };
@@ -441,6 +475,7 @@ export { timedPromise };
 export { decodeCardanoNftAssetName };
 export { checkTonTxSuccess };
 export { getScanBatchSize };
+export { parseProtobufStruct };
 
 export default {
   getCurTimestamp,
@@ -469,5 +504,6 @@ export default {
   timedPromise,
   decodeCardanoNftAssetName,
   checkTonTxSuccess,
-  getScanBatchSize
+  getScanBatchSize,
+  parseProtobufStruct
 };

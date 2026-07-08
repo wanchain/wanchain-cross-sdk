@@ -573,17 +573,12 @@ class StoremanService {
     }
   }
 
-  async getChainBlockNumber(chainType, options = {}) {
+  async getChainBlockNumber(chainType) {
     try {
       let chainInfo = this.chainInfoService.getChainInfoByType(chainType);
-      if (chainType === "SUI") { // cursor
-        let scAddr = options.bridge ? chainInfo[options.bridge + 'Bridge'].crossScAddr : chainInfo.crossScAddr;
-        let moduleName = options.bridge ? "fee_collector" : "cross";
-        let events = await this.iwan.getScEvent("SUI", scAddr, [], { moduleName, order: 'descending', limit: options.rewind || 1 });
-        return events.nextCursor;
-      } else if (chainType === "TON") { // timestamp in second
+      if (chainType === "TON") { // timestamp in second
         return parseInt(Date.now() / 1000);
-      } else if (chainInfo._isEVM || ["ALGO", "DUST"].includes(chainType)) { // EVM and other iwan supported chains return blockNumber
+      } else if (chainInfo._isEVM || ["ALGO", "DUST", "SUI"].includes(chainType)) { // EVM and other iwan supported chains return blockNumber
         let blockNumber = await this.iwan.getBlockNumber(chainType);
         return blockNumber;
       } else {
@@ -700,13 +695,16 @@ class StoremanService {
       let depositMsg = chainInfo.CircleBridge.messageTransmitter + "::send_message::MessageSent";
       let depositEvent = receipt.events.find(v => ((v.transactionModule === "deposit_for_burn") && (v.type === depositMsg)));
       if (depositEvent) {
-        console.log("SUI %s get depositEvent: %O", txHash, depositEvent);
-        let sui = this.configService.getExtension("SUI");
-        let cctpMsg = sui.tool.parseCctpDepositMessage(depositEvent.parsedJson.message);
-        console.log("SUI tx %s cctpMsg: %O", txHash, cctpMsg);
-        if (cctpMsg) {
-          result.depositNonce = cctpMsg.nonce;
-          result.depositAmount = cctpMsg.amount;
+        let event = tool.parseProtobufStruct(depositEvent.parsedJson);
+        console.debug("SUI %s get depositEvent: %O", txHash, event);
+        if (event && event.message) {
+          let sui = this.configService.getExtension("SUI");
+          let cctpMsg = sui.tool.parseCctpDepositMessage(event.message);
+          console.debug("SUI tx %s cctpMsg: %O", txHash, cctpMsg);
+          if (cctpMsg) {
+            result.depositNonce = cctpMsg.nonce;
+            result.depositAmount = cctpMsg.amount;
+          }
         }
       }
     } else { // evm v1

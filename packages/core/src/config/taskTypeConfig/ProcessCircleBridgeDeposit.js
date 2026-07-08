@@ -31,7 +31,7 @@ class ProcessCircleBridgeDeposit extends ProcessBase {
     let depositChain = direction ? tokenPair.fromChainType : tokenPair.toChainType;
     let depositChainInfo = direction ? tokenPair.fromScInfo : tokenPair.toScInfo;
     let checkChain = direction ? tokenPair.toChainType : tokenPair.fromChainType;
-    let blockNumber = await this.storemanService.getChainBlockNumber(checkChain, { bridge: "Circle" });
+    let blockNumber = await this.storemanService.getChainBlockNumber(checkChain);
     let txEventTopics = [
       params.isV2 ? "0x66a078553dce4e0d1dd6b47fd4499fdaa88bd907d075716da8782f4e7da50e71" : "0x6dce5b2406630dbc3a2633f31a15505733a9ede5169532aaab88ac01c77ff1e4", // DepositForBurnWithFee
     ];
