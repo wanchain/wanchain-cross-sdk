@@ -113,8 +113,7 @@ class CheckSuiTx {
           }
         } else { // rollback
           task.fromBlockNumber = latestBlockNumber;
-          console.debug("CheckSuiTx no new block %d/%d %s: taskId=%s, uniqueId=%s, ota=%s",
-            fromBlockNumber, latestBlockNumber, taskType, task.ccTaskId, task.uniqueID, task.oneTimeAddr || "n/a");
+          console.debug("CheckSuiTx no new block %d/%d %s: taskId=%s, uniqueId=%s", fromBlockNumber, latestBlockNumber, taskType, task.ccTaskId, task.uniqueID);
         }
       } catch (err) {
         console.error("CheckSuiTx block %d %s task %O error: %O", latestBlockNumber, taskType, task, err);
