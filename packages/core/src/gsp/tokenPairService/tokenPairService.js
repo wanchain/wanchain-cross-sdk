@@ -495,11 +495,7 @@ class TokenPairService {
     if (bridges && bridges[0]) { // only cctp now, bridges is ['CCTPV1'] or ['CCTPV2'], iwan only fill the prefer one, not both
       if (bridges[0].indexOf('CCTP') >= 0) {
         bridge = 'Circle';
-        if ((bridges[0] === 'CCTPV2') && (this.network === "mainnet") && (!this.isTestMode) && [fromChainType, toChainType].includes('SOL')) {
-          routes = ['CCTPV1'];
-        } else {
-          routes = bridges;
-        }
+        routes = bridges;
       }
     }
     return { bridge, routes };
