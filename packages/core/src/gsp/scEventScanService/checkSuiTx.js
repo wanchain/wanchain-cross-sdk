@@ -1,3 +1,4 @@
+import tool from "../../utils/tool.js";
 
 class CheckSuiTx {
   constructor(frameworkService) {
@@ -7,6 +8,7 @@ class CheckSuiTx {
 
   async init(chainInfo) {
     this.chainInfo = chainInfo;
+    this.scanBatchSize = 500;
     this.webStores = this.frameworkService.getService("WebStores");
     this.iwan = this.frameworkService.getService("iWanConnectorService");
     this.taskService = this.frameworkService.getService("TaskService");
@@ -51,7 +53,7 @@ class CheckSuiTx {
     if (count === 0) {
       return;
     }
-    let latestBlockNumber = await this.iwan.getBlockNumber("SUI"); // scan by cursor, blockNumber only for debug, do not call getChainBlockNumber
+    let latestBlockNumber = await this.iwan.getBlockNumber("SUI");
     if (latestBlockNumber === 0) { // failed
       console.error("CheckSuiTx %s get latest block number error", taskType);
       return;
@@ -67,17 +69,51 @@ class CheckSuiTx {
           tasks.splice(cur, 1);
           continue;
         }
-        let event = null;
-        console.debug("CheckSuiTx block %d %s: taskId=%s, uniqueId=%s, cursor=%O", latestBlockNumber, taskType, task.ccTaskId, task.uniqueID, task.fromBlockNumber);
-        if (task.taskType === "circleMINT") {
-          event = await this.scanCircleEvent(task);
-        } else {
-          event = await this.scanWanBridgeEvent(task);
+        if (task.fromBlockNumber == 0) { // retry get block number firstly
+          let delay = parseInt((Date.now() - task.ccTaskId) / 1000) * 10;
+          let blockNumber = latestBlockNumber - delay;
+          console.log("CheckSuiTx task %d %s retry blockNumber %d(+%d)", task.ccTaskId, taskType, blockNumber, delay);
+          if (blockNumber < 0) {
+            blockNumber = 1;
+          }
+          task.fromBlockNumber = blockNumber;
         }
-        if (event) {
-          await this.updateUIAndStorage(task, event.txHash, event.toAccount, event.value);
-          tasks.splice(cur, 1);
-          continue; // skip save task and process next job
+        let fromBlockNumber = task.fromBlockNumber;
+        if (latestBlockNumber >= fromBlockNumber) {
+          let toBlockNumber = fromBlockNumber + this.scanBatchSize - 1;
+          if (toBlockNumber > latestBlockNumber) {
+            toBlockNumber = latestBlockNumber;
+          }
+          // rewind on recent tx
+          if ((toBlockNumber + this.scanBatchSize) > latestBlockNumber) {
+            fromBlockNumber = fromBlockNumber - 100; // rewind default
+            if (fromBlockNumber < 1) {
+              fromBlockNumber = 1;
+            }
+            toBlockNumber = fromBlockNumber + this.scanBatchSize - 1;
+            if (toBlockNumber > latestBlockNumber) { // rewind max
+              toBlockNumber = latestBlockNumber;
+              fromBlockNumber = toBlockNumber - this.scanBatchSize + 1;
+              if (fromBlockNumber < 1) {
+                fromBlockNumber = 1;
+              }
+            }
+          }
+          let event = null;
+          console.debug("CheckSuiTx block %d-%d/%d %s: taskId=%s, uniqueId=%s", fromBlockNumber, toBlockNumber, latestBlockNumber, taskType, task.ccTaskId, task.uniqueID);
+          if (task.taskType === "circleMINT") {
+            event = await this.scanCircleEvent(task, fromBlockNumber, toBlockNumber);
+          } else {
+            event = await this.scanWanBridgeEvent(task, fromBlockNumber, toBlockNumber);
+          }
+          if (event) {
+            await this.updateUIAndStorage(task, event.txHash, event.toAccount, event.value);
+            tasks.splice(cur, 1);
+            continue; // skip save task and process next job
+          }
+        } else { // rollback
+          task.fromBlockNumber = latestBlockNumber;
+          console.debug("CheckSuiTx no new block %d/%d %s: taskId=%s, uniqueId=%s", fromBlockNumber, latestBlockNumber, taskType, task.ccTaskId, task.uniqueID);
         }
       } catch (err) {
         console.error("CheckSuiTx block %d %s task %O error: %O", latestBlockNumber, taskType, task, err);
@@ -86,49 +122,38 @@ class CheckSuiTx {
     }
   }
 
-  async scanWanBridgeEvent(task) {
-    if (task.fromBlockNumber == 0) { // retry get cursor firstly
-      let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
-      let cursor = await this.storemanService.getChainBlockNumber("SUI", { rewind: delay });
-      if (cursor) {
-        task.fromBlockNumber = cursor;
-        console.debug("scanWanBridgeEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
-      } else {
-        console.error("scanWanBridgeEvent task %d retry cursor error", task.ccTaskId);
-        return null;
-      }
-    }
-    let result = await this.iwan.getScEvent("SUI", this.chainInfo.crossScAddr, [], { moduleName: "cross", cursor: task.fromBlockNumber, limit: 1 });
-    let ccTxs = result.data;
-    for (let tx of ccTxs) {
-      let txHash = tx.id.txDigest;
-      let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
-      let msgType = (task.taskType === "MINT") ? this.SmgMintMsg : this.SmgReleaseMsg;
-      let smgEvent = receipt.events.find(v => ((v.transactionModule === "cross") && (v.type === msgType)));
-      if (smgEvent && smgEvent.parsedJson) {
-        let uniqueId = '0x' + Buffer.from(smgEvent.parsedJson.unique_id).toString('hex');
-        if (uniqueId === task.uniqueID) {
-          console.debug("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, smgEvent);
-          return { txHash, toAccount: smgEvent.parsedJson.recipient, value: smgEvent.parsedJson.amount };
+  async scanWanBridgeEvent(task, fromBlock, toBlock) {
+    let cursor = "";
+    for ( ; ; ) {
+      let result = await this.iwan.getScEvent("SUI", this.chainInfo.crossScAddr, [], { moduleName: "cross", order: "ascending", fromBlock, toBlock, cursor });
+      let ccTxs = result.data;
+      for (let tx of ccTxs) {
+        let txHash = tx.id.txDigest;
+        let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
+        let msgType = (task.taskType === "MINT") ? this.SmgMintMsg : this.SmgReleaseMsg;
+        let smgEvent = receipt.events.find(v => ((v.transactionModule === "cross") && (v.type === msgType)));
+        if (smgEvent) {
+          let event = tool.parseProtobufStruct(smgEvent.parsedJson);
+          if (event) {
+            let uniqueId = '0x' + Buffer.from(event.unique_id, 'base64').toString('hex');
+            if (uniqueId === task.uniqueID) {
+              console.debug("scanWanBridgeEvent task %d tx %s get smgEvent: %O", task.ccTaskId, txHash, event);
+              return { txHash, toAccount: event.recipient, value: event.amount };
+            }
+          }
         }
       }
+      if (result.hasNextPage && result.nextCursor) {
+        cursor = result.nextCursor;
+      } else {
+        break;
+      }
     }
-    task.fromBlockNumber = result.nextCursor;
+    task.fromBlockNumber = toBlock + 1;
     return null;
   }
 
-  async scanCircleEvent(task) {
-    if (task.fromBlockNumber == 0) { // retry get cursor firstly
-      let delay = parseInt((Date.now() - task.ccTaskId) / 1000); // max 50, sui sdk do not throw exception
-      let cursor = await this.storemanService.getChainBlockNumber("SUI", { bridge: "Circle", rewind: delay });
-      if (cursor) {
-        task.fromBlockNumber = cursor;
-        console.debug("scanCircleEvent task %d delay %ds retry cursor: %O", task.ccTaskId, delay, cursor);
-      } else {
-        console.error("scanCircleEvent task %d retry cursor error", task.ccTaskId);
-        return null;
-      }
-    }
+  async scanCircleEvent(task, fromBlock, toBlock) {
     if (task.depositNonce === undefined) {
       let deposit = await this.storemanService.parseCctpDeposit(task.fromChain, task.txHash, { ota: task.ota });
       if (deposit.depositNonce !== undefined) {
@@ -139,22 +164,33 @@ class CheckSuiTx {
         return null;
       }
     }
-    let result = await this.iwan.getScEvent("SUI", this.chainInfo.CircleBridge.crossScAddr, [], { moduleName: "fee_collector", cursor: task.fromBlockNumber, limit: 1 });
-    let ccTxs = result.data;
-    for (let tx of ccTxs) {
-      let txHash = tx.id.txDigest;
-      let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
-      let receiveEvent = receipt.events.find(v => ((v.transactionModule === "receive_message") && (v.type === this.cctpReceiveMsg)));
-      if (receiveEvent && receiveEvent.parsedJson) {
-        console.debug("scanCircleEvent task %d tx %s get receiveEvent: %O", task.ccTaskId, txHash, receiveEvent);
-        let sourceDomain = receiveEvent.parsedJson.source_domain; // number
-        let nonce = receiveEvent.parsedJson.nonce; // string
-        if ((sourceDomain == task.depositDomain) && (nonce == task.depositNonce)) {
-          return { txHash }; // no value or toAccount
+    let cursor = "";
+    for ( ; ; ) {
+      let result = await this.iwan.getScEvent("SUI", this.chainInfo.CircleBridge.crossScAddr, [], { moduleName: "fee_collector", order: "ascending", fromBlock, toBlock, cursor });
+      let ccTxs = result.data;
+      for (let tx of ccTxs) {
+        let txHash = tx.id.txDigest;
+        let receipt = await this.iwan.getTransactionReceipt("SUI", txHash);
+        let receiveEvent = receipt.events.find(v => ((v.transactionModule === "receive_message") && (v.type === this.cctpReceiveMsg)));
+        if (receiveEvent) {
+          let event = tool.parseProtobufStruct(receiveEvent.parsedJson);
+          if (event) {
+            let sourceDomain = event.source_domain; // number
+            let nonce = event.nonce; // string
+            if ((sourceDomain == task.depositDomain) && (nonce == task.depositNonce)) {
+              console.debug("scanCircleEvent task %d tx %s get receiveEvent: %O", task.ccTaskId, txHash, event);
+              return { txHash }; // no value or toAccount
+            }
+          }
         }
       }
+      if (result.hasNextPage && result.nextCursor) {
+        cursor = result.nextCursor;
+      } else {
+        break;
+      }
     }
-    task.fromBlockNumber = result.nextCursor;
+    task.fromBlockNumber = toBlock + 1;
     return null;
   }
 

@@ -44,7 +44,7 @@ const CctpMsgMapping = [
 
 function parseCctpDepositMessage(message) {
   try {
-    let hex = Buffer.from(message).toString('hex');
+    let hex = Buffer.from(message, 'base64').toString('hex');
     let begin = 0, msg = {};
     for (let i = 0; i < CctpMsgMapping.length; i++) {
       let end = begin + CctpMsgMapping[i][1];

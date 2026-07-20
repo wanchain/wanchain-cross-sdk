@@ -105,7 +105,7 @@ class ProcessCircleBridgeSolanaDeposit {
       let tx = await wallet.buildTransaction([unitLimit, instruction]);
       let txHash = await wallet.sendTransaction(tx, messageSentKeypair);
       this.webStores["crossChainTaskRecords"].finishTaskStep(params.ccTaskId, stepData.stepIndex, txHash, ""); // only update txHash, no result
-      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType, { bridge: "Circle" });
+      let blockNumber = await this.storemanService.getChainBlockNumber(params.toChainType);
       let checker = {
         chain: "SOL",
         ccTaskId: params.ccTaskId,
