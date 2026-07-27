@@ -35,7 +35,7 @@ class WanBridge extends EventEmitter {
   }
 
   async init(iwanAuth, options = {}) {
-    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2606231435", this.network, this.isTestMode, this.smgName, this.prefer);
+    console.debug("SDK: init, network: %s, isTestMode: %s, smgName: %s, prefer: %s, ver: 2607271650", this.network, this.isTestMode, this.smgName, this.prefer);
     try {
       this._service = new StartService();
       await this._service.init(this.network, this.stores, iwanAuth, Object.assign(options, { isTestMode: this.isTestMode, prefer: this.prefer }));
@@ -128,12 +128,6 @@ class WanBridge extends EventEmitter {
   async createTask(assetType, fromChainName, toChainName, amount, fromAccount, toAccount, options = {}) {
     console.debug("SDK: createTask at %s ms, assetType: %s, fromChainName: %s, toChainName: %s, amount: %O, fromAccount: %s, toAccount: %s, options: %O",
       tool.getCurTimestamp(), assetType, fromChainName, toChainName, amount, fromAccount, toAccount, this._getDebugOptions(options));
-    if ((this.network === "testnet") && (this.smgName.indexOf("dev") !== 0)) {
-      let devChains = ["Cosmos", "Kava", "Noble"];
-      if (devChains.includes(fromChainName) || devChains.includes(toChainName)) {
-        throw new Error("Only support dev group");
-      }
-    }
     let tokenPair = this._matchTokenPair(assetType, fromChainName, toChainName, options);
     let fromChainType = this.tokenPairService.getChainType(fromChainName);
     let wallet = options.wallet;
@@ -247,7 +241,7 @@ class WanBridge extends EventEmitter {
       } else {
         let smg = await this.getSmgInfo();
         quota = await this.storemanService.getStroremanGroupQuotaInfo(chainType, tokenPair.id, smg.id);
-        if (hideQuota && (assetType !== "NIGHT")) {
+        if (hideQuota) {
           quota.maxQuota = "0";
         }
       }

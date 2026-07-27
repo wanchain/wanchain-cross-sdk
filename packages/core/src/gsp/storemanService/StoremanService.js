@@ -27,16 +27,18 @@ class StoremanService {
         let toChainType = (fromChainType === tokenPair.fromChainType) ? tokenPair.toChainType : tokenPair.fromChainType;
         let decimals = (fromChainType === tokenPair.fromChainType) ? tokenPair.fromDecimals : tokenPair.toDecimals;
         let network = this.configService.getNetwork();
+        let minQuotaLimit = undefined;
         if ((tokenPair.ancestorName === "NIGHT") && (network === "mainnet") && !this.isTestMode) {
-          let minQuota = (toChainType === "ADA")? "10000" : "0";
-          return {maxQuota: Infinity, minQuota};
+          if (toChainType === "ADA") {
+            minQuotaLimit = "10000";
+          }
         }
         let ignoreReservation = (this.isTestMode && (network === "mainnet"));
         let quota = await this.iwan.getStoremanGroupQuota(fromChainType, storemanGroupId, [tokenPair.ancestorSymbol], toChainType, ignoreReservation);
         // console.debug("getStroremanGroupQuotaInfo: %s, %s, %s, %s, %O", fromChainType, storemanGroupId, tokenPair.ancestorSymbol, toChainType, quota);
         let maxQuota = new BigNumber(quota[0].maxQuota).div(Math.pow(10, parseInt(decimals)));
         let minQuota = new BigNumber(quota[0].minQuota).div(Math.pow(10, parseInt(decimals)));
-        return { maxQuota: maxQuota.toFixed(), minQuota: minQuota.toFixed() };
+        return { maxQuota: maxQuota.toFixed(), minQuota: minQuotaLimit || minQuota.toFixed() };
       }
     } catch (err) {
       console.error("getStroremanGroupQuotaInfo error: %O", err);
