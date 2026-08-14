@@ -12,8 +12,7 @@ class CheckApiServerTxService {
     this.webStores = frameworkService.getService("WebStores");
     this.eventService = frameworkService.getService("EventService");
     let configService = frameworkService.getService("ConfigService");
-    let apiServerConfig = configService.getGlobalConfig("apiServer");
-    this.apiServerUrl = apiServerConfig.url;
+    this.apiServerConfig = configService.getGlobalConfig("apiServer");
     let chainInfoService = frameworkService.getService("ChainInfoService");
     let chainInfo = chainInfoService.getChainInfoByType(this.chainType);
     if (chainInfo) { // maybe not configured on mainnet
@@ -38,14 +37,19 @@ class CheckApiServerTxService {
       // console.log("this.checkArray:", this.checkArray);
       let storageService = this.frameworkService.getService("StorageService");
       let count = this.checkArray.length;
-      let url = this.apiServerUrl + "/api/" + this.chainType.toLowerCase() + "/queryTxInfoBySmgPbkHash/";
+      let url = this.apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/queryTxInfoBySmgPbkHash/";
       for (let i = 0; i < count; i++) {
         let index = count - i - 1;
         let task = this.checkArray[index];
         try {
           if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
             let queryUrl = url + task.smgPublicKey + "/" + task.txHash.toLowerCase();
-            let ret = await axios.get(queryUrl);
+            let ret = await axios.get(queryUrl, {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': this.apiServerConfig.auth
+              }
+            });
             console.debug("%s %s: %O", this.serviceName, queryUrl, ret.data);
             if (ret.data.success && ret.data.data) {
               task.uniqueID = ret.data.data.hashX;

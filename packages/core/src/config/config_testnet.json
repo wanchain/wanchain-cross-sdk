@@ -593,7 +593,8 @@
     "taskInterval": 3000
   },
   "apiServer": {
-    "url": "https://bridgeapi-testnet.wanchain.org:9004"
+    "url": "https://bridgeapi-testnet.wanchain.org:9004",
+    "auth": "Basic QnJvd3NlcjpCcm9WNjI4YzFEUXBuZWoxN3FOWFlvUjJWdER0UnVwTlRkY3d0bURXM3FCUg=="
   },
   "noEthChainInfo": [
     {

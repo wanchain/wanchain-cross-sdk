@@ -47,7 +47,12 @@ class CheckXrpTxService {
         if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
           let queryUrl = url + task.tagId;
           console.debug("CheckXrpTxService queryUrl:", queryUrl);
-          let ret = await axios.get(queryUrl);
+          let ret = await axios.get(queryUrl, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': this.apiServerConfig.auth
+            }
+          });
           if (ret.data.success === true && ret.data.data !== null) {
             task.fromChain = "XRP";
             task.uniqueID = "0x" + ret.data.data.xrpHash.toLowerCase();

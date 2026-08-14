@@ -72,7 +72,12 @@ class CheckApiServerTx {
 
   async queryApiServer(task) {
     let txUrl = this.apiServerConfig.url + "/api/" + this.chainType.toLowerCase() + "/queryTxInfoByChainHash/" + task.fromChain + "/" + task.uniqueID;
-    let res = await axios.get(txUrl);
+    let res = await axios.get(txUrl, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': this.apiServerConfig.auth
+      }
+    });
     console.debug("%s apiServer %s: %O", this.serviceName, txUrl, res.data);
     if (res.data.success && res.data.data) {
       let data = res.data.data;

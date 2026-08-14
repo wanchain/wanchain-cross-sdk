@@ -121,7 +121,12 @@ class ProcessMintBtcFromBitcoin {
         networkFee: params.fee,
         value: params.value
       };
-      let ret = await axios.post(url, data);
+      let ret = await axios.post(url, data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': apiServerConfig.auth
+        }
+      });
       if (ret.data.success === true) {
         let serviceName = "Check" + fromChainType.charAt(0).toUpperCase() + fromChainType.substr(1).toLowerCase() + "TxService";
         let checkTxService = this.frameworkService.getService(serviceName);

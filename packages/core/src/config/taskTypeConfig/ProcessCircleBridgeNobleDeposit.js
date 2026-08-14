@@ -5,8 +5,6 @@ class ProcessCircleBridgeNobleDeposit {
   constructor(frameworkService) {
     this.frameworkService = frameworkService;
     this.storemanService = frameworkService.getService("StoremanService");
-    let configService = frameworkService.getService("ConfigService");
-    this.apiServer = configService.getGlobalConfig("apiServer");
   }
 
   async process(stepData, wallet) {

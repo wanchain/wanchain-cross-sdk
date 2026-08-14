@@ -30,7 +30,12 @@ class CheckBtcTx {
       };
       let addrField = this.chainType.toLowerCase() + "Addr";
       data[addrField] = task.toAddr;
-      let ret = await axios.post(url, data);
+      let ret = await axios.post(url, data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': this.apiServerConfig.auth
+        }
+      });
       if (ret.data.success === true) {
         console.log("%s save to apiServer success", this.serviceName);
         this.checkAry.unshift(task);
@@ -59,7 +64,12 @@ class CheckBtcTx {
         let task = this.checkAry[index];
         if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
           let txUrl = url + task.uniqueID;
-          let ret = await axios.get(txUrl);
+          let ret = await axios.get(txUrl, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': this.apiServerConfig.auth
+            }
+          });
           console.debug("%s %s ret.data: %O", this.serviceName, txUrl, ret.data);
           if (ret.data.success && ret.data.data) {
             let eventService = this.frameworkService.getService("EventService");
