@@ -44,6 +44,7 @@ class ConfigService {
   async init(network, options) {
     this.network = network;
     this.curConfig = config[network];
+    this.curConfig.apiServer.auth = options.apiServerAuth || '';
     // console.debug(this.curConfig);
     await this._initExtensions(options.extensions || []);
   }
