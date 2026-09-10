@@ -610,11 +610,16 @@ class StoremanService {
   }
 
   async registerSolWalletAddress(ataAddr, walletAddr) {
-    let apiServer = this.configService.getGlobalConfig("apiServer");
-    let url = apiServer.url + "/api/sol/addCctpWalletAddr";
+    let apiServerConfig = this.configService.getGlobalConfig("apiServer");
+    let url = apiServerConfig.url + "/api/sol/addCctpWalletAddr";
     let data = { ataAddr, walletAddr };
     try {
-      let ret = await axios.post(url, data);
+      let ret = await axios.post(url, data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': apiServerConfig.auth
+        }
+      });
       if (ret.data.success) {
         console.debug("registerSolWalletAddress: %O", data);
         return;

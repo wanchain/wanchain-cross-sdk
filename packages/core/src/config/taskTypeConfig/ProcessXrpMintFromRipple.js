@@ -43,7 +43,12 @@ class ProcessXrpMintFromRipple {
         networkFee: new BigNumber(params.fee).toFixed(),
         value: params.value
       };
-      let ret = await axios.post(url, data);
+      let ret = await axios.post(url, data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': apiServerConfig.auth
+        }
+      });
       if (ret.data.success === true) {
         data.tagId = ret.data.tagId;
         data.ccTaskId = params.ccTaskId;

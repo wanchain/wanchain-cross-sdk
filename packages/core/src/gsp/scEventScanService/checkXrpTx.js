@@ -26,7 +26,12 @@ class CheckXrpTx {
         chainAddr: task.fromAddr,
         chainHash: task.chainHash || task.txHash
       };
-      let ret = await axios.post(url, data);
+      let ret = await axios.post(url, data, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': this.apiServerConfig.auth
+        }
+      });
       if (ret.data.success === true) {
         console.log("CheckXrpTx save to apiServer success");
         this.checkAry.unshift(task);
@@ -55,7 +60,12 @@ class CheckXrpTx {
         let task = this.checkAry[index];
         if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
           let txUrl = url + task.uniqueID;
-          let ret = await axios.get(txUrl);
+          let ret = await axios.get(txUrl, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': this.apiServerConfig.auth
+            }
+          });
           console.debug("checkXrpTx %s ret.data: %O", txUrl, ret.data);
           if (ret.data.success && ret.data.data) {
             let eventService = this.frameworkService.getService("EventService");

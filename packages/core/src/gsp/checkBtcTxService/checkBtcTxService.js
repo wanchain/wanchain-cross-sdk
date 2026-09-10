@@ -70,7 +70,12 @@ class CheckBtcTxService {
         if (this.webStores.crossChainTaskRecords.getTaskById(task.ccTaskId)) {
           let queryUrl = url + task.oneTimeAddr;
           console.debug("%s queryUrl: %s", this.serviceName, queryUrl);
-          let ret = await axios.get(queryUrl);
+          let ret = await axios.get(queryUrl, {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': this.apiServerConfig.auth
+            }
+          });
           if (ret.data.success === true && ret.data.data !== null) {
             let txHashField = this.chainType.toLowerCase() + "Hash";
             let txHash = ret.data.data[txHashField];
